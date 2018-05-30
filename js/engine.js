@@ -2194,7 +2194,7 @@ function calculateRowColMasks() {
 }
 
 /* returns a bool indicating if anything changed */
-function processInput(dir,dontCheckWin,dontModify) {
+function processInput(dir,dontCheckWin,dontModify,bak) {
 	againing = false;
 
 	if (verbose_logging) { 
@@ -2202,15 +2202,18 @@ function processInput(dir,dontCheckWin,dontModify) {
 	 		consolePrint('Turn starts with no input.')
 	 	} else {
 	 		consolePrint('=======================');
-			consolePrint('Turn starts with input of ' + ['up','left','down','right','action'][dir]+'.');
+			consolePrint('Turn starts with input of ' + ['up','left','down','right','action','mouse'][dir]+'.');
 	 	}
 	}
+	consolePrint('test');
 
-	var bak = backupLevel();
+	if (bak==undefined) {
+		bak = backupLevel();
+	}
 
 	var playerPositions=[];
-    if (dir<=4) {
-    	if (dir>=0) {
+    if (dir<=5) {
+    	if (dir>=0 && dir<=4) {
 	        switch(dir){
 	            case 0://up
 	            {
@@ -2304,6 +2307,17 @@ function processInput(dir,dontCheckWin,dontModify) {
         	}
         	//play player cantmove sounds here
         }
+		
+		/// Taken from zarawesome, thank you :)
+	    if (level.commandQueue.indexOf('undo')>=0) {
+	    	if (verbose_logging) {
+	    		consoleCacheDump();
+	    		consolePrint('UNDO command executed, undoing turn.',true);
+			}
+			messagetext = "";
+    		DoUndo(true,false);
+    		return true;
+		}
 
 	    if (level.commandQueue.indexOf('cancel')>=0) {	
 	    	if (verbose_logging) { 

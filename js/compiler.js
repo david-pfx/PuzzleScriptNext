@@ -381,6 +381,22 @@ function generateExtraMembers(state) {
 	}
 	state.backgroundid=backgroundid;
 	state.backgroundlayer=backgroundlayer;
+	
+	var mouseLeftID;
+	if (state.objects.lmb===undefined) {
+		if ('lmb' in state.synonymsDict) {
+			var n = state.synonymsDict['lmb'];
+			var o = state.objects[n];
+			mouseLeftID = o.id;
+		} else {
+			var o=state.objects[state.idDict[1]];
+			mouseLeftID=o.id;
+			logError("lmb object/alias has to be defined");
+		}
+	} else {
+		mouseLeftID = state.objects.lmb.id;
+	}
+	state.mouseLeftID=mouseLeftID;
 }
 
 Level.prototype.calcBackgroundMask = function(state) {
@@ -494,7 +510,7 @@ var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/;
 //redeclaring here, i don't know why
-var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again"];
+var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo"];
 
 
 

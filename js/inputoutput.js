@@ -322,6 +322,33 @@ function levelEditorRightClick(event,click) {
 	}
 }
 
+var lastCoord = -1;
+
+function mouseLeft(event,click) {
+	if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
+		var coordIndex = mouseCoordY + mouseCoordX*level.height;
+		
+		if (click || lastCoord!==coordIndex) {
+			lastCoord = coordIndex;
+			var bak = backupLevel();
+			var cell = level.getCell(coordIndex);
+			cell.ibitset(state.mouseLeftID);
+			level.setCell(coordIndex, cell);
+			var inputdir = 5;
+			//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
+			try {
+				pushInput(inputdir);
+				if (processInput(inputdir,null,null,bak)) {
+					redraw();
+				}
+			} catch(e) {
+				consolePrint(e,true);
+				console.log(e);
+			}
+		}
+	}
+}
+
 var anyEditsSinceMouseDown = false;
 
 function onMouseDown(event) {
@@ -335,7 +362,10 @@ function onMouseDown(event) {
         	if (levelEditorOpened) {
         		anyEditsSinceMouseDown=false;
         		return levelEditorClick(event,true);
-        	}
+        	} else {
+        		anyEditsSinceMouseDown=false;
+				return mouseLeft(event,true);
+			}
         }
         dragging=false;
         rightdragging=false; 
@@ -463,7 +493,13 @@ function mouseMove(event) {
     		levelEditorRightClick(event,false);    		
     	}
 	    redraw();
-    }
+    } else {
+    	setMouseCoord(event);
+    	if (dragging) { 	
+    		mouseLeft(event,false);
+    	}
+	    redraw();
+	}
 
     //window.console.log("showcoord ("+ canvas.width+","+canvas.height+") ("+x+","+y+")");
 }
