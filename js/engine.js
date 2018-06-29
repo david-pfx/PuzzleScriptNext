@@ -2236,7 +2236,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	 	}
 	}
 
-	var bak = backupLevel();
+	if(!solving) bak = backupLevel();
 
 	var playerPositions=[];
     if (dir<=4) {
@@ -2329,7 +2329,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	    			consolePrint('require_player_movement set, but no player movement detected, so cancelling turn.');
 	    			consoleCacheDump();
         		}
-        		backups.push(bak);
+        		if(!solving) backups.push(bak);
         		DoUndo(true,false);
         		return false;
         	}
@@ -2344,7 +2344,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	    		var r = level.commandQueueSourceRules[level.commandQueue.indexOf('cancel')];
 	    		consolePrintFromRule('CANCEL command executed, cancelling turn.',r,true);
 			}
-    		backups.push(bak);
+    		if(!solving) backups.push(bak);
 			messagetext = "";
     		DoUndo(true,false);
     		tryPlayCancelSound();
@@ -2357,7 +2357,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	    		consolePrintFromRule('RESTART command executed, reverting to restart state.',r);
 	    		consoleCacheDump();
 			}
-    		backups.push(bak);
+    		if(!solving) backups.push(bak);
 			messagetext = "";
 	    	DoRestart(true);
     		return true;
@@ -2374,12 +2374,12 @@ function processInput(dir,dontDoWin,dontModify) {
 	        		if (verbose_logging) {
 	        			consoleCacheDump();
 	        		}
-	        		backups.push(bak);
+	        		if(!solving) backups.push(bak);
 	        		DoUndo(true,false);
 					return true;
 				} else {
 					if (dir!==-1) {
-	    				backups.push(bak);
+	    				if(!solving) backups.push(bak);
 	    			}
 	    			modified=true;
 	    		}
@@ -2423,7 +2423,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	 		}  	
 			if (unitTesting===false) {
 				if (command==='message') {
-					showTempMessage();
+					if(!solving) showTempMessage();
 				}
 			} else {
 				messagetext = "";
