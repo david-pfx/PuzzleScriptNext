@@ -1,13 +1,14 @@
-PuzzleScript
-============
+Solver for PuzzleScript
+=======================
 
-Open Source HTML5 Puzzle Game Engine
+A fork of Stephen Lavelle's Open Source HTML5 Puzzle Game Engine.
 
-Try it out at https://www.puzzlescript.net
+For now it adds a basic solver, using BFS and a priority queue based on a static scoring of positions.
 
------
+If it results useful to enough people perhaps I will add a more dynamic scoring system later.
 
-Dev instructions here - https://groups.google.com/forum/#!searchin/puzzlescript/development/puzzlescript/yptIpY9hlng/cjfrOPy_4jcJ
+Try it out at https://marcosdon.github.io/PuzzleScriptWithSolver/
+
 
 -----
 
