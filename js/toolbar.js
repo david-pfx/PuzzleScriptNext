@@ -3,6 +3,14 @@
 // If you’re running from another host name, sharing might not work.
 
 
+function solveClick() {
+	solve();
+}
+
+function cancelClick() {
+	stopSolving();
+}
+
 function runClick() {
 	clearConsole();
 	compile(["restart"]);

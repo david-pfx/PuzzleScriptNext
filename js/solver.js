@@ -16,6 +16,7 @@ var distanceTable;
 
 async function solve() {
 	if(solving) return;
+	if(textMode || state.levels.length === 0) return;
 	precalcDistances();
 	abortSolver = false;
 	muted = true;
@@ -41,6 +42,9 @@ async function solve() {
 	var queue = new FastPriorityQueue(byScoreAndLength);
 	queue.add([0, level.objects.slice(0), ""]);
 	consolePrint("searching...");
+	var solvingProgress = document.getElementById("solvingProgress");
+	var cancelLink = document.getElementById("cancelClickLink");
+	cancelLink.hidden = false;
 	// console.log("searching...");
 	var iters = 0;
 	var size = 1;
@@ -48,13 +52,15 @@ async function solve() {
 	while(!queue.isEmpty()) {
 		if(abortSolver) {
 			consolePrint("solver aborted");
+			cancelLink.hidden = true;
 			break;
 		}
 		iters++;
-		if(iters > 500) {
+		if(iters > 200) {
 			iters = 0;
-			consolePrint("searched: " + size + " queue: " + discovered);
+			// consolePrint("searched: " + size + " queue: " + discovered);
 			// console.log(discovered, size);
+			solvingProgress.innerHTML = "searched: " + size;
 			redraw();
 			await timeout(1);
 		}
@@ -85,10 +91,12 @@ async function solve() {
 					consolePrint("solution found: (" + nms.length + " steps, " + size + " positions explored)");
 					consolePrint(chunks);
 					console.log("solution found:\n" + chunks);
+					solvingProgress.innerHTML = "";
 					deltatime = oldDT;
 					playSound(13219900);
-					redraw();
 					DoRestart();
+					redraw();
+					cancelLink.hidden = true;
 					return;
 				}
 				exploredStates[level.objects] = true;
@@ -104,9 +112,11 @@ async function solve() {
 	DoRestart();
 	consolePrint("no solution found");
 	console.log("no solution found");
+	solvingProgress.innerHTML = "";
 	deltatime = oldDT;
 	playSound(52291704);
 	redraw();
+	cancelLink.hidden = true;
 }
 
 function stopSolving() {
