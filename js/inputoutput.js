@@ -584,7 +584,11 @@ function checkKey(e,justPressed) {
         }
         case 27://escape
         {
-        	if (titleScreen===false) {
+        	if(solving) {
+        		stopSolving();
+        		break;
+        	}
+        	if(titleScreen===false) {
 				goToTitleScreen();	
 		    	tryPlayTitleSound();
 				canvasResize();			
