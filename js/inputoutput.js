@@ -11,6 +11,7 @@ function selectText(containerid,e) {
 	e = e || window.event;
 	var myspan = document.getElementById(containerid);
 	if (e&&(e.ctrlKey || e.metaKey)) {
+		if(solving) return;
 		var levelarr = ["console"].concat(myspan.innerHTML.split("<br>"));
 		var leveldat = levelFromString(state,levelarr);
 		loadLevelFromLevelDat(state,leveldat,null);
@@ -597,7 +598,7 @@ function checkKey(e,justPressed) {
         	break;
         }
         case 69: {//e
-        	if (canOpenEditor) {
+        	if (!solving && canOpenEditor) {
         		if (justPressed) {
         			if (titleScreen){
         				if (state.title==="EMPTY GAME"){

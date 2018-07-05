@@ -14,6 +14,7 @@ function byScoreAndLength(a, b) {
 var distanceTable;
 
 async function solve() {
+	if(levelEditorOpened) return;
 	if(solving) return;
 	if(textMode || state.levels.length === 0) return;
 	precalcDistances();
@@ -49,7 +50,7 @@ async function solve() {
 			break;
 		}
 		iters++;
-		if(iters > 200) {
+		if(iters > 250) {
 			iters = 0;
 			// consolePrint("searched: " + size + " queue: " + discovered);
 			// console.log(discovered, size);

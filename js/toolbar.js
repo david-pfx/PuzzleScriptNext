@@ -153,6 +153,7 @@ var loadDropdown = document.getElementById('loadDropDown');
 loadDropdown.selectedIndex=0;
 
 function levelEditorClick_Fn() {
+	if(solving) return;
 	if (textMode || state.levels.length===0) {
 		compile(["loadLevel",0]);
 		levelEditorOpened=true;
