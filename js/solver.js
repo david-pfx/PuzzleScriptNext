@@ -1,6 +1,5 @@
 var abortSolver = false;
 var solving = false;
-var bak;
 
 const timeout = ms => new Promise(res => setTimeout(res, ms))
 
@@ -21,7 +20,7 @@ async function solve() {
 	abortSolver = false;
 	muted = true;
 	solving = true;
-	restartTarget = bak = backupLevel();
+	restartTarget = backupLevel();
 	hasUsedCheckpoint = false;
 	backups = [];
 	var oldDT = deltatime;
@@ -29,12 +28,6 @@ async function solve() {
 	var actions = [0, 1, 2, 3, 4];
 	if('noaction' in state.metadata) {
 		actions = [0, 1, 2, 3];
-	}
-	if('realtime_interval' in state.metadata) {
-		actions.push(-1);
-	}
-	if(autotickinterval > 0) {
-		actions.push(5);
 	}
 	var act2str = "uldrx";
 	var exploredStates = {};
@@ -75,8 +68,9 @@ async function solve() {
 			}
 			var changedSomething = processInput(actions[i]);
 			while(againing) {
-				processInput(-1);
+				changedSomething = processInput(-1) || changedSomething;
 			}
+			
 			if(changedSomething) {
 				if(level.objects in exploredStates) {
 					continue;
@@ -101,7 +95,6 @@ async function solve() {
 				}
 				exploredStates[level.objects] = true;
 				size++;
-
 				queue.add([getScore(), level.objects.slice(0), nms]);
 				discovered++;
 			}
@@ -110,7 +103,7 @@ async function solve() {
 	muted = false;
 	solving = false;
 	DoRestart();
-	consolePrint("no solution found");
+	consolePrint("no solution found (" + size + " positions explored)");
 	console.log("no solution found");
 	solvingProgress.innerHTML = "";
 	deltatime = oldDT;

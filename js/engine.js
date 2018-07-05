@@ -2236,7 +2236,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	 	}
 	}
 
-	if(!solving) bak = backupLevel();
+	bak = backupLevel();
 
 	var playerPositions=[];
     if (dir<=4) {
@@ -2329,14 +2329,12 @@ function processInput(dir,dontDoWin,dontModify) {
 	    			consolePrint('require_player_movement set, but no player movement detected, so cancelling turn.');
 	    			consoleCacheDump();
         		}
-        		if(!solving) backups.push(bak);
+        		backups.push(bak);
         		DoUndo(true,false);
         		return false;
         	}
         	//play player cantmove sounds here
         }
-
-
 
 	    if (level.commandQueue.indexOf('cancel')>=0) {
 	    	if (verbose_logging) { 
@@ -2344,10 +2342,12 @@ function processInput(dir,dontDoWin,dontModify) {
 	    		var r = level.commandQueueSourceRules[level.commandQueue.indexOf('cancel')];
 	    		consolePrintFromRule('CANCEL command executed, cancelling turn.',r,true);
 			}
-    		if(!solving) backups.push(bak);
-			messagetext = "";
-    		DoUndo(true,false);
-    		tryPlayCancelSound();
+    		if(!solving) {
+    			backups.push(bak);
+				messagetext = "";
+	    		DoUndo(true,false);
+	    		tryPlayCancelSound();
+	    	}
     		return false;
 	    } 
 
@@ -2374,7 +2374,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	        		if (verbose_logging) {
 	        			consoleCacheDump();
 	        		}
-	        		if(!solving) backups.push(bak);
+	        		backups.push(bak);
 	        		DoUndo(true,false);
 					return true;
 				} else {
