@@ -2205,7 +2205,6 @@ function processInput(dir,dontCheckWin,dontModify,bak) {
 			consolePrint('Turn starts with input of ' + ['up','left','down','right','action','mouse'][dir]+'.');
 	 	}
 	}
-	consolePrint('test');
 
 	if (bak==undefined) {
 		bak = backupLevel();

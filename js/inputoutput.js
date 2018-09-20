@@ -322,29 +322,37 @@ function levelEditorRightClick(event,click) {
 	}
 }
 
-var lastCoord = -1;
+var lastCoord;
 
-function mouseLeft(event,click) {
-	if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
-		var coordIndex = mouseCoordY + mouseCoordX*level.height;
-		
-		if (click || lastCoord!==coordIndex) {
-			lastCoord = coordIndex;
-			var bak = backupLevel();
-			var cell = level.getCell(coordIndex);
-			cell.ibitset(state.mouseLeftID);
-			level.setCell(coordIndex, cell);
-			var inputdir = 5;
-			//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
-			try {
-				pushInput(inputdir);
-				if (processInput(inputdir,null,null,bak)) {
-					redraw();
+function mouseLeft(event,click,id) {
+	/*if (false) {
+		consolePrint("no mouse, textmode",true);
+			console.log("no mouse, textmode");
+	} else */{
+		if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
+			var coordIndex = mouseCoordY + mouseCoordX*level.height;
+			
+			if (click || lastCoord!==coordIndex) {
+				if (againing) {
+					//consolePrint("no mouse, againing",false);
+				} else {
+					var bak = backupLevel();
+					var cell = level.getCell(coordIndex);
+					cell.ibitset(id);
+					level.setCell(coordIndex, cell);
+					var inputdir = 5;
+					//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
+					try {
+						pushInput(inputdir);
+						if (processInput(inputdir,false,false,bak)) {
+							redraw();
+						}
+					} catch(e) {
+						consolePrint(e,true);
+					}
 				}
-			} catch(e) {
-				consolePrint(e,true);
-				console.log(e);
 			}
+			lastCoord = coordIndex;
 		}
 	}
 }
@@ -359,12 +367,11 @@ function onMouseDown(event) {
         	setMouseCoord(event);
         	dragging=true;
         	rightdragging=false;
+        	anyEditsSinceMouseDown=false;
         	if (levelEditorOpened) {
-        		anyEditsSinceMouseDown=false;
         		return levelEditorClick(event,true);
         	} else {
-        		anyEditsSinceMouseDown=false;
-				return mouseLeft(event,true);
+				return mouseLeft(event,true,state.lmbID);
 			}
         }
         dragging=false;
@@ -377,7 +384,15 @@ function onMouseDown(event) {
         		return levelEditorRightClick(event,true);
         	}
         }
-    }
+    } else if (event.button===1) {
+		//undo
+		if (textMode===false) {
+			pushInput("undo");
+			DoUndo(false,true);
+			canvasResize(); // calls redraw
+			return prevent(e);
+		}
+	}
 
 }
 
@@ -486,7 +501,7 @@ function setMouseCoord(e){
 
 function mouseMove(event) {
     if (levelEditorOpened) {
-    	setMouseCoord(event);  
+    	setMouseCoord(event);
     	if (dragging) { 	
     		levelEditorClick(event,false);
     	} else if (rightdragging){
@@ -496,7 +511,7 @@ function mouseMove(event) {
     } else {
     	setMouseCoord(event);
     	if (dragging) { 	
-    		mouseLeft(event,false);
+    		mouseLeft(event,false,state.dragID);
     	}
 	    redraw();
 	}
