@@ -390,7 +390,6 @@ function onMouseDown(event) {
 			pushInput("undo");
 			DoUndo(false,true);
 			canvasResize(); // calls redraw
-			return prevent(e);
 		}
 	}
 
