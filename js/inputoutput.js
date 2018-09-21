@@ -336,18 +336,19 @@ function mouseLeft(event,click,id) {
 				if (againing) {
 					//consolePrint("no mouse, againing",false);
 				} else {
-					var bak = backupLevel();
-					var cell = level.getCell(coordIndex);
-					cell.ibitset(id);
-					level.setCell(coordIndex, cell);
-					var inputdir = 5;
-					//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
 					try {
+						var bak = backupLevel();
+						var cell = level.getCell(coordIndex);
+						cell.ibitset(id);
+						level.setCell(coordIndex, cell);
+						var inputdir = 5;
+						//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
 						pushInput(inputdir);
 						if (processInput(inputdir,false,false,bak)) {
 							redraw();
 						}
 					} catch(e) {
+						console.log(e);
 						consolePrint(e,true);
 					}
 				}
@@ -498,7 +499,7 @@ function setMouseCoord(e){
 	mouseCoordY=Math.floor(mouseCoordY/cellheight);
 }
 
-function mouseMove(event) {
+function onMouseMove(event) {
     if (levelEditorOpened) {
     	setMouseCoord(event);
     	if (dragging) { 	
@@ -509,7 +510,7 @@ function mouseMove(event) {
 	    redraw();
     } else {
     	setMouseCoord(event);
-    	if (dragging) { 	
+    	if (dragging) {
     		mouseLeft(event,false,state.dragID);
     	}
 	    redraw();
@@ -524,6 +525,7 @@ function mouseOut() {
 
 document.addEventListener('mousedown', onMouseDown, false);
 document.addEventListener('mouseup', onMouseUp, false);
+document.addEventListener('mousemove', onMouseMove, false);
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
 window.addEventListener('focus', onMyFocus, false);
