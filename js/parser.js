@@ -1116,7 +1116,7 @@ var codeMirrorFn = function() {
 		                    			state.tokenIndex=1;
 		                    			return 'METADATA';
 		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline',
-												 'mouse_left','mouse_drag','mouse_right','mouse_up'].indexOf(token)>=0) {
+												 'mouse_left','mouse_drag','mouse_right','mouse_up','nokeyboard'].indexOf(token)>=0) {
 		                    			state.metadata.push(token);
 		                    			state.metadata.push("true");
 		                    			state.tokenIndex=-1;

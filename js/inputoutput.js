@@ -325,36 +325,62 @@ function levelEditorRightClick(event,click) {
 var lastCoord;
 
 function mouseLeft(event,click,id) {
-	/*if (false) {
-		consolePrint("no mouse, textmode",true);
-			console.log("no mouse, textmode");
-	} else */{
-		if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
-			var coordIndex = mouseCoordY + mouseCoordX*level.height;
-			
-			if (click || lastCoord!==coordIndex) {
-				if (againing) {
-					//consolePrint("no mouse, againing",false);
-				} else {
-					try {
-						var bak = backupLevel();
-						var cell = level.getCell(coordIndex);
-						cell.ibitset(id);
-						level.setCell(coordIndex, cell);
-						var inputdir = 5;
-						//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
-						pushInput(inputdir);
-						if (processInput(inputdir,false,false,bak)) {
-							redraw();
-						}
-					} catch(e) {
-						console.log(e);
-						consolePrint(e,true);
+	
+	if (textMode) {
+		if (!click)
+			return;
+		if (titleScreen) {
+			if (titleMode===0) {
+				if (mouseCoordY===6) {
+					titleButtonSelected();
+				}
+			} else {
+				if (mouseCoordY===5) {
+					if (titleSelection!==0) {
+						titleSelection=0;
+						generateTitleScreen();
+						redraw();
+					} else {
+						titleButtonSelected();
 					}
+				} else if (mouseCoordY===7) {
+					titleSelection=1;
+					titleButtonSelected();
 				}
 			}
-			lastCoord = coordIndex;
+		} else if (messageselected===false) {
+			messageselected=true;
+			timer=0;
+			quittingMessageScreen=true;
+			tryPlayCloseMessageSound();
+			titleScreen=false;
+			drawMessageScreen();
 		}
+	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
+		var coordIndex = mouseCoordY + mouseCoordX*level.height;
+		
+		if (click || lastCoord!==coordIndex) {
+			if (againing) {
+				//consolePrint("no mouse, againing",false);
+			} else {
+				try {
+					var bak = backupLevel();
+					var cell = level.getCell(coordIndex);
+					cell.ibitset(id);
+					level.setCell(coordIndex, cell);
+					var inputdir = 5;
+					//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
+					pushInput(inputdir);
+					if (processInput(inputdir,false,false,bak)) {
+						redraw();
+					}
+				} catch(e) {
+					console.log(e);
+					consolePrint(e,true);
+				}
+			}
+		}
+		lastCoord = coordIndex;
 	}
 }
 
@@ -371,8 +397,8 @@ function onMouseDown(event) {
         	anyEditsSinceMouseDown=false;
         	if (levelEditorOpened) {
         		return levelEditorClick(event,true);
-        	} else {
-				return mouseLeft(event,true,state.lmbID);
+        	} else if ("mouse_left" in state.metadata) {
+				return mouseLeft(event,true,state.lmbID);		// must break to not execute dragging=false;
 			}
         }
         dragging=false;
@@ -500,20 +526,25 @@ function setMouseCoord(e){
 }
 
 function onMouseMove(event) {
+	try {
     if (levelEditorOpened) {
     	setMouseCoord(event);
     	if (dragging) { 	
     		levelEditorClick(event,false);
     	} else if (rightdragging){
-    		levelEditorRightClick(event,false);    		
+    		levelEditorRightClick(event,false);
     	}
 	    redraw();
-    } else {
+    } else if ("mouse_drag" in state.metadata) {
     	setMouseCoord(event);
     	if (dragging) {
     		mouseLeft(event,false,state.dragID);
     	}
 	    redraw();
+	}
+	} catch(e) {
+		console.log(e);
+		consolePrint(e);
 	}
 
     //window.console.log("showcoord ("+ canvas.width+","+canvas.height+") ("+x+","+y+")");
@@ -538,6 +569,18 @@ function prevent(e) {
     if (e.stopPropagation) e.stopPropagation();
     e.returnValue=false;
     return false;
+}
+
+function titleButtonSelected() {
+	if (titleSelected===false) {
+		tryPlayStartGameSound();
+		titleSelected=true;
+		messageselected=false;
+		timer=0;
+		quittingTitleScreen=true;
+		generateTitleScreen();
+		canvasResize();
+	}
 }
 
 function checkKey(e,justPressed) {
@@ -679,33 +722,17 @@ function checkKey(e,justPressed) {
     	} else if (titleScreen) {
     		if (titleMode===0) {
     			if (inputdir===4&&justPressed) {
-    				if (titleSelected===false) {    				
-						tryPlayStartGameSound();
-	    				titleSelected=true;
-	    				messageselected=false;
-	    				timer=0;
-	    				quittingTitleScreen=true;
-	    				generateTitleScreen();
-	    				canvasResize();
-	    			}
+    				titleButtonSelected();
     			}
     		} else {
     			if (inputdir==4&&justPressed) {
-    				if (titleSelected===false) {    				
-						tryPlayStartGameSound();
-	    				titleSelected=true;
-	    				messageselected=false;
-	    				timer=0;
-	    				quittingTitleScreen=true;
-	    				generateTitleScreen();
-	    				redraw();
-	    			}
+    				titleButtonSelected();
     			}
     			else if (inputdir===0||inputdir===2) {
     				if (inputdir===0){
-    					titleSelection=0;    					
+    					titleSelection=0;
     				} else {
-    					titleSelection=1;    					    					
+    					titleSelection=1;
     				}
     				generateTitleScreen();
     				redraw();

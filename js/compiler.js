@@ -383,53 +383,59 @@ function generateExtraMembers(state) {
 	state.backgroundlayer=backgroundlayer;
 	
 	var lmbID;
-	if (state.objects.lmb===undefined) {
-		if ('lmb' in state.synonymsDict) {
-			var n = state.synonymsDict['lmb'];
-			var o = state.objects[n];
-			lmbID = o.id;
+	if (state.metadata.includes("mouse_left")) {
+		if (state.objects.lmb===undefined) {
+			if ('lmb' in state.synonymsDict) {
+				var n = state.synonymsDict['lmb'];
+				var o = state.objects[n];
+				lmbID = o.id;
+			} else {
+				var o=state.objects[state.idDict[1]];
+				lmbID=o.id;
+				logError("lmb object/alias has to be defined");
+			}
 		} else {
-			var o=state.objects[state.idDict[1]];
-			lmbID=o.id;
-			logError("lmb object/alias has to be defined");
+			lmbID = state.objects.lmb.id;
 		}
-	} else {
-		lmbID = state.objects.lmb.id;
+		state.lmbID=lmbID;
 	}
-	state.lmbID=lmbID;
 	
 	var rmbID;
-	if (state.objects.rmb===undefined) {
-		if ('rmb' in state.synonymsDict) {
-			var n = state.synonymsDict['rmb'];
-			var o = state.objects[n];
-			rmbID = o.id;
-		} else {
-			var o=state.objects[state.idDict[1]];
-			rmbID=o.id;
-			//logError("rmb object/alias has to be defined");
 			// NOT IMPLEMENTED
+	if (state.metadata.includes("mouse_right")) {
+		if (state.objects.rmb===undefined) {
+			if ('rmb' in state.synonymsDict) {
+				var n = state.synonymsDict['rmb'];
+				var o = state.objects[n];
+				rmbID = o.id;
+			} else {
+				var o=state.objects[state.idDict[1]];
+				rmbID=o.id;
+				logError("rmb object/alias has to be defined");
+			}
+		} else {
+			rmbID = state.objects.rmb.id;
 		}
-	} else {
-		rmbID = state.objects.rmb.id;
+		state.rmbID=rmbID;
 	}
-	state.rmbID=rmbID;
 	
 	var dragID;
-	if (state.objects.drag===undefined) {
-		if ('drag' in state.synonymsDict) {
-			var n = state.synonymsDict['drag'];
-			var o = state.objects[n];
-			dragID = o.id;
+	if (state.metadata.includes("mouse_drag")) {
+		if (state.objects.drag===undefined) {
+			if ('drag' in state.synonymsDict) {
+				var n = state.synonymsDict['drag'];
+				var o = state.objects[n];
+				dragID = o.id;
+			} else {
+				var o=state.objects[state.idDict[1]];
+				dragID=o.id;
+				logError("drag object/alias has to be defined");
+			}
 		} else {
-			var o=state.objects[state.idDict[1]];
-			dragID=o.id;
-			logError("drag object/alias has to be defined");
+			dragID = state.objects.drag.id;
 		}
-	} else {
-		dragID = state.objects.drag.id;
+		state.dragID=dragID;
 	}
-	state.dragID=dragID;
 }
 
 Level.prototype.calcBackgroundMask = function(state) {
@@ -1893,7 +1899,9 @@ function getMaskFromName(state,name) {
 		objectMask.ibitset(o.id);
 	}
 
-	if (objectMask.iszero()) {
+	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
+		consolePrint("yes " + (state.metadata.includes("nokeyboard")), true);
+		consolePrint(state.metadata, true);
 		logErrorNoLine("error, didn't find any object called player, either in the objects section, or the legends section. there must be a player!");
 	}
 	return objectMask;
