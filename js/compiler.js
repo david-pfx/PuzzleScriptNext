@@ -401,7 +401,6 @@ function generateExtraMembers(state) {
 	}
 	
 	var rmbID;
-			// NOT IMPLEMENTED
 	if (state.metadata.includes("mouse_right")) {
 		if (state.objects.rmb===undefined) {
 			if ('rmb' in state.synonymsDict) {
@@ -435,6 +434,24 @@ function generateExtraMembers(state) {
 			dragID = state.objects.drag.id;
 		}
 		state.dragID=dragID;
+	}
+	
+	var rdragID;
+	if (state.metadata.includes("mouse_rdrag")) {
+		if (state.objects.rdrag===undefined) {
+			if ('rdrag' in state.synonymsDict) {
+				var n = state.synonymsDict['rdrag'];
+				var o = state.objects[n];
+				rdragID = o.id;
+			} else {
+				var o=state.objects[state.idDict[1]];
+				rdragID=o.id;
+				logError("rdrag object/alias has to be defined");
+			}
+		} else {
+			rdragID = state.objects.rdrag.id;
+		}
+		state.rdragID=rdragID;
 	}
 }
 

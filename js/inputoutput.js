@@ -324,7 +324,7 @@ function levelEditorRightClick(event,click) {
 
 var lastCoord;
 
-function mouseLeft(event,click,id) {
+function mouseAction(event,click,id) {
 	
 	if (textMode) {
 		if (!click)
@@ -357,7 +357,7 @@ function mouseLeft(event,click,id) {
 			drawMessageScreen();
 		}
 	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
-		var coordIndex = mouseCoordY + mouseCoordX*level.height;
+		var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*level.height;
 		
 		if (click || lastCoord!==coordIndex) {
 			if (againing) {
@@ -398,7 +398,7 @@ function onMouseDown(event) {
         	if (levelEditorOpened) {
         		return levelEditorClick(event,true);
         	} else if ("mouse_left" in state.metadata) {
-				return mouseLeft(event,true,state.lmbID);		// must break to not execute dragging=false;
+				return mouseAction(event,true,state.lmbID);		// must break to not execute dragging=false;
 			}
         }
         dragging=false;
@@ -409,8 +409,13 @@ function onMouseDown(event) {
 		    rightdragging=true;
         	if (levelEditorOpened) {
         		return levelEditorRightClick(event,true);
-        	}
-        }
+        	} else if ("mouse_right" in state.metadata) {
+				return mouseAction(event,true,state.rmbID);
+			}
+        } else {
+			dragging=false;
+			rightdragging=false;
+		}
     } else if (event.button===1) {
 		//undo
 		if (textMode===false) {
@@ -526,7 +531,11 @@ function setMouseCoord(e){
 }
 
 function onMouseMove(event) {
-	try {
+	if (event.target!==canvas) {
+		dragging = false;
+		rightdragging = false;
+		return;
+	}
     if (levelEditorOpened) {
     	setMouseCoord(event);
     	if (dragging) { 	
@@ -538,13 +547,11 @@ function onMouseMove(event) {
     } else if ("mouse_drag" in state.metadata) {
     	setMouseCoord(event);
     	if (dragging) {
-    		mouseLeft(event,false,state.dragID);
-    	}
+    		mouseAction(event,false,state.dragID);
+    	} else if (rightdragging) {
+			mouseAction(event,false,state.rdragID);
+		}
 	    redraw();
-	}
-	} catch(e) {
-		console.log(e);
-		consolePrint(e);
 	}
 
     //window.console.log("showcoord ("+ canvas.width+","+canvas.height+") ("+x+","+y+")");
