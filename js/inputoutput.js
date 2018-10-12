@@ -428,7 +428,9 @@ function onMouseDown(event) {
 }
 
 function rightClickCanvas(event) {
-    return prevent(event);
+    if ("mouse_right" in state.metadata) {
+		return prevent(event);
+	}
 }
 
 function onMouseUp(event) {
@@ -564,6 +566,7 @@ function mouseOut() {
 document.addEventListener('mousedown', onMouseDown, false);
 document.addEventListener('mouseup', onMouseUp, false);
 document.addEventListener('mousemove', onMouseMove, false);
+document.addEventListener('contextmenu', rightClickCanvas, false);
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
 window.addEventListener('focus', onMyFocus, false);
