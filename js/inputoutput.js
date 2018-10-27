@@ -431,6 +431,9 @@ function rightClickCanvas(event) {
     if ("mouse_right" in state.metadata) {
 		return prevent(event);
 	}
+	if (levelEditorOpened) {
+		return prevent(event);
+	}
 }
 
 function onMouseUp(event) {
