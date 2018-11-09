@@ -324,6 +324,11 @@ function levelEditorRightClick(event,click) {
 
 var lastCoord;
 
+var x1 = 5;  //  leftPixelX
+var y1 = 5;  //  leftPixelY
+var x2 = 5;  // rightPixelX
+var y2 = 5;  // rightPixelY
+
 function mouseAction(event,click,id) {
 	
 	if (textMode) {
@@ -357,9 +362,156 @@ function mouseAction(event,click,id) {
 			drawMessageScreen();
 		}
 	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
-		var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*level.height;
 		
-		if (click || lastCoord!==coordIndex) {
+		if (!click) {
+			/*if (id === state.dragID) {
+				x1 = mousePixelX;
+				y1 = mousePixelY;
+			} else if (id === state.rdragID) {
+				x2 = mousePixelX;
+				y2 = mousePixelY;
+			} else {
+				console.log("dragging something else error");
+				consolePrint("dragging something else error", true);
+			}*/
+			
+			x2 = mousePixelX;
+			y2 = mousePixelY;
+			
+			
+			if (cellwidth !== cellheight) {
+				throw "Error: Cell width is not equal to cell height.";
+			}
+			
+			var dirX = x2-x1;
+			var dirY = y2-y1;
+			//var rootedX = (y1*dirX)/dirY;					non-integer
+			var scaledRootedX = (y1*dirX);						// == rootedX *dirY
+			var rootedY = y1;
+			
+			// (x1/dirX)*dirY - y1 = c
+			//	x*dirY = y*dirX
+			
+			//var shiftMid = x1-rootedX;					non-integer
+			var scaledShiftMid = x1*dirY-scaledRootedX;			// == shiftMid*dirY
+			
+			// dirY*x2 - dirX*y2 - dirY*shiftMid	==	0
+			// dirY*x2 - dirX*y2	==	scaledShiftMid
+			
+			//var horizontalDeviation = cellwidth*(1 + Math.abs(dirX/dirY))/2;		non-integer; formula provided by phenomist, checked by me (ThatScar)
+			var scaledAbsDeviationTimesTwo = cellwidth*(Math.abs(dirX) + Math.abs(dirY));	// == abs(horizontalDeviation*dirY*2)
+			
+			//var scaledShiftMin = scaledShiftMid - horizontalDeviation*dirY;
+			//var scaledShiftMax = scaledShiftMid + horizontalDeviation*dirY;
+			var scaledShiftATimesTwo = 2*scaledShiftMid - scaledAbsDeviationTimesTwo;
+			var scaledShiftBTimesTwo = 2*scaledShiftMid + scaledAbsDeviationTimesTwo;
+			
+			/// Important: shifts A and B must be used interchangeably
+			
+			// Testing against various cellCenterX, cellCenterY;
+			// dirY*shiftMin		<	dirY*cellCenterX - dirX*cellCenterY	<	dirY*shiftMax
+			// scaledShiftMin		<	dirY*cellCenterX - dirX*cellCenterY	<	scaledShiftMax
+			// scaledShiftBTimesTwo	<2*(dirY*cellCenterX - dirX*cellCenterY)<	scaledShiftBTimesTwo
+			// OR if both A and B fail, instead.
+			
+			
+			//fOfPoint = dirY*cellCenterX - dirX*cellCenterY;
+			//isInside = (scaledShiftMin < fOfPoint) == (fOfPoint < scaledShiftMax);
+			function isInside(cellCenterXTimesTwo, cellCenterYTimesTwo) {
+				fOfPointTimesTwo = dirY*cellCenterXTimesTwo - dirX*cellCenterYTimesTwo;
+				return (scaledShiftATimesTwo < fOfPointTimesTwo) == (fOfPointTimesTwo < scaledShiftBTimesTwo);
+				/// Important: shifts A and B must be used interchangeably
+			}
+			
+			var cellX1=Math.floor(x1/cellwidth);
+			var cellY1=Math.floor(y1/cellheight);
+			var cellX2=Math.floor(x2/cellwidth);
+			var cellY2=Math.floor(y2/cellheight);
+			var centeringTimesTwo = cellwidth-1;
+			
+			var xSign = (cellX2-cellX1)>=0 ? 1 : -1;
+			var ySign = (cellY2-cellY1)>=0 ? 1 : -1;
+			
+			var yTrimmer = cellY1;
+			
+			var tileListX = [];
+			var tileListY = [];
+			
+			
+			for (var i=cellX1; i != cellX2+xSign; i += xSign) {
+				var over = false;
+				
+				for (var j=yTrimmer; j != cellY2+ySign; j += ySign) {
+					if (j > level.height || j < 0 || i > level.width || i < 0) {
+						console.log("Some darn loop failed again " + i + " " + j + " " + xSign + " " + ySign + " y1:" + cellY1 + " y2:" + cellY2);
+						throw "Some darn loop failed again " + i + " " + j + " " + xSign + " " + ySign + " y1:" + cellY1 + " y2:" + cellY2; 
+					}
+					if (isInside(i*2*cellwidth+centeringTimesTwo, j*2*cellwidth+centeringTimesTwo)){
+						
+						//cache_console_messages=true;
+						//consolePrint("gotcha");
+						
+						tileListX.push(i);
+						tileListY.push(j);
+						
+						over = true;
+						yTrimmer = j;
+					} else if (over) {
+						break;
+					}
+				}
+			}
+			
+			//consoleCacheDump();
+			//cache_console_messages=false;
+			//console.log("placing " + tileListX.length + " thingies");
+			//consolePrint("placing " + tileListX.length + " thingies");
+			
+			
+			for (var i=0; i<tileListX.length; i++) {
+				
+				var coordIndex = screenOffsetY+tileListY[i] + (screenOffsetX+tileListX[i])*level.height;
+				if (lastCoord===coordIndex) {
+					continue;
+				}
+				lastCoord = coordIndex;
+				
+				if (againing) {
+					//consolePrint("no mouse, againing",false);
+				} else {
+					try {
+						var bak = backupLevel();
+						var cell = level.getCell(coordIndex);
+						//cell.ibitset(id);
+						cell.ibitset(state.dragID);
+						level.setCell(coordIndex, cell);
+						var inputdir = 5;
+						pushInput(inputdir);
+						if (processInput(inputdir,false,false,bak)) {
+							redraw();
+						}
+					} catch(e) {
+						console.log(e);
+						consolePrint(e,true);
+					}
+				}
+			}
+			
+			/*var inputdir = 5;
+			pushInput(inputdir);
+			if (processInput(inputdir,false,false,bak)) {
+				redraw();
+			}*/
+			
+			x1 = x2;
+			y1 = y2;
+			
+		} else {
+			var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*level.height;
+			
+			x1 = mousePixelX;
+			y1 = mousePixelY;
+			
 			if (againing) {
 				//consolePrint("no mouse, againing",false);
 			} else {
@@ -369,7 +521,6 @@ function mouseAction(event,click,id) {
 					cell.ibitset(id);
 					level.setCell(coordIndex, cell);
 					var inputdir = 5;
-					//moveEntitiesAtIndex(coordIndex,level.getCell(coordIndex),16);
 					pushInput(inputdir);
 					if (processInput(inputdir,false,false,bak)) {
 						redraw();
@@ -379,8 +530,9 @@ function mouseAction(event,click,id) {
 					consolePrint(e,true);
 				}
 			}
+			
+			lastCoord = coordIndex;
 		}
-		lastCoord = coordIndex;
 	}
 }
 
@@ -526,13 +678,15 @@ function onMyBlur(event) {
 
 var mouseCoordX=0;
 var mouseCoordY=0;
+var mousePixelX=0;
+var mousePixelY=0;
 
 function setMouseCoord(e){
     var coords = canvas.relMouseCoords(e);
-    mouseCoordX=coords.x-xoffset;
-	mouseCoordY=coords.y-yoffset;
-	mouseCoordX=Math.floor(mouseCoordX/cellwidth);
-	mouseCoordY=Math.floor(mouseCoordY/cellheight);
+    mousePixelX=coords.x-xoffset;
+	mousePixelY=coords.y-yoffset;
+	mouseCoordX=Math.floor(mousePixelX/cellwidth);
+	mouseCoordY=Math.floor(mousePixelY/cellheight);
 }
 
 function onMouseMove(event) {
@@ -551,7 +705,7 @@ function onMouseMove(event) {
 	    redraw();
     } else if ("mouse_drag" in state.metadata) {
     	setMouseCoord(event);
-    	if (dragging) {
+		if (dragging) {
     		mouseAction(event,false,state.dragID);
     	} else if (rightdragging) {
 			mouseAction(event,false,state.rdragID);

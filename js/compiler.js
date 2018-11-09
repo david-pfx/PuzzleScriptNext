@@ -1917,8 +1917,6 @@ function getMaskFromName(state,name) {
 	}
 
 	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
-		consolePrint("yes " + (state.metadata.includes("nokeyboard")), true);
-		consolePrint(state.metadata, true);
 		logErrorNoLine("error, didn't find any object called player, either in the objects section, or the legends section. there must be a player!");
 	}
 	return objectMask;
