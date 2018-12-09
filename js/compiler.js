@@ -646,6 +646,7 @@ function processRuleString(rule, state, curRules)
 		logError("A rule has to have an arrow in it.  There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
 	}
 
+	var curcell=[];
 	for (var i = 0; i < tokens.length; i++)
 	{
 		var token = tokens[i];
@@ -689,7 +690,7 @@ function processRuleString(rule, state, curRules)
 			}
 			case 1: {
 				if (token == '[') {
-					if (curcellrow.length > 0) {
+					if (curcell.length > 0) {
 						logError('Error, malformed cell rule - encountered a "["" before previous bracket was closed', lineNumber);
 					}
 					incellrow = true;
@@ -1280,7 +1281,9 @@ function concretizeMovingRule(state, rule,lineNumber) {
         for(var ambiguousMovement in ambiguous_movement_dict) {
         	if (ambiguous_movement_dict.hasOwnProperty(ambiguousMovement) && ambiguousMovement!=="INVALID") {
         		concreteMovement = ambiguous_movement_dict[ambiguousMovement];
-
+        		if (concreteMovement==="INVALID"){
+   					continue;
+        		}
 				for (var j=0;j<cur_rule.rhs.length;j++) {
 					var cellRow_rhs = cur_rule.rhs[j];
 					for (var k=0;k<cellRow_rhs.length;k++) {
@@ -2106,7 +2109,6 @@ function printRules(state) {
 }
 
 function removeDuplicateRules(state) {
-	console.log("rule count before = " +state.rules.length);
 	var record = {};
 	var newrules=[];
 	var lastgroupnumber=-1;
@@ -2124,7 +2126,6 @@ function removeDuplicateRules(state) {
 		}
 		lastgroupnumber=groupnumber;
 	}
-	console.log("rule count after = " +state.rules.length);
 }
 function generateLoopPoints(state) {
 	var loopPoint={};
@@ -2448,8 +2449,6 @@ function formatHomePage(state){
 
 var MAX_ERRORS=5;
 function loadFile(str) {
-	window.console.log('loadFile');
-
 	var processor = new codeMirrorFn();
 	var state = processor.startState();
 
@@ -2558,6 +2557,11 @@ function compile(command,text,randomseed) {
 	} finally {
 		compiling = false;
 	}
+
+	if (state && state.levels && state.levels.length===0){	
+		logError('No levels found.  Add some levels!',undefined,true);
+	}
+
 	if (errorCount>MAX_ERRORS) {
 		return;
 	}

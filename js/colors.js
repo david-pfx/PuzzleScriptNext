@@ -404,4 +404,3 @@ var reg_color = /(black|white|gray|darkgray|lightgray|grey|darkgrey|lightgrey|re
 
 
 
-

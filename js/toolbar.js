@@ -75,6 +75,12 @@ function saveClick() {
 
 
 function loadDropDownChange() {
+
+	if(!canExit()) {
+ 		this.selectedIndex = 0;
+ 		return;
+ 	}
+
 	var saveString = localStorage['saves'];
 	if (saveString===undefined) {
 			consolePrint("Eek, trying to load a file, but there's no local storage found. Eek!",true);
@@ -188,7 +194,7 @@ function shareClick() {
 	consolePrint("<br>Sending code to github...",true)
 	var title = "Untitled PuzzleScript Script";
 	if (state.metadata.title!==undefined) {
-		title=state.metadata.title + " PuzzleScript Script";
+		title=state.metadata.title + " (PuzzleScript Script)";
 	}
 	compile();
 
@@ -196,7 +202,7 @@ function shareClick() {
 	var source=editor.getValue();
 
 	var gistToCreate = {
-		"description" : "title",
+		"description" : title,
 		"public" : true,
 		"files": {
 			"readme.txt" : {

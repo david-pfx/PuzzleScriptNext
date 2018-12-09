@@ -161,8 +161,27 @@ function tryLoadFile(fileName) {
 	fileOpenClient.send();
 }
 
+function canExit() {
+ 	if(!_editorDirty) {
+ 		return true;
+ 	}
+ 
+ 	return confirm("You haven't saved your game! Are you sure you want to lose your unsaved changes?")
+}
+ 
 function dropdownChange() {
+	if(!canExit()) {
+ 		this.selectedIndex = 0;
+ 		return;
+ 	}
+
 	tryLoadFile(this.value);
 	this.selectedIndex=0;
 }
 
+editor.on('keyup', function (editor, event) {
+	if (!CodeMirror.ExcludedIntelliSenseTriggerKeys[(event.keyCode || event.which).toString()])
+	{
+			CodeMirror.commands.autocomplete(editor, null, { completeSingle: false });
+	}
+});

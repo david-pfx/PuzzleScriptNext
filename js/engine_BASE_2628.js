@@ -11,7 +11,6 @@ x to action.......................
 z to undo, r to restart...........
 */
 
-
 var RandomGen = new RNG();
 
 var intro_template = [
@@ -19,7 +18,7 @@ var intro_template = [
 	"..................................",
 	"..................................",
 	"......Puzzle Script Terminal......",
-	"..............v 1.6...............",
+	"..............v 1.0...............",
 	"..................................",
 	"..................................",
 	"..................................",
@@ -42,22 +41,6 @@ var messagecontainer_template = [
 	"..................................",
 	"..................................",
 	"..........X to continue...........",
-	"..................................",
-	".................................."
-];
-
-var messagecontainer_template_mouse = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"........Click to continue.........",
 	"..................................",
 	".................................."
 ];
@@ -220,11 +203,6 @@ function generateTitleScreen()
 	if (noAction) {
 		titleImage[10]=".X to select......................";
 	}
-	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up_left" in state.metadata) {
-		titleImage[9]="..................................";
-		titleImage[10]=".MOUSE to interact................";
-		titleImage[11]=".MMB to undo, R to restart........";
-	}
 	for (var i=0;i<titleImage.length;i++)
 	{
 		titleImage[i]=titleImage[i].replace(/\./g, ' ');
@@ -256,7 +234,7 @@ function generateTitleScreen()
 }
 
 var introstate = {
-	title: "EMPTY GAME",
+	title: "2D Whale World",
 	attribution: "increpare",
    	objectCount: 2,
    	metadata:[],
@@ -336,10 +314,7 @@ var splitMessage=[];
 function drawMessageScreen() {
 	titleMode=0;
 	textMode=true;
-	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up_left" in state.metadata)
-		titleImage = deepClone(messagecontainer_template_mouse);
-	else
-		titleImage = deepClone(messagecontainer_template);
+	titleImage = deepClone(messagecontainer_template);
 
 	for (var i=0;i<titleImage.length;i++)
 	{
@@ -644,6 +619,7 @@ function setGameState(_state, command, randomseed) {
 
 	state = _state;
 
+    window.console.log('setting game state :D ');
     if (command[0]!=="rebuild"){
     	backups=[];
     }
@@ -712,28 +688,6 @@ function setGameState(_state, command, randomseed) {
 			//do nothing
 			break;
 		}
-		case "loadFirstNonMessageLevel":{
-			for (var i=0;i<state.levels.length;i++){
-				if (state.levels[i].hasOwnProperty("message")){
-					continue;
-				}
-				var targetLevel = i;
-				curlevel=i;
-			    winning=false;
-			    timer=0;
-			    titleScreen=false;
-			    textMode=false;
-			    titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
-			    titleSelected=false;
-			    quittingMessageScreen=false;
-			    quittingTitleScreen=false;
-			    messageselected=false;
-			    titleMode = 0;
-				loadLevelFromState(state,targetLevel,randomseed);
-				break;
-			}
-			break;	
-		}
 		case "loadLevel":
 		{
 			var targetLevel = command[1];
@@ -782,11 +736,8 @@ function setGameState(_state, command, randomseed) {
 	canvasResize();
 
 
-	if (state.sounds.length==0&&state.metadata.youtube==null){
-		killAudioButton();
-	} else {
-		showAudioButton();
-	}
+
+	tryActivateYoutube();
 	
 }
 
@@ -867,7 +818,6 @@ function restoreLevel(lev) {
 
     againing=false;
     level.commandQueue=[];
-    level.commandQueueSourceRules=[];
 }
 
 var zoomscreen=false;
@@ -899,7 +849,6 @@ function DoRestart(force) {
 	}
 	
 	level.commandQueue=[];
-	level.commandQueueSourceRules=[];
 	restarting=false;
 }
 
@@ -1094,7 +1043,6 @@ function Level(lineNumber, width, height, layerCount, objects) {
 	this.objects = objects;
 	this.layerCount = layerCount;
 	this.commandQueue = [];
-	this.commandQueueSourceRules = [];
 }
 
 Level.prototype.clone = function() {
@@ -1869,13 +1817,13 @@ var rigidBackups=[]
 function commitPreservationState(ruleGroupIndex) {
 	var propagationState = {
 		ruleGroupIndex:ruleGroupIndex,
+		//don't need to know the tuple index
 		objects:new Int32Array(level.objects),
 		movements:new Int32Array(level.movements),
 		rigidGroupIndexMask:level.rigidGroupIndexMask.concat([]),
 		rigidMovementAppliedMask:level.rigidMovementAppliedMask.concat([]),
 		bannedGroup:level.bannedGroup.concat([]),
-		commandQueue:level.commandQueue.concat([]),
-		commandQueueSourceRules:level.commandQueueSourceRules.concat([])
+		commandQueue:level.commandQueue.concat([])
 	};
 	rigidBackups[ruleGroupIndex]=propagationState;
 	return propagationState;
@@ -1888,7 +1836,6 @@ function restorePreservationState(preservationState) {;
 	level.rigidGroupIndexMask = preservationState.rigidGroupIndexMask.concat([]);
     level.rigidMovementAppliedMask = preservationState.rigidMovementAppliedMask.concat([]);
     level.commandQueue = preservationState.commandQueue.concat([]);
-    level.commandQueueSourceRules = preservationState.commandQueueSourceRules.concat([]);
     sfxCreateMask.setZero();
     sfxDestroyMask.setZero();
 	consolePrint("Rigid movement application failed, rolling back");
@@ -2031,13 +1978,12 @@ Rule.prototype.queueCommands = function() {
 			continue;
 		}
 		level.commandQueue.push(command[0]);
-		level.commandQueueSourceRules.push(this);
 
 		if (verbose_logging){
 			var lineNumber = this.lineNumber;
 			var ruleDirection = dirMaskName[this.direction];
 			var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
-			consolePrint(logString,true);
+			consolePrint(logString);
 		}
 
 		if (command[0]==='message') {			
@@ -2248,7 +2194,7 @@ function calculateRowColMasks() {
 }
 
 /* returns a bool indicating if anything changed */
-function processInput(dir,dontDoWin,dontModify,bak) {
+function processInput(dir,dontCheckWin,dontModify) {
 	againing = false;
 
 	if (verbose_logging) { 
@@ -2256,17 +2202,15 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 	 		consolePrint('Turn starts with no input.')
 	 	} else {
 	 		consolePrint('=======================');
-			consolePrint('Turn starts with input of ' + ['up','left','down','right','action','mouse'][dir]+'.');
+			consolePrint('Turn starts with input of ' + ['up','left','down','right','action'][dir]+'.');
 	 	}
 	}
 
-	if (bak==undefined) {
-		bak = backupLevel();
-	}
+	var bak = backupLevel();
 
 	var playerPositions=[];
-    if (dir<=5) {
-    	if (dir>=0 && dir<=4) {
+    if (dir<=4) {
+    	if (dir>=0) {
 	        switch(dir){
 	            case 0://up
 	            {
@@ -2301,7 +2245,6 @@ function processInput(dir,dontDoWin,dontModify,bak) {
         level.bannedGroup = [];
         rigidBackups = [];
         level.commandQueue=[];
-        level.commandQueueSourceRules=[];
         var startRuleGroupIndex=0;
         var rigidloop=false;
         var startState = commitPreservationState();
@@ -2361,25 +2304,11 @@ function processInput(dir,dontDoWin,dontModify,bak) {
         	}
         	//play player cantmove sounds here
         }
-		
-		/// Taken from zarawesome, thank you :)
-	    if (level.commandQueue.indexOf('undo')>=0) {
-	    	if (verbose_logging) {
-	    		consoleCacheDump();
-	    		consolePrint('UNDO command executed, undoing turn.',true);
-			}
-			messagetext = "";
-    		DoUndo(true,false);
-    		return true;
-		}
 
-
-
-	    if (level.commandQueue.indexOf('cancel')>=0) {
+	    if (level.commandQueue.indexOf('cancel')>=0) {	
 	    	if (verbose_logging) { 
 	    		consoleCacheDump();
-	    		var r = level.commandQueueSourceRules[level.commandQueue.indexOf('cancel')];
-	    		consolePrintFromRule('CANCEL command executed, cancelling turn.',r,true);
+	    		consolePrint('CANCEL command executed, cancelling turn.',true);
 			}
     		backups.push(bak);
 			messagetext = "";
@@ -2390,8 +2319,7 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 
 	    if (level.commandQueue.indexOf('restart')>=0) {
 	    	if (verbose_logging) { 
-	    		var r = level.commandQueueSourceRules[level.commandQueue.indexOf('restart')];
-	    		consolePrintFromRule('RESTART command executed, reverting to restart state.',r);
+	    		consolePrint('RESTART command executed, reverting to restart state.');
 	    		consoleCacheDump();
 			}
     		backups.push(bak);
@@ -2467,21 +2395,17 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 			}
 	    }
 
-	    if (textMode===false) {
+	    if (textMode===false && (dontCheckWin===undefined ||dontCheckWin===false)) {
 	    	if (verbose_logging) { 
 	    		consolePrint('Checking win condition.');
 			}
-			if (dontDoWin===undefined){
-				dontDoWin = false;
-			}
-	    	checkWin( dontDoWin );
+	    	checkWin();
 	    }
 
 	    if (!winning) {
 			if (level.commandQueue.indexOf('checkpoint')>=0) {
 		    	if (verbose_logging) { 
-	    			var r = level.commandQueueSourceRules[level.commandQueue.indexOf('checkpoint')];
-		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
+		    		consolePrint('CHECKPOINT command executed, saving current state to the restart state.');
 				}
 				restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
@@ -2491,9 +2415,6 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 			}	 
 
 		    if (level.commandQueue.indexOf('again')>=0 && modified) {
-
-	    		var r = level.commandQueueSourceRules[level.commandQueue.indexOf('again')];
-
 		    	//first have to verify that something's changed
 		    	var old_verbose_logging=verbose_logging;
 		    	var oldmessagetext = messagetext;
@@ -2502,7 +2423,7 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 			    	verbose_logging=old_verbose_logging;
 
 			    	if (verbose_logging) { 
-			    		consolePrintFromRule('AGAIN command executed, with changes detected - will execute another turn.',r);
+			    		consolePrint('AGAIN command executed, with changes detected - will execute another turn.');
 					}
 
 			    	againing=true;
@@ -2510,7 +2431,7 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 			    } else {		    	
 			    	verbose_logging=old_verbose_logging;
 					if (verbose_logging) { 
-						consolePrintFromRule('AGAIN command not executed, it wouldn\'t make any changes.',r);
+						consolePrint('AGAIN command not executed, it wouldn\'t make any changes.');
 					}
 			    }
 			    verbose_logging=old_verbose_logging;
@@ -2520,7 +2441,6 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 		    
 
 	    level.commandQueue=[];
-	    level.commandQueueSourceRules=[];
 
     }
 
@@ -2535,17 +2455,15 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 	return modified;
 }
 
-function checkWin(dontDoWin) {
+function checkWin() {
 
 	if (levelEditorOpened) {
-		dontDoWin=true;
+		return;
 	}
 
 	if (level.commandQueue.indexOf('win')>=0) {
 		consolePrint("Win Condition Satisfied");
-		if(!dontDoWin){
-			DoWin();
-		}
+		DoWin();
 		return;
 	}
 
@@ -2609,9 +2527,7 @@ function checkWin(dontDoWin) {
 
 	if (won) {
 		consolePrint("Win Condition Satisfied");
-		if (!dontDoWin){
-			DoWin();
-		}
+		DoWin();
 	}
 }
 

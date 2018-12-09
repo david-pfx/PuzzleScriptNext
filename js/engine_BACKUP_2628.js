@@ -2248,7 +2248,11 @@ function calculateRowColMasks() {
 }
 
 /* returns a bool indicating if anything changed */
-function processInput(dir,dontDoWin,dontModify,bak) {
+<<<<<<< HEAD
+function processInput(dir,dontCheckWin,dontModify,bak) {
+=======
+function processInput(dir,dontDoWin,dontModify) {
+>>>>>>> master
 	againing = false;
 
 	if (verbose_logging) { 
