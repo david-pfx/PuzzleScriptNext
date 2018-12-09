@@ -45,6 +45,22 @@ var messagecontainer_template = [
 	".................................."
 ];
 
+var messagecontainer_template_mouse = [
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"........Click to continue.........",
+	"..................................",
+	".................................."
+];
+
 var titletemplate_firstgo = [
 	"..................................",
 	"..................................",
@@ -203,6 +219,11 @@ function generateTitleScreen()
 	if (noAction) {
 		titleImage[10]=".X to select......................";
 	}
+	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up_left" in state.metadata) {
+		titleImage[9]="..................................";
+		titleImage[10]=".MOUSE to interact................";
+		titleImage[11]=".MMB to undo, R to restart........";
+	}
 	for (var i=0;i<titleImage.length;i++)
 	{
 		titleImage[i]=titleImage[i].replace(/\./g, ' ');
@@ -314,7 +335,10 @@ var splitMessage=[];
 function drawMessageScreen() {
 	titleMode=0;
 	textMode=true;
-	titleImage = deepClone(messagecontainer_template);
+	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up_left" in state.metadata)
+		titleImage = deepClone(messagecontainer_template_mouse);
+	else
+		titleImage = deepClone(messagecontainer_template);
 
 	for (var i=0;i<titleImage.length;i++)
 	{

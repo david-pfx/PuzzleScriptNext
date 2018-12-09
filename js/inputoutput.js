@@ -419,7 +419,7 @@ function mouseAction(event,click,id) {
 			//isInside = (scaledShiftMin < fOfPoint) == (fOfPoint < scaledShiftMax);
 			function isInside(cellCenterXTimesTwo, cellCenterYTimesTwo) {
 				fOfPointTimesTwo = dirY*cellCenterXTimesTwo - dirX*cellCenterYTimesTwo;
-				return (scaledShiftATimesTwo < fOfPointTimesTwo) == (fOfPointTimesTwo < scaledShiftBTimesTwo);
+				return (scaledShiftATimesTwo < fOfPointTimesTwo) == (fOfPointTimesTwo <= scaledShiftBTimesTwo);
 				/// Important: shifts A and B must be used interchangeably
 			}
 			
@@ -427,7 +427,7 @@ function mouseAction(event,click,id) {
 			var cellY1=Math.floor(y1/cellheight);
 			var cellX2=Math.floor(x2/cellwidth);
 			var cellY2=Math.floor(y2/cellheight);
-			var centeringTimesTwo = cellwidth-1;
+			var offsetToCenterTimesTwo = cellwidth-1;
 			
 			var xSign = (cellX2-cellX1)>=0 ? 1 : -1;
 			var ySign = (cellY2-cellY1)>=0 ? 1 : -1;
@@ -446,7 +446,7 @@ function mouseAction(event,click,id) {
 						console.log("Some darn loop failed again " + i + " " + j + " " + xSign + " " + ySign + " y1:" + cellY1 + " y2:" + cellY2);
 						throw "Some darn loop failed again " + i + " " + j + " " + xSign + " " + ySign + " y1:" + cellY1 + " y2:" + cellY2; 
 					}
-					if (isInside(i*2*cellwidth+centeringTimesTwo, j*2*cellwidth+centeringTimesTwo)){
+					if (isInside(i*2*cellwidth+offsetToCenterTimesTwo, j*2*cellwidth+offsetToCenterTimesTwo)){
 						
 						//cache_console_messages=true;
 						//consolePrint("gotcha");
@@ -462,13 +462,45 @@ function mouseAction(event,click,id) {
 				}
 			}
 			
+			
+			
+			var otherTileListX = [cellX1];
+			var otherTileListY = [cellY1];
+			
+			while(cellX1 !== cellX2 || cellY1 !== cellY2) {
+				if (cellY1 > level.height || cellY1 < 0 || cellX1 > level.width || cellX1 < 0) {
+					console.log("Some darn loop failed again " + cellX1 + " " + cellY1 + " " + xSign + " " + ySign + " x2:" + cellX2 + " y2:" + cellY2);
+					throw "Some darn loop failed again " + cellX1 + " " + cellY1 + " " + xSign + " " + ySign + " x2:" + cellX2 + " y2:" + cellY2; 
+				}
+				
+				cellCornerXTimesTwo = (cellX1*2)*cellwidth+offsetToCenterTimesTwo + xSign*cellwidth;
+				cellCornerYTimesTwo = (cellY1*2)*cellwidth+offsetToCenterTimesTwo + ySign*cellwidth;
+				fOfPointTimesTwo = dirY*cellCornerXTimesTwo - dirX*cellCornerYTimesTwo;
+				if ((fOfPointTimesTwo > scaledShiftMid*2 == ySign > 0) != (xSign > 0)) {
+					cellX1 += xSign;
+				} else {
+					cellY1 += ySign;
+				}
+				
+				otherTileListX.push(cellX1);
+				otherTileListY.push(cellY1);
+			}
+			
+			
+			
+			
 			//consoleCacheDump();
 			//cache_console_messages=false;
 			//console.log("placing " + tileListX.length + " thingies");
 			//consolePrint("placing " + tileListX.length + " thingies");
 			
-			
 			for (var i=0; i<tileListX.length; i++) {
+				
+				if (tileListX[i] !== otherTileListX[i] || tileListY[i] !== otherTileListY[i]) {
+					try {displayError("line tile placement algorithm discrepancies detected");} catch(e){}
+					consolePrint("line tile placement algorithm discrepancies detected", true);
+					throw "line tile placement algorithm discrepancies detected";
+				}
 				
 				var coordIndex = screenOffsetY+tileListY[i] + (screenOffsetX+tileListX[i])*level.height;
 				if (lastCoord===coordIndex) {
@@ -505,6 +537,7 @@ function mouseAction(event,click,id) {
 			
 			x1 = x2;
 			y1 = y2;
+			
 			
 		} else {
 			var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*level.height;
@@ -557,6 +590,7 @@ function onMouseDown(event) {
         rightdragging=false; 
     } else if (event.button===2 || (event.button===0 && (event.ctrlKey||event.metaKey)) ) {
     	if (event.target.id==="gameCanvas") {
+			setMouseCoord(event);
 		    dragging=false;
 		    rightdragging=true;
         	if (levelEditorOpened) {
@@ -591,6 +625,21 @@ function rightClickCanvas(event) {
 function onMouseUp(event) {
 	dragging=false;
     rightdragging=false;
+	if (event.button===0) {
+        if (event.target===canvas) {
+        	setMouseCoord(event);
+        	if ("mouse_up_left" in state.metadata) {
+				return mouseAction(event,true,state.lmbupID);
+			}
+        }
+    } else if (event.button===2) {
+    	if (event.target.id==="gameCanvas") {
+        	setMouseCoord(event);
+        	if ("mouse_up_right" in state.metadata) {
+				return mouseAction(event,true,state.rmbupID);
+			}
+        }
+    }
 }
 
 function onKeyDown(event) {

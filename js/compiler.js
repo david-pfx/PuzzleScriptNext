@@ -381,78 +381,36 @@ function generateExtraMembers(state) {
 	}
 	state.backgroundid=backgroundid;
 	state.backgroundlayer=backgroundlayer;
-	
-	var lmbID;
-	if (state.metadata.includes("mouse_left")) {
-		if (state.objects.lmb===undefined) {
-			if ('lmb' in state.synonymsDict) {
-				var n = state.synonymsDict['lmb'];
-				var o = state.objects[n];
-				lmbID = o.id;
+}
+
+function generateExtraMembersPart2(state) {
+	function assignMouseObject(preludeTerm, defaultName) {
+		if (preludeTerm in state.metadata) {
+			var name = state.metadata[preludeTerm] || defaultName;
+			var id = null;
+			if (state.objects[name]) {
+				id = state.objects[name].id;
 			} else {
-				var o=state.objects[state.idDict[1]];
-				lmbID=o.id;
-				logError("lmb object/alias has to be defined");
+				if (name in state.synonymsDict) {
+					var n = state.synonymsDict[id];
+					var o = state.objects[n];
+					id = o.id;
+				} else {
+					var o=state.objects[state.idDict[1]];
+					id=o.id;
+					logError(name + " object/alias has to be defined");
+				}
 			}
-		} else {
-			lmbID = state.objects.lmb.id;
+			return id;
 		}
-		state.lmbID=lmbID;
 	}
 	
-	var rmbID;
-	if (state.metadata.includes("mouse_right")) {
-		if (state.objects.rmb===undefined) {
-			if ('rmb' in state.synonymsDict) {
-				var n = state.synonymsDict['rmb'];
-				var o = state.objects[n];
-				rmbID = o.id;
-			} else {
-				var o=state.objects[state.idDict[1]];
-				rmbID=o.id;
-				logError("rmb object/alias has to be defined");
-			}
-		} else {
-			rmbID = state.objects.rmb.id;
-		}
-		state.rmbID=rmbID;
-	}
-	
-	var dragID;
-	if (state.metadata.includes("mouse_drag")) {
-		if (state.objects.drag===undefined) {
-			if ('drag' in state.synonymsDict) {
-				var n = state.synonymsDict['drag'];
-				var o = state.objects[n];
-				dragID = o.id;
-			} else {
-				var o=state.objects[state.idDict[1]];
-				dragID=o.id;
-				logError("drag object/alias has to be defined");
-			}
-		} else {
-			dragID = state.objects.drag.id;
-		}
-		state.dragID=dragID;
-	}
-	
-	var rdragID;
-	if (state.metadata.includes("mouse_rdrag")) {
-		if (state.objects.rdrag===undefined) {
-			if ('rdrag' in state.synonymsDict) {
-				var n = state.synonymsDict['rdrag'];
-				var o = state.objects[n];
-				rdragID = o.id;
-			} else {
-				var o=state.objects[state.idDict[1]];
-				rdragID=o.id;
-				logError("rdrag object/alias has to be defined");
-			}
-		} else {
-			rdragID = state.objects.rdrag.id;
-		}
-		state.rdragID=rdragID;
-	}
+	state.lmbID = assignMouseObject("mouse_left", "lmb");
+	state.rmbID = assignMouseObject("mouse_right", "rmb");
+	state.dragID = assignMouseObject("mouse_drag", "drag");
+	state.rdragID = assignMouseObject("mouse_rdrag", "rdrag");
+	state.lmbupID = assignMouseObject("mouse_up_left", "lmbup");
+	state.rmbupID = assignMouseObject("mouse_up_right", "rmbup");
 }
 
 Level.prototype.calcBackgroundMask = function(state) {
@@ -2537,6 +2495,8 @@ function loadFile(str) {
 	checkObjectsAreLayered(state);
 
 	twiddleMetaData(state);
+	
+	generateExtraMembersPart2(state);
 
 	generateLoopPoints(state);
 
