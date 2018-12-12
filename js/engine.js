@@ -220,7 +220,7 @@ function generateTitleScreen()
 	if (noAction) {
 		titleImage[10]=".X to select......................";
 	}
-	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up_left" in state.metadata) {
+	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
 		titleImage[9]="..................................";
 		titleImage[10]=".MOUSE to interact................";
 		titleImage[11]=".MMB to undo, R to restart........";
@@ -336,7 +336,7 @@ var splitMessage=[];
 function drawMessageScreen() {
 	titleMode=0;
 	textMode=true;
-	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up_left" in state.metadata)
+	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata)
 		titleImage = deepClone(messagecontainer_template_mouse);
 	else
 		titleImage = deepClone(messagecontainer_template);

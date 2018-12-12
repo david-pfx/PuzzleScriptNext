@@ -409,8 +409,8 @@ function generateExtraMembersPart2(state) {
 	state.rmbID = assignMouseObject("mouse_right", "rmb");
 	state.dragID = assignMouseObject("mouse_drag", "drag");
 	state.rdragID = assignMouseObject("mouse_rdrag", "rdrag");
-	state.lmbupID = assignMouseObject("mouse_up_left", "lmbup");
-	state.rmbupID = assignMouseObject("mouse_up_right", "rmbup");
+	state.lmbupID = assignMouseObject("mouse_up", "lmbup");
+	state.rmbupID = assignMouseObject("mouse_rup", "rmbup");
 }
 
 Level.prototype.calcBackgroundMask = function(state) {

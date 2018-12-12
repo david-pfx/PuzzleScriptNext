@@ -625,14 +625,14 @@ function onMouseUp(event) {
 	if (event.button===0) {
         if (event.target===canvas) {
         	setMouseCoord(event);
-        	if ("mouse_up_left" in state.metadata) {
+        	if ("mouse_up" in state.metadata) {
 				return mouseAction(event,true,state.lmbupID);
 			}
         }
     } else if (event.button===2) {
     	if (event.target.id==="gameCanvas") {
         	setMouseCoord(event);
-        	if ("mouse_up_right" in state.metadata) {
+        	if ("mouse_rup" in state.metadata) {
 				return mouseAction(event,true,state.rmbupID);
 			}
         }
@@ -750,13 +750,13 @@ function onMouseMove(event) {
     		levelEditorRightClick(event,false);
     	}
 	    redraw();
-    } else if ("mouse_drag" in state.metadata) {
+    } else if (dragging && "mouse_drag" in state.metadata) {
     	setMouseCoord(event);
-		if (dragging) {
-    		mouseAction(event,false,state.dragID);
-    	} else if (rightdragging) {
-			mouseAction(event,false,state.rdragID);
-		}
+    	mouseAction(event,false,state.dragID);
+	    redraw();
+	} else if (rightdragging && "mouse_rdrag" in state.metadata) {
+    	setMouseCoord(event);
+		mouseAction(event,false,state.rdragID);
 	    redraw();
 	}
 
