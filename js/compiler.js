@@ -392,7 +392,7 @@ function generateExtraMembersPart2(state) {
 				id = state.objects[name].id;
 			} else {
 				if (name in state.synonymsDict) {
-					var n = state.synonymsDict[id];
+					var n = state.synonymsDict[name];
 					var o = state.objects[n];
 					id = o.id;
 				} else {

@@ -740,11 +740,11 @@ function setMouseCoord(e){
 }
 
 function onMouseMove(event) {
-	if (event.target!==canvas) {
+	/*if (event.target!==canvas) {
 		dragging = false;
 		rightdragging = false;
 		return;
-	}
+	}*/
     if (levelEditorOpened) {
     	setMouseCoord(event);
     	if (dragging) { 	
