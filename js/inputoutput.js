@@ -361,26 +361,19 @@ function mouseAction(event,click,id) {
 			titleScreen=false;
 			drawMessageScreen();
 		}
-	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-0&&mouseCoordY<screenheight-0) {
+	} else if (mouseCoordX<0 || mouseCoordY < 0 || mouseCoordX>=screenwidth || mouseCoordY>=screenheight) {
+		x1 = Math.max(0, Math.min(cellwidth*screenwidth, mousePixelX));
+		y1 = Math.max(0, Math.min(cellheight*screenheight, mousePixelY));
+	} else {
 		
 		if (!click) {
-			/*if (id === state.dragID) {
-				x1 = mousePixelX;
-				y1 = mousePixelY;
-			} else if (id === state.rdragID) {
-				x2 = mousePixelX;
-				y2 = mousePixelY;
-			} else {
-				console.log("dragging something else error");
-				consolePrint("dragging something else error", true);
-			}*/
 			
 			x2 = mousePixelX;
 			y2 = mousePixelY;
 			
 			
 			if (cellwidth !== cellheight) {
-				throw "Error: Cell width is not equal to cell height.";
+				throw "Error: Cell is not square.";
 			}
 			
 			var dirX = x2-x1;
@@ -485,6 +478,10 @@ function mouseAction(event,click,id) {
 				otherTileListX.push(cellX1);
 				otherTileListY.push(cellY1);
 			}
+			
+			// reset
+			cellX1 = 5;
+			cellY1 = 5;
 			
 			
 			
