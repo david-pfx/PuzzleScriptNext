@@ -402,14 +402,14 @@ function mouseAction(event,click,id) {
 			/// Important: shifts A and B must be used interchangeably
 			
 			// Testing against various cellCenterX, cellCenterY;
-			// dirY*shiftMin		<	dirY*cellCenterX - dirX*cellCenterY	<	dirY*shiftMax
-			// scaledShiftMin		<	dirY*cellCenterX - dirX*cellCenterY	<	scaledShiftMax
-			// scaledShiftBTimesTwo	<2*(dirY*cellCenterX - dirX*cellCenterY)<	scaledShiftBTimesTwo
+			// dirY*shiftMin		<	dirY*cellCenterX - dirX*cellCenterY	<=	dirY*shiftMax
+			// scaledShiftMin		<	dirY*cellCenterX - dirX*cellCenterY	<=	scaledShiftMax
+			// scaledShiftBTimesTwo	<2*(dirY*cellCenterX - dirX*cellCenterY)<=	scaledShiftBTimesTwo
 			// OR if both A and B fail, instead.
 			
 			
 			//fOfPoint = dirY*cellCenterX - dirX*cellCenterY;
-			//isInside = (scaledShiftMin < fOfPoint) == (fOfPoint < scaledShiftMax);
+			//isInside = (scaledShiftMin < fOfPoint) == (fOfPoint <= scaledShiftMax);
 			function isInside(cellCenterXTimesTwo, cellCenterYTimesTwo) {
 				fOfPointTimesTwo = dirY*cellCenterXTimesTwo - dirX*cellCenterYTimesTwo;
 				return (scaledShiftATimesTwo < fOfPointTimesTwo) == (fOfPointTimesTwo <= scaledShiftBTimesTwo);
@@ -440,9 +440,6 @@ function mouseAction(event,click,id) {
 						throw "Some darn loop failed again " + i + " " + j + " " + xSign + " " + ySign + " y1:" + cellY1 + " y2:" + cellY2; 
 					}
 					if (isInside(i*2*cellwidth+offsetToCenterTimesTwo, j*2*cellwidth+offsetToCenterTimesTwo)){
-						
-						//cache_console_messages=true;
-						//consolePrint("gotcha");
 						
 						tileListX.push(i);
 						tileListY.push(j);
@@ -485,12 +482,6 @@ function mouseAction(event,click,id) {
 			
 			
 			
-			
-			//consoleCacheDump();
-			//cache_console_messages=false;
-			//console.log("placing " + tileListX.length + " thingies");
-			//consolePrint("placing " + tileListX.length + " thingies");
-			
 			for (var i=0; i<tileListX.length; i++) {
 				
 				if (tileListX[i] !== otherTileListX[i] || tileListY[i] !== otherTileListY[i]) {
@@ -511,8 +502,7 @@ function mouseAction(event,click,id) {
 					try {
 						var bak = backupLevel();
 						var cell = level.getCell(coordIndex);
-						//cell.ibitset(id);
-						cell.ibitset(state.dragID);
+						cell.ibitset(id);
 						level.setCell(coordIndex, cell);
 						var inputdir = 5;
 						pushInput(inputdir);
@@ -525,12 +515,6 @@ function mouseAction(event,click,id) {
 					}
 				}
 			}
-			
-			/*var inputdir = 5;
-			pushInput(inputdir);
-			if (processInput(inputdir,false,false,bak)) {
-				redraw();
-			}*/
 			
 			x1 = x2;
 			y1 = y2;
@@ -737,11 +721,6 @@ function setMouseCoord(e){
 }
 
 function onMouseMove(event) {
-	/*if (event.target!==canvas) {
-		dragging = false;
-		rightdragging = false;
-		return;
-	}*/
     if (levelEditorOpened) {
     	setMouseCoord(event);
     	if (dragging) { 	
