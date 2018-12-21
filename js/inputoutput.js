@@ -480,13 +480,123 @@ document.addEventListener('keyup', onKeyUp, false);
 window.addEventListener('focus', onMyFocus, false);
 window.addEventListener('blur', onMyBlur, false);
 
-
 function prevent(e) {
     if (e.preventDefault) e.preventDefault();
     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
     if (e.stopPropagation) e.stopPropagation();
     e.returnValue=false;
     return false;
+}
+
+var gamepadKeys = []; // used to store keys held at previous frame
+
+function pollGamepads() {
+	function buttonCheck(buttons, i) {
+		if(buttons.length < i) {
+			return false;
+		}
+		
+		if(typeof(buttons[i]) == "object") {
+			return buttons[i].pressed;
+		}
+	
+		return buttons[i] == 1.0;
+	}
+	function axisCheck(axes, i, dir) {
+		if(axes.length < i) {
+			return false;
+		}
+		
+		return axes[i] * dir > 0.5;
+	}
+
+	var newGamepadKeys = [];
+
+	function keyPressed(keycode) {
+    	if(keybuffer.indexOf(keycode) === -1) {
+    		keybuffer.splice(keyRepeatIndex, 0, keycode);
+	    	keyRepeatTimer = 0;
+	    	checkKey({keyCode: keycode}, true);
+		}
+
+		newGamepadKeys.splice(0, 0, keycode);
+	}
+
+	// clear any keys previously pressed but no longer held:
+	function clear() {
+		for(var k = 0; k < gamepadKeys.length; k++) {
+			if(newGamepadKeys.indexOf(gamepadKeys[k]) >= 0) {
+				continue;
+			}
+
+			var index = keybuffer.indexOf(gamepadKeys[k]);
+			if(index >= 0) {
+				keybuffer.splice(index, 1);
+				if(keyRepeatIndex >= index) {
+					keyRepeatIndex--;
+				}
+			}
+		}
+
+		gamepadKeys = newGamepadKeys;
+	}
+
+	var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+	if(gamepads == null || gamepads.length == 0) {
+		clear();
+		return;
+	}
+
+	for(var i = 0; i < gamepads.length; i++) {
+		var gamepad = gamepads[i];
+		
+		if(!gamepad.connected) {
+			continue;
+		}
+
+		if(buttonCheck(gamepad.buttons, 3) // Y
+			|| buttonCheck(gamepad.buttons, 1) // B
+			|| buttonCheck(gamepad.buttons, 4) // LB
+			|| axisCheck(gamepad.axes, 2, 1)) { // LT
+			
+			keyPressed(90); // undo
+		}
+		if(buttonCheck(gamepad.buttons, 2) // X
+			|| buttonCheck(gamepad.buttons, 0) // A
+			|| buttonCheck(gamepad.buttons, 5) // RB
+			|| axisCheck(gamepad.axes, 1, 1)) { // RT
+			
+			keyPressed(88); // action
+		}
+		if(buttonCheck(gamepad.buttons, 7)) { // menu button
+			keyPressed(27); // exit
+		}
+		if(buttonCheck(gamepad.buttons, 6)) { // change view button
+			keyPressed(69); // edit
+		}
+		if(axisCheck(gamepad.axes, 0, 1) // right
+			|| axisCheck(gamepad.axes, 6, 1)) { // D-pad right
+			
+			keyPressed(39); // right
+		}
+		if(axisCheck(gamepad.axes, 0, -1) // left
+			|| axisCheck(gamepad.axes, 6, -1)) { // D-pad left
+			
+			keyPressed(37); // left
+		}
+		if(axisCheck(gamepad.axes, 1, -1) // up
+			|| axisCheck(gamepad.axes, 1, -1)) { // D-pad up
+			
+			keyPressed(38); // up
+		}
+		if(axisCheck(gamepad.axes, 1, 1) // down
+			|| axisCheck(gamepad.axes, 1, 1)) { // D-pad down
+			
+			keyPressed(40); // down
+		}
+	}
+
+	clear();
 }
 
 function checkKey(e,justPressed) {
@@ -499,7 +609,7 @@ function checkKey(e,justPressed) {
         case 65://a
         case 37: //left
         {
-//            window.console.log("LEFT");
+//           window.console.log("LEFT");
             inputdir=1;
         break;
         }
@@ -743,7 +853,10 @@ function update() {
             winning=false;
             nextLevel();
         }
-    }
+	}
+	
+	pollGamepads();
+
     if (keybuffer.length>0) {
 	    keyRepeatTimer+=deltatime;
 	    var ticklength = throttle_movement ? repeatinterval : repeatinterval/(Math.sqrt(keybuffer.length));
