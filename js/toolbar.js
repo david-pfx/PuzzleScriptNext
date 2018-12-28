@@ -10,7 +10,6 @@ function solveClick() {
 function cancelClick() {
 	stopSolving();
 }
-
 function runClick() {
 	clearConsole();
 	compile(["restart"]);

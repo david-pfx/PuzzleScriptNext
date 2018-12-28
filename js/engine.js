@@ -2337,6 +2337,8 @@ function processInput(dir,dontDoWin,dontModify) {
         	//play player cantmove sounds here
         }
 
+
+
 	    if (level.commandQueue.indexOf('cancel')>=0) {
 	    	if (verbose_logging) { 
 	    		consoleCacheDump();
