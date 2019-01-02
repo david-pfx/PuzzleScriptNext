@@ -36,7 +36,14 @@
             ["throttle_movement", "", "For use in conjunction with realtime_interval - this stops you from moving crazy fast - repeated keypresses of the same movement direction will not increase your speed. This doesn't apply to the action button."],
             ["verbose_logging", "", "As you play the game, spits out information about all rules applied as you play"],
             ["youtube", "5MJLi5_dyn0", "If you write the youtube tag followed by the ID of a youtube video, it will play in the background."],
-            ["zoomscreen", "WxH", "Zooms the camera in to a WxH section of the map around the player, centered on the player."]
+            ["zoomscreen", "WxH", "Zooms the camera in to a WxH section of the map around the player, centered on the player."],
+            ["mouse_left","lmb","Sets the object to place when pressing left mouse button."],
+            ["mouse_drag","drag","Sets the object to place when moving the mouse while left mouse button is held."],
+            ["mouse_up","lmbup","Sets the object to place when left mouse button is released."],
+            ["mouse_right","rmb","Sets the object to place when pressing right mouse button."],
+            ["mouse_rdrag","rdrag","Sets the object to place when moving the mouse while right mouse button is held."],
+            ["mouse_rup","rmbup","Sets the object to place when right mouse button is released."],
+            ["nokeyboard","","Allows the game to run without a Player object and movement."]
         ];
 
         var COLOR_WORDS = [

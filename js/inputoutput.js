@@ -324,10 +324,10 @@ function levelEditorRightClick(event,click) {
 
 var lastCoord;
 
-var x1 = 5;  //  leftPixelX
-var y1 = 5;  //  leftPixelY
-var x2 = 5;  // rightPixelX
-var y2 = 5;  // rightPixelY
+var x1 = 5;
+var y1 = 5;
+var x2 = 5;
+var y2 = 5;
 
 function mouseAction(event,click,id) {
 	
