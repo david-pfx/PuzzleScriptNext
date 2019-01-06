@@ -555,8 +555,11 @@ function pollGamepads() {
 		}
 
 		if(buttonCheck(gamepad.buttons, 3) // Y
-			|| buttonCheck(gamepad.buttons, 1) // B
-			|| buttonCheck(gamepad.buttons, 4) // LB
+			|| buttonCheck(gamepad.buttons, 4)) { // LB
+			
+			keyPressed(82); // restart
+		}
+		if(buttonCheck(gamepad.buttons, 1) // B
 			|| axisCheck(gamepad.axes, 2, 1)) { // LT
 			
 			keyPressed(90); // undo
@@ -585,12 +588,12 @@ function pollGamepads() {
 			keyPressed(37); // left
 		}
 		if(axisCheck(gamepad.axes, 1, -1) // up
-			|| axisCheck(gamepad.axes, 1, -1)) { // D-pad up
+			|| axisCheck(gamepad.axes, 7, -1)) { // D-pad up
 			
 			keyPressed(38); // up
 		}
 		if(axisCheck(gamepad.axes, 1, 1) // down
-			|| axisCheck(gamepad.axes, 1, 1)) { // D-pad down
+			|| axisCheck(gamepad.axes, 7, 1)) { // D-pad down
 			
 			keyPressed(40); // down
 		}
