@@ -2365,7 +2365,16 @@ function processInput(dir,dontDoWin,dontModify) {
 
 	    if (dontModify && level.commandQueue.indexOf('win')>=0) {
 	    	return true;
-	    }
+		}
+		
+		var save_backup = true;
+		if(!winning && level.commandQueue.indexOf('nosave')>=0) {
+			if (verbose_logging) { 
+				var r = level.commandQueueSourceRules[level.commandQueue.indexOf('nosave')];
+				consolePrintFromRule('NOSAVE command executed, not storing current state to undo queue.',r);
+			}
+			save_backup = false;
+		}
 	    
         var modified=false;
 	    for (var i=0;i<level.objects.length;i++) {
@@ -2378,7 +2387,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	        		DoUndo(true,false);
 					return true;
 				} else {
-					if (dir!==-1) {
+					if (dir!==-1 && save_backup) {
 	    				backups.push(bak);
 	    			}
 	    			modified=true;
@@ -2451,7 +2460,7 @@ function processInput(dir,dontDoWin,dontModify) {
 				var backupStr = JSON.stringify(restartTarget);
 				localStorage[document.URL+'_checkpoint']=backupStr;
 				localStorage[document.URL]=curlevel;
-			}	 
+			}
 
 		    if (level.commandQueue.indexOf('again')>=0 && modified) {
 
