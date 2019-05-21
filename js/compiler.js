@@ -1806,8 +1806,8 @@ function generateRigidGroupList(state) {
 			rigidGroupIndex_to_GroupIndex.push(i);
 		}
 	}
-	if (rigidGroupIndex_to_GroupIndex.length>30) {
-		logError("There can't be more than 30 rigid groups (rule groups containing rigid members).",rules[0][0][3]);
+	if (rigidGroupIndex_to_GroupIndex.length>60) {
+		logError("There can't be more than 60 rigid groups (rule groups containing rigid members).",rules[0][0][3]);
 	}
 
 	state.rigidGroups=rigidGroups;
