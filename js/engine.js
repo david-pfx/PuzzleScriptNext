@@ -2307,10 +2307,10 @@ function processInput(dir,dontDoWin,dontModify) {
         		applyRules(state.lateRules, state.lateLoopPoint, 0);
         		startRuleGroupIndex=0;
         	}
-        } while (i < 50 && rigidloop);
+        } while (i < 250 && rigidloop);
 
-        if (i>=50) {
-            consolePrint("looped through 50 times, gave up.  too many loops!");
+        if (i>=250) {
+            consolePrint("looped through 250 times, gave up.  too many loops!");
         }
 
 
