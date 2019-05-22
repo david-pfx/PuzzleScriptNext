@@ -2312,9 +2312,12 @@ function processInput(dir,dontDoWin,dontModify) {
         if (i>=250) {
 			consolePrint("looped through 250 times, gave up. Too many loops!");
 			
-			if (verbose_logging){consolePrint('applying late rules');}
 			applyRules(state.lateRules, state.lateLoopPoint, 0);
 			startRuleGroupIndex=0;
+			
+			backups.push(bak);
+			DoUndo(true,false);
+			return false;
         }
 
 
