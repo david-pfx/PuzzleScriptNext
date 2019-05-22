@@ -2310,7 +2310,11 @@ function processInput(dir,dontDoWin,dontModify) {
         } while (i < 250 && rigidloop);
 
         if (i>=250) {
-            consolePrint("looped through 250 times, gave up.  too many loops!");
+            consolePrint("looped through 250 times, gave up. Too many loops! Canceling move");
+    		backups.push(bak);
+			messagetext = "";
+    		DoUndo(true,false);
+    		return false;
         }
 
 
