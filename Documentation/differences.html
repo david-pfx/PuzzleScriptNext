@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>PuzzleScript Documentation</title>
+    <title>Differences from vanilla PuzzleScript - PuzzleScript Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -49,37 +49,29 @@
     </div>
 
     <div class="container">
+
 <p>
 <ol class="breadcrumb">
-  <li class="active">Documentation</li>
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Differences</li>
 </ol>
 <p>
-
-<h1>Documentation</h1>
-<p>
-<ul class="nav nav-pills nav-stacked" class="pull-left">
-  <li><a href="differences.html">Differences of this fork from vanilla PuzzleScript</a></li>
-  <li>Basic</li>
-  <li><a href="rules101.html">Rules 101</a></li>
-  <li><a href="prelude.html">Bird's-eye view of a PuzzleScript file</a></li>
-  <li>Intermediate</li>
-  <li><a href="leveleditor.html">Level Editor</a></li>
-  <li><a href="directions.html">Directions</a></li>
-  <li><a href="actionbutton.html">The Action Button</a></li>
-  <li><a href="input.html">Input</a></li>
-  <li><a href="randomness.html">Randomness</a></li>
-  <li><a href="realtime.html">Real-Time Games</a></li>
-  <li>Advanced</li>
-  <li><a href="executionorder.html">Rule Execution Order</a></li>
-  <li><a href="rigidbodies.html">Extended Rigid Bodies</a></li>
-  <li>Miscellanea</li>
-  <li><a href="gifs.html">Making GIFs</a></li>
-  <li><a href="permanent_urls.html">Updateable PuzzleScript.net URLs</a></li>
-  <li><a href="faq.html">Frequently Asked Questions</a></li>
-</ul>
-
-
-
+ <h1>Differences from vanilla PuzzleScript</h1>
+    <p>
+    This fork of PuzzleScript has a few special tricks.
+    </p>
+    <p>
+        <ul>
+            <li>Support for gamepads (yes, gamepads work in browser!)</li>
+            <li>nosave action - when executed forces engine to not save current state to undo stack</li>
+            <li>sprite_size prelude property - use arbitrary size of sprites</li>
+            <li>case_sensitive prelude property - makes objects and aliases case-sensitive</li>
+        </ul>
+    </p>
+    <p>
+        <br /><br />Currently, share button in editor is not working. However, you can paste the script manually into <a href="https://gist.github.com/">Gist</a> and use id to make play URL.
+        <br /> For example, <a href="https://gist.github.com/dario-zubovic/4520eedba957293dde46ded354f3126f">https://gist.github.com/dario-zubovic/4520eedba957293dde46ded354f3126f</a> becomes <a href="https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f">https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f</a>.
+    </p>
 
     </div><!-- /.container -->
 
