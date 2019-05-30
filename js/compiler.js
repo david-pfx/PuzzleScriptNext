@@ -506,7 +506,7 @@ var directionaggregates = {
 var relativeDirections = ['^', 'v', '<', '>','horizontal','vertical'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
-var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/;
+var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
 //redeclaring here, i don't know why
 var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","nosave"];
 
@@ -548,7 +548,7 @@ function findIndexAfterToken(str,tokens,tokenIndex){
 	str=str.toLowerCase();
 	var curIndex=0;
 	for (var i=0;i<=tokenIndex;i++){
-		var token = tokens[i];
+		var token = tokens[i].toLowerCase();
 		curIndex=str.indexOf(token,curIndex)+token.length;
 	}
 	return curIndex;
@@ -738,21 +738,21 @@ function processRuleString(rule, state, curRules)
  						curcell.push(token);
  						curcell.push(token);
  					}
-				} else if (commandwords.indexOf(token)>=0) {
+				} else if (commandwords.indexOf(token.toLowerCase())>=0) {
 					if (rhs===false) {
 						logError("Commands cannot appear on the left-hand side of the arrow.",lineNumber);
 					}
-					if (token==='message') {
+					if (token.toLowerCase()==='message') {
 						var messageIndex = findIndexAfterToken(origLine,tokens,i);
 						var messageStr = origLine.substring(messageIndex).trim();
 						if (messageStr===""){
 							messageStr=" ";
 							//needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
 						}
-						commands.push([token, messageStr]);
+						commands.push([token.toLowerCase(), messageStr]);
 						i=tokens.length;
 					} else {
-						commands.push([token]);
+						commands.push([token.toLowerCase()]);
 					}
 				} else {
 					logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
@@ -1978,7 +1978,7 @@ function processWinConditions(state) {
 			return;
 		}
 		var num=0;
-		switch(wincondition[0]) {
+		switch(wincondition[0].toLowerCase()) {
 			case 'no':{num=-1;break;}
 			case 'all':{num=1;break;}
 		}

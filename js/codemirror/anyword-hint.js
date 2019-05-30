@@ -37,7 +37,8 @@
             ["verbose_logging", "", "As you play the game, spits out information about all rules applied as you play"],
             ["youtube", "5MJLi5_dyn0", "If you write the youtube tag followed by the ID of a youtube video, it will play in the background."],
             ["zoomscreen", "WxH", "Zooms the camera in to a WxH section of the map around the player, centered on the player."],
-            ["sprite_size", "5", "Size of sprites."]
+            ["sprite_size", "5", "Size of sprites."],
+            ["case_sensitive", "", "Makes object names and legend case sensitive."]
         ];
 
         var COLOR_WORDS = [
