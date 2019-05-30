@@ -141,10 +141,24 @@ function generateExtraMembers(state) {
 	      		o.colors=["#ff00ff"];
 	      	}
 			if (o.spritematrix.length===0) {
-				o.spritematrix = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
+				o.spritematrix = new Array(state.sprite_size);
+				var zeros = new Array(state.sprite_size);
+				for(var i = 0; i < state.sprite_size; i++) {
+					zeros[i] = 0;
+				}
+				for(var i = 0; i < state.sprite_size; i++) {
+					o.spritematrix[i] = zeros;
+				}
 			} else {
-				if ( o.spritematrix.length!==5 || o.spritematrix[0].length!==5 || o.spritematrix[1].length!==5 || o.spritematrix[2].length!==5 || o.spritematrix[3].length!==5 || o.spritematrix[4].length!==5 ){
-					logWarning("Sprite graphics must be 5 wide and 5 high exactly.",o.lineNumber);
+				if ( o.spritematrix.length!==state.sprite_size) {
+					logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
+				} else {
+					for(var i = 0; i < state.sprite_size; i++) {
+						if(o.spritematrix[i].length!==state.sprite_size) {
+							logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
+							break;
+						}
+					}
 				}
 				o.spritematrix = generateSpriteMatrix(o.spritematrix);
 			}

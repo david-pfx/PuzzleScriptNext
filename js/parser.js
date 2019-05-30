@@ -291,6 +291,8 @@ var codeMirrorFn = function() {
 
               metadata : state.metadata.concat([]),
 
+              sprite_size : state.sprite_size,
+
               levels: levelsCopy,
 
               STRIDE_OBJ : state.STRIDE_OBJ,
@@ -495,7 +497,7 @@ var codeMirrorFn = function() {
                             if (match_name == null) {
                                 stream.match(reg_notcommentstart, true);
                                 if (stream.pos>0){                                
-                                    logWarning('Unknown junk in object section (possibly: sprites have to be 5 pixels wide and 5 pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).',state.lineNumber);
+                                    logWarning('Unknown junk in object section (possibly: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).',state.lineNumber);
                                 }
                                 return 'ERROR';
                             } else {
@@ -599,13 +601,13 @@ var codeMirrorFn = function() {
                                 var o = state.objects[state.objects_candname];
 
                                 spritematrix[spritematrix.length - 1] += ch;
-                                if (spritematrix[spritematrix.length-1].length>5){
-                                    logError('Sprites must be 5 wide and 5 high.', state.lineNumber);
+                                if (spritematrix[spritematrix.length-1].length>state.sprite_size){
+                                    logError('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
                                     stream.match(reg_notcommentstart, true);
                                     return null;
                                 }
                                 o.spritematrix = state.objects_spritematrix;
-                                if (spritematrix.length === 5 && spritematrix[spritematrix.length - 1].length == 5) {
+                                if (spritematrix.length === state.sprite_size && spritematrix[spritematrix.length - 1].length == state.sprite_size) {
                                     state.objects_section = 0;
                                 }
 
@@ -1152,7 +1154,7 @@ var codeMirrorFn = function() {
 		                    if (match!==null) {
 		                    	var token = match[0].trim();
 		                    	if (sol) {
-		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube'].indexOf(token)>=0) {
+		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','sprite_size'].indexOf(token)>=0) {
 		                    			
                                         if (token==='youtube' || token==='author' || token==='title') {
                                             stream.string=mixedCase;
@@ -1161,8 +1163,12 @@ var codeMirrorFn = function() {
                                         var m2 = stream.match(reg_notcommentstart, false);
                                         
 		                    			if(m2!=null) {
-                                            state.metadata.push(token);
-		                    				state.metadata.push(m2[0].trim());                                            
+                                            if(token=='sprite_size') {
+                                                state.sprite_size = parseInt(m2[0].trim(), 10);
+                                            } else {
+                                                state.metadata.push(token);
+                                                state.metadata.push(m2[0].trim());
+                                            }
 		                    			} else {
 		                    				logError('MetaData "'+token+'" needs a value.',state.lineNumber);
 		                    			}
@@ -1236,6 +1242,8 @@ var codeMirrorFn = function() {
 
                 winconditions: [],
                 metadata: [],
+
+                sprite_size: 5,
 
                 original_case_names: {},
 
