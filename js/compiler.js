@@ -419,14 +419,14 @@ function levelFromString(state,level) {
 	var backgroundlayer=state.backgroundlayer;
 	var backgroundid=state.backgroundid;
 	var backgroundLayerMask = state.layerMasks[backgroundlayer];
-	var o = new Level(level[0], level[1].length, level.length-1, state.collisionLayers.length, null);
+	var o = new Level(level[0], level[2].length, level.length-2, state.collisionLayers.length, null, level[1]);
 	o.objects = new Int32Array(o.width * o.height * STRIDE_OBJ);
 
 	for (var i = 0; i < o.width; i++) {
 		for (var j = 0; j < o.height; j++) {
-			var ch = level[j+1].charAt(i);
+			var ch = level[j+2].charAt(i);
 			if (ch.length==0) {
-				ch=level[j+1].charAt(level[j+1].length-1);
+				ch=level[j+2].charAt(level[j+2].length-1);
 			}
 			var mask = state.glyphDict[ch];
 
@@ -473,10 +473,12 @@ function levelsToArray(state) {
 		if (level.length == 0) {
 			continue;
 		}
+		
 		if (level[0] == '\n') {
 
 			var o = {
-				message: level[1]
+				message: level[1],
+				section: level[3]
 			};
 			splitMessage = wordwrap(o.message,intro_template[0].length);
 			if (splitMessage.length>12){

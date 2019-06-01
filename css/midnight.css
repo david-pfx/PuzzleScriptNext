@@ -54,6 +54,8 @@
 .cm-s-midnight span.cm-COMMAND {color: #AE81FF;font-weight:bold;}
 .cm-s-midnight span.cm-MESSAGE_VERB {color: #AE81FF;font-weight:bold;}
 .cm-s-midnight span.cm-MESSAGE {color: orange;font-style:italic;}
+.cm-s-midnight span.cm-SECTION_VERB {color: rgb(129, 255, 156);font-weight:bold;}
+.cm-s-midnight span.cm-SECTION {color: orange;font-style:italic;}
 .cm-s-midnight span.cm-METADATA {color: #AE81FF;font-weight:bold;}
 .cm-s-midnight span.cm-METADATATEXT {color: orange;font-style:italic;}
 

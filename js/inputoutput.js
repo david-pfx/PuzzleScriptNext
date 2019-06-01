@@ -777,11 +777,18 @@ function checkKey(e,justPressed) {
     			}
     			else if (inputdir===0||inputdir===2) {
     				if (inputdir===0){
-    					titleSelection=0;    					
+    					titleSelection--;    					
     				} else {
-    					titleSelection=1;    					    					
-    				}
-    				generateTitleScreen();
+    					titleSelection++;    					    					
+					}
+
+					if(titleSelection >= titleSelectOptions) {
+						titleSelection -= titleSelectOptions;
+					} else if (titleSelection < 0) {
+						titleSelection += titleSelectOptions;
+					}
+					
+					generateTitleScreen();
     				redraw();
     			}
     		}

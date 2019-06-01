@@ -1,5 +1,6 @@
 var unitTesting=false;
 var curlevel=0;
+var storedSections = [];
 var curlevelTarget=null;
 var hasUsedCheckpoint=false;
 var levelEditorOpened=false;
@@ -20,7 +21,11 @@ function doSetupTitleScreenLevelContinue(){
                     curlevelTarget.dat = new Int32Array(arr);
 
                 }
-    	        curlevel = localStorage[document.URL];            
+                curlevel = localStorage[document.URL];
+                
+    		    if (localStorage[document.URL+"_sections"]!==undefined) {
+                    storedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
+                }
     		}
     	}		 
     } catch(ex) {

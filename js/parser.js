@@ -273,6 +273,8 @@ var codeMirrorFn = function() {
               objects_spritematrix: state.objects_spritematrix.concat([]),
 
               tokenIndex: state.tokenIndex,
+              currentSection: state.currentSection,
+
               legend_synonyms: legend_synonymsCopy,
               legend_aggregates: legend_aggregatesCopy,
               legend_properties: legend_propertiesCopy,
@@ -1139,31 +1141,36 @@ var codeMirrorFn = function() {
                     {
                         if (sol)
                         {
-                            if (stream.match(/\s*message\s*/, true)) {
-                                state.tokenIndex = 1;//1/2 = message/level
-                                var newdat = ['\n', mixedCase.slice(stream.pos).trim(),state.lineNumber];
+                            if (stream.match(/\s*message\s*/i, true)) {
+                                state.tokenIndex = 1;//1/2/3 = message/level/section
+                                var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
                                 if (state.levels[state.levels.length - 1].length == 0) {
                                     state.levels.splice(state.levels.length - 1, 0, newdat);
                                 } else {
                                     state.levels.push(newdat);
                                 }
                                 return 'MESSAGE_VERB';
+                            } else if (stream.match(/\s*section\s*/i, true)) {
+                                state.tokenIndex = 3;//1/2/3 = message/level/section
+                                state.currentSection = mixedCase.slice(stream.pos).trim();
+                                return 'SECTION_VERB';
                             } else {
                                 var line = stream.match(reg_notcommentstart, false)[0].trim();
                                 state.tokenIndex = 2;
                                 var lastlevel = state.levels[state.levels.length - 1];
                                 if (lastlevel[0] == '\n') {
-                                    state.levels.push([state.lineNumber,line]);
+                                    state.levels.push([state.lineNumber, state.currentSection, line]);
                                 } else {
                                     if (lastlevel.length==0)
                                     {
                                         lastlevel.push(state.lineNumber);
+                                        lastlevel.push(state.currentSection);
                                     }
-                                    lastlevel.push(line);  
+                                    lastlevel.push(line);
 
-                                    if (lastlevel.length>1) 
+                                    if (lastlevel.length>2)
                                     {
-                                        if (line.length!=lastlevel[1].length) {
+                                        if (line.length!=lastlevel[2].length) {
                                             logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber);
                                         }
                                     }
@@ -1174,6 +1181,15 @@ var codeMirrorFn = function() {
                             if (state.tokenIndex == 1) {
                                 stream.skipToEnd();
                                	return 'MESSAGE';
+                            } else if (state.tokenIndex == 3) {
+                                stream.skipToEnd();
+
+                                if(state.metadata.indexOf("level_select")==-1) {
+                                    logError("Can't use sections without level_select parameter in preamble", state.lineNumber);
+                                    return 'ERROR';
+                                }
+
+                                return 'SECTION';
                             }
                         }
 
@@ -1220,7 +1236,7 @@ var codeMirrorFn = function() {
 		                    			}
 		                    			state.tokenIndex=1;
 		                    			return 'METADATA';
-		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive'].indexOf(token)>=0) {
+		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','settings'].indexOf(token)>=0) {
                                         if(token == 'case_sensitive') {
                                             state.case_sensitive = true;
                                         }
@@ -1280,6 +1296,8 @@ var codeMirrorFn = function() {
                 collisionLayers: [],
 
                 tokenIndex: 0,
+
+                currentSection: null,
 
                 legend_synonyms: [],
                 legend_aggregates: [],

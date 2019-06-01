@@ -1,16 +1,3 @@
-/*
-..................................
-.............SOKOBAN..............
-..................................
-...........#.new game.#...........
-..................................
-.............continue.............
-..................................
-arrow keys to move................
-x to action.......................
-z to undo, r to restart...........
-*/
-
 
 var RandomGen = new RNG();
 
@@ -61,37 +48,6 @@ var titletemplate_firstgo = [
 	".Z to undo, R to restart..........",
 	".................................."];
 
-var titletemplate_select0 = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"...........#.new game.#...........",
-	"..................................",
-	".............continue.............",
-	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart..........",
-	".................................."];
-
-var titletemplate_select1 = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	".............new game.............",
-	"..................................",
-	"...........#.continue.#...........",
-	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart..........",
-	".................................."];
-
-
 var titletemplate_firstgo_selected = [
 	"..................................",
 	"..................................",
@@ -106,53 +62,73 @@ var titletemplate_firstgo_selected = [
 	".X to action......................",
 	".Z to undo, R to restart..........",
 	".................................."];
+	
+var titletemplate_empty = [
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	".arrow keys to move...............",
+	".X to action......................",
+	".Z to undo, R to restart.........."];
 
-var titletemplate_select0_selected = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"############.new game.############",
-	"..................................",
+var title_options = [[
 	".............continue.............",
-	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart..........",
-	".................................."];
-
-var titletemplate_select1_selected = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
+	"...........#.continue.#...........",
+	"############.continue.############"
+], [
+	"...........level select...........",
+	".........#.level select.#.........",
+	"##########.level select.##########"
+], [
+	".............settings.............",
+	"...........#.settings.#...........",
+	"############.settings.############"
+], [
 	".............new game.............",
-	"..................................",
-	"############.continue.############",
-	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart..........",
-	".................................."];
+	"...........#.new game.#...........",
+	"############.new game.############"
+]];
 
 var titleImage=[];
-var titleWidth=titletemplate_select1[0].length;
-var titleHeight=titletemplate_select1.length;
+var titleWidth=titletemplate_empty[0].length;
+var titleHeight=titletemplate_empty.length;
 var textMode=true;
 var titleScreen=true;
 var titleMode=0;//1 means there are options
 var titleSelection=0;
+var titleSelectOptions=2;
 var titleSelected=false;
 
 function unloadGame() {
 	state=introstate;
-	level = new Level(0, 5, 5, 2, null);
+	level = new Level(0, 5, 5, 2, null, null);
 	level.objects = new Int32Array(0);
 	generateTitleScreen();
 	canvasResize();
 	redraw();
+}
+
+function isContinueOptionSelected() {
+	return titleSelection == 0; // continue option is always 1st
+}
+
+function isNewGameOptionSelected() {
+	return titleSelection == titleSelectOptions-1; // new game option is always on bottom
+}
+
+function isLevelSelectOptionSelected() {
+	if(state.metadata["level_select"] === undefined) {
+		return false;
+	}
+
+	return titleSelection == 1; // level select option is always 2nd if it exists
 }
 
 function generateTitleScreen()
@@ -176,18 +152,43 @@ function generateTitleScreen()
 			titleImage = deepClone(titletemplate_firstgo);					
 		}
 	} else {
-		if (titleSelection===0) {
-			if (titleSelected) {
-				titleImage = deepClone(titletemplate_select0_selected);		
-			} else {
-				titleImage = deepClone(titletemplate_select0);					
-			}			
-		} else {
-			if (titleSelected) {
-				titleImage = deepClone(titletemplate_select1_selected);		
-			} else {
-				titleImage = deepClone(titletemplate_select1);					
-			}						
+
+		var availableOptions = [0];
+		
+		titleSelectOptions = 2;
+
+		if(state.metadata["level_select"] !== undefined) {
+			titleSelectOptions++;
+			
+			availableOptions.push(1);
+		}
+
+		if(state.metadata["settings"] !== undefined) {
+			titleSelectOptions++;
+			
+			availableOptions.push(2);
+		}
+
+		availableOptions.push(3);
+
+		titleImage = deepClone(titletemplate_empty);
+
+		for(var i = 0; i < titleSelectOptions; i++) {
+			var version = 0;
+			if(titleSelection == i) {
+				if(titleSelected) {
+					version = 2;
+				} else {
+					version = 1;
+				}
+			}
+
+			var j = 0;
+			if(titleSelectOptions == 2 && i == 1) {
+				j = 1;
+			}
+
+			titleImage[5 + i + j] = deepClone(title_options[availableOptions[i]][version]);
 		}
 	}
 
@@ -232,6 +233,29 @@ function generateTitleScreen()
 		}
 	}
 
+}
+
+function gotoLevelSelectScreen() {
+	generateLevelSelectScreen();
+	redraw();
+}
+
+function generateLevelSelectScreen() {
+	/*
+	"...........select level...........",
+	"..................................",
+	".[✓].#.Testy section max long.#.O.",
+	"................................|.",
+	".[ ]...Unselected section.......|.",
+	"................................|.",
+	".[ ]...Another section..........|.",
+	"................................|.",
+	".[ ]...Another section..........|.",
+	"................................|.",
+	".[ ]...Another section..........|.",
+	"................................|.",
+	".[ ]...Another section..........|."
+	*/
 }
 
 var introstate = {
@@ -384,12 +408,12 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	forceRegenImages=true;
 	titleScreen=false;
 	titleMode=(curlevel>0||curlevelTarget!==null)?1:0;
-	titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+	titleSelection=0;
 	titleSelected=false;
     againing=false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
-	goToTitleScreen();
+		goToTitleScreen();
     	return;
     }
     if (leveldat.message===undefined) {
@@ -489,7 +513,7 @@ var sprites = [
 
 generateTitleScreen();
 if (titleMode>0){
-	titleSelection=1;
+	titleSelection=0;
 }
 
 canvasResize();
@@ -671,7 +695,7 @@ function setGameState(_state, command, randomseed) {
 		    titleScreen=true;
 		    tryPlayTitleSound();
 		    textMode=true;
-		    titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+		    titleSelection=0;
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
@@ -699,7 +723,7 @@ function setGameState(_state, command, randomseed) {
 			    timer=0;
 			    titleScreen=false;
 			    textMode=false;
-			    titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+			    //titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
 			    titleSelected=false;
 			    quittingMessageScreen=false;
 			    quittingTitleScreen=false;
@@ -718,7 +742,7 @@ function setGameState(_state, command, randomseed) {
 		    timer=0;
 		    titleScreen=false;
 		    textMode=false;
-		    titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+		    //titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
@@ -738,7 +762,7 @@ function setGameState(_state, command, randomseed) {
 				    timer=0;
 				    titleScreen=false;
 				    textMode=false;
-				    titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+				    //titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
 				    titleSelected=false;
 				    quittingMessageScreen=false;
 				    quittingTitleScreen=false;
@@ -1062,19 +1086,20 @@ function repositionEntitiesAtCell(positionIndex) {
 }
 
 
-function Level(lineNumber, width, height, layerCount, objects) {
+function Level(lineNumber, width, height, layerCount, objects, section) {
 	this.lineNumber = lineNumber;
 	this.width = width;
 	this.height = height;
 	this.n_tiles = width * height;
 	this.objects = objects;
+	this.section = section;
 	this.layerCount = layerCount;
 	this.commandQueue = [];
 	this.commandQueueSourceRules = [];
 }
 
 Level.prototype.clone = function() {
-	var clone = new Level(this.lineNumber, this.width, this.height, this.layerCount, null);
+	var clone = new Level(this.lineNumber, this.width, this.height, this.layerCount, null, this.section);
 	clone.objects = new Int32Array(this.objects);
 	return clone;
 }
@@ -2620,7 +2645,6 @@ function anyMovements() {
     return false;
 }*/
 
-
 function nextLevel() {
     againing=false;
 	messagetext="";
@@ -2629,44 +2653,48 @@ function nextLevel() {
 	}
 	
 	if (titleScreen) {
-		if (titleSelection===0) {
-			//new game
+		if(isContinueOptionSelected()) {
+			// continue
+			loadLevelFromStateOrTarget();
+		} else if(isNewGameOptionSelected()) {
+			// new game
 			curlevel=0;
 			curlevelTarget=null;
-		} 			
-		if (curlevelTarget!==null){			
-			loadLevelFromStateTarget(state,curlevel,curlevelTarget);
+			clearLocalStorage();
+
+			loadLevelFromStateOrTarget();
+		} else if(isLevelSelectOptionSelected()) {
+			// level select
+			// TODO
+			gotoLevelSelectScreen();
 		} else {
-			loadLevelFromState(state,curlevel);
+			// settings
+			// TODO
 		}
 	} else {	
 		if (hasUsedCheckpoint){
 			curlevelTarget=null;
 			hasUsedCheckpoint=false;
 		}
-		if (curlevel<(state.levels.length-1))
-		{			
+
+		if (curlevel<(state.levels.length-1)) {
+			if(state.levels[Number(curlevel)+1].section != state.levels[Number(curlevel)].section) {
+				setSectionSolved(state.levels[Number(curlevel)].section);
+
+				if(storedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
+					// next section is already solved, jump to level select
+				}
+			}
+
 			curlevel++;
 			textMode=false;
 			titleScreen=false;
 			quittingMessageScreen=false;
 			messageselected=false;
 
-			if (curlevelTarget!==null){			
-				loadLevelFromStateTarget(state,curlevel,curlevelTarget);
-			} else {
-				loadLevelFromState(state,curlevel);
-			}
+			loadLevelFromStateOrTarget();
 		} else {
-			try{
-				if (!!window.localStorage) {
-	
-					localStorage.removeItem(document.URL);
-					localStorage.removeItem(document.URL+'_checkpoint');
-				}
-			} catch(ex){
-					
-			}
+			clearLocalStorage();
 			
 			curlevel=0;
 			curlevelTarget=null;
@@ -2697,14 +2725,48 @@ function nextLevel() {
 	clearInputHistory();
 }
 
+function loadLevelFromStateOrTarget() {
+	if (curlevelTarget!==null){			
+		loadLevelFromStateTarget(state,curlevel,curlevelTarget);
+	} else {
+		loadLevelFromState(state,curlevel);
+	}
+}
+
 function goToTitleScreen(){
     againing=false;
 	messagetext="";
 	titleScreen=true;
 	textMode=true;
 	doSetupTitleScreenLevelContinue();
-	titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+	//titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
 	generateTitleScreen();
 }
 
+function setSectionSolved(section) {
+	if(section == null || section == undefined) {
+		return;
+	}
 
+	if(storedSections.indexOf(section) >= 0) {
+		return;
+	}
+
+	try {
+		if(!!window.localStorage) {
+			storedSections.push(section);
+			localStorage.setItem(document.URL + "_sections", JSON.stringify(storedSections));
+		}
+	} catch(ex) { }
+}
+
+function clearLocalStorage() {
+	try{
+		if (!!window.localStorage) {
+
+			localStorage.removeItem(document.URL);
+			localStorage.removeItem(document.URL+'_checkpoint');
+			localStorage.removeItem(document.URL+'_sections');
+		}
+	} catch(ex){ }
+}

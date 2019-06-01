@@ -38,7 +38,8 @@
             ["youtube", "5MJLi5_dyn0", "If you write the youtube tag followed by the ID of a youtube video, it will play in the background."],
             ["zoomscreen", "WxH", "Zooms the camera in to a WxH section of the map around the player, centered on the player."],
             ["sprite_size", "5", "Size of sprites."],
-            ["case_sensitive", "", "Makes object names and legend case sensitive."]
+            ["case_sensitive", "", "Makes object names and legend case sensitive."],
+            ["level_select", "", "Show level selection option on main screen (use with sections in levels)."],
         ];
 
         var COLOR_WORDS = [
@@ -197,6 +198,7 @@
                     {
                         if (lineToCursor.trim().split(/\s+/ ).length<2) {
                             candlists.push(["MESSAGE_VERB","message"]);
+                            candlists.push(["SECTION_VERB","section"]);
                         }
                         break;
                     }
