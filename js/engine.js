@@ -2790,8 +2790,6 @@ function nextLevel() {
 			loadLevelFromStateOrTarget();
 		} else if(isLevelSelectOptionSelected()) {
 			// level select
-			// TODO
-
 			titleSelection = 0;
 			gotoLevelSelectScreen();
 		} else {
@@ -2805,22 +2803,25 @@ function nextLevel() {
 		}
 
 		if (curlevel<(state.levels.length-1)) {
+			var skip = false;
 			if(state.levels[Number(curlevel)+1].section != state.levels[Number(curlevel)].section) {
 				setSectionSolved(state.levels[Number(curlevel)].section);
 
 				if(solvedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
 					gotoLevelSelectScreen();
-					return;
+					skip = true;
 				}
 			}
 
-			curlevel++;
-			textMode=false;
-			titleScreen=false;
-			quittingMessageScreen=false;
-			messageselected=false;
-
-			loadLevelFromStateOrTarget();
+			if(!skip) {
+				curlevel++;
+				textMode=false;
+				titleScreen=false;
+				quittingMessageScreen=false;
+				messageselected=false;
+	
+				loadLevelFromStateOrTarget();
+			}
 		} else {
 			if(solvedSections.length == state.sections.length) {
 				if(state.metadata["level_select"] === undefined) {
