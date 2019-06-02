@@ -1216,7 +1216,7 @@ var codeMirrorFn = function() {
 		                    if (match!==null) {
 		                    	var token = match[0].trim();
 		                    	if (sol) {
-		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','sprite_size'].indexOf(token)>=0) {
+		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead'].indexOf(token)>=0) {
 		                    			
                                         if (token==='youtube' || token==='author' || token==='title') {
                                             stream.string=mixedCase;
@@ -1236,7 +1236,7 @@ var codeMirrorFn = function() {
 		                    			}
 		                    			state.tokenIndex=1;
 		                    			return 'METADATA';
-		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','settings'].indexOf(token)>=0) {
+		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','continue_is_level_select','level_select_lock','settings'].indexOf(token)>=0) {
                                         if(token == 'case_sensitive') {
                                             state.case_sensitive = true;
                                         }

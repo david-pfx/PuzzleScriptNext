@@ -681,10 +681,21 @@ function checkKey(e,justPressed) {
         }
         case 27://escape
         {
-        	if (titleScreen===false) {
-				goToTitleScreen();	
-		    	tryPlayTitleSound();
-				canvasResize();			
+        	if (titleScreen===false || titleMode > 1) {
+				if (timer/1000>0.5) {
+					titleSelection = 0;
+					
+					timer = 0;
+					if(titleScreen === false && state.metadata["level_select"] !== undefined) {
+						gotoLevelSelectScreen();
+					} else {
+						goToTitleScreen();
+					}
+
+					tryPlayTitleSound();
+					canvasResize();
+				}
+
 				return prevent(e)
         	}
         	break;
@@ -771,7 +782,12 @@ function checkKey(e,justPressed) {
 	    				messageselected=false;
 	    				timer=0;
 	    				quittingTitleScreen=true;
-	    				generateTitleScreen();
+						
+						if(titleMode == 1) {
+							generateTitleScreen();
+						} else if(titleMode == 2) {
+							generateLevelSelectScreen();
+						}
 	    				redraw();
 	    			}
     			}
@@ -788,7 +804,11 @@ function checkKey(e,justPressed) {
 						titleSelection += titleSelectOptions;
 					}
 					
-					generateTitleScreen();
+					if(titleMode == 1) {
+						generateTitleScreen();
+					} else if(titleMode == 2) {
+						generateLevelSelectScreen();
+					}
     				redraw();
     			}
     		}
@@ -828,8 +848,13 @@ function update() {
     input_throttle_timer+=deltatime;
     if (quittingTitleScreen) {
         if (timer/1000>0.3) {
-            quittingTitleScreen=false;
-            nextLevel();
+			quittingTitleScreen=false;
+			
+			if(titleMode <= 1) {
+				nextLevel();
+			} else if(titleMode == 2) {
+				gotoSelectedLevel();
+			}
         }
     }
     if (againing) {

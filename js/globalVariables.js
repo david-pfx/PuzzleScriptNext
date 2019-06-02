@@ -1,6 +1,6 @@
 var unitTesting=false;
 var curlevel=0;
-var storedSections = [];
+var solvedSections = [];
 var curlevelTarget=null;
 var hasUsedCheckpoint=false;
 var levelEditorOpened=false;
@@ -24,7 +24,7 @@ function doSetupTitleScreenLevelContinue(){
                 curlevel = localStorage[document.URL];
                 
     		    if (localStorage[document.URL+"_sections"]!==undefined) {
-                    storedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
+                    solvedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
                 }
     		}
     	}		 

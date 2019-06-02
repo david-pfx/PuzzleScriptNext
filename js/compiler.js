@@ -496,6 +496,28 @@ function levelsToArray(state) {
 	state.levels = processedLevels;
 }
 
+function extractSections(state) {
+	var sections = [];
+
+	var lastSection = null;
+
+	for(var i = 0; i < state.levels.length; i++) {
+		var level = state.levels[i];
+		
+		if(level.section != lastSection) {
+			var o = {
+				name: level.section,
+				firstLevel: i
+			};
+			sections.push(o);
+			
+			lastSection = level.section;
+		}
+	}
+
+	state.sections = sections;
+}
+
 var directionaggregates = {
 	'horizontal' : ['left', 'right'],
 	'vertical' : ['up', 'down'],
@@ -2459,6 +2481,7 @@ function loadFile(str) {
 	generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
+	extractSections(state);
 	rulesToArray(state);
 
 	removeDuplicateRules(state);

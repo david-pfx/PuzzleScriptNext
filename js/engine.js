@@ -101,7 +101,7 @@ var titleWidth=titletemplate_empty[0].length;
 var titleHeight=titletemplate_empty.length;
 var textMode=true;
 var titleScreen=true;
-var titleMode=0;//1 means there are options
+var titleMode=0;//1 means title screen with options, 2 means level select
 var titleSelection=0;
 var titleSelectOptions=2;
 var titleSelected=false;
@@ -113,9 +113,14 @@ function unloadGame() {
 	generateTitleScreen();
 	canvasResize();
 	redraw();
+	titleSelected=true;
 }
 
 function isContinueOptionSelected() {
+	if(state.metadata["continue_is_level_select"] !== undefined) {
+		return false;
+	}
+
 	return titleSelection == 0; // continue option is always 1st
 }
 
@@ -126,6 +131,10 @@ function isNewGameOptionSelected() {
 function isLevelSelectOptionSelected() {
 	if(state.metadata["level_select"] === undefined) {
 		return false;
+	}
+	
+	if(state.metadata["continue_is_level_select"] !== undefined) {
+		return titleSelection == 0; // continue option is always 1st
 	}
 
 	return titleSelection == 1; // level select option is always 2nd if it exists
@@ -157,7 +166,7 @@ function generateTitleScreen()
 		
 		titleSelectOptions = 2;
 
-		if(state.metadata["level_select"] !== undefined) {
+		if(state.metadata["level_select"] !== undefined && state.metadata["continue_is_level_select"] === undefined) {
 			titleSelectOptions++;
 			
 			availableOptions.push(1);
@@ -235,7 +244,28 @@ function generateTitleScreen()
 
 }
 
+var levelSelectScrollPos = 0;
+
 function gotoLevelSelectScreen() {
+	levelSelectScrollPos = 0;
+	titleSelected = false;
+	timer = 0;
+	quittingTitleScreen = false;
+	titleMode = 2;
+	titleScreen = true;
+	textMode = true;
+    againing=false;
+	messagetext="";
+
+	// select first unsolved level:
+	titleSelection = 0;
+	for(var i = 0; i < state.sections.length; i++) {
+		if(solvedSections.indexOf(state.sections[i].name) == -1) {
+			titleSelection = i;
+			break;
+		}
+	}
+
 	generateLevelSelectScreen();
 	redraw();
 }
@@ -244,18 +274,113 @@ function generateLevelSelectScreen() {
 	/*
 	"...........select level...........",
 	"..................................",
-	".[✓].#.Testy section max long.#.O.",
-	"................................|.",
-	".[ ]...Unselected section.......|.",
-	"................................|.",
-	".[ ]...Another section..........|.",
-	"................................|.",
-	".[ ]...Another section..........|.",
-	"................................|.",
-	".[ ]...Another section..........|.",
-	"................................|.",
-	".[ ]...Another section..........|."
+	"[✓].#.Testy section maxxx long.#.O",
+	".................................|",
+	"[ ]...Unselected section.........|",
+	".................................|",
+	"[ ]...Another section............|",
+	".................................|",
+	"[ ]...Another section............|",
+	".................................|",
+	"[ ]...Another section............|",
+	".................................|",
+	"[ ]...Another section............|"
 	*/
+
+	titleImage = [
+		"           select level           ",
+		"                                  "
+	];
+
+	titleSelectOptions = state.sections.length;
+
+	if(titleSelection < levelSelectScrollPos) {
+		levelSelectScrollPos = titleSelection;
+	} else if(titleSelection >= levelSelectScrollPos + 6) {
+		levelSelectScrollPos = titleSelection - 5;
+	}
+
+	var unlockedUntil = -1;
+	if(state.metadata["level_select_lock"] !== undefined) {
+		// find last solved section:
+		var unsolvedSections = 0;
+		for(var i = 0; i < state.sections.length; i++) {
+			if(solvedSections.indexOf(state.sections[i].name) >= 0) {
+				unlockedUntil = i;
+			} else {
+				unsolvedSections++;
+			}
+		}
+
+		if(state.metadata.level_select_unlocked_ahead === undefined) {
+			unlockedUntil += 1;
+		} else {
+			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
+		}	
+	}
+	console.log(unlockedUntil);
+
+	for(var i = levelSelectScrollPos; i < levelSelectScrollPos + 6; i++) {
+		if(i < 0 || i >= state.sections.length) {
+			break;
+		}
+
+		var section = state.sections[i];
+		var solved = (solvedSections.indexOf(section.name) >= 0);
+		var selected = (i == titleSelection);
+		var locked = (unlockedUntil >= 0 && i > unlockedUntil);
+
+		var name = section.name.substring(0, 24);
+		
+		if(locked) {
+			if(selected && titleSelected) {
+				titleSelected = false;
+				quittingTitleScreen = false;
+			}
+
+			var l = name.length;
+			name = "";
+			for(var j = 0; j < l; j++) {
+				name += "*";
+			}
+		}
+
+		var line = "[" + (solved ? "✓" : " ") + "] ";
+		
+		line += (selected ? "#" : " ") + " " + name;
+		for(var j = name.length; j < 25; j++) {
+			if(selected && titleSelected && j != name.length) {
+				line += "#";
+			} else {
+				line += " ";
+			}
+		}
+		line += (selected ? "#" : " ") + "  ";
+
+		titleImage.push(line);
+
+		if(titleImage.length < 13) {
+			titleImage.push("                                  ");
+		}
+	}
+
+	for(var i = titleImage.length; i < 13; i++) {
+		titleImage.push("                                  ");
+	}
+}
+
+function gotoSelectedLevel() {
+	againing = false;
+	messagetext = "";
+
+	curlevel = state.sections[titleSelection].firstLevel;
+
+	loadLevelFromStateOrTarget();
+
+	updateLocalStorage();
+	resetFlickDat();
+	canvasResize();	
+	clearInputHistory();
 }
 
 var introstate = {
@@ -2652,7 +2777,7 @@ function nextLevel() {
 		curlevel=state.levels.length-1;
 	}
 	
-	if (titleScreen) {
+	if (titleScreen && titleMode <= 1) {
 		if(isContinueOptionSelected()) {
 			// continue
 			loadLevelFromStateOrTarget();
@@ -2666,12 +2791,14 @@ function nextLevel() {
 		} else if(isLevelSelectOptionSelected()) {
 			// level select
 			// TODO
+
+			titleSelection = 0;
 			gotoLevelSelectScreen();
 		} else {
 			// settings
 			// TODO
 		}
-	} else {	
+	} else {
 		if (hasUsedCheckpoint){
 			curlevelTarget=null;
 			hasUsedCheckpoint=false;
@@ -2681,8 +2808,9 @@ function nextLevel() {
 			if(state.levels[Number(curlevel)+1].section != state.levels[Number(curlevel)].section) {
 				setSectionSolved(state.levels[Number(curlevel)].section);
 
-				if(storedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
-					// next section is already solved, jump to level select
+				if(solvedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
+					gotoLevelSelectScreen();
+					return;
 				}
 			}
 
@@ -2694,33 +2822,31 @@ function nextLevel() {
 
 			loadLevelFromStateOrTarget();
 		} else {
-			clearLocalStorage();
-			
-			curlevel=0;
-			curlevelTarget=null;
-			goToTitleScreen();
-			tryPlayEndGameSound();
+			if(solvedSections.length == state.sections.length) {
+				if(state.metadata["level_select"] === undefined) {
+					// solved all
+					clearLocalStorage();
+					
+					curlevel=0;
+					curlevelTarget=null;
+					goToTitleScreen();
+				} else {
+					gotoLevelSelectScreen();	
+				}
+				
+				tryPlayEndGameSound();	
+			} else {
+				if(state.levels[Number(curlevel)].section != null) {
+					setSectionSolved(state.levels[Number(curlevel)].section);
+				}
+				gotoLevelSelectScreen();
+			}
 		}		
 		//continue existing game
 	}
-	try {
-		if (!!window.localStorage) {
-			localStorage[document.URL]=curlevel;
-			if (curlevelTarget!==null){
-				restartTarget=level4Serialization();
-				var backupStr = JSON.stringify(restartTarget);
-				localStorage[document.URL+'_checkpoint']=backupStr;
-			} else {
-				localStorage.removeItem(document.URL+"_checkpoint");
-			}		
-		}
-	} catch (ex) {
 
-	}
-
-	if (state!==undefined && state.metadata.flickscreen!==undefined){
-		oldflickscreendat=[0,0,Math.min(state.metadata.flickscreen[0],level.width),Math.min(state.metadata.flickscreen[1],level.height)];
-	}
+	updateLocalStorage();
+	resetFlickDat();
 	canvasResize();	
 	clearInputHistory();
 }
@@ -2743,27 +2869,51 @@ function goToTitleScreen(){
 	generateTitleScreen();
 }
 
+function resetFlickDat() {
+	if (state!==undefined && state.metadata.flickscreen!==undefined){
+		oldflickscreendat=[0,0,Math.min(state.metadata.flickscreen[0],level.width),Math.min(state.metadata.flickscreen[1],level.height)];
+	}
+}
+
+function updateLocalStorage() {
+	try {
+		if (!!window.localStorage) {
+			localStorage[document.URL]=curlevel;
+			if (curlevelTarget!==null){
+				restartTarget=level4Serialization();
+				var backupStr = JSON.stringify(restartTarget);
+				localStorage[document.URL+'_checkpoint']=backupStr;
+			} else {
+				localStorage.removeItem(document.URL+"_checkpoint");
+			}
+		}
+	} catch (ex) { }
+}
+
 function setSectionSolved(section) {
 	if(section == null || section == undefined) {
 		return;
 	}
 
-	if(storedSections.indexOf(section) >= 0) {
+	if(solvedSections.indexOf(section) >= 0) {
 		return;
 	}
 
 	try {
 		if(!!window.localStorage) {
-			storedSections.push(section);
-			localStorage.setItem(document.URL + "_sections", JSON.stringify(storedSections));
+			solvedSections.push(section);
+			localStorage.setItem(document.URL + "_sections", JSON.stringify(solvedSections));
 		}
 	} catch(ex) { }
 }
 
 function clearLocalStorage() {
-	try{
-		if (!!window.localStorage) {
+	curlevel = 0;
+	curlevelTarget = null;
+	solvedSections = [];
 
+	try {
+		if (!!window.localStorage) {
 			localStorage.removeItem(document.URL);
 			localStorage.removeItem(document.URL+'_checkpoint');
 			localStorage.removeItem(document.URL+'_sections');

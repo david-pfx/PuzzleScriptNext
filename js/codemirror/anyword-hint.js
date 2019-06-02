@@ -40,6 +40,9 @@
             ["sprite_size", "5", "Size of sprites."],
             ["case_sensitive", "", "Makes object names and legend case sensitive."],
             ["level_select", "", "Show level selection option on main screen (use with sections in levels)."],
+            ["continue_is_level_select", "", "Don't show separate option on main menu for level selection."],
+            ["level_select_lock", "", "Level selection will have unsolved levels locked."],
+            ["level_select_unlocked_ahead", "1", "Level selection will have N number of unsolved levels unlocked after last solved level."],
         ];
 
         var COLOR_WORDS = [
