@@ -251,11 +251,13 @@ function gotoLevelSelectScreen() {
 	titleSelected = false;
 	timer = 0;
 	quittingTitleScreen = false;
+	quittingMessageScreen = false;
+	messageselected = false;
 	titleMode = 2;
 	titleScreen = true;
 	textMode = true;
-    againing=false;
-	messagetext="";
+    againing = false;
+	messagetext = "";
 
 	// select first unsolved level:
 	titleSelection = 0;
