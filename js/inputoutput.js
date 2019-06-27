@@ -550,7 +550,7 @@ function pollGamepads() {
 	for(var i = 0; i < gamepads.length; i++) {
 		var gamepad = gamepads[i];
 		
-		if(!gamepad.connected) {
+		if(gamepad == null || !gamepad.connected) {
 			continue;
 		}
 
