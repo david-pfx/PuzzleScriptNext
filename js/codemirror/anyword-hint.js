@@ -43,6 +43,8 @@
             ["continue_is_level_select", "", "Don't show separate option on main menu for level selection."],
             ["level_select_lock", "", "Level selection will have unsolved levels locked."],
             ["level_select_unlocked_ahead", "1", "Level selection will have N number of unsolved levels unlocked after last solved level."],
+            ["level_select_solve_symbol", "x", "Symbol that will be used for solved levels in level select menu"],
+            ["custom_font", "", "Custom font to use for text rendering."], 
         ];
 
         var COLOR_WORDS = [

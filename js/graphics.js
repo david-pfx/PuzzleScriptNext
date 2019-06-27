@@ -32,14 +32,22 @@ function createSprite(name,spritegrid, colors, padding) {
     return sprite;
 }
 
+function drawTextWithCustomFont(txt, ctx, x, y) {
+    ctx.fillStyle = state.fgcolor;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.font = cellheight + "px PuzzleCustomFont";
+    ctx.fillText(txt, x, y);
+}
+
 function regenText(spritecanvas,spritectx) {
 	textImages={};
 
-	for (var n in font) {
-		if (font.hasOwnProperty(n)) {
-			textImages[n] = createSprite('char'+n,font[n], undefined, 1);
-		}
-	}
+    for (var n in font) {
+        if (font.hasOwnProperty(n)) {
+            textImages[n] = createSprite('char'+n,font[n], undefined, 1);
+        }
+    }
 }
 var spriteimages;
 function regenSpriteImages() {
@@ -200,13 +208,20 @@ function redraw() {
         ctx.fillStyle = state.bgcolor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        for (var i = 0; i < titleWidth; i++) {
-            for (var j = 0; j < titleHeight; j++) {
-                var ch = titleImage[j].charAt(i);
-                if (ch in textImages) {
-                    var sprite = textImages[ch];
-                    ctx.drawImage(sprite, xoffset + i * cellwidth, yoffset + j * cellheight);                   
+        if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
+            for (var i = 0; i < titleWidth; i++) {
+                for (var j = 0; j < titleHeight; j++) {
+                    var ch = titleImage[j].charAt(i);
+                    if (ch in textImages) {
+                        var sprite = textImages[ch];
+                        ctx.drawImage(sprite, xoffset + i * cellwidth, yoffset + j * cellheight);                   
+                    }
                 }
+            }
+        } else {
+            for(var i = 0; i < titleHeight; i++) {
+                var row = titleImage[i];
+                drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
             }
         }
         return;
@@ -384,12 +399,11 @@ function canvasResize() {
     xoffset = 0;
     yoffset = 0;
 
-    if (cellwidth > cellheight) {
+    if (cellwidth > cellheight || (textMode && state.metadata.custom_font !== undefined && loadedCustomFont)) {
         cellwidth = cellheight;
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
         yoffset = (canvas.height - cellheight * screenheight) / 2;
-    }
-    else { //if (cellheight > cellwidth) {
+    } else { //if (cellheight > cellwidth) {
         cellheight = cellwidth;
         yoffset = (canvas.height - cellheight * screenheight) / 2;
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;

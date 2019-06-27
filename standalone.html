@@ -61,10 +61,10 @@ a {
 .gameContainer {
 	background-color:none;
 	position:absolute;
-	left:10%;
-	right:10%;
-	top:70px;
-	bottom:70px;
+	left:0;
+	right:0;
+	top:0;
+	bottom:0;
   touch-action: none;
 }
 .mobile-menu {
@@ -209,7 +209,6 @@ a {
 </style>
 </head>
 <body>
-<div class="title"><h1>__GAMETITLE__</h1></div>
 <div class="gameContainer">
 <canvas 
     id="gameCanvas" 
@@ -217,10 +216,6 @@ a {
     onmouseout="mouseOut()"
     onkeydown="keyDown()"
 ></canvas>
-</div> 
-<div class="footer">
-<span id="errormessage" style="color:red;"></span>
-<a href="http://__HOMEPAGE__">__HOMEPAGE__</a>
 </div>
 
 <script src="js/globalVariables.js"></script>

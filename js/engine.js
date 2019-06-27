@@ -142,6 +142,8 @@ function isLevelSelectOptionSelected() {
 
 function generateTitleScreen()
 {
+	tryLoadCustomFont();
+
 	titleMode=(curlevel>0||curlevelTarget!==null)?1:0;
 
 	if (state.levels.length===0) {
@@ -346,8 +348,12 @@ function generateLevelSelectScreen() {
 				name += "*";
 			}
 		}
-
-		var line = "[" + (solved ? "✓" : " ") + "] ";
+		
+		var solved_symbol = "✓";
+		if(state.metadata.level_select_solve_symbol !== undefined) {
+			solved_symbol = state.metadata.level_select_solve_symbol;
+		}
+		var line = "[" + (solved ? solved_symbol : " ") + "] ";
 		
 		line += (selected ? "#" : " ") + " " + name;
 		for(var j = name.length; j < 25; j++) {
@@ -464,6 +470,8 @@ function wordwrap( str, width ) {
 var splitMessage=[];
 
 function drawMessageScreen() {
+	tryLoadCustomFont();
+
 	titleMode=0;
 	textMode=true;
 	titleImage = deepClone(messagecontainer_template);
@@ -637,6 +645,22 @@ var sprites = [
 }
 ];
 
+loadedCustomFont = false;
+
+function tryLoadCustomFont() {
+	if(state == null || state.metadata == null || state.metadata.custom_font == undefined || loadedCustomFont) {
+		return;
+	}
+
+	var custom_font = new FontFace('PuzzleCustomFont', 'url('+state.metadata.custom_font+')');
+	custom_font.load().then(function(loaded_face) {
+		document.fonts.add(loaded_face);
+		loadedCustomFont = true;
+		redraw();
+	}).catch(function(error) {alert("Unable to load font!");});
+}
+
+tryLoadCustomFont();
 
 generateTitleScreen();
 if (titleMode>0){

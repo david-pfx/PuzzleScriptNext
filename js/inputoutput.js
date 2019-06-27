@@ -753,12 +753,21 @@ function checkKey(e,justPressed) {
     if (throttle_movement && inputdir>=0&&inputdir<=3) {
     	if (lastinput==inputdir && input_throttle_timer<repeatinterval) {
     		return;
-    	} else {
+    	}else {
     		lastinput=inputdir;
     		input_throttle_timer=0;
     	}
     }
     if (textMode) {
+		if(!throttle_movement) {
+			if (lastinput==inputdir && input_throttle_timer < 2 * repeatinterval) {
+				return;
+			} else {
+				lastinput=inputdir;
+				input_throttle_timer=0;
+			}
+		}
+		
     	if (state.levels.length===0) {
     		//do nothing
     	} else if (titleScreen) {

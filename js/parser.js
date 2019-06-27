@@ -201,6 +201,9 @@ var codeMirrorFn = function() {
     //var reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|nosave)/;
     var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message'];
 
+    var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font'];
+    var preamble_keywords = ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','continue_is_level_select','level_select_lock','settings'];
+
     //  var keywordRegex = new RegExp("\\b(("+cons.join(")|(")+"))$", 'i');
 
     var fullSpriteMatrix = [
@@ -1216,9 +1219,9 @@ var codeMirrorFn = function() {
 		                    if (match!==null) {
 		                    	var token = match[0].trim();
 		                    	if (sol) {
-		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead'].indexOf(token)>=0) {
+		                    		if (preamble_params.indexOf(token)>=0) {
 		                    			
-                                        if (token==='youtube' || token==='author' || token==='title') {
+                                        if (token==='youtube' || token==='author' || token==='title' || token==='custom_font') {
                                             stream.string=mixedCase;
                                         }
                                         
@@ -1236,7 +1239,7 @@ var codeMirrorFn = function() {
 		                    			}
 		                    			state.tokenIndex=1;
 		                    			return 'METADATA';
-		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','continue_is_level_select','level_select_lock','settings'].indexOf(token)>=0) {
+		                    		} else if (preamble_keywords.indexOf(token)>=0) {
                                         if(token == 'case_sensitive') {
                                             state.case_sensitive = true;
                                         }
