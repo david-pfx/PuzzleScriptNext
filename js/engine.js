@@ -2831,13 +2831,17 @@ function nextLevel() {
 
 		if (curlevel<(state.levels.length-1)) {
 			var skip = false;
-			if(state.levels[Number(curlevel)+1].section != state.levels[Number(curlevel)].section) {
+			var curSection = state.levels[Number(curlevel)].section;
+			var nextSection = state.levels[Number(curlevel)+1].section;
+			if(nextSection != curSection) {
 				setSectionSolved(state.levels[Number(curlevel)].section);
-
-				if(solvedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
+				
+				if(solvedSections.length == state.sections.length && state.winSection != undefined) {
+					curlevel = state.winSection.firstLevel - 1; // it's gonna be increased to match few lines below
+				} else if(nextSection == "__WIN__" || solvedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
 					gotoLevelSelectScreen();
 					skip = true;
-				}
+				}		
 			}
 
 			if(!skip) {
@@ -2859,7 +2863,7 @@ function nextLevel() {
 					curlevelTarget=null;
 					goToTitleScreen();
 				} else {
-					gotoLevelSelectScreen();	
+					gotoLevelSelectScreen();
 				}
 				
 				tryPlayEndGameSound();	
@@ -2920,6 +2924,10 @@ function updateLocalStorage() {
 
 function setSectionSolved(section) {
 	if(section == null || section == undefined) {
+		return;
+	}
+
+	if(section.name == "__WIN__") {
 		return;
 	}
 

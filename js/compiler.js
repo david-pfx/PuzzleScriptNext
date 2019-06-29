@@ -511,7 +511,11 @@ function extractSections(state) {
 				name: level.section,
 				firstLevel: i
 			};
-			sections.push(o);
+			if(o.name == "__WIN__") {
+				state.winSection = o;
+			} else {
+				sections.push(o);
+			}
 			
 			lastSection = level.section;
 		}
