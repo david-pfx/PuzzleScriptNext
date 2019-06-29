@@ -656,6 +656,7 @@ function tryLoadCustomFont() {
 	custom_font.load().then(function(loaded_face) {
 		document.fonts.add(loaded_face);
 		loadedCustomFont = true;
+		canvasResize();
 		redraw();
 	}).catch(function(error) {alert("Unable to load font!");});
 }
