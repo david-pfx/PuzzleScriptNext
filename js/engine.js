@@ -375,7 +375,7 @@ function drawMessageScreen() {
 
 var loadedLevelSeed=0;
 
-function loadLevelFromLevelDat(state,leveldat,randomseed) {
+function loadLevelFromLevelDat(state,leveldat,randomseed) {	
 	if(solving) return;	
 	if (randomseed==null) {
 		randomseed = (Math.random() + Date.now()).toString();
@@ -2346,10 +2346,10 @@ function processInput(dir,dontDoWin,dontModify) {
 	    		consolePrintFromRule('CANCEL command executed, cancelling turn.',r,true);
 			}
     		if(!solving) {
-    			backups.push(bak);
-				messagetext = "";
-	    		DoUndo(true,false);
-	    		tryPlayCancelSound();
+    		backups.push(bak);
+			messagetext = "";
+    		DoUndo(true,false);
+    		tryPlayCancelSound();
 	    	}
     		return false;
 	    } 

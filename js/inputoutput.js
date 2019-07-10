@@ -589,7 +589,7 @@ function checkKey(e,justPressed) {
         		stopSolving();
         		break;
         	}
-        	if(titleScreen===false) {
+        	if (titleScreen===false) {
 				goToTitleScreen();	
 		    	tryPlayTitleSound();
 				canvasResize();			
