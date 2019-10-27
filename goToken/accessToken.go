@@ -25,6 +25,8 @@ type request struct {
 }
 
 func handleAccessTokenRequest(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
 	code := r.Form.Get("code")
 	state := r.Form.Get("state")
 	if len(code) == 0 || len(state) == 0 {
