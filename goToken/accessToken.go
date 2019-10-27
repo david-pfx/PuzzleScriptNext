@@ -2,13 +2,20 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/user"
+	"path/filepath"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
 const (
+	domain = "50.25.89.34.bc.googleusercontent.com"
+
 	oauthURI    = "https://github.com/login/oauth/access_token"
 	oauthClient = "5fe44fa4c9d29308052b"
 )
@@ -81,8 +88,35 @@ func handleAccessTokenRequest(w http.ResponseWriter, r *http.Request) {
 func main() {
 	oauthSecret = os.Args[1]
 
+	certManager := autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(domain),
+	}
+
+	dir := cacheDir()
+	if dir != "" {
+		certManager.Cache = autocert.DirCache(dir)
+	}
+
+	server := &http.Server{
+		Addr: ":https",
+		TLSConfig: &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		},
+	}
+
 	http.HandleFunc("/access_token", handleAccessTokenRequest)
 
-	err := http.ListenAndServe(":80", nil)
+	err := server.ListenAndServeTLS("", "")
 	panic(err)
+}
+
+func cacheDir() (dir string) {
+	if u, _ := user.Current(); u != nil {
+		dir = filepath.Join(os.TempDir(), "cache-golang-autocert-"+u.Username)
+		if err := os.MkdirAll(dir, 0700); err == nil {
+			return dir
+		}
+	}
+	return ""
 }
