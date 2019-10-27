@@ -2443,7 +2443,7 @@ function processInput(dir,dontDoWin,dontModify) {
 	            {
 	                dir=parseInt('10000', 2);;
 	                break;
-	            }
+				}
 	        }
 	        playerPositions = startMovement(dir);
 		}

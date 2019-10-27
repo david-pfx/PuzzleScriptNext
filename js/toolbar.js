@@ -156,7 +156,7 @@ function levelEditorClick_Fn() {
     lastDownTarget=canvas;	
 }
 
-OAUTH_CLIENT_ID = "211570277eb588cddf44";
+OAUTH_CLIENT_ID = "5fe44fa4c9d29308052b";
 
 function getAuthURL(){
 	var randomState = window.btoa(Array.prototype.map.call(

@@ -760,7 +760,7 @@ function checkKey(e,justPressed) {
     }
     if (textMode) {
 		if(!throttle_movement) {
-			if (lastinput==inputdir && input_throttle_timer < 2 * repeatinterval) {
+			if (lastinput==inputdir && input_throttle_timer < repeatinterval) {
 				return;
 			} else {
 				lastinput=inputdir;
