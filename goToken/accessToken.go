@@ -105,6 +105,8 @@ func main() {
 		},
 	}
 
+	go http.ListenAndServe(":http", certManager.HTTPHandler(nil))
+
 	http.HandleFunc("/access_token", handleAccessTokenRequest)
 
 	err := server.ListenAndServeTLS("", "")
