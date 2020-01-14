@@ -1868,7 +1868,7 @@ function restorePreservationState(preservationState) {;
     level.commandQueueSourceRules = preservationState.commandQueueSourceRules.concat([]);
     sfxCreateMask.setZero();
     sfxDestroyMask.setZero();
-	consolePrint("Rigid movement application failed, rolling back");
+	if(!solving) consolePrint("Rigid movement application failed, rolling back");
 
 //	rigidBackups = preservationState.rigidBackups;
 }
