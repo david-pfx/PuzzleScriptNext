@@ -207,14 +207,14 @@ function generateTitleScreen()
 	var noUndo = 'noundo' in state.metadata;
 	var noRestart = 'norestart' in state.metadata;
 	if (noUndo && noRestart) {
-		titleImage[11]="..................................";
+		titleImage[12]="..................................";
 	} else if (noUndo) {
-		titleImage[11]=".R to restart.....................";
+		titleImage[12]=".R to restart.....................";
 	} else if (noRestart) {
-		titleImage[11]=".Z to undo.....................";
+		titleImage[12]=".Z to undo.....................";
 	}
 	if (noAction) {
-		titleImage[10]=".X to select......................";
+		titleImage[11]=".X to select......................";
 	}
 	for (var i=0;i<titleImage.length;i++)
 	{
