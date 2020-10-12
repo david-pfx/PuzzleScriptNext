@@ -389,6 +389,7 @@ function gotoSelectedLevel() {
 	resetFlickDat();
 	canvasResize();	
 	clearInputHistory();
+	initSmoothCamera();
 }
 
 var introstate = {
@@ -572,6 +573,13 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	            	0,
 	            	Math.min(state.metadata.zoomscreen[0],level.width),
 	            	Math.min(state.metadata.zoomscreen[1],level.height)
+	            ];
+	        } else if (state.metadata.smoothscreen!==undefined){
+	            oldflickscreendat=[
+	            	0,
+	            	0,
+	            	Math.min(state.metadata.smoothscreen.screenSize.width,level.width),
+	            	Math.min(state.metadata.smoothscreen.screenSize.height,level.height)
 	            ];
 	        }
         }
@@ -927,7 +935,9 @@ function setGameState(_state, command, randomseed) {
 			break;
 		}
 	}
-	
+
+	initSmoothCamera();
+
 	if(command[0] !== "rebuild") {
 		clearInputHistory();
 	}
@@ -939,7 +949,6 @@ function setGameState(_state, command, randomseed) {
 	} else {
 		showAudioButton();
 	}
-	
 }
 
 function RebuildLevelArrays() {
@@ -1024,6 +1033,7 @@ function restoreLevel(lev) {
 
 var zoomscreen=false;
 var flickscreen=false;
+var smoothscreen=false;
 var screenwidth=0;
 var screenheight=0;
 
@@ -1049,6 +1059,8 @@ function DoRestart(force) {
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
 	}
+	
+	initSmoothCamera();
 	
 	level.commandQueue=[];
 	level.commandQueueSourceRules=[];
@@ -2881,6 +2893,7 @@ function nextLevel() {
 	resetFlickDat();
 	canvasResize();	
 	clearInputHistory();
+	initSmoothCamera();
 }
 
 function loadLevelFromStateOrTarget() {

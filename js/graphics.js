@@ -196,6 +196,45 @@ function glyphCount(){
     return count;
 }
 
+var cameraPositionTarget = {
+  x: 0,
+  y: 0
+};
+
+var cameraPosition = {
+  x: 0,
+  y: 0
+};
+
+function initSmoothCamera() {
+    if (state===undefined || state.metadata.smoothscreen===undefined) {
+        return
+    }
+
+    const boundarySize = state.metadata.smoothscreen.boundarySize
+    var playerPositions = getPlayerPositions();
+    if (playerPositions.length>0) {
+        const playerPosition = {
+            x: (playerPositions[0]/(level.height))|0,
+            y: (playerPositions[0]%level.height)|0
+        }
+
+        cameraPositionTarget = {
+            x: Math.min(
+                Math.max(playerPosition.x, Math.floor(screenwidth / 2)),
+                level.width - Math.ceil(screenwidth / 2)
+            ),
+            y: Math.min(
+                Math.max(playerPosition.y, Math.floor(screenheight / 2)),
+                level.height - Math.ceil(screenheight / 2)
+            )
+        }
+
+        cameraPosition.x = cameraPositionTarget.x
+        cameraPosition.y = cameraPositionTarget.y
+    }
+}
+
 function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
@@ -233,6 +272,11 @@ function redraw() {
         var maxi=screenwidth;
         var minj=0;
         var maxj=screenheight;
+
+        var cameraOffset = {
+            x: 0,
+            y: 0
+        }
 
         if (levelEditorOpened) {
             var glyphcount = glyphCount();
@@ -277,21 +321,79 @@ function redraw() {
                 maxi=oldflickscreendat[2];
                 maxj=oldflickscreendat[3];
             }         
+        } else if (smoothscreen) {
+            const smoothscreenConfig = state.metadata.smoothscreen
+            var playerPositions = getPlayerPositions();
+
+            if (playerPositions.length > 0) {
+                const playerPosition = {
+                    x: (playerPositions[0]/(level.height))|0,
+                    y: (playerPositions[0]%level.height)|0
+                };
+
+                for (const coord of ['x', 'y']) {
+                    const screenDimension = coord === 'x' ? screenwidth : screenheight
+
+                    const dimensionName = coord === 'x' ? 'width' : 'height'
+                    const levelDimension = level[dimensionName]
+                    const boundaryDimension = smoothscreenConfig.boundarySize[dimensionName]
+
+                    const playerVector = playerPosition[coord] - cameraPositionTarget[coord]
+                    const direction = Math.sign(playerVector)
+                    const boundaryVector = direction > 0
+                      ? Math.ceil(boundaryDimension / 2)
+                      : -(Math.floor(boundaryDimension / 2) + 1)
+
+                    if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
+                        cameraPositionTarget[coord] = Math.min(
+                            Math.max(playerPosition[coord] - boundaryVector + direction, Math.floor(screenDimension / 2)),
+                            levelDimension - Math.ceil(screenDimension / 2)
+                        )
+                    }
+
+                    const cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord]
+                    cameraPosition[coord] += cameraTargetVector * smoothscreenConfig.cameraSpeed
+
+                    cameraOffset[coord] = cameraPosition[coord] % 1
+                }
+
+                mini=Math.max(Math.min(Math.floor(cameraPosition.x)-Math.floor(screenwidth/2), level.width-screenwidth),0);
+                minj=Math.max(Math.min(Math.floor(cameraPosition.y)-Math.floor(screenheight/2), level.height-screenheight),0);
+
+                maxi=Math.min(mini+screenwidth,level.width);
+                maxj=Math.min(minj+screenheight,level.height);
+                oldflickscreendat=[mini,minj,maxi,maxj];
+            } else if (oldflickscreendat.length>0) {
+                mini=oldflickscreendat[0];
+                minj=oldflickscreendat[1];
+                maxi=oldflickscreendat[2];
+                maxj=oldflickscreendat[3];
+            }
         }
 	    
 
-        for (var i = mini; i < maxi; i++) {
-            for (var j = minj; j < maxj; j++) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xoffset, yoffset);
+        ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset);
+        ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset + (maxj - minj) * cellwidth);
+        ctx.lineTo(xoffset, yoffset + (maxj - minj) * cellwidth);
+        ctx.clip();
+
+        for (var i = Math.max(mini - 1, 0); i < Math.min(maxi + 1, level.width); i++) {
+            for (var j = Math.max(minj - 1, 0); j < Math.min(maxj + 1, level.height); j++) {
                 var posIndex = j + i * level.height;
                 var posMask = level.getCellInto(posIndex,_o12);                
                 for (var k = 0; k < state.objectCount; k++) {
                     if (posMask.get(k) != 0) {                  
                         var sprite = spriteimages[k];
-                        ctx.drawImage(sprite, xoffset + (i-mini) * cellwidth, yoffset + (j-minj) * cellheight);
+                        ctx.drawImage(sprite, xoffset + (i-mini-cameraOffset.x) * cellwidth, yoffset + (j-minj-cameraOffset.y) * cellheight);
                     }
                 }
             }
         }
+
+        ctx.restore()
 
 	    if (levelEditorOpened) {
 	    	drawEditorIcons();
@@ -362,6 +464,7 @@ function canvasResize() {
     if (state!==undefined){
         flickscreen=state.metadata.flickscreen!==undefined;
         zoomscreen=state.metadata.zoomscreen!==undefined;
+        smoothscreen=state.metadata.smoothscreen!==undefined;
 	    if (levelEditorOpened) {
             screenwidth+=2;
             var glyphcount = glyphCount();
@@ -373,6 +476,9 @@ function canvasResize() {
 	    } else if (zoomscreen) {
 	        screenwidth=state.metadata.zoomscreen[0];
 	        screenheight=state.metadata.zoomscreen[1];
+	    } else if (smoothscreen) {
+	        screenwidth=state.metadata.smoothscreen.screenSize.width;
+	        screenheight=state.metadata.smoothscreen.screenSize.height;
 	    }
 	}
 

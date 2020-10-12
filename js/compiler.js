@@ -1995,6 +1995,62 @@ function twiddleMetaData(state) {
 		var intcoords = [parseInt(coords[0]),parseInt(coords[1])];
 		newmetadata.zoomscreen=intcoords;
 	}
+	if (newmetadata.smoothscreen!==undefined) {
+		var val = newmetadata.smoothscreen;
+		var args = val.split(/\s+/);
+
+		var validArguments = true
+
+		if (args.length < 1) {
+			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen WxH [IxJ [speed]]')
+			validArguments = false
+		} else if (args.length > 3) {
+			logErrorNoLine(`smoothscreen given ${args.length} arguments but expects at most 3: smoothscreen WxH [IxJ [speed]]`)
+			validArguments = false
+		}
+
+		const smoothscreen = {
+			screenSize: { width: 0, height: 0 },
+			boundarySize: { width: 1, height: 1 },
+			cameraSpeed: 0.125
+		}
+
+		const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
+		if (screenSizeMatch) {
+			smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
+			smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
+		} else {
+			logErrorNoLine(`smoothscreen given first argument ${args[0]} but must be formatted WxH where W and H are integers`)
+			validArguments = false
+		}
+
+		if (args.length > 1) {
+			const boundarySizeMatch = args[1].match(/^(?<width>\d+)x(?<height>\d+)$/)
+			if (boundarySizeMatch) {
+				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
+				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
+			} else {
+				logErrorNoLine(`smoothscreen given second argument ${args[1]} but must be formatted IxJ where I and J are integers`)
+				validArguments = false
+			}
+		}
+
+		if (args.length > 2) {
+			const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
+			if (cameraSpeedMatch) {
+				smoothscreen.cameraSpeed = parseFloat(cameraSpeedMatch.groups.speed)
+			} else {
+				logErrorNoLine(`smoothscreen given third argument ${args[2]} but must be a number`)
+				validArguments = false
+			}
+		}
+
+		if (validArguments) {
+			newmetadata.smoothscreen = smoothscreen;
+		} else {
+			delete newmetadata.smoothscreen
+		}
+	}
 
 	state.metadata=newmetadata;	
 }
