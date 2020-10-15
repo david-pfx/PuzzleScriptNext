@@ -387,9 +387,9 @@ function gotoSelectedLevel() {
 
 	updateLocalStorage();
 	resetFlickDat();
+	initSmoothCamera();
 	canvasResize();	
 	clearInputHistory();
-	initSmoothCamera();
 }
 
 var introstate = {
@@ -936,13 +936,11 @@ function setGameState(_state, command, randomseed) {
 		}
 	}
 
-	initSmoothCamera();
-
 	if(command[0] !== "rebuild") {
 		clearInputHistory();
 	}
+	initSmoothCamera();
 	canvasResize();
-
 
 	if (state.sounds.length==0&&state.metadata.youtube==null){
 		killAudioButton();
@@ -2891,9 +2889,9 @@ function nextLevel() {
 
 	updateLocalStorage();
 	resetFlickDat();
+	initSmoothCamera();
 	canvasResize();	
 	clearInputHistory();
-	initSmoothCamera();
 }
 
 function loadLevelFromStateOrTarget() {

@@ -211,6 +211,9 @@ function initSmoothCamera() {
         return
     }
 
+    screenwidth=state.metadata.smoothscreen.screenSize.width;
+    screenheight=state.metadata.smoothscreen.screenSize.height;
+
     const boundarySize = state.metadata.smoothscreen.boundarySize
     var playerPositions = getPlayerPositions();
     if (playerPositions.length>0) {
@@ -536,5 +539,6 @@ function canvasResize() {
     oldtextmode=textMode;
     oldfgcolor=state.fgcolor;
 
+    initSmoothCamera();
     redraw();
 }
