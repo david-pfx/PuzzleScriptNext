@@ -214,7 +214,9 @@ function initSmoothCamera() {
     screenwidth=state.metadata.smoothscreen.screenSize.width;
     screenheight=state.metadata.smoothscreen.screenSize.height;
 
-    const boundarySize = state.metadata.smoothscreen.boundarySize
+    const boundarySize = state.metadata.smoothscreen.boundarySize;
+    const flick = state.metadata.smoothscreen.flick;
+
     var playerPositions = getPlayerPositions();
     if (playerPositions.length>0) {
         const playerPosition = {
@@ -223,19 +225,33 @@ function initSmoothCamera() {
         }
 
         cameraPositionTarget = {
-            x: Math.min(
-                Math.max(playerPosition.x, Math.floor(screenwidth / 2)),
-                level.width - Math.ceil(screenwidth / 2)
-            ),
-            y: Math.min(
-                Math.max(playerPosition.y, Math.floor(screenheight / 2)),
-                level.height - Math.ceil(screenheight / 2)
-            )
+            x: flick
+              ? getFlickCameraPosition(playerPosition.x, level.width, screenwidth, boundarySize.width)
+              : getCameraPosition(playerPosition.x, level.width, screenwidth),
+            y: flick
+              ? getFlickCameraPosition(playerPosition.y, level.height, screenheight, boundarySize.height)
+              : getCameraPosition(playerPosition.y, level.height, screenheight)
         }
 
         cameraPosition.x = cameraPositionTarget.x
         cameraPosition.y = cameraPositionTarget.y
     }
+}
+
+function getCameraPosition (targetPosition, levelDimension, screenDimension) {
+    return Math.min(
+        Math.max(targetPosition, Math.floor(screenDimension / 2)),
+        levelDimension - Math.ceil(screenDimension / 2)
+    )
+}
+
+function getFlickCameraPosition (targetPosition, levelDimension, screenDimension, boundaryDimension) {
+    const flickGridOffset = (Math.floor(screenDimension / 2) - Math.floor(boundaryDimension / 2))
+    const flickGridPlayerPosition = targetPosition - flickGridOffset
+    const flickGridPlayerCell = Math.floor(flickGridPlayerPosition / boundaryDimension)
+    const maxFlickGridCell = Math.floor((levelDimension - Math.ceil(screenDimension / 2) - Math.floor(boundaryDimension / 2) - flickGridOffset) / boundaryDimension)
+
+    return Math.min(Math.max(flickGridPlayerCell, 0), maxFlickGridCell) * boundaryDimension + Math.floor(screenDimension / 2)
 }
 
 function redraw() {
@@ -326,6 +342,7 @@ function redraw() {
             }         
         } else if (smoothscreen) {
             const smoothscreenConfig = state.metadata.smoothscreen
+            const flick = smoothscreenConfig.flick
             var playerPositions = getPlayerPositions();
 
             if (playerPositions.length > 0) {
@@ -348,10 +365,9 @@ function redraw() {
                       : -(Math.floor(boundaryDimension / 2) + 1)
 
                     if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
-                        cameraPositionTarget[coord] = Math.min(
-                            Math.max(playerPosition[coord] - boundaryVector + direction, Math.floor(screenDimension / 2)),
-                            levelDimension - Math.ceil(screenDimension / 2)
-                        )
+                        cameraPositionTarget[coord] = smoothscreenConfig.flick
+                          ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
+                          : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension)
                     }
 
                     const cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord]
@@ -373,7 +389,6 @@ function redraw() {
                 maxj=oldflickscreendat[3];
             }
         }
-	    
 
         ctx.save();
         ctx.beginPath();

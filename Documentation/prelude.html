@@ -186,8 +186,8 @@ late [ Temp ] -> [ ]</code></pre>
       <dd>If you write the youtube tag followed by the ID of a youtube video, it will play in the background.  Exported builds using this, obviously enough, will no longer be fully self-contained, but some might like it :)  You'll only hear the music in the exported or shared versions, not in the editor.</dd>
 			<dt>zoomscreen WxH</dt>
 			<dd>Zooms the camera in to a WxH section of the map around the player, centered on the player.</dd>
-      <dt>smoothscreen WxH <i>IxJ speed</i></dt>
-      <dd>Zooms the camera in to a WxH section of the map around the player, centered on the player, and smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional speed argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. You'll get weird behaviour if the boundary is larger than the screen size or if the speed is less than 0 or greater than 1 (but that's not going to stop you, is it?).</dd>
+      <dt>smoothscreen <i>flick</i> WxH <i>IxJ S</i></dt>
+      <dd>Zooms the camera in to a WxH section of the map around the playerand smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional S argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. Additionally, the optional <i>flick</i> keyword makes the camera move like flickscreen, where the camera always moves the full boundary width/height. To get a smooth version of flick screen, provide the <i>flick</i> keyword and make WxH and IxJ the same dimensions.</dd>
 		</dl>
 
 

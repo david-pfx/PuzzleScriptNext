@@ -37,7 +37,7 @@
             ["verbose_logging", "", "As you play the game, spits out information about all rules applied as you play"],
             ["youtube", "5MJLi5_dyn0", "If you write the youtube tag followed by the ID of a youtube video, it will play in the background."],
             ["zoomscreen", "WxH", "Zooms the camera in to a WxH section of the map around the player, centered on the player."],
-            ["smoothscreen", "WxH [IxJ] [speed]", "Zooms the camera in to a WxH section of the map around the player, centered on the player, and smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional speed argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player."],
+            ["smoothscreen", "[flick] WxH [IxJ] [S]", "Zooms the camera in to a WxH section of the map around the player and smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional speed argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. The optional flick keyword makes the camera move like flickscreen."],
             ["sprite_size", "5", "Size of sprites."],
             ["case_sensitive", "", "Makes object names and legend case sensitive."],
             ["level_select", "", "Show level selection option on main screen (use with sections in levels)."],

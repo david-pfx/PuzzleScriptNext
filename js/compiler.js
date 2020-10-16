@@ -2002,23 +2002,34 @@ function twiddleMetaData(state) {
 		var validArguments = true
 
 		if (args.length < 1) {
-			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen WxH [IxJ [speed]]')
+			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S]')
 			validArguments = false
-		} else if (args.length > 3) {
-			logErrorNoLine(`smoothscreen given ${args.length} arguments but expects at most 3: smoothscreen WxH [IxJ [speed]]`)
+		} else if (args.length > 4) {
+			logErrorNoLine(`smoothscreen given ${args.length} arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]`)
 			validArguments = false
 		}
 
 		const smoothscreen = {
 			screenSize: { width: 0, height: 0 },
 			boundarySize: { width: 1, height: 1 },
-			cameraSpeed: 0.125
+			cameraSpeed: 0.125,
+			flick: false
+		}
+
+		if (args[0] === 'flick') {
+			smoothscreen.flick = true
+			args.shift()
 		}
 
 		const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
 		if (screenSizeMatch) {
 			smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
 			smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
+
+			if (smoothscreen.flick) {
+				smoothscreen.boundarySize.width = smoothscreen.screenSize.width
+				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
+			}
 		} else {
 			logErrorNoLine(`smoothscreen given first argument ${args[0]} but must be formatted WxH where W and H are integers`)
 			validArguments = false
