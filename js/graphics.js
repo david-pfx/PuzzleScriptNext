@@ -405,7 +405,7 @@ function redraw() {
                 for (var k = 0; k < state.objectCount; k++) {
                     if (posMask.get(k) != 0) {                  
                         var sprite = spriteimages[k];
-                        ctx.drawImage(sprite, xoffset + (i-mini-cameraOffset.x) * cellwidth, yoffset + (j-minj-cameraOffset.y) * cellheight);
+                        ctx.drawImage(sprite, Math.floor(xoffset + (i-mini-cameraOffset.x) * cellwidth), Math.floor(yoffset + (j-minj-cameraOffset.y) * cellheight));
                     }
                 }
             }
