@@ -21,6 +21,7 @@ This page shall be the most stable Puzzlescript site that uses this fork; when i
 Issues and bugs are recorded/discussed [here](https://github.com/ThatScar/PuzzleScript/issues).
 The main difference/drawback in this editor from the original editor is that you can't Share games. **If you want to share a game, copy the code to the original PuzzleScript editor and click Share there, disregarding compilation errors**. Then you can copy the part of the URL that comes after the equals `=` sign and paste it after this URL `https://thatscar.github.io/PuzzleScript/play.html?p=` to get a full link to your playable game.  
 Alternatively, you can create a gist on Github and copy the code of the gist as the first step; this is practically what the original PuzzleScript editor does for you when you click Share, given permission to use your Github account.
+Exporting a game to a standalone copy is currently unavailable.
 
 How to use the PuzzleClick features:
 ------------
