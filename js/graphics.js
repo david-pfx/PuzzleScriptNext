@@ -388,18 +388,20 @@ function redraw() {
                 maxi=oldflickscreendat[2];
                 maxj=oldflickscreendat[3];
             }
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(xoffset, yoffset);
+            ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset);
+            ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset + (maxj - minj) * cellwidth);
+            ctx.lineTo(xoffset, yoffset + (maxj - minj) * cellwidth);
+            ctx.clip();
         }
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(xoffset, yoffset);
-        ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset);
-        ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset + (maxj - minj) * cellwidth);
-        ctx.lineTo(xoffset, yoffset + (maxj - minj) * cellwidth);
-        ctx.clip();
+        const renderBorderSize = smoothscreen ? 1 : 0
 
-        for (var i = Math.max(mini - 1, 0); i < Math.min(maxi + 1, level.width); i++) {
-            for (var j = Math.max(minj - 1, 0); j < Math.min(maxj + 1, level.height); j++) {
+        for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, level.width); i++) {
+            for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, level.height); j++) {
                 var posIndex = j + i * level.height;
                 var posMask = level.getCellInto(posIndex,_o12);                
                 for (var k = 0; k < state.objectCount; k++) {
@@ -411,7 +413,9 @@ function redraw() {
             }
         }
 
-        ctx.restore()
+        if (smoothscreen) {
+            ctx.restore()
+        }
 
 	    if (levelEditorOpened) {
 	    	drawEditorIcons();
