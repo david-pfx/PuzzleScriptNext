@@ -2005,7 +2005,7 @@ function twiddleMetaData(state) {
 			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S]')
 			validArguments = false
 		} else if (args.length > 4) {
-			logErrorNoLine(`smoothscreen given ${args.length} arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]`)
+			logErrorNoLine('smoothscreen given ' + args.length + ' arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]')
 			validArguments = false
 		}
 
@@ -2031,7 +2031,7 @@ function twiddleMetaData(state) {
 				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
 			}
 		} else {
-			logErrorNoLine(`smoothscreen given first argument ${args[0]} but must be formatted WxH where W and H are integers`)
+			logErrorNoLine('smoothscreen given first argument ' + args[0] + ' but must be formatted WxH where W and H are integers')
 			validArguments = false
 		}
 
@@ -2041,7 +2041,7 @@ function twiddleMetaData(state) {
 				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
 				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
 			} else {
-				logErrorNoLine(`smoothscreen given second argument ${args[1]} but must be formatted IxJ where I and J are integers`)
+				logErrorNoLine('smoothscreen given second argument ' + args[1] + ' but must be formatted IxJ where I and J are integers')
 				validArguments = false
 			}
 		}
@@ -2051,7 +2051,7 @@ function twiddleMetaData(state) {
 			if (cameraSpeedMatch) {
 				smoothscreen.cameraSpeed = parseFloat(cameraSpeedMatch.groups.speed)
 			} else {
-				logErrorNoLine(`smoothscreen given third argument ${args[2]} but must be a number`)
+				logErrorNoLine('smoothscreen given third argument ' + args[2] + ' but must be a number')
 				validArguments = false
 			}
 		}
