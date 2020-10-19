@@ -58,20 +58,36 @@
 <p>
  <h1>Differences from vanilla PuzzleScript</h1>
     <p>
-    This fork of PuzzleScript has a few special tricks.
+      This fork of PuzzleScript has a few special tricks.
     </p>
     <p>
         <ul>
             <li>Support for gamepads (yes, gamepads work in browsers!)</li>
             <li>Support for opacity in custom colors (for example #ff000080 is semi-transparent red)</li>
-            <li>nosave action - when executed forces engine to not save current state to undo stack</li>
-            <li>sprite_size prelude property - use arbitrary size of sprites</li>
-            <li>case_sensitive prelude property - makes objects and aliases case-sensitive (ie. Moved and MoveD can be two separate objects, and p or P in level can refer to different objects)</li>
+            <li><b>nosave</b> action - when executed forces engine to not save current state to undo stack</li>
+            <li><b>sprite_size</b> prelude property - use arbitrary size of sprites</li>
+            <li><b>case_sensitive</b> prelude property - makes objects and aliases case-sensitive (ie. Moved and MoveD can be two separate objects, and p or P in level can refer to different objects)</li>
+            <li><b>smoothscreen</b> prelode property - make camera smoothly follow the player around. Click <a href="https://github.com/sftrabbit/PuzzleScript-smoothscreen/blob/0c8e0a709b22eb66dddfe827d7b942ad0758cc07/README.md">here</a> for a full description. Made by Joseph Mansfield (<a href="https://twitter.com/sftrabbit">@sftrabbit</a>).</li>
+            <li>
+              Level select screen:
+              <ul style="padding-left: 20px;">
+                <li><b>level_select</b> prelude property - enable level selection</li>
+                <li><b>continue_is_level_select</b> prelude property - don't show separate option on main menu for level selection</li>
+                <li><b>level_select_lock</b> prelude property - level selection will have unsolved levels locked</li>
+                <li><b>level_select_unlocked_ahead</b> prelude property - level selection will have N number of unsolved levels unlocked after last solved level (use it as "level_select_unlocked_ahead N"; default is N=1 if undefined)</li>
+                <li><b>level_select_solve_symbol</b> prelude property - override symbol that will be used for solved levels in level select menu (use it as "level_select_solve_symbol s"; default is "x" symbol if undefined)</li>
+                <li><b>section</b> keyword in LEVELS - define name for a level or set of levels below it (use it like you would use an message keyword)</li>
+              </ul>
+            </li>
         </ul>
     </p>
+    <br />
     <p>
-        <br /><br />Currently, share button in editor is not working. However, you can paste the script manually into <a href="https://gist.github.com/">Gist</a> and use id to make play URL.
-        <br /> For example, <a href="https://gist.github.com/dario-zubovic/4520eedba957293dde46ded354f3126f">https://gist.github.com/dario-zubovic/4520eedba957293dde46ded354f3126f</a> becomes <a href="https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f">https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f</a>.
+      Known issues:
+      <ul>
+        <li>Currently, share button in editor is not working. However, you can paste the script manually into <a href="https://gist.github.com/">Gist</a> and use id to make play URL.
+        <br />For example, <a href="https://gist.github.com/dario-zubovic/4520eedba957293dde46ded354f3126f">https://gist.github.com/yourusername/4520eedba957293dde46ded354f3126f</a> becomes <a href="https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f">https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f</a>.</li>
+      </ul>
     </p>
 
     </div><!-- /.container -->
