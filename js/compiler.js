@@ -411,6 +411,18 @@ function generateExtraMembersPart2(state) {
 	state.rdragID = assignMouseObject("mouse_rdrag", "rdrag");
 	state.lmbupID = assignMouseObject("mouse_up", "lmbup");
 	state.rmbupID = assignMouseObject("mouse_rup", "rmbup");
+	
+	if ("mouse_obstacle" in state.metadata) {
+		var name = state.metadata["mouse_obstacle"];
+		
+		if (name) {
+			state.obstacleMask = state.objectMasks[name];
+			if (!state.obstacleMask) {
+				logError(name + " object/alias has to be defined.");
+				state.obstacleMask = state.objectMasks["background"];
+			}
+		}
+	}
 }
 
 Level.prototype.calcBackgroundMask = function(state) {

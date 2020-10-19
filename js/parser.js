@@ -1152,7 +1152,7 @@ var codeMirrorFn = function() {
 		                    if (match!==null) {
 		                    	var token = match[0].trim();
 		                    	if (sol) {
-		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','mouse_left','mouse_right','mouse_drag','mouse_rdrag','mouse_up','mouse_rup'].indexOf(token)>=0) {
+		                    		if (['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','color_palette','youtube','mouse_left','mouse_right','mouse_drag','mouse_rdrag','mouse_up','mouse_rup','mouse_obstacle'].indexOf(token)>=0) {
 		                    			
                                         if (token==='youtube' || token==='author' || token==='title') {
                                             stream.string=mixedCase;
@@ -1163,7 +1163,7 @@ var codeMirrorFn = function() {
 		                    			if(m2!=null) {
                                             state.metadata.push(token);
 		                    				state.metadata.push(m2[0].trim());                                            
-		                    			} else if (['mouse_left','mouse_right','mouse_drag','mouse_rdrag','mouse_up','mouse_rup'].indexOf(token)>=0) {
+		                    			} else if (['mouse_left','mouse_right','mouse_drag','mouse_rdrag','mouse_up','mouse_rup','mouse_obstacle'].indexOf(token)>=0) {
 											state.metadata.push(token);
 		                    				state.metadata.push(null);
 										} else {
@@ -1171,8 +1171,7 @@ var codeMirrorFn = function() {
 		                    			}
 		                    			state.tokenIndex=1;
 		                    			return 'METADATA';
-		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline',
-												 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup','nokeyboard'].indexOf(token)>=0) {
+		                    		} else if ( ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','nokeyboard'].indexOf(token)>=0) {
 		                    			state.metadata.push(token);
 		                    			state.metadata.push("true");
 		                    			state.tokenIndex=-1;
