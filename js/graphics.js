@@ -196,10 +196,7 @@ function glyphCount(){
     return count;
 }
 
-var cameraPositionTarget = {
-  x: 0,
-  y: 0
-};
+var cameraPositionTarget = null;
 
 var cameraPosition = {
   x: 0,
@@ -252,6 +249,40 @@ function getFlickCameraPosition (targetPosition, levelDimension, screenDimension
     var maxFlickGridCell = Math.floor((levelDimension - Math.ceil(screenDimension / 2) - Math.floor(boundaryDimension / 2) - flickGridOffset) / boundaryDimension);
 
     return Math.min(Math.max(flickGridPlayerCell, 0), maxFlickGridCell) * boundaryDimension + Math.floor(screenDimension / 2);
+}
+
+function updateCameraPositionTarget() {
+    var smoothscreenConfig = state.metadata.smoothscreen;
+    var playerPositions = getPlayerPositions();
+
+    if (!smoothscreenConfig || playerPositions.length === 0) {
+        return
+    }
+
+    var playerPosition = {
+        x: (playerPositions[0]/(level.height))|0,
+        y: (playerPositions[0]%level.height)|0
+    };
+
+    ['x', 'y'].forEach(function (coord) {
+        var screenDimension = coord === 'x' ? screenwidth : screenheight;
+
+        var dimensionName = coord === 'x' ? 'width' : 'height';
+        var levelDimension = level[dimensionName];
+        var boundaryDimension = smoothscreenConfig.boundarySize[dimensionName];
+
+        var playerVector = playerPosition[coord] - cameraPositionTarget[coord];
+        var direction = Math.sign(playerVector);
+        var boundaryVector = direction > 0
+          ? Math.ceil(boundaryDimension / 2)
+          : -(Math.floor(boundaryDimension / 2) + 1);
+
+        if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
+            cameraPositionTarget[coord] = smoothscreenConfig.flick
+              ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
+              : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
+        }
+    })
 }
 
 function redraw() {
@@ -341,37 +372,10 @@ function redraw() {
                 maxj=oldflickscreendat[3];
             }         
         } else if (smoothscreen) {
-            var smoothscreenConfig = state.metadata.smoothscreen;
-            var flick = smoothscreenConfig.flick;
-            var playerPositions = getPlayerPositions();
-
-            if (playerPositions.length > 0) {
-                var playerPosition = {
-                    x: (playerPositions[0]/(level.height))|0,
-                    y: (playerPositions[0]%level.height)|0
-                };
-
+            if (cameraPositionTarget !== null) {
                 ['x', 'y'].forEach(function (coord) {
-                    var screenDimension = coord === 'x' ? screenwidth : screenheight;
-
-                    var dimensionName = coord === 'x' ? 'width' : 'height';
-                    var levelDimension = level[dimensionName];
-                    var boundaryDimension = smoothscreenConfig.boundarySize[dimensionName];
-
-                    var playerVector = playerPosition[coord] - cameraPositionTarget[coord];
-                    var direction = Math.sign(playerVector);
-                    var boundaryVector = direction > 0
-                      ? Math.ceil(boundaryDimension / 2)
-                      : -(Math.floor(boundaryDimension / 2) + 1);
-
-                    if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
-                        cameraPositionTarget[coord] = smoothscreenConfig.flick
-                          ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
-                          : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
-                    }
-
                     var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
-                    cameraPosition[coord] += cameraTargetVector * smoothscreenConfig.cameraSpeed;
+                    cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
 
                     cameraOffset[coord] = cameraPosition[coord] % 1;
                 })
