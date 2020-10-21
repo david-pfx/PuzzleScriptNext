@@ -426,6 +426,9 @@ function redraw() {
         }
 
         if (smoothscreen) {
+            if (state.metadata.smoothscreen.debug) {
+                drawSmoothScreenDebug(ctx);
+            }
             ctx.restore();
         }
 
@@ -433,6 +436,77 @@ function redraw() {
 	    	drawEditorIcons();
 	    }
     }
+}
+
+function drawSmoothScreenDebug(ctx) {
+    ctx.save();
+
+    var smoothscreenConfig = state.metadata.smoothscreen;
+    var boundarySize = smoothscreenConfig.boundarySize;
+
+    var playerPositions = getPlayerPositions();
+    if (playerPositions.length > 0) {
+        var playerPosition = {
+            x: (playerPositions[0]/(level.height))|0,
+            y: (playerPositions[0]%level.height)|0
+        };
+
+        var playerOffsetX = playerPosition.x - cameraPosition.x;
+        var playerOffsetY = playerPosition.y - cameraPosition.y;
+
+        ctx.fillStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc(
+            xoffset + (Math.floor(screenwidth / 2) + playerOffsetX + 0.5) * cellwidth,
+            yoffset + (Math.floor(screenheight / 2) + playerOffsetY + 0.5) * cellheight,
+            cellwidth / 4,
+            0, 2* Math.PI
+        );
+        ctx.fill()
+    }
+
+    var targetOffsetX = cameraPositionTarget.x - cameraPosition.x;
+    var targetOffsetY = cameraPositionTarget.y - cameraPosition.y;
+
+    ctx.fillStyle = '#0000ff';
+    ctx.beginPath();
+    ctx.arc(
+        xoffset + (Math.floor(screenwidth / 2) + targetOffsetX) * cellwidth,
+        yoffset + (Math.floor(screenheight / 2) + targetOffsetY) * cellheight,
+        cellwidth / 8,
+        0, 2* Math.PI
+    );
+    ctx.fill()
+
+    ctx.strokeStyle = '#0000ff';
+    ctx.lineWidth = cellwidth / 16;
+    ctx.strokeRect(
+        xoffset + (Math.floor(screenwidth / 2) + targetOffsetX - Math.floor(boundarySize.width / 2)) * cellwidth,
+        yoffset + (Math.floor(screenheight / 2) + targetOffsetY - Math.floor(boundarySize.height / 2)) * cellheight,
+        boundarySize.width * cellwidth,
+        boundarySize.height * cellheight
+    );
+
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.arc(
+        xoffset + Math.floor(screenwidth / 2) * cellwidth,
+        yoffset + Math.floor(screenheight / 2) * cellheight,
+        cellwidth / 4,
+        0, 2* Math.PI
+    );
+    ctx.fill()
+
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = cellwidth / 8;
+    ctx.strokeRect(
+        xoffset + (Math.floor(screenwidth / 2) - Math.floor(boundarySize.width / 2)) * cellwidth,
+        yoffset + (Math.floor(screenheight / 2) - Math.floor(boundarySize.height / 2)) * cellheight,
+        boundarySize.width * cellwidth,
+        boundarySize.height * cellheight
+    );
+
+    ctx.restore()
 }
 
 function drawEditorIcons() {

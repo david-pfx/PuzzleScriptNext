@@ -188,6 +188,8 @@ late [ Temp ] -> [ ]</code></pre>
 			<dd>Zooms the camera in to a WxH section of the map around the player, centered on the player.</dd>
       <dt>smoothscreen <i>flick</i> WxH <i>IxJ S</i></dt>
       <dd>Zooms the camera in to a WxH section of the map around the playerand smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional S argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. Additionally, the optional <i>flick</i> keyword makes the camera move like flickscreen, where the camera always moves the full boundary width/height. To get a smooth version of flick screen, provide the <i>flick</i> keyword and make WxH and IxJ the same dimensions.</dd>
+      <dt>smoothscreen_debug</dt>
+      <dd>Render debug information about the smoothscreen camera. The red circle and box represent the camera's position and the boundary around it. The blue circle and box are at the position the camera is moving towards. The green circle marks the location of the player that is being followed by the camera.</dd>
 		</dl>
 
 

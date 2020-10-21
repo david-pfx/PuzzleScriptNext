@@ -2013,7 +2013,8 @@ function twiddleMetaData(state) {
 			screenSize: { width: 0, height: 0 },
 			boundarySize: { width: 1, height: 1 },
 			cameraSpeed: 0.125,
-			flick: false
+			flick: false,
+			debug: !!newmetadata.smoothscreen_debug
 		}
 
 		if (args[0] === 'flick') {
