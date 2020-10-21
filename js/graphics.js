@@ -375,8 +375,16 @@ function redraw() {
             if (cameraPositionTarget !== null) {
                 ['x', 'y'].forEach(function (coord) {
                     var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
-                    cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
 
+                    if (cameraTargetVector === 0) {
+                        return;
+                    } else if (Math.abs(cameraTargetVector) < (0.5 / cellwidth)) {
+                        // Canvas doesn't actually render subpixels, but when the camera is less than half a subpixel away from target, snap to target
+                        cameraPosition[coord] = cameraPositionTarget[coord]
+                        return
+                    }
+
+                    cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
                     cameraOffset[coord] = cameraPosition[coord] % 1;
                 })
 
