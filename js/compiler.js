@@ -399,6 +399,36 @@ function generateExtraMembers(state) {
 	state.backgroundlayer=backgroundlayer;
 }
 
+function generateExtraMembersPart2(state) {
+	function assignMouseObject(preludeTerm, defaultName) {
+		if (preludeTerm in state.metadata) {
+			var name = state.metadata[preludeTerm] || defaultName;
+			var id = null;
+			if (state.objects[name]) {
+				id = state.objects[name].id;
+			} else {
+				if (name in state.synonymsDict) {
+					var n = state.synonymsDict[name];
+					var o = state.objects[n];
+					id = o.id;
+				} else {
+					var o=state.objects[state.idDict[1]];
+					id=o.id;
+					logError(name + " object/alias has to be defined");
+				}
+			}
+			return id;
+		}
+	}
+	
+	state.lmbID = assignMouseObject("mouse_left", "lmb");
+	state.rmbID = assignMouseObject("mouse_right", "rmb");
+	state.dragID = assignMouseObject("mouse_drag", "drag");
+	state.rdragID = assignMouseObject("mouse_rdrag", "rdrag");
+	state.lmbupID = assignMouseObject("mouse_up", "lmbup");
+	state.rmbupID = assignMouseObject("mouse_rup", "rmbup");
+}
+
 Level.prototype.calcBackgroundMask = function(state) {
 	if (state.backgroundlayer===undefined) {
 			logError("you have to have a background layer");
@@ -538,7 +568,7 @@ var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
 //redeclaring here, i don't know why
-var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","nosave"];
+var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo","nosave"];
 
 
 
@@ -1891,7 +1921,7 @@ function getMaskFromName(state,name) {
 		objectMask.ibitset(o.id);
 	}
 
-	if (objectMask.iszero()) {
+	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
 		logErrorNoLine("error, didn't find any object called player, either in the objects section, or the legends section. there must be a player!");
 	}
 	return objectMask;
@@ -2576,6 +2606,8 @@ function loadFile(str) {
 	checkObjectsAreLayered(state);
 
 	twiddleMetaData(state);
+	
+	generateExtraMembersPart2(state);
 
 	generateLoopPoints(state);
 

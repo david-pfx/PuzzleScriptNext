@@ -33,6 +33,22 @@ var messagecontainer_template = [
 	".................................."
 ];
 
+var messagecontainer_template_mouse = [
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"..................................",
+	"........Click to continue.........",
+	"..................................",
+	".................................."
+];
+
 var titletemplate_firstgo = [
 	"..................................",
 	"..................................",
@@ -215,6 +231,11 @@ function generateTitleScreen()
 	}
 	if (noAction) {
 		titleImage[11]=".X to select......................";
+	}
+	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
+		titleImage[9]="..................................";
+		titleImage[10]=".MOUSE to interact................";
+		titleImage[11]=".MMB to undo, R to restart........";
 	}
 	for (var i=0;i<titleImage.length;i++)
 	{
@@ -475,7 +496,10 @@ function drawMessageScreen() {
 
 	titleMode=0;
 	textMode=true;
-	titleImage = deepClone(messagecontainer_template);
+	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata)
+		titleImage = deepClone(messagecontainer_template_mouse);
+	else
+		titleImage = deepClone(messagecontainer_template);
 
 	for (var i=0;i<titleImage.length;i++)
 	{
@@ -2411,7 +2435,7 @@ function calculateRowColMasks() {
 }
 
 /* returns a bool indicating if anything changed */
-function processInput(dir,dontDoWin,dontModify) {
+function processInput(dir,dontDoWin,dontModify,bak) {
 	againing = false;
 
 	if (verbose_logging) { 
@@ -2419,15 +2443,17 @@ function processInput(dir,dontDoWin,dontModify) {
 	 		consolePrint('Turn starts with no input.')
 	 	} else {
 	 		consolePrint('=======================');
-			consolePrint('Turn starts with input of ' + ['up','left','down','right','action'][dir]+'.');
+			consolePrint('Turn starts with input of ' + ['up','left','down','right','action','mouse'][dir]+'.');
 	 	}
 	}
 
-	var bak = backupLevel();
+	if (bak==undefined) {
+		bak = backupLevel();
+	}
 
 	var playerPositions=[];
-    if (dir<=4) {
-    	if (dir>=0) {
+    if (dir<=5) {
+    	if (dir>=0 && dir<=4) {
 	        switch(dir){
 	            case 0://up
 	            {
@@ -2529,6 +2555,17 @@ function processInput(dir,dontDoWin,dontModify) {
         	}
         	//play player cantmove sounds here
         }
+		
+		/// Taken from zarawesome, thank you :)
+	    if (level.commandQueue.indexOf('undo')>=0) {
+	    	if (verbose_logging) {
+	    		consoleCacheDump();
+	    		consolePrint('UNDO command executed, undoing turn.',true);
+			}
+			messagetext = "";
+    		DoUndo(true,false);
+    		return true;
+		}
 
 
 

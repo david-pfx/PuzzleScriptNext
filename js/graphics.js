@@ -397,6 +397,9 @@ function redraw() {
             ctx.lineTo(xoffset, yoffset + (maxj - minj) * cellwidth);
             ctx.clip();
         }
+	    
+		screenOffsetX = mini;
+		screenOffsetY = minj;
 
         var renderBorderSize = smoothscreen ? 1 : 0;
 
