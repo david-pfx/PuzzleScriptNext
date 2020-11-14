@@ -480,13 +480,126 @@ document.addEventListener('keyup', onKeyUp, false);
 window.addEventListener('focus', onMyFocus, false);
 window.addEventListener('blur', onMyBlur, false);
 
-
 function prevent(e) {
     if (e.preventDefault) e.preventDefault();
     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
     if (e.stopPropagation) e.stopPropagation();
     e.returnValue=false;
     return false;
+}
+
+var gamepadKeys = []; // used to store keys held at previous frame
+
+function pollGamepads() {
+	function buttonCheck(buttons, i) {
+		if(buttons.length < i) {
+			return false;
+		}
+		
+		if(typeof(buttons[i]) == "object") {
+			return buttons[i].pressed;
+		}
+	
+		return buttons[i] == 1.0;
+	}
+	function axisCheck(axes, i, dir) {
+		if(axes.length < i) {
+			return false;
+		}
+		
+		return axes[i] * dir > 0.5;
+	}
+
+	var newGamepadKeys = [];
+
+	function keyPressed(keycode) {
+    	if(keybuffer.indexOf(keycode) === -1) {
+    		keybuffer.splice(keyRepeatIndex, 0, keycode);
+	    	keyRepeatTimer = 0;
+	    	checkKey({keyCode: keycode}, true);
+		}
+
+		newGamepadKeys.splice(0, 0, keycode);
+	}
+
+	// clear any keys previously pressed but no longer held:
+	function clear() {
+		for(var k = 0; k < gamepadKeys.length; k++) {
+			if(newGamepadKeys.indexOf(gamepadKeys[k]) >= 0) {
+				continue;
+			}
+
+			var index = keybuffer.indexOf(gamepadKeys[k]);
+			if(index >= 0) {
+				keybuffer.splice(index, 1);
+				if(keyRepeatIndex >= index) {
+					keyRepeatIndex--;
+				}
+			}
+		}
+
+		gamepadKeys = newGamepadKeys;
+	}
+
+	var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads() : []);
+	if(gamepads == null || gamepads.length == 0) {
+		clear();
+		return;
+	}
+
+	for(var i = 0; i < gamepads.length; i++) {
+		var gamepad = gamepads[i];
+		
+		if(gamepad == null || !gamepad.connected) {
+			continue;
+		}
+
+		if(buttonCheck(gamepad.buttons, 3) // Y
+			|| buttonCheck(gamepad.buttons, 4)) { // LB
+			
+			keyPressed(82); // restart
+		}
+		if(buttonCheck(gamepad.buttons, 1) // B
+			|| axisCheck(gamepad.axes, 2, 1)) { // LT
+			
+			keyPressed(90); // undo
+		}
+		if(buttonCheck(gamepad.buttons, 2) // X
+			|| buttonCheck(gamepad.buttons, 0) // A
+			|| buttonCheck(gamepad.buttons, 5) // RB
+			|| axisCheck(gamepad.axes, 1, 1)) { // RT
+			
+			keyPressed(88); // action
+		}
+		if(buttonCheck(gamepad.buttons, 7)) { // menu button
+			keyPressed(27); // exit
+		}
+		if(buttonCheck(gamepad.buttons, 6)) { // change view button
+			keyPressed(69); // edit
+		}
+		if(axisCheck(gamepad.axes, 0, 1) // right
+			|| axisCheck(gamepad.axes, 6, 1)) { // D-pad right
+			
+			keyPressed(39); // right
+		}
+		if(axisCheck(gamepad.axes, 0, -1) // left
+			|| axisCheck(gamepad.axes, 6, -1)) { // D-pad left
+			
+			keyPressed(37); // left
+		}
+		if(axisCheck(gamepad.axes, 1, -1) // up
+			|| axisCheck(gamepad.axes, 7, -1)) { // D-pad up
+			
+			keyPressed(38); // up
+		}
+		if(axisCheck(gamepad.axes, 1, 1) // down
+			|| axisCheck(gamepad.axes, 7, 1)) { // D-pad down
+			
+			keyPressed(40); // down
+		}
+	}
+
+	clear();
 }
 
 function checkKey(e,justPressed) {
@@ -499,7 +612,7 @@ function checkKey(e,justPressed) {
         case 65://a
         case 37: //left
         {
-//            window.console.log("LEFT");
+//           window.console.log("LEFT");
             inputdir=1;
         break;
         }
@@ -568,10 +681,21 @@ function checkKey(e,justPressed) {
         }
         case 27://escape
         {
-        	if (titleScreen===false) {
-				goToTitleScreen();	
-		    	tryPlayTitleSound();
-				canvasResize();			
+        	if (titleScreen===false || titleMode > 1) {
+				if (timer/1000>0.5) {
+					titleSelection = 0;
+					
+					timer = 0;
+					if(titleScreen === false && state.metadata["level_select"] !== undefined) {
+						gotoLevelSelectScreen();
+					} else {
+						goToTitleScreen();
+					}
+
+					tryPlayTitleSound();
+					canvasResize();
+				}
+
 				return prevent(e)
         	}
         	break;
@@ -629,12 +753,21 @@ function checkKey(e,justPressed) {
     if (throttle_movement && inputdir>=0&&inputdir<=3) {
     	if (lastinput==inputdir && input_throttle_timer<repeatinterval) {
     		return;
-    	} else {
+    	}else {
     		lastinput=inputdir;
     		input_throttle_timer=0;
     	}
     }
     if (textMode) {
+		if(!throttle_movement) {
+			if (lastinput==inputdir && input_throttle_timer < repeatinterval) {
+				return;
+			} else {
+				lastinput=inputdir;
+				input_throttle_timer=0;
+			}
+		}
+		
     	if (state.levels.length===0) {
     		//do nothing
     	} else if (titleScreen) {
@@ -658,17 +791,33 @@ function checkKey(e,justPressed) {
 	    				messageselected=false;
 	    				timer=0;
 	    				quittingTitleScreen=true;
-	    				generateTitleScreen();
+						
+						if(titleMode == 1) {
+							generateTitleScreen();
+						} else if(titleMode == 2) {
+							generateLevelSelectScreen();
+						}
 	    				redraw();
 	    			}
     			}
     			else if (inputdir===0||inputdir===2) {
     				if (inputdir===0){
-    					titleSelection=0;    					
+    					titleSelection--;    					
     				} else {
-    					titleSelection=1;    					    					
-    				}
-    				generateTitleScreen();
+    					titleSelection++;    					    					
+					}
+
+					if(titleSelection >= titleSelectOptions) {
+						titleSelection -= titleSelectOptions;
+					} else if (titleSelection < 0) {
+						titleSelection += titleSelectOptions;
+					}
+					
+					if(titleMode == 1) {
+						generateTitleScreen();
+					} else if(titleMode == 2) {
+						generateLevelSelectScreen();
+					}
     				redraw();
     			}
     		}
@@ -704,18 +853,25 @@ function checkKey(e,justPressed) {
 
 
 function update() {
+    var draw = false;
+
     timer+=deltatime;
     input_throttle_timer+=deltatime;
     if (quittingTitleScreen) {
         if (timer/1000>0.3) {
-            quittingTitleScreen=false;
-            nextLevel();
+			quittingTitleScreen=false;
+			
+			if(titleMode <= 1) {
+				nextLevel();
+			} else if(titleMode == 2) {
+				gotoSelectedLevel();
+			}
         }
     }
     if (againing) {
         if (timer>againinterval&&messagetext.length==0) {
             if (processInput(-1)) {
-                redraw();
+                draw = true;
                 keyRepeatTimer=0;
                 autotick=0;
             }
@@ -743,7 +899,10 @@ function update() {
             winning=false;
             nextLevel();
         }
-    }
+	}
+	
+	pollGamepads();
+
     if (keybuffer.length>0) {
 	    keyRepeatTimer+=deltatime;
 	    var ticklength = throttle_movement ? repeatinterval : repeatinterval/(Math.sqrt(keybuffer.length));
@@ -761,9 +920,13 @@ function update() {
             autotick=0;
             pushInput("tick");
             if (processInput(-1)) {
-                redraw();
+                draw = true;
             }
         }
+    }
+
+    if (draw || (state !== undefined && state.metadata.smoothscreen !== undefined)) {
+      redraw();
     }
 }
 

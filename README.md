@@ -1,13 +1,9 @@
 PuzzleScript
 ============
 
-Open Source HTML5 Puzzle Game Engine
+Try it out at https://dario-zubovic.github.io/PuzzleScript/
 
-Try it out at https://www.puzzlescript.net
-
------
-
-Dev instructions here - https://groups.google.com/forum/#!searchin/puzzlescript/development/puzzlescript/yptIpY9hlng/cjfrOPy_4jcJ
+Open Source HTML5 Puzzle Game Engine. Forked from increpare.
 
 -----
 

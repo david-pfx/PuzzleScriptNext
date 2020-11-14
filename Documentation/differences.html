@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>Differences from vanilla PuzzleScript - PuzzleScript Documentation</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+              <li><a href="../editor.html">Make A Game</a></li>
+              
+              <li class="active"><a href="documentation.html">Documentation</a></li>
+          </ul>          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://www.patreon.com/increpare">Patreon</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+<p>
+<ol class="breadcrumb">
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Differences</li>
+</ol>
+<p>
+ <h1>Differences from vanilla PuzzleScript</h1>
+    <p>
+      This fork of PuzzleScript has a few special tricks.
+    </p>
+    <p>
+        <ul>
+            <li>Support for gamepads (yes, gamepads work in browsers!)</li>
+            <li>Support for opacity in custom colors (for example #ff000080 is semi-transparent red)</li>
+            <li><b>nosave</b> action - when executed forces engine to not save current state to undo stack</li>
+            <li><b>sprite_size</b> prelude property - use arbitrary size of sprites</li>
+            <li><b>case_sensitive</b> prelude property - makes objects and aliases case-sensitive (ie. Moved and MoveD can be two separate objects, and p or P in level can refer to different objects)</li>
+            <li><b>smoothscreen</b> prelode property - make camera smoothly follow the player around. Click <a href="https://github.com/sftrabbit/PuzzleScript-smoothscreen/blob/0c8e0a709b22eb66dddfe827d7b942ad0758cc07/README.md">here</a> for a full description. Made by Joseph Mansfield (<a href="https://twitter.com/sftrabbit">@sftrabbit</a>).</li>
+            <li>
+              Level select screen:
+              <ul style="padding-left: 20px;">
+                <li><b>level_select</b> prelude property - enable level selection</li>
+                <li><b>continue_is_level_select</b> prelude property - don't show separate option on main menu for level selection</li>
+                <li><b>level_select_lock</b> prelude property - level selection will have unsolved levels locked</li>
+                <li><b>level_select_unlocked_ahead</b> prelude property - level selection will have N number of unsolved levels unlocked after last solved level (use it as "level_select_unlocked_ahead N"; default is N=1 if undefined)</li>
+                <li><b>level_select_solve_symbol</b> prelude property - override symbol that will be used for solved levels in level select menu (use it as "level_select_solve_symbol s"; default is "x" symbol if undefined)</li>
+                <li><b>section</b> keyword in LEVELS - define name for a level or set of levels below it (use it like you would use an message keyword)</li>
+              </ul>
+            </li>
+        </ul>
+    </p>
+    <br />
+    <p>
+      Known issues:
+      <ul>
+        <li>Currently, share button in editor is not working. However, you can paste the script manually into <a href="https://gist.github.com/">Gist</a> and use id to make play URL.
+        <br />For example, <a href="https://gist.github.com/dario-zubovic/4520eedba957293dde46ded354f3126f">https://gist.github.com/yourusername/4520eedba957293dde46ded354f3126f</a> becomes <a href="https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f">https://dario-zubovic.github.io/PuzzleScript/play.html?p=4520eedba957293dde46ded354f3126f</a>.</li>
+      </ul>
+    </p>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

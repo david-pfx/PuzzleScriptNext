@@ -421,6 +421,10 @@ Mobile.debugDot = function (event) {
 
     // Fake out keypresses to acheive the desired effect.
     proto.emitKeydown = function (input) {
+        if(!this.isMenuVisible && (input == 'undo' || input == 'restart' || input == 'quit')) {
+            return;
+        }
+
         var event;
 
         event = { keyCode: CODE[input] };

@@ -5,7 +5,9 @@ function isColor(str) {
 	str = str.trim();
 	if (str in colorPalettes.arnecolors)
 		return true;
-	if (/^#([0-9A-F]{3}){1,2}$/i.test(str))
+	if (/^#([0-9A-F]{2}){3,4}$/i.test(str))
+		return true;
+	if (/^#([0-9A-F]{3})$/i.test(str))
 		return true;
 	if (str === "transparent")
 		return true;
@@ -141,10 +143,24 @@ function generateExtraMembers(state) {
 	      		o.colors=["#ff00ff"];
 	      	}
 			if (o.spritematrix.length===0) {
-				o.spritematrix = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
+				o.spritematrix = new Array(state.sprite_size);
+				var zeros = new Array(state.sprite_size);
+				for(var i = 0; i < state.sprite_size; i++) {
+					zeros[i] = 0;
+				}
+				for(var i = 0; i < state.sprite_size; i++) {
+					o.spritematrix[i] = zeros;
+				}
 			} else {
-				if ( o.spritematrix.length!==5 || o.spritematrix[0].length!==5 || o.spritematrix[1].length!==5 || o.spritematrix[2].length!==5 || o.spritematrix[3].length!==5 || o.spritematrix[4].length!==5 ){
-					logWarning("Sprite graphics must be 5 wide and 5 high exactly.",o.lineNumber);
+				if ( o.spritematrix.length!==state.sprite_size) {
+					logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
+				} else {
+					for(var i = 0; i < state.sprite_size; i++) {
+						if(o.spritematrix[i].length!==state.sprite_size) {
+							logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
+							break;
+						}
+					}
 				}
 				o.spritematrix = generateSpriteMatrix(o.spritematrix);
 			}
@@ -405,14 +421,14 @@ function levelFromString(state,level) {
 	var backgroundlayer=state.backgroundlayer;
 	var backgroundid=state.backgroundid;
 	var backgroundLayerMask = state.layerMasks[backgroundlayer];
-	var o = new Level(level[0], level[1].length, level.length-1, state.collisionLayers.length, null);
+	var o = new Level(level[0], level[2].length, level.length-2, state.collisionLayers.length, null, level[1]);
 	o.objects = new Int32Array(o.width * o.height * STRIDE_OBJ);
 
 	for (var i = 0; i < o.width; i++) {
 		for (var j = 0; j < o.height; j++) {
-			var ch = level[j+1].charAt(i);
+			var ch = level[j+2].charAt(i);
 			if (ch.length==0) {
-				ch=level[j+1].charAt(level[j+1].length-1);
+				ch=level[j+2].charAt(level[j+2].length-1);
 			}
 			var mask = state.glyphDict[ch];
 
@@ -459,10 +475,12 @@ function levelsToArray(state) {
 		if (level.length == 0) {
 			continue;
 		}
+		
 		if (level[0] == '\n') {
 
 			var o = {
-				message: level[1]
+				message: level[1],
+				section: level[3]
 			};
 			splitMessage = wordwrap(o.message,intro_template[0].length);
 			if (splitMessage.length>12){
@@ -480,6 +498,32 @@ function levelsToArray(state) {
 	state.levels = processedLevels;
 }
 
+function extractSections(state) {
+	var sections = [];
+
+	var lastSection = null;
+
+	for(var i = 0; i < state.levels.length; i++) {
+		var level = state.levels[i];
+		
+		if(level.section != lastSection) {
+			var o = {
+				name: level.section,
+				firstLevel: i
+			};
+			if(o.name == "__WIN__") {
+				state.winSection = o;
+			} else {
+				sections.push(o);
+			}
+			
+			lastSection = level.section;
+		}
+	}
+
+	state.sections = sections;
+}
+
 var directionaggregates = {
 	'horizontal' : ['left', 'right'],
 	'vertical' : ['up', 'down'],
@@ -492,9 +536,9 @@ var directionaggregates = {
 var relativeDirections = ['^', 'v', '<', '>','horizontal','vertical'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
-var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/;
+var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
 //redeclaring here, i don't know why
-var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again"];
+var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","nosave"];
 
 
 
@@ -534,7 +578,7 @@ function findIndexAfterToken(str,tokens,tokenIndex){
 	str=str.toLowerCase();
 	var curIndex=0;
 	for (var i=0;i<=tokenIndex;i++){
-		var token = tokens[i];
+		var token = tokens[i].toLowerCase();
 		curIndex=str.indexOf(token,curIndex)+token.length;
 	}
 	return curIndex;
@@ -724,21 +768,21 @@ function processRuleString(rule, state, curRules)
  						curcell.push(token);
  						curcell.push(token);
  					}
-				} else if (commandwords.indexOf(token)>=0) {
+				} else if (commandwords.indexOf(token.toLowerCase())>=0) {
 					if (rhs===false) {
 						logError("Commands cannot appear on the left-hand side of the arrow.",lineNumber);
 					}
-					if (token==='message') {
+					if (token.toLowerCase()==='message') {
 						var messageIndex = findIndexAfterToken(origLine,tokens,i);
 						var messageStr = origLine.substring(messageIndex).trim();
 						if (messageStr===""){
 							messageStr=" ";
 							//needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
 						}
-						commands.push([token, messageStr]);
+						commands.push([token.toLowerCase(), messageStr]);
 						i=tokens.length;
 					} else {
-						commands.push([token]);
+						commands.push([token.toLowerCase()]);
 					}
 				} else {
 					logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
@@ -1806,8 +1850,8 @@ function generateRigidGroupList(state) {
 			rigidGroupIndex_to_GroupIndex.push(i);
 		}
 	}
-	if (rigidGroupIndex_to_GroupIndex.length>30) {
-		logError("There can't be more than 30 rigid groups (rule groups containing rigid members).",rules[0][0][3]);
+	if (rigidGroupIndex_to_GroupIndex.length>60) {
+		logError("There can't be more than 60 rigid groups (rule groups containing rigid members).",rules[0][0][3]);
 	}
 
 	state.rigidGroups=rigidGroups;
@@ -1951,6 +1995,73 @@ function twiddleMetaData(state) {
 		var intcoords = [parseInt(coords[0]),parseInt(coords[1])];
 		newmetadata.zoomscreen=intcoords;
 	}
+	if (newmetadata.smoothscreen!==undefined) {
+		var val = newmetadata.smoothscreen;
+		var args = val.split(/\s+/);
+
+		var validArguments = true
+
+		if (args.length < 1) {
+			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S]')
+			validArguments = false
+		} else if (args.length > 4) {
+			logErrorNoLine('smoothscreen given ' + args.length + ' arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]')
+			validArguments = false
+		}
+
+		const smoothscreen = {
+			screenSize: { width: 0, height: 0 },
+			boundarySize: { width: 1, height: 1 },
+			cameraSpeed: 0.125,
+			flick: false
+		}
+
+		if (args[0] === 'flick') {
+			smoothscreen.flick = true
+			args.shift()
+		}
+
+		const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
+		if (screenSizeMatch) {
+			smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
+			smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
+
+			if (smoothscreen.flick) {
+				smoothscreen.boundarySize.width = smoothscreen.screenSize.width
+				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
+			}
+		} else {
+			logErrorNoLine('smoothscreen given first argument ' + args[0] + ' but must be formatted WxH where W and H are integers')
+			validArguments = false
+		}
+
+		if (args.length > 1) {
+			const boundarySizeMatch = args[1].match(/^(?<width>\d+)x(?<height>\d+)$/)
+			if (boundarySizeMatch) {
+				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
+				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
+			} else {
+				logErrorNoLine('smoothscreen given second argument ' + args[1] + ' but must be formatted IxJ where I and J are integers')
+				validArguments = false
+			}
+		}
+
+		if (args.length > 2) {
+			const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
+			if (cameraSpeedMatch) {
+				smoothscreen.cameraSpeed = parseFloat(cameraSpeedMatch.groups.speed)
+			} else {
+				logErrorNoLine('smoothscreen given third argument ' + args[2] + ' but must be a number')
+				validArguments = false
+			}
+		}
+
+		if (validArguments) {
+			newmetadata.smoothscreen = smoothscreen;
+		} else {
+			delete newmetadata.smoothscreen
+		}
+	}
 
 	state.metadata=newmetadata;	
 }
@@ -1964,7 +2075,7 @@ function processWinConditions(state) {
 			return;
 		}
 		var num=0;
-		switch(wincondition[0]) {
+		switch(wincondition[0].toLowerCase()) {
 			case 'no':{num=-1;break;}
 			case 'all':{num=1;break;}
 		}
@@ -2443,6 +2554,7 @@ function loadFile(str) {
 	generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
+	extractSections(state);
 	rulesToArray(state);
 
 	removeDuplicateRules(state);

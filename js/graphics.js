@@ -32,14 +32,22 @@ function createSprite(name,spritegrid, colors, padding) {
     return sprite;
 }
 
+function drawTextWithCustomFont(txt, ctx, x, y) {
+    ctx.fillStyle = state.fgcolor;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.font = cellheight + "px PuzzleCustomFont";
+    ctx.fillText(txt, x, y);
+}
+
 function regenText(spritecanvas,spritectx) {
 	textImages={};
 
-	for (var n in font) {
-		if (font.hasOwnProperty(n)) {
-			textImages[n] = createSprite('char'+n,font[n], undefined, 1);
-		}
-	}
+    for (var n in font) {
+        if (font.hasOwnProperty(n)) {
+            textImages[n] = createSprite('char'+n,font[n], undefined, 1);
+        }
+    }
 }
 var spriteimages;
 function regenSpriteImages() {
@@ -188,6 +196,64 @@ function glyphCount(){
     return count;
 }
 
+var cameraPositionTarget = {
+  x: 0,
+  y: 0
+};
+
+var cameraPosition = {
+  x: 0,
+  y: 0
+};
+
+function initSmoothCamera() {
+    if (state===undefined || state.metadata.smoothscreen===undefined) {
+        return;
+    }
+
+    screenwidth=state.metadata.smoothscreen.screenSize.width;
+    screenheight=state.metadata.smoothscreen.screenSize.height;
+
+    var boundarySize = state.metadata.smoothscreen.boundarySize;
+    var flick = state.metadata.smoothscreen.flick;
+
+    var playerPositions = getPlayerPositions();
+    if (playerPositions.length>0) {
+        var playerPosition = {
+            x: (playerPositions[0]/(level.height))|0,
+            y: (playerPositions[0]%level.height)|0
+        };
+
+        cameraPositionTarget = {
+            x: flick
+              ? getFlickCameraPosition(playerPosition.x, level.width, screenwidth, boundarySize.width)
+              : getCameraPosition(playerPosition.x, level.width, screenwidth),
+            y: flick
+              ? getFlickCameraPosition(playerPosition.y, level.height, screenheight, boundarySize.height)
+              : getCameraPosition(playerPosition.y, level.height, screenheight)
+        };
+
+        cameraPosition.x = cameraPositionTarget.x;
+        cameraPosition.y = cameraPositionTarget.y;
+    }
+}
+
+function getCameraPosition (targetPosition, levelDimension, screenDimension) {
+    return Math.min(
+        Math.max(targetPosition, Math.floor(screenDimension / 2)),
+        levelDimension - Math.ceil(screenDimension / 2)
+    );
+}
+
+function getFlickCameraPosition (targetPosition, levelDimension, screenDimension, boundaryDimension) {
+    var flickGridOffset = (Math.floor(screenDimension / 2) - Math.floor(boundaryDimension / 2));
+    var flickGridPlayerPosition = targetPosition - flickGridOffset;
+    var flickGridPlayerCell = Math.floor(flickGridPlayerPosition / boundaryDimension);
+    var maxFlickGridCell = Math.floor((levelDimension - Math.ceil(screenDimension / 2) - Math.floor(boundaryDimension / 2) - flickGridOffset) / boundaryDimension);
+
+    return Math.min(Math.max(flickGridPlayerCell, 0), maxFlickGridCell) * boundaryDimension + Math.floor(screenDimension / 2);
+}
+
 function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
@@ -200,13 +266,20 @@ function redraw() {
         ctx.fillStyle = state.bgcolor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        for (var i = 0; i < titleWidth; i++) {
-            for (var j = 0; j < titleHeight; j++) {
-                var ch = titleImage[j].charAt(i);
-                if (ch in textImages) {
-                    var sprite = textImages[ch];
-                    ctx.drawImage(sprite, xoffset + i * cellwidth, yoffset + j * cellheight);                   
+        if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
+            for (var i = 0; i < titleWidth; i++) {
+                for (var j = 0; j < titleHeight; j++) {
+                    var ch = titleImage[j].charAt(i);
+                    if (ch in textImages) {
+                        var sprite = textImages[ch];
+                        ctx.drawImage(sprite, xoffset + i * cellwidth, yoffset + j * cellheight);                   
+                    }
                 }
+            }
+        } else {
+            for(var i = 0; i < titleHeight; i++) {
+                var row = titleImage[i];
+                drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
             }
         }
         return;
@@ -218,6 +291,11 @@ function redraw() {
         var maxi=screenwidth;
         var minj=0;
         var maxj=screenheight;
+
+        var cameraOffset = {
+            x: 0,
+            y: 0
+        };
 
         if (levelEditorOpened) {
             var glyphcount = glyphCount();
@@ -262,20 +340,81 @@ function redraw() {
                 maxi=oldflickscreendat[2];
                 maxj=oldflickscreendat[3];
             }         
-        }
-	    
+        } else if (smoothscreen) {
+            var smoothscreenConfig = state.metadata.smoothscreen;
+            var flick = smoothscreenConfig.flick;
+            var playerPositions = getPlayerPositions();
 
-        for (var i = mini; i < maxi; i++) {
-            for (var j = minj; j < maxj; j++) {
+            if (playerPositions.length > 0) {
+                var playerPosition = {
+                    x: (playerPositions[0]/(level.height))|0,
+                    y: (playerPositions[0]%level.height)|0
+                };
+
+                ['x', 'y'].forEach(function (coord) {
+                    var screenDimension = coord === 'x' ? screenwidth : screenheight;
+
+                    var dimensionName = coord === 'x' ? 'width' : 'height';
+                    var levelDimension = level[dimensionName];
+                    var boundaryDimension = smoothscreenConfig.boundarySize[dimensionName];
+
+                    var playerVector = playerPosition[coord] - cameraPositionTarget[coord];
+                    var direction = Math.sign(playerVector);
+                    var boundaryVector = direction > 0
+                      ? Math.ceil(boundaryDimension / 2)
+                      : -(Math.floor(boundaryDimension / 2) + 1);
+
+                    if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
+                        cameraPositionTarget[coord] = smoothscreenConfig.flick
+                          ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
+                          : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
+                    }
+
+                    var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
+                    cameraPosition[coord] += cameraTargetVector * smoothscreenConfig.cameraSpeed;
+
+                    cameraOffset[coord] = cameraPosition[coord] % 1;
+                })
+
+                mini=Math.max(Math.min(Math.floor(cameraPosition.x)-Math.floor(screenwidth/2), level.width-screenwidth),0);
+                minj=Math.max(Math.min(Math.floor(cameraPosition.y)-Math.floor(screenheight/2), level.height-screenheight),0);
+
+                maxi=Math.min(mini+screenwidth,level.width);
+                maxj=Math.min(minj+screenheight,level.height);
+                oldflickscreendat=[mini,minj,maxi,maxj];
+            } else if (oldflickscreendat.length>0) {
+                mini=oldflickscreendat[0];
+                minj=oldflickscreendat[1];
+                maxi=oldflickscreendat[2];
+                maxj=oldflickscreendat[3];
+            }
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(xoffset, yoffset);
+            ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset);
+            ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset + (maxj - minj) * cellwidth);
+            ctx.lineTo(xoffset, yoffset + (maxj - minj) * cellwidth);
+            ctx.clip();
+        }
+
+        var renderBorderSize = smoothscreen ? 1 : 0;
+
+        for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, level.width); i++) {
+            for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, level.height); j++) {
                 var posIndex = j + i * level.height;
                 var posMask = level.getCellInto(posIndex,_o12);                
                 for (var k = 0; k < state.objectCount; k++) {
                     if (posMask.get(k) != 0) {                  
                         var sprite = spriteimages[k];
-                        ctx.drawImage(sprite, xoffset + (i-mini) * cellwidth, yoffset + (j-minj) * cellheight);
+                        ctx.drawImage(sprite, Math.floor(xoffset + (i-mini-cameraOffset.x) * cellwidth), Math.floor(yoffset + (j-minj-cameraOffset.y) * cellheight));
                     }
                 }
             }
+        }
+
+        if (smoothscreen) {
+            ctx.restore();
         }
 
 	    if (levelEditorOpened) {
@@ -347,6 +486,7 @@ function canvasResize() {
     if (state!==undefined){
         flickscreen=state.metadata.flickscreen!==undefined;
         zoomscreen=state.metadata.zoomscreen!==undefined;
+        smoothscreen=state.metadata.smoothscreen!==undefined;
 	    if (levelEditorOpened) {
             screenwidth+=2;
             var glyphcount = glyphCount();
@@ -358,6 +498,9 @@ function canvasResize() {
 	    } else if (zoomscreen) {
 	        screenwidth=state.metadata.zoomscreen[0];
 	        screenheight=state.metadata.zoomscreen[1];
+	    } else if (smoothscreen) {
+	        screenwidth=state.metadata.smoothscreen.screenSize.width;
+	        screenheight=state.metadata.smoothscreen.screenSize.height;
 	    }
 	}
 
@@ -369,8 +512,8 @@ function canvasResize() {
     cellwidth = canvas.width / screenwidth;
     cellheight = canvas.height / screenheight;
 
-    var w = 5;//sprites[1].dat.length;
-    var h = 5;//sprites[1].dat[0].length;
+    var w = sprites[1].dat.length;
+    var h = sprites[1].dat.length;//sprites[1].dat[0].length;
 
 
     if (textMode) {
@@ -384,12 +527,11 @@ function canvasResize() {
     xoffset = 0;
     yoffset = 0;
 
-    if (cellwidth > cellheight) {
+    if (cellwidth > cellheight || (textMode && state.metadata.custom_font !== undefined && loadedCustomFont)) {
         cellwidth = cellheight;
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
         yoffset = (canvas.height - cellheight * screenheight) / 2;
-    }
-    else { //if (cellheight > cellwidth) {
+    } else { //if (cellheight > cellwidth) {
         cellheight = cellwidth;
         yoffset = (canvas.height - cellheight * screenheight) / 2;
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
@@ -416,5 +558,6 @@ function canvasResize() {
     oldtextmode=textMode;
     oldfgcolor=state.fgcolor;
 
+    initSmoothCamera();
     redraw();
 }
