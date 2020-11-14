@@ -182,7 +182,7 @@ var codeMirrorFn = function() {
     //var relativedirs = ['^', 'v', '<', '>', 'moving','stationary','parallel','perpendicular', 'no'];
     //var logicWords = ['all', 'no', 'on', 'some'];
     var sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
-	var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","nosave"];
+	var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo","nosave"];
     //var reg_commands = /\s*(sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|nosave)\s*/;
     var reg_name = /[\w]+\s*/;///\w*[a-uw-zA-UW-Z0-9_]/;
     //var reg_number = /[\d]+/;
@@ -201,7 +201,7 @@ var codeMirrorFn = function() {
     //var reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|nosave)/;
     var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message'];
 
-    var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font'];
+    var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup'];
     var preamble_keywords = ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','continue_is_level_select','level_select_lock','settings'];
 
     //  var keywordRegex = new RegExp("\\b(("+cons.join(")|(")+"))$", 'i');
