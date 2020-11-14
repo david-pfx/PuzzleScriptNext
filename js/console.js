@@ -118,3 +118,15 @@ function clearConsole() {
 
 var clearConsoleClick = document.getElementById("clearConsoleClick");
 clearConsoleClick.addEventListener("click", clearConsole, false);
+
+function verboseToggle() {
+	if (!titleScreen) {
+	verbose_logging = !verbose_logging;
+	consolePrint("Verbose logging is now " + (verbose_logging ? "ENABLED" : "DISABLED"), true);
+	} else {
+		consolePrint("Once your game is running, you can use this button to toggle Verbose Logging", true);
+	}
+}
+
+var verboseLoggingClick = document.getElementById("verboseLoggingClick");
+verboseLoggingClick.addEventListener("click", verboseToggle, false);
