@@ -129,7 +129,17 @@ LEVELS
 <option value="blank">Blank Project</option>
 </optgroup>
 </select>
-</form>- <a id="runClickLink" href="javascript:void('Run the Game');">RUN</a> - <a id="rebuildClickLink" href="javascript:void('Rebuild without restarting');">REBUILD</a> - <a id="levelEditorClickLink" href="javascript:void('Open Level Editor');">LEVEL EDITOR</a> - <a id="exportClickLink" href="javascript:void('Export Standalone HTML Build');">EXPORT</a> - <a id="shareClickLink" href="javascript:void('Generate Link To Game');">SHARE</a> - <a href="Documentation/documentation.html"  target="Puzzle_Script_Documentation">DOCS</a>  - <a href="https://groups.google.com/forum/#!forum/puzzlescript">FORUM</a>
+</form>
+- <a id="solveClickLink" href="javascript:void('Solve a Level');">SOLVE</a>
+- <a id="cancelClickLink" hidden="true" href="javascript:void('Cancel solver');">STOP SOLVER</a>
+<span id="solvingProgress" style="color: white;" ></span>
+- <a id="runClickLink" href="javascript:void('Run the Game');">RUN</a>
+- <a id="rebuildClickLink" href="javascript:void('Rebuild without restarting');">REBUILD</a>
+- <a id="levelEditorClickLink" href="javascript:void('Open Level Editor');">LEVEL EDITOR</a>
+- <a id="exportClickLink" href="javascript:void('Export Standalone HTML Build');">EXPORT</a>
+- <a id="shareClickLink" href="javascript:void('Generate Link To Game');">SHARE</a>
+- <a href="Documentation/documentation.html"  target="Puzzle_Script_Documentation">DOCS</a>
+- <a href="https://groups.google.com/forum/#!forum/puzzlescript">FORUM</a>
 </div>
 
 <div id="righttophalf">	
@@ -203,6 +213,8 @@ LEVELS
 <script src="js/addlisteners.js"></script>
 <script src="js/addlisteners_editor.js"></script>
 <script src="js/makegif.js"></script>
+<script src="js/solver.js"></script>
+<script src="js/FastPriorityQueue.js"></script>
 
 <!--ENDREPLACE-->
 

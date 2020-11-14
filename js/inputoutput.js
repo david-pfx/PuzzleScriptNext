@@ -11,6 +11,7 @@ function selectText(containerid,e) {
 	e = e || window.event;
 	var myspan = document.getElementById(containerid);
 	if (e&&(e.ctrlKey || e.metaKey)) {
+		if(solving) return;
 		var levelarr = ["console"].concat(myspan.innerHTML.split("<br>"));
 		var leveldat = levelFromString(state,levelarr);
 		loadLevelFromLevelDat(state,leveldat,null);
@@ -685,6 +686,22 @@ function onKeyDown(event) {
         }  else if (event.keyCode===83 && (event.ctrlKey||event.metaKey)) {//ctrl+s
             saveClick();
             prevent(event);
+        }  else if (event.keyCode===66 && (event.ctrlKey||event.metaKey)) {//ctrl+b
+            rebuildClick();
+            prevent(event);
+            event.target.blur();
+            canvas.focus();
+        }  else if (event.keyCode===82 && (event.ctrlKey||event.metaKey)) {//ctrl+r
+            runClick();
+            prevent(event);
+            event.target.blur();
+            canvas.focus();
+        }  else if (event.keyCode===120) { //f9
+            prevent(event);
+        	solve();
+        }  else if (event.keyCode===119) { //f8
+            prevent(event);
+        	stopSolving();
         } 
     }
 }
@@ -993,6 +1010,10 @@ function checkKey(e,justPressed) {
         }
         case 27://escape
         {
+        	if(solving) {
+        		stopSolving();
+        		break;
+        	}
         	if (titleScreen===false || titleMode > 1) {
 				if (timer/1000>0.5) {
 					titleSelection = 0;
@@ -1013,7 +1034,7 @@ function checkKey(e,justPressed) {
         	break;
         }
         case 69: {//e
-        	if (canOpenEditor) {
+        	if (!solving && canOpenEditor) {
         		if (justPressed) {
         			if (titleScreen){
         				if (state.title==="EMPTY GAME"){
