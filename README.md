@@ -1,6 +1,6 @@
-Puzzlescript+ is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games. **DO NOTE that this fork is unstable, and you can expect things to behave unexpectedly (especially if you're going to combine functionality from multiple forks).**
+Puzzlescript+ is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games. **DO NOTE that this fork is unstable, and you can expect things to behave unexpectedly (especially if you're going to combine functionality from multiple forks).** Access the editor at https://auroriax.github.io/PuzzleScript/editor.html
 
-Here's the full list:
+Here's the full list of the Puzzlescript forks merged into this one:
 
 ## [PuzzleClick by ThatScar](https://github.com/ThatScar/PuzzleScript)
 Allows you to create objects on tiles the mouse interacts with. [More info here](https://github.com/ThatScar/PuzzleScript/blob/master/README.md).
