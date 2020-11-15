@@ -487,17 +487,77 @@ function mouseAction(event,click,id) {
 					titleButtonSelected();
 				}
 			} else {
-				if (mouseCoordY===5) {
-					if (titleSelection!==0) {
-						titleSelection=0;
-						generateTitleScreen();
-						redraw();
-					} else {
+				if (titleMode===0) {
+					if (mouseCoordY===5) {
+						if (titleSelection!==0) {
+							titleSelection=0;
+							generateTitleScreen();
+							redraw();
+						} else {
+							titleButtonSelected();
+						}
+					}
+					else if (mouseCoordY===7) {
+						titleSelection=1;
 						titleButtonSelected();
 					}
-				} else if (mouseCoordY===7) {
-					titleSelection=1;
-					titleButtonSelected();
+				} else if (titleMode===1) {
+					if (mouseCoordY===5) {
+						if (titleSelection!==0) {
+							titleSelection=0;
+							generateTitleScreen();
+							redraw();
+						} else {
+							titleButtonSelected();
+						}
+					} else if (mouseCoordY===6 && state.metadata.level_select) {
+						titleSelection=1;
+						titleButtonSelected();
+					}
+					else if (mouseCoordY===7) {
+						titleSelection=2;
+						titleButtonSelected();
+					}
+				} else if (titleMode===2) { //QQQ Need to add a way to scroll level select with mouse
+					console.log(mouseCoordY);
+					if (mouseCoordY===0) {
+						checkKey(27); //Emulating ESC button press
+					} else if (mouseCoordY===13 || mouseCoordY ===14) {
+						var levelsToDisplay = 6;
+						if (levelSelectScrollPos < titleSelectOptions - levelsToDisplay) {
+							levelSelectScrollPos += levelsToDisplay;
+						} else {
+							levelSelectScrollPos = 0;
+						}
+
+						generateLevelSelectScreen();
+						redraw();
+					} else {
+						var clickedLevel = -1;
+						switch (mouseCoordY) {
+							case 2: clickedLevel = 0; break;
+							case 4: clickedLevel = 1; break;
+							case 6: clickedLevel = 2; break;
+							case 8: clickedLevel = 3; break;
+							case 10: clickedLevel = 4; break;
+							case 12: clickedLevel = 5; break;
+						}
+						if (clickedLevel != -1) {
+							clickedLevel += levelSelectScrollPos;
+							if (clickedLevel <= titleSelectOptions) {
+								console.log("Clicked level "+clickedLevel);
+								titleSelection = clickedLevel;
+
+								titleSelected=true;
+								messageselected=false;
+								timer=0;
+								quittingTitleScreen=true;
+								
+								generateLevelSelectScreen();
+								redraw();
+							}
+						}
+					}
 				}
 			}
 		} else if (messageselected===false) {
