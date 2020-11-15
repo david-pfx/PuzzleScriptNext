@@ -59,7 +59,7 @@ function saveClick() {
 		var curSaveArray = JSON.parse(localStorage.saves);
 	}
 
-	if (curSaveArray.length>19) {
+	if (curSaveArray.length>29) {
 		curSaveArray.splice(0,1);
 	}
 	curSaveArray.push(saveDat);
@@ -366,7 +366,7 @@ function saveClick() {
 		var curSaveArray = JSON.parse(localStorage.saves);
 	}
 
-	if (curSaveArray.length>19) {
+	if (curSaveArray.length>29) {
 		curSaveArray.splice(0,1);
 	}
 	curSaveArray.push(saveDat);
