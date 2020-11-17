@@ -519,28 +519,40 @@ function mouseAction(event,click,id) {
 						titleButtonSelected();
 					}
 				} else if (titleMode===2) { //QQQ Need to add a way to scroll level select with mouse
-					console.log(mouseCoordY);
+					//console.log(mouseCoordY);
 					if (mouseCoordY===0) {
-						checkKey(27); //Emulating ESC button press
-					} else if (mouseCoordY===13 || mouseCoordY ===14) {
-						var levelsToDisplay = 6;
-						if (levelSelectScrollPos < titleSelectOptions - levelsToDisplay) {
-							levelSelectScrollPos += levelsToDisplay;
-						} else {
-							levelSelectScrollPos = 0;
-						}
+						titleSelection = 0;
+					
+						goToTitleScreen();
+	
+						tryPlayTitleSound();
+						canvasResize();
+					} else if (mouseCoordY===2) {
+						levelSelectScrollPos = Math.max(levelSelectScrollPos-1, 0);
+						titleSelection = levelSelectScrollPos;
 
+						console.log("Scrolling up",levelSelectScrollPos);
+						generateLevelSelectScreen();
+						redraw();
+					} else if (mouseCoordY===12) {
+						levelSelectScrollPos = Math.min(levelSelectScrollPos+1, titleSelectOptions - 9);
+						titleSelection = levelSelectScrollPos;
+
+						console.log("Scrolling down",levelSelectScrollPos);
 						generateLevelSelectScreen();
 						redraw();
 					} else {
 						var clickedLevel = -1;
 						switch (mouseCoordY) {
-							case 2: clickedLevel = 0; break;
+							case 3: clickedLevel = 0; break;
 							case 4: clickedLevel = 1; break;
-							case 6: clickedLevel = 2; break;
-							case 8: clickedLevel = 3; break;
-							case 10: clickedLevel = 4; break;
-							case 12: clickedLevel = 5; break;
+							case 5: clickedLevel = 2; break;
+							case 6: clickedLevel = 3; break;
+							case 7: clickedLevel = 4; break;
+							case 8: clickedLevel = 5; break;
+							case 9: clickedLevel = 6; break;
+							case 10: clickedLevel = 7; break;
+							case 11: clickedLevel = 8; break;
 						}
 						if (clickedLevel != -1) {
 							clickedLevel += levelSelectScrollPos;

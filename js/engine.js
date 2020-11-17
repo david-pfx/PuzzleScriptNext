@@ -313,16 +313,24 @@ function generateLevelSelectScreen() {
 	*/
 
 	titleImage = [
-		"           select level           ",
+		"[Esc] Back            Level Select",
 		"                                  "
 	];
+
+	var amountOfLevelsOnScreen = 9;
 
 	titleSelectOptions = state.sections.length;
 
 	if(titleSelection < levelSelectScrollPos) {
 		levelSelectScrollPos = titleSelection;
-	} else if(titleSelection >= levelSelectScrollPos + 6) {
-		levelSelectScrollPos = titleSelection - 5;
+	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) {
+		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
+	}
+
+	if (levelSelectScrollPos != 0) {
+		titleImage.push("            [ ^ UP ]              ");
+	} else {
+		titleImage.push("                                  ");
 	}
 
 	var unlockedUntil = -1;
@@ -345,7 +353,7 @@ function generateLevelSelectScreen() {
 	}
 	console.log(unlockedUntil);
 
-	for(var i = levelSelectScrollPos; i < levelSelectScrollPos + 6; i++) {
+	for(var i = levelSelectScrollPos; i < levelSelectScrollPos + amountOfLevelsOnScreen; i++) {
 		if(i < 0 || i >= state.sections.length) {
 			break;
 		}
@@ -374,7 +382,7 @@ function generateLevelSelectScreen() {
 		if(state.metadata.level_select_solve_symbol !== undefined) {
 			solved_symbol = state.metadata.level_select_solve_symbol;
 		}
-		var line = "[" + (solved ? solved_symbol : " ") + "] ";
+		var line = (solved ? solved_symbol : " ") + " ";
 		
 		line += (selected ? "#" : " ") + " " + name;
 		for(var j = name.length; j < 25; j++) {
@@ -387,10 +395,12 @@ function generateLevelSelectScreen() {
 		line += (selected ? "#" : " ") + "  ";
 
 		titleImage.push(line);
+	}
 
-		if(titleImage.length < 13) {
-			titleImage.push("                                  ");
-		}
+	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen) {
+		titleImage.push("           [ V DOWN ]             ")
+	} else {
+		titleImage.push("                                  ");
 	}
 
 	for(var i = titleImage.length; i < 13; i++) {
