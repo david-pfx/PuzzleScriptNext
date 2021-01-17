@@ -872,8 +872,31 @@ document.addEventListener('mousemove', onMouseMove, false);
 document.addEventListener('contextmenu', rightClickCanvas, false);
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
+document.addEventListener('wheel', onMouseWheel, false)
 window.addEventListener('focus', onMyFocus, false);
 window.addEventListener('blur', onMyBlur, false);
+
+function onMouseWheel(event) {
+
+	console.log("Scroll "+event.deltaY);
+	normalizedDelta = Math.sign(event.deltaY);
+
+	if (titleMode == 2) {
+		titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1)
+		generateLevelSelectScreen();
+		redraw();
+		prevent(event)
+	}
+	if (levelEditorOpened) {
+		glyphSelectedIndex = clamp(glyphSelectedIndex + normalizedDelta, 0, glyphCount() - 1);
+		redraw();
+		prevent(event)
+	}
+}
+
+function clamp(number, min, max) {
+	return Math.min(Math.max(number, min), max);
+}
 
 function prevent(e) {
     if (e.preventDefault) e.preventDefault();
