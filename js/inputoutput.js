@@ -528,15 +528,19 @@ function mouseAction(event,click,id) {
 						tryPlayTitleSound();
 						canvasResize();
 					} else if (mouseCoordY===2) {
-						levelSelectScrollPos = Math.max(levelSelectScrollPos-1, 0);
-						titleSelection = levelSelectScrollPos;
+						if (levelSelectScrollPos != 0) {
+							levelSelectScrollPos = Math.max(levelSelectScrollPos-1, 0);
+							titleSelection = levelSelectScrollPos;
 
-						console.log("Scrolling up",levelSelectScrollPos);
-						generateLevelSelectScreen();
-						redraw();
+							console.log("Scrolling up",levelSelectScrollPos);
+							generateLevelSelectScreen();
+							redraw();
+						}
 					} else if (mouseCoordY===12) {
-						levelSelectScrollPos = Math.min(levelSelectScrollPos+1, titleSelectOptions - 9);
-						titleSelection = levelSelectScrollPos;
+						if (titleSelectOptions - amountOfLevelsOnScreen > 0) {
+							levelSelectScrollPos = Math.min(levelSelectScrollPos+1, titleSelectOptions - amountOfLevelsOnScreen);
+							titleSelection = levelSelectScrollPos;
+						}
 
 						console.log("Scrolling down",levelSelectScrollPos);
 						generateLevelSelectScreen();
@@ -556,7 +560,7 @@ function mouseAction(event,click,id) {
 						}
 						if (clickedLevel != -1) {
 							clickedLevel += levelSelectScrollPos;
-							if (clickedLevel <= titleSelectOptions) {
+							if (clickedLevel < titleSelectOptions) {
 								console.log("Clicked level "+clickedLevel);
 								titleSelection = clickedLevel;
 
@@ -684,9 +688,11 @@ function onMouseDown(event) {
     } else if (event.button===1) {
 		//undo
 		if (textMode===false) {
-			pushInput("undo");
-			DoUndo(false,true);
-			canvasResize(); // calls redraw
+			if (levelEditorOpened) {
+				pushInput("undo");
+				DoUndo(false,true);
+				canvasResize(); // calls redraw
+			}
 		}
 	}
 

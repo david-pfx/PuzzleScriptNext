@@ -282,12 +282,12 @@ function gotoLevelSelectScreen() {
     againing = false;
 	messagetext = "";
 
-	// select first unsolved level:
-	titleSelection = 0;
-	for(var i = 0; i < state.sections.length; i++) {
-		if(solvedSections.indexOf(state.sections[i].name) == -1) {
-			titleSelection = i;
-			break;
+	if (titleSelection == false) {
+		for(var i = 0; i < state.sections.length; i++) {
+			if(state.sections[i].firstLevel > curlevel) {
+				titleSelection = Math.max(0,i-1);
+				break;
+			}
 		}
 	}
 
@@ -313,18 +313,29 @@ function generateLevelSelectScreen() {
 	*/
 
 	titleImage = [
-		"[Esc] Back            Level Select",
+		"ESC: Back             Level Select",
 		"                                  "
 	];
 
-	var amountOfLevelsOnScreen = 9;
+	amountOfLevelsOnScreen = 9;
 
 	titleSelectOptions = state.sections.length;
 
-	if(titleSelection < levelSelectScrollPos) {
+	if(titleSelection < levelSelectScrollPos) { //Up
 		levelSelectScrollPos = titleSelection;
-	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) {
+	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) { //Down
 		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
+	}
+
+	var posOnScreen = titleSelection - levelSelectScrollPos;
+	if (posOnScreen == 0) {
+		levelSelectScrollPos = Math.max(0, levelSelectScrollPos - 1);
+		//console.log("On first position");
+	}
+
+	if (posOnScreen == amountOfLevelsOnScreen-1) {
+		levelSelectScrollPos = Math.min(state.sections.length-amountOfLevelsOnScreen, levelSelectScrollPos + 1);
+		//console.log("On last position");
 	}
 
 	if (levelSelectScrollPos != 0) {
@@ -397,7 +408,7 @@ function generateLevelSelectScreen() {
 		titleImage.push(line);
 	}
 
-	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen) {
+	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen && titleSelectOptions - amountOfLevelsOnScreen > 0) {
 		titleImage.push("           [ V DOWN ]             ")
 	} else {
 		titleImage.push("                                  ");
@@ -2869,7 +2880,10 @@ function nextLevel() {
 			// new game
 			curlevel=0;
 			curlevelTarget=null;
-			clearLocalStorage();
+
+			if (state.metadata.level_select === undefined) {
+				clearLocalStorage();
+			}
 
 			loadLevelFromStateOrTarget();
 		} else if(isLevelSelectOptionSelected()) {
