@@ -122,7 +122,8 @@ function saveClick() {
 
 	setEditorClean();
 
-	consolePrint("saved file '"+title+"' to local storage",true);
+	var escapeHTMLTitle = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+	consolePrint("saved file '"+escapeHTMLTitle+"' to local storage",true);
 }
 
 
