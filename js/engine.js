@@ -362,7 +362,7 @@ function generateLevelSelectScreen() {
 			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
 		}	
 	}
-	console.log(unlockedUntil);
+	//console.log(unlockedUntil);
 
 	for(var i = levelSelectScrollPos; i < levelSelectScrollPos + amountOfLevelsOnScreen; i++) {
 		if(i < 0 || i >= state.sections.length) {

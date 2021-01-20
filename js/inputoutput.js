@@ -862,8 +862,16 @@ function onMouseMove(event) {
     //window.console.log("showcoord ("+ canvas.width+","+canvas.height+") ("+x+","+y+")");
 }
 
-function mouseOut() {
-//  window.console.log("clear");
+mouseInCanvas = false;
+
+function onMouseIn() {
+	mouseInCanvas = true;
+	//console.log("Cursor moved into canvas")
+}
+
+function onMouseOut() {
+	mouseInCanvas = false;
+	//console.log("Cursor moved out of canvas")
 }
 
 document.addEventListener('mousedown', onMouseDown, false);
@@ -875,13 +883,17 @@ document.addEventListener('keyup', onKeyUp, false);
 document.addEventListener('wheel', onMouseWheel, false)
 window.addEventListener('focus', onMyFocus, false);
 window.addEventListener('blur', onMyBlur, false);
+canvas.addEventListener('mouseenter', onMouseIn, false);
+canvas.addEventListener('mouseleave', onMouseOut, false)
 
 function onMouseWheel(event) {
 
-	console.log("Scroll "+event.deltaY);
+	if (!mouseInCanvas) {return;}
+
+	//console.log("Scroll "+event.deltaY);
 	normalizedDelta = Math.sign(event.deltaY);
 
-	if (titleMode == 2) {
+	if (titleMode == 2 && state.metadata.mouse_left || state.metadata.mouse_drag) {
 		titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1)
 		generateLevelSelectScreen();
 		redraw();
