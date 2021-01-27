@@ -533,7 +533,7 @@ function mouseAction(event,click,id) {
 							levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
 							titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
 
-							console.log("Scrolling up",levelSelectScrollPos);
+							//console.log("Scrolling up",levelSelectScrollPos);
 							generateLevelSelectScreen();
 							redraw();
 						}
@@ -544,7 +544,7 @@ function mouseAction(event,click,id) {
 							levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
 							titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
 
-							console.log("Scrolling down",levelSelectScrollPos);
+							//console.log("Scrolling down",levelSelectScrollPos);
 							generateLevelSelectScreen();
 							redraw();
 						}
@@ -891,7 +891,7 @@ canvas.addEventListener('mouseleave', onMouseOut, false)
 
 function onMouseWheel(event) {
 
-	if (!mouseInCanvas) {return;}
+	if (!mouseInCanvas || event.ctrlKey) {return;}
 
 	//console.log("Scroll "+event.deltaY);
 	normalizedDelta = Math.sign(event.deltaY);
