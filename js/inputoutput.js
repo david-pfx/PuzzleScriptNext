@@ -528,23 +528,26 @@ function mouseAction(event,click,id) {
 						tryPlayTitleSound();
 						canvasResize();
 					} else if (mouseCoordY===2) {
+						var normalizedDelta = -3;
 						if (levelSelectScrollPos != 0) {
-							levelSelectScrollPos = Math.max(levelSelectScrollPos-1, 0);
-							titleSelection = levelSelectScrollPos;
+							levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
+							titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
 
 							console.log("Scrolling up",levelSelectScrollPos);
 							generateLevelSelectScreen();
 							redraw();
 						}
 					} else if (mouseCoordY===12) {
-						if (titleSelectOptions - amountOfLevelsOnScreen > 0) {
-							levelSelectScrollPos = Math.min(levelSelectScrollPos+1, titleSelectOptions - amountOfLevelsOnScreen);
-							titleSelection = levelSelectScrollPos;
-						}
+						var normalizedDelta = 3;
+						if (titleSelectOptions - amountOfLevelsOnScreen > levelSelectScrollPos) {
+							
+							levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
+							titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
 
-						console.log("Scrolling down",levelSelectScrollPos);
-						generateLevelSelectScreen();
-						redraw();
+							console.log("Scrolling down",levelSelectScrollPos);
+							generateLevelSelectScreen();
+							redraw();
+						}
 					} else {
 						var clickedLevel = -1;
 						switch (mouseCoordY) {
@@ -893,9 +896,11 @@ function onMouseWheel(event) {
 	//console.log("Scroll "+event.deltaY);
 	normalizedDelta = Math.sign(event.deltaY);
 
-	if (titleMode == 2 && state.metadata.mouse_left || state.metadata.mouse_drag) {
-		titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1)
+	if (titleScreen && titleMode == 2 && (state.metadata.mouse_left || state.metadata.mouse_drag)) {
+		levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
+		titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
 		generateLevelSelectScreen();
+
 		redraw();
 		prevent(event)
 	}

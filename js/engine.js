@@ -339,7 +339,7 @@ function generateLevelSelectScreen() {
 	}
 
 	if (levelSelectScrollPos != 0) {
-		titleImage.push("            [ ^ UP ]              ");
+		titleImage.push("            [ PREV ]              ");
 	} else {
 		titleImage.push("                                  ");
 	}
@@ -409,7 +409,7 @@ function generateLevelSelectScreen() {
 	}
 
 	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen && titleSelectOptions - amountOfLevelsOnScreen > 0) {
-		titleImage.push("           [ V DOWN ]             ")
+		titleImage.push("            [ NEXT ]              ")
 	} else {
 		titleImage.push("                                  ");
 	}
