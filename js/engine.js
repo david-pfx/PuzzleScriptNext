@@ -59,9 +59,9 @@ var titletemplate_firstgo = [
 	"..........#.start game.#..........",
 	"..................................",
 	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart..........",
+	"..................................",
+	"..................................",
+	"..................................",
 	".................................."];
 
 var titletemplate_firstgo_selected = [
@@ -74,9 +74,9 @@ var titletemplate_firstgo_selected = [
 	"###########.start game.###########",
 	"..................................",
 	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart..........",
+	"..................................",
+	"..................................",
+	"..................................",
 	".................................."];
 	
 var titletemplate_empty = [
@@ -90,9 +90,9 @@ var titletemplate_empty = [
 	"..................................",
 	"..................................",
 	"..................................",
-	".arrow keys to move...............",
-	".X to action......................",
-	".Z to undo, R to restart.........."];
+	"..................................",
+	"..................................",
+	".................................."];
 
 var title_options = [[
 	".............continue.............",
@@ -219,24 +219,32 @@ function generateTitleScreen()
 		}
 	}
 
-	var offset = (titleMode == 0) ? 2 : 0;
 	var noAction = 'noaction' in state.metadata;	
 	var noUndo = 'noundo' in state.metadata;
 	var noRestart = 'norestart' in state.metadata;
-	if (noUndo && noRestart) {
-		titleImage[12+offset]="..................................";
-	} else if (noUndo) {
-		titleImage[12+offset]=".R to restart.....................";
-	} else if (noRestart) {
-		titleImage[12+offset]=".Z to undo.....................";
-	}
+
+	titleImage[10] = ".arrow keys to move...............";
+
 	if (noAction) {
-		titleImage[11+offset]=".X to select......................";
+		titleImage[11]=".X to select......................";
+	} else {
+		titleImage[11]=" X to action......................"
 	}
+
+	if (noUndo && noRestart) {
+		titleImage[12]="..................................";
+	} else if (noUndo) {
+		titleImage[12]=".R to restart.....................";
+	} else if (noRestart) {
+		titleImage[12]=".Z to undo........................";
+	} else {
+		titleImage[12]=".Z to undo, R to restart..........";
+	}
+
 	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
-		titleImage[9+offset]="..................................";
-		titleImage[10+offset]=".MOUSE to interact................";
-		titleImage[11+offset]=".MMB to undo, R to restart........";
+		titleImage[10]="..................................";
+		titleImage[11]=".MOUSE to interact................";
+		titleImage[12]=".MMB to undo, R to restart........";
 	}
 	for (var i=0;i<titleImage.length;i++)
 	{
