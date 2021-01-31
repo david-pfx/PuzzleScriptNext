@@ -219,23 +219,24 @@ function generateTitleScreen()
 		}
 	}
 
+	var offset = (titleMode == 0) ? 2 : 0;
 	var noAction = 'noaction' in state.metadata;	
 	var noUndo = 'noundo' in state.metadata;
 	var noRestart = 'norestart' in state.metadata;
 	if (noUndo && noRestart) {
-		titleImage[12]="..................................";
+		titleImage[12+offset]="..................................";
 	} else if (noUndo) {
-		titleImage[12]=".R to restart.....................";
+		titleImage[12+offset]=".R to restart.....................";
 	} else if (noRestart) {
-		titleImage[12]=".Z to undo.....................";
+		titleImage[12+offset]=".Z to undo.....................";
 	}
 	if (noAction) {
-		titleImage[11]=".X to select......................";
+		titleImage[11+offset]=".X to select......................";
 	}
 	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
-		titleImage[9]="..................................";
-		titleImage[10]=".MOUSE to interact................";
-		titleImage[11]=".MMB to undo, R to restart........";
+		titleImage[9+offset]="..................................";
+		titleImage[10+offset]=".MOUSE to interact................";
+		titleImage[11+offset]=".MMB to undo, R to restart........";
 	}
 	for (var i=0;i<titleImage.length;i++)
 	{
