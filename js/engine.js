@@ -2910,7 +2910,7 @@ function nextLevel() {
 				
 				if(solvedSections.length == state.sections.length && state.winSection != undefined) {
 					curlevel = state.winSection.firstLevel - 1; // it's gonna be increased to match few lines below
-				} else if(nextSection == "__WIN__" || solvedSections.indexOf(state.levels[Number(curlevel)+1].section) >= 0) {
+				} else if (nextSection == "__WIN__") {
 					gotoLevelSelectScreen();
 					skip = true;
 				}		
