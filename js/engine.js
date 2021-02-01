@@ -2622,7 +2622,23 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 			messagetext = "";
 	    	DoRestart(true);
     		return true;
-	    } 
+		}
+		
+		if (level.commandQueue.indexOf('quit')>=0) {
+			if (verbose_logging) { 
+				var r = level.commandQueueSourceRules[level.commandQueue.indexOf('restart')];
+				consolePrintFromRule('QUIT command executed, exiting level.',r);
+				consoleCacheDump();
+			}
+			if (state.metadata.level_select !== undefined) {
+				gotoLevelSelectScreen();
+			} else {
+				goToTitleScreen();
+			}
+			messagetext = "";
+			canvasResize();	
+			return true;
+		}
 
 	    if (dontModify && level.commandQueue.indexOf('win')>=0) {
 	    	return true;

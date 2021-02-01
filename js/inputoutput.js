@@ -564,7 +564,7 @@ function mouseAction(event,click,id) {
 						if (clickedLevel != -1) {
 							clickedLevel += levelSelectScrollPos;
 							if (clickedLevel < titleSelectOptions) {
-								console.log("Clicked level "+clickedLevel);
+								//console.log("Clicked level "+clickedLevel);
 								titleSelection = clickedLevel;
 
 								titleSelected=true;
