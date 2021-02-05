@@ -141,8 +141,33 @@ function generateExtraMembers(state) {
 	      	if (o.colors.length==0) {
 	      		logError('color not specified for object "' + n +'".',o.lineNumber);
 	      		o.colors=["#ff00ff"];
-	      	}
-			if (o.spritematrix.length===0) {
+			  }
+			 if (o.cloneSprite !== "") {
+				//console.log("To clone: "+o.cloneSprite);
+				if (state.objects.hasOwnProperty(o.cloneSprite)) {
+					
+					if (state.objects[o.cloneSprite].cloneSprite === "") {
+						o.spritematrix = deepClone(state.objects[o.cloneSprite].spritematrix);
+						//console.log(o.spritematrix);
+					} else {
+						logError("The sprite that "+n+" attempted to clone ("+o.cloneSprite+") clones a sprite itself ("+state.objects[o.cloneSprite].cloneSprite + "), so it can't clone the sprite! You'll need to set up the cloning differently.",o.lineNumber);
+					}
+				} else {
+					logError(n +" attempted to clone the sprite matrix of "+o.cloneSprite+", but that object doesn't exist?!",o.lineNumber);
+				}
+			 } 
+			  /*else /*if (o.colors[o.colors.length-1][0] !== "#") {
+				  var objectToClone = o.colors[o.colors.length-1];
+				  if (state.objects.hasOwnProperty(objectToClone)) {
+					o.spritematrix = objectToClone.spritematrix;
+					o.spritematrix = generateSpriteMatrix(o.spritematrix);
+					logWarning("Cloned "+objectToClone, o.lineNumber);
+					continue;
+				} else {
+					logError("Attempted to clone the sprite matrix of "+objectToClone+", but that object doesn't exist?!")
+				}
+			}*/
+			else if (o.spritematrix.length===0) {
 				o.spritematrix = new Array(state.sprite_size);
 				var zeros = new Array(state.sprite_size);
 				for(var i = 0; i < state.sprite_size; i++) {

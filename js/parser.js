@@ -516,7 +516,7 @@ var codeMirrorFn = function() {
                                 }
                                 return 'ERROR';
                             } else {
-                            	var candname = match_name[0].trim();
+                                var candname = match_name[0].trim();
                                 if (state.objects[candname] !== undefined) {
                                     logError('Object "' + candname + '" defined multiple times.', state.lineNumber);
                                     return 'ERROR';
@@ -537,10 +537,24 @@ var codeMirrorFn = function() {
                                 	state.objects[state.objects_candname] = {
 										                                	lineNumber: state.lineNumber,
 										                                	colors: [],
-										                                	spritematrix: []
+                                                                            spritematrix: [],
+                                                                            cloneSprite: ""
 										                                };
 
 								} else {
+                                    //console.log(candname +" == "+ state.objects_candname);
+                                    if (candname[0] == ">" && candname.length > 1) {
+                                        var cloneName = candname.substring(1);
+                                        if (state.objects[state.objects_candname].cloneSprite != "") {
+                                            logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
+                                        } else if (cloneName == state.objects_candname) {
+                                            logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
+                                        } else {
+                                            state.objects[state.objects_candname].cloneSprite = candname.substring(1);
+                                            state.objects_section = 1;
+                                            return "COLOR COLOR-PINK";
+                                        }
+                                    }
 									//set up alias
                                     registerOriginalCaseName(candname);
 									var synonym = [candname,state.objects_candname];
