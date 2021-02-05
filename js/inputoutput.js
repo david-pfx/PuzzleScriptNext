@@ -209,7 +209,7 @@ function printLevel() {
 	}
 	selectableint++;
 	var tag = 'selectable'+selectableint;
-	var output="Printing level contents:<br><br><span id=\""+tag+"\" onclick=\"selectText('"+tag+"',event)\">";
+	var output="Printing level contents:<br><br><span id=\""+tag+"\" onclick=\"selectText('"+tag+"',event)\"><br>";
 	cache_console_messages = false;
 	for (var j=0;j<level.height;j++) {
 		for (var i=0;i<level.width;i++) {
@@ -481,100 +481,85 @@ function mouseAction(event,click,id) {
 	if (textMode) {
 		if (!click)
 			return;
-		if (titleScreen) {
+		if (titleScreen && !quittingTitleScreen) {
 			if (titleMode===0) {
-				if (mouseCoordY===6) {
+				titleButtonSelected();
+			} else if (titleMode===1) {
+				if (mouseCoordY===5 && titleSelectOptions >= 1) {
+					titleSelection=0;
+					titleButtonSelected();
+				} else if (mouseCoordY===6 && titleSelectOptions >= 3) {
+					titleSelection=1;
 					titleButtonSelected();
 				}
-			} else {
-				if (titleMode===0) {
-					if (mouseCoordY===5) {
-						if (titleSelection!==0) {
-							titleSelection=0;
-							generateTitleScreen();
-							redraw();
-						} else {
-							titleButtonSelected();
-						}
-					}
-					else if (mouseCoordY===7) {
-						titleSelection=1;
-						titleButtonSelected();
-					}
-				} else if (titleMode===1) {
-					if (mouseCoordY===5) {
-						if (titleSelection!==0) {
-							titleSelection=0;
-							generateTitleScreen();
-							redraw();
-						} else {
-							titleButtonSelected();
-						}
-					} else if (mouseCoordY===6 && state.metadata.level_select) {
-						titleSelection=1;
-						titleButtonSelected();
-					}
-					else if (mouseCoordY===7) {
-						titleSelection=2;
-						titleButtonSelected();
-					}
-				} else if (titleMode===2) { //QQQ Need to add a way to scroll level select with mouse
-					//console.log(mouseCoordY);
-					if (mouseCoordY===0) {
-						titleSelection = 0;
-					
-						goToTitleScreen();
-	
-						tryPlayTitleSound();
-						canvasResize();
-					} else if (mouseCoordY===2) {
-						var normalizedDelta = -3;
-						if (levelSelectScrollPos != 0) {
-							levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
-							titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
-
-							//console.log("Scrolling up",levelSelectScrollPos);
-							generateLevelSelectScreen();
-							redraw();
-						}
-					} else if (mouseCoordY===12) {
-						var normalizedDelta = 3;
-						if (titleSelectOptions - amountOfLevelsOnScreen > levelSelectScrollPos) {
-							
-							levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
-							titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
-
-							//console.log("Scrolling down",levelSelectScrollPos);
-							generateLevelSelectScreen();
-							redraw();
-						}
+				else if (mouseCoordY===7 && titleSelectOptions >= 2) {
+					if (titleSelectOptions === 2) {
+						titleSelection = 1;
 					} else {
-						var clickedLevel = -1;
-						switch (mouseCoordY) {
-							case 3: clickedLevel = 0; break;
-							case 4: clickedLevel = 1; break;
-							case 5: clickedLevel = 2; break;
-							case 6: clickedLevel = 3; break;
-							case 7: clickedLevel = 4; break;
-							case 8: clickedLevel = 5; break;
-							case 9: clickedLevel = 6; break;
-							case 10: clickedLevel = 7; break;
-							case 11: clickedLevel = 8; break;
-						}
-						if (clickedLevel != -1) {
-							clickedLevel += levelSelectScrollPos;
-							if (clickedLevel < titleSelectOptions) {
-								//console.log("Clicked level "+clickedLevel);
-								titleSelection = clickedLevel;
+						titleSelection = 2;
+					}
+					titleButtonSelected();
+				} 
+				else if (mouseCoordY===8 && titleSelectOptions >= 4) {
+					titleSelection=3;
+					titleButtonSelected();
+				}
+			} else if (titleMode===2) {
+				//console.log(mouseCoordY);
+				if (mouseCoordY===0) {
+					titleSelection = 0;
+				
+					goToTitleScreen();
 
-								titleSelected=true;
-								messageselected=false;
-								timer=0;
-								quittingTitleScreen=true;
-								
-								generateLevelSelectScreen();
-								redraw();
-							}
+					tryPlayTitleSound();
+					canvasResize();
+				} else if (mouseCoordY===2) {
+					var normalizedDelta = -3;
+					if (levelSelectScrollPos != 0) {
+						levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
+						titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
+
+						//console.log("Scrolling up",levelSelectScrollPos);
+						generateLevelSelectScreen();
+						redraw();
+					}
+				} else if (mouseCoordY===12) {
+					var normalizedDelta = 3;
+					if (titleSelectOptions - amountOfLevelsOnScreen > levelSelectScrollPos) {
+						
+						levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
+						titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
+
+						//console.log("Scrolling down",levelSelectScrollPos);
+						generateLevelSelectScreen();
+						redraw();
+					}
+				} else {
+					var clickedLevel = -1;
+					switch (mouseCoordY) {
+						case 3: clickedLevel = 0; break;
+						case 4: clickedLevel = 1; break;
+						case 5: clickedLevel = 2; break;
+						case 6: clickedLevel = 3; break;
+						case 7: clickedLevel = 4; break;
+						case 8: clickedLevel = 5; break;
+						case 9: clickedLevel = 6; break;
+						case 10: clickedLevel = 7; break;
+						case 11: clickedLevel = 8; break;
+					}
+					if (clickedLevel != -1) {
+						clickedLevel += levelSelectScrollPos;
+						if (clickedLevel < titleSelectOptions) {
+							//console.log("Clicked level "+clickedLevel);
+							titleSelection = clickedLevel;
+
+							titleSelected=true;
+							messageselected=false;
+							timer=0;
+							quittingTitleScreen=true;
+							
+							generateLevelSelectScreen();
+							redraw();
 						}
 					}
 				}
