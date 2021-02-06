@@ -357,5 +357,32 @@ function exportClick() {
 	buildStandalone(sourceString);
 }
 
+function normalTextSize() {
+	var leftpanel = document.getElementById('leftpanel');
+	var lowerarea = document.getElementById('lowerarea');
 
+	leftpanel.style.fontSize = "1.0em";
+	lowerarea.style.fontSize = "1.0em";
 
+	consolePrint("Set text to normal size<br>");
+}
+
+function bigTextSize() {
+	var leftpanel = document.getElementById('leftpanel');
+	var lowerarea = document.getElementById('lowerarea');
+
+	leftpanel.style.fontSize = "1.2em";
+	lowerarea.style.fontSize = "1.2em";
+
+	consolePrint("Set text to bigger size<br>");
+}
+
+function biggestTextSize() {
+	var leftpanel = document.getElementById('leftpanel');
+	var lowerarea = document.getElementById('lowerarea');
+
+	leftpanel.style.fontSize = "1.4em";
+	lowerarea.style.fontSize = "1.4em";
+
+	consolePrint("Set text to biggest size<br>");
+}
