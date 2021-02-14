@@ -1,17 +1,8 @@
-Puzzlescript+ is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games. **DO NOTE that this fork is unstable, and you can expect things to behave unexpectedly (especially if you're going to combine functionality from multiple forks).** Access the editor at https://auroriax.github.io/PuzzleScript/editor.html
+Puzzlescript+ is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games. **DO NOTE that combining functionality from multiple forks is still experimental.** Access the editor at https://auroriax.github.io/PuzzleScript/editor.html, or the documentation for the new stuff at https://github.com/Auroriax/PuzzleScript/wiki
 
-Here's the full list of the Puzzlescript forks merged into this one:
+There have also been some editor tweaks and even some new game functionality! I document stuff I change and add [on this repo's wiki](https://github.com/Auroriax/PuzzleScript/wiki). That being said, this editor should still be fully compatible with games made with vanilla puzzlescript.
 
-## [PuzzleClick by ThatScar](https://github.com/ThatScar/PuzzleScript)
-Allows you to create objects on tiles the mouse interacts with. [More info here](https://github.com/ThatScar/PuzzleScript/blob/master/README.md).
-
-## [Marcosdon's Solver for Puzzlescript](https://github.com/marcosdon/PuzzleScriptWithSolver)
-Adds a solver that will automatically attempt to beat levels and report the solution. [More info here](https://github.com/marcosdon/PuzzleScriptWithSolver/blob/master/README.md).
-
-## [Dario Zubovic's branch](https://github.com/dario-zubovic/PuzzleScript)
-Adds in variable sprite size, level selection, and a few more things (including the [smoothscreen patch by sftrabbit](https://github.com/sftrabbit/PuzzleScript-smoothscreen)). [More info here](https://dario-zubovic.github.io/PuzzleScript/Documentation/differences.html).
-
-All of the used forks & original repo are licenced under MIT, and so is this repo. See below.
+This repo merges forks by ThatScar, Marcosdon, and Dario Zubovic, and more! You can find the full list of forks & credits and how they work [on this repo's wiki.](https://github.com/Auroriax/PuzzleScript/wiki/Merged-forks) All of the used forks & original repo are licenced under MIT, and so is this repo. See below.
 
 -------
 
