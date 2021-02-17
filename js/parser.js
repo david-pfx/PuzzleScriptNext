@@ -543,16 +543,18 @@ var codeMirrorFn = function() {
 
 								} else {
                                     //console.log(candname +" == "+ state.objects_candname);
-                                    if (candname[0] == ">" && candname.length > 1) {
-                                        var cloneName = candname.substring(1);
+                                    if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
+                                        var cloneName = candname.substring(5);
                                         if (state.objects[state.objects_candname].cloneSprite != "") {
                                             logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
+                                            return 'ERROR';
                                         } else if (cloneName == state.objects_candname) {
                                             logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
+                                            return 'ERROR';
                                         } else {
-                                            state.objects[state.objects_candname].cloneSprite = candname.substring(1);
-                                            state.objects_section = 1;
-                                            return "COLOR COLOR-PINK";
+                                            state.objects[state.objects_candname].cloneSprite = cloneName;
+                                            //state.objects_section = 1;
+                                            return "SPRITEPARENT";
                                         }
                                     }
 									//set up alias

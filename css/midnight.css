@@ -67,6 +67,8 @@ span.cm-SOUND {
 }
 .cm-s-midnight span.cm-SOUNDVERB {color: #AE81FF;}
 
+.cm-s-midnight span.cm-SPRITEPARENT {color: #813cff; font-weight:bold;}
+
 .systemMessage {
 	color:white;
 }
