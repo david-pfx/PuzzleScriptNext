@@ -868,7 +868,7 @@ document.addEventListener('mousemove', onMouseMove, false);
 document.addEventListener('contextmenu', rightClickCanvas, false);
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
-document.addEventListener('wheel', onMouseWheel, false)
+document.addEventListener('wheel', onMouseWheel, {passive: false})
 window.addEventListener('focus', onMyFocus, false);
 window.addEventListener('blur', onMyBlur, false);
 canvas.addEventListener('mouseenter', onMouseIn, false);
