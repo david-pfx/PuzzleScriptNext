@@ -527,6 +527,12 @@ function canvasResize() {
     cellwidth = w * ~~(cellwidth / w);
     cellheight = h * ~~(cellheight / h);
 
+    if ((cellwidth == 0 || cellheight == 0) && !textMode) {
+        cellwidth = w;
+        cellheight = h;
+        console.log("Resized below 1");
+    }
+
     xoffset = 0;
     yoffset = 0;
 
