@@ -481,7 +481,7 @@ function mouseAction(event,click,id) {
 	if (textMode) {
 		if (!click)
 			return;
-		if (titleScreen && !quittingTitleScreen) {
+		if (titleScreen && !quittingTitleScreen && !titleSelected) {
 			if (titleMode===0) {
 				titleButtonSelected();
 			} else if (titleMode===1) {
@@ -564,7 +564,7 @@ function mouseAction(event,click,id) {
 					}
 				}
 			}
-		} else if (messageselected===false) {
+		} else if (messageselected===false && state.levels[curlevel].message) {
 			messageselected=true;
 			timer=0;
 			quittingMessageScreen=true;
