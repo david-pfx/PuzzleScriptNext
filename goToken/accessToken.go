@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/user"
-	"path/filepath"
 
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -89,36 +87,29 @@ func main() {
 	oauthSecret = os.Args[1]
 
 	certManager := autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(domain),
+		Prompt: autocert.AcceptTOS,
+		Cache:  autocert.DirCache("certs"),
+		// HostPolicy: autocert.HostWhitelist(domain),
 	}
 
-	dir := cacheDir()
-	if dir != "" {
-		certManager.Cache = autocert.DirCache(dir)
-	}
+	go http.ListenAndServe(":http", certManager.HTTPHandler(nil))
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/access_token", handleAccessTokenRequest)
 
 	server := &http.Server{
-		Addr: ":https",
+		Addr:    ":https",
+		Handler: mux,
 		TLSConfig: &tls.Config{
 			GetCertificate: certManager.GetCertificate,
 		},
 	}
 
-	go http.ListenAndServe(":http", certManager.HTTPHandler(nil))
-
-	http.HandleFunc("/access_token", handleAccessTokenRequest)
-
 	err := server.ListenAndServeTLS("", "")
 	panic(err)
-}
-
-func cacheDir() (dir string) {
-	if u, _ := user.Current(); u != nil {
-		dir = filepath.Join(os.TempDir(), "cache-golang-autocert-"+u.Username)
-		if err := os.MkdirAll(dir, 0700); err == nil {
-			return dir
-		}
-	}
-	return ""
 }
