@@ -43,10 +43,10 @@ var titletemplate_firstgo = [
 	"..........#.start game.#..........",
 	"..................................",
 	"..................................",
+	"..................................",
 	".arrow keys to move...............",
 	".X to action......................",
-	".Z to undo, R to restart..........",
-	".................................."];
+	".Z to undo, R to restart.........."];
 
 var titletemplate_firstgo_selected = [
 	"..................................",
@@ -58,10 +58,10 @@ var titletemplate_firstgo_selected = [
 	"###########.start game.###########",
 	"..................................",
 	"..................................",
+	"..................................",
 	".arrow keys to move...............",
 	".X to action......................",
-	".Z to undo, R to restart..........",
-	".................................."];
+	".Z to undo, R to restart.........."];
 	
 var titletemplate_empty = [
 	"..................................",
@@ -157,6 +157,7 @@ function generateTitleScreen()
 	}
 
 	if (titleMode===0) {
+        titleSelectOptions = 1;
 		if (titleSelected) {
 			titleImage = deepClone(titletemplate_firstgo_selected);		
 		} else {
