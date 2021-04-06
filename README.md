@@ -1,8 +1,8 @@
-Puzzlescript+ is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games. **DO NOTE that combining functionality from multiple forks is still experimental.** Access the editor at https://auroriax.github.io/PuzzleScript/editor.html, or the documentation for the new stuff at https://github.com/Auroriax/PuzzleScript/wiki
+Puzzlescript+ is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games. **DO NOTE that combining functionality from multiple forks is still experimental, and you could run into issues.** [Access the editor](https://auroriax.github.io/PuzzleScript/editor.html), or [check the documentation for the new stuff](https://github.com/Auroriax/PuzzleScript/wiki).
 
-There have also been some editor tweaks and even some new game functionality! I document stuff I change and add [on this repo's wiki](https://github.com/Auroriax/PuzzleScript/wiki). That being said, this editor should still be fully compatible with games made with vanilla puzzlescript.
+There have also been some editor tweaks and even some new game functionality! [Documentation for changes & additions is here](https://github.com/Auroriax/PuzzleScript/wiki). That being said, games that work in vanilla Puzzlescript should also work here.
 
-This repo merges forks by ThatScar, Marcosdon, and Dario Zubovic, and more! You can find the full list of forks & credits and how they work [on this repo's wiki.](https://github.com/Auroriax/PuzzleScript/wiki/Merged-forks) All of the used forks & original repo are licenced under MIT, and so is this repo. See below.
+This repo merges forks by ThatScar, Marcosdon, and Dario Zubovic, and more! Thanks to them, you can use mouse controls, sprites larger than 5x5, a level select menu, and an experimental solver. You can find the full list of forks & credits and how they work [on this repo's wiki.](https://github.com/Auroriax/PuzzleScript/wiki/Merged-forks) All of the used forks & original repo are licenced under MIT, and so is this repo. See below.
 
 -------
 
