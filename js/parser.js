@@ -199,9 +199,9 @@ var codeMirrorFn = function() {
     var reg_sounddirectionindicators = /\s*(up|down|left|right|horizontal|vertical|orthogonal)\s*/i;
     var reg_winconditionquantifiers = /^(all|any|no|some)$/i;
     //var reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|nosave)/;
-    var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message'];
+    var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message','global'];
 
-    var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup'];
+    var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup','local_radius'];
     var preamble_keywords = ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline','case_sensitive','level_select','continue_is_level_select','level_select_lock','settings'];
 
     //  var keywordRegex = new RegExp("\\b(("+cons.join(")|(")+"))$", 'i');
@@ -1096,7 +1096,9 @@ var codeMirrorFn = function() {
                                     return 'DIRECTION';
                                 } else if (m==='random') {
                                     return 'DIRECTION';
-                                } else if (commandwords.indexOf(m)>=0) {
+                                } else if (m==='global') {
+                                    return 'DIRECTION';
+                                }else if (commandwords.indexOf(m)>=0) {
 									if (m==='message') {
 										state.tokenIndex=-4;
 									}                                	
