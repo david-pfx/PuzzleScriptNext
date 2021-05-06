@@ -121,7 +121,6 @@ var titleMode=0;//1 means title screen with options, 2 means level select
 var titleSelection=0;
 var titleSelectOptions=2;
 var titleSelected=false;
-var localRadius=false;
 
 function unloadGame() {
 	state=introstate;
@@ -635,11 +634,6 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	            	Math.min(state.metadata.smoothscreen.screenSize.height,level.height)
 	            ];
 	        }
-	        
-	        if(state.metadata.local_radius!==undefined){
-
-            localRadius = parseInt(state.metadata.local_radius, 10);
-          }
         }
 
       backups=[]
@@ -1087,7 +1081,6 @@ function restoreLevel(lev) {
     level.commandQueueSourceRules=[];
 }
 
-var localRadius=false;
 var zoomscreen=false;
 var flickscreen=false;
 var smoothscreen=false;
@@ -1909,17 +1902,18 @@ function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask, isGlobal) {
     return result;
   }
   var xmin, xmax, ymin, ymax;
-  if(isGlobal){
+  if(isGlobal || state.metadata.local_radius === undefined){
     xmin=0;
     xmax=level.width;
     ymin=0;
     ymax=level.height;
   }
   else{
-    xmin=Math.max(0, (playerPositions[0]/level.height|0) - localRadius);
-    xmax=Math.min(level.width, (playerPositions[0]/level.height|0) + localRadius);
-    ymin=Math.max(0, playerPositions[0]%level.height - localRadius);
-    ymax=Math.min(level.height, playerPositions[0]%level.height + localRadius);
+    var localradius = parseInt(state.metadata.local_radius);
+    xmin=Math.max(0, (playerPositions[0]/level.height|0) - localradius);
+    xmax=Math.min(level.width, (playerPositions[0]/level.height|0) + localradius +1);
+    ymin=Math.max(0, playerPositions[0]%level.height - localradius);
+    ymax=Math.min(level.height, playerPositions[0]%level.height + localradius+1);
 
   }
 
@@ -2352,6 +2346,8 @@ function applyRuleGroup(ruleGroup) {
 function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
     //for each rule
     //try to match it
+
+    playerPositions = getPlayerPositions();
 
     //when we're going back in, let's loop, to be sure to be sure
     var loopPropagated = startRuleGroupindex>0;
