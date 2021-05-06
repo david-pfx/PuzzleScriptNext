@@ -36,7 +36,11 @@ function drawTextWithCustomFont(txt, ctx, x, y) {
     ctx.fillStyle = state.fgcolor;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    ctx.font = cellheight + "px PuzzleCustomFont";
+    var fontSize = 1;
+    if (state.metadata.font_size !== undefined) {
+        fontSize = parseFloat(state.metadata.font_size)
+    }
+    ctx.font = (cellheight * fontSize) + "px PuzzleCustomFont";
     ctx.fillText(txt, x, y);
 }
 
