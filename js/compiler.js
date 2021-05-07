@@ -1,7 +1,6 @@
 
 'use strict';
 
-
 function isColor(str) {
 	str = str.trim();
 	if (str in colorPalettes.arnecolors)
@@ -606,8 +605,8 @@ var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
 //redeclaring here, i don't know why
-var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo","nosave","quit"];
-
+var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo","nosave","quit","zoomscreen","flickscreen","smoothscreen"];
+var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube','sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup','local_radius','font_size'];
 
 
 function directionalRule(rule) {
@@ -850,7 +849,16 @@ function processRuleString(rule, state, curRules)
 						}
 						commands.push([token.toLowerCase(), messageStr]);
 						i=tokens.length;
-					} else {
+					} else if (preamble_params.includes(token.toLowerCase())) {
+						var messageIndex = findIndexAfterToken(origLine,tokens,i);
+						var messageStr = origLine.substring(messageIndex).trim();
+						if (messageStr===""){
+							messageStr=" ";
+							//needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
+						}
+						commands.push([token.toLowerCase(), messageStr]);
+						i=tokens.length;
+					}  else {
 						commands.push([token.toLowerCase()]);
 					}
 				} else {
@@ -2045,12 +2053,18 @@ function checkObjectsAreLayered(state) {
 	}
 }
 
-function twiddleMetaData(state) {
-	var newmetadata = {};
-	for (var i=0;i<state.metadata.length;i+=2) {
-		var key = state.metadata[i];
-		var val = state.metadata[i+1];
-		newmetadata[key]=val;
+function twiddleMetaData(state, update = false) {
+	var newmetadata;
+
+	if (!update) {
+		newmetadata = {};
+		for (var i=0;i<state.metadata.length;i+=2) {
+			var key = state.metadata[i];
+			var val = state.metadata[i+1];
+			newmetadata[key]=val;
+		}
+	} else {
+		newmetadata = state.metadata;
 	}
 
 	if (newmetadata.flickscreen!==undefined) {
@@ -2133,7 +2147,11 @@ function twiddleMetaData(state) {
 		}
 	}
 
-	state.metadata=newmetadata;	
+	state.metadata=newmetadata;
+
+	if (!update) {
+		state.default_metadata = deepClone(newmetadata);
+	}
 }
 
 function processWinConditions(state) {

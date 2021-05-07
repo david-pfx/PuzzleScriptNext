@@ -599,7 +599,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	titleScreen=false;
 	titleMode=(curlevel>0||curlevelTarget!==null)?1:0;
 	titleSelection=0;
-	titleSelected=false;
+  titleSelected=false;
+  state.metadata = deepClone(state.default_metadata);
     againing=false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
@@ -2266,6 +2267,20 @@ Rule.prototype.queueCommands = function() {
 
     if (command[0]==='message') {     
       messagetext=command[1];
+    }
+
+    if (preamble_params.includes(command[0])) {
+      if (command[1] !== "wipe") {
+        state.metadata[command[0]] = command[1];
+      } else {
+        state.metadata[command[0]] = undefined;
+      }
+      
+      if (command[0] === "zoomscreen" || command[0] === "flickscreen" || command[0] === "smoothscreen") {
+        twiddleMetaData(state, true);
+        canvasResize();
+      }
+      consolePrint(command[0] + "," + command[1],true);
     }   
   }
 };
