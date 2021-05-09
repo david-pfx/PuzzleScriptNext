@@ -785,8 +785,11 @@ function backupLevel() {
     dat : new Int32Array(level.objects),
     width : level.width,
     height : level.height,
-    oldflickscreendat: oldflickscreendat.concat([])
+    oldflickscreendat: oldflickscreendat.concat([]),
   };
+  if (state.metadata.runtime_metadata_twiddling !== undefined) {
+    ret.metadata = metadata = deepClone(state.metadata);
+  }
   return ret;
 }
 
@@ -1077,6 +1080,9 @@ function restoreLevel(lev) {
       }
   }
 
+    if (state.metadata.runtime_metadata_twiddling !== undefined) {
+     state.metadata = deepClone(lev.metadata);
+    }
     againing=false;
     level.commandQueue=[];
     level.commandQueueSourceRules=[];
@@ -2269,18 +2275,56 @@ Rule.prototype.queueCommands = function() {
       messagetext=command[1];
     }
 
-    if (preamble_params.includes(command[0])) {
-      if (command[1] !== "wipe") {
-        state.metadata[command[0]] = command[1];
-      } else {
-        state.metadata[command[0]] = undefined;
+    if (state.metadata.runtime_metadata_twiddling !== undefined && preamble_params.includes(command[0])) {
+
+      value = command[1];
+
+      if (value == "wipe") {
+        value = undefined;
+      } else if (value == "default") {
+        value = deepClone(state.default_metadata[command[0]]);
       }
+
+      state.metadata[command[0]] = value;
       
       if (command[0] === "zoomscreen" || command[0] === "flickscreen" || command[0] === "smoothscreen") {
         twiddleMetaData(state, true);
         canvasResize();
       }
-      consolePrint(command[0] + "," + command[1],true);
+
+      if (command[0] === "realtime_interval") {
+        if (state.metadata.realtime_interval!==undefined) {
+          autotick=0;
+          autotickinterval=state.metadata.realtime_interval*1000;
+        } else {
+          autotick=0;
+          autotickinterval=0;
+        }
+      }
+
+      if (command[0] === "again_interval") {
+        if (state.metadata.again_interval!==undefined) {
+          againinterval=state.metadata.again_interval*1000;
+        } else {
+          againinterval=150;
+        }
+      }
+
+      if (command[0] === "key_repeat_interval") {
+        if (state.metadata.key_repeat_interval!==undefined) {
+          repeatinterval=state.metadata.key_repeat_interval*1000;
+        } else {
+          repeatinterval=150;
+        }
+      }
+
+      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+        var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
+        if (value != command[1]) {
+          log += " ("+command[1]+")"
+        }
+        consolePrintFromRule(log,this,true);
+      }
     }   
   }
 };
