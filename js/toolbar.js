@@ -5,7 +5,9 @@
 maximumsavedprojects = 50;
 
 function solveClick() {
-	solve();
+	if (confirm("Use the solver? It can be slow & crash on big levels, so please save beforehand. Doesn't work for mouse controlled games.")) {
+		solve();
+	}
 }
 
 function runClick() {
