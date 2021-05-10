@@ -52,7 +52,11 @@
             ["level_select_lock", "", "Level selection will have unsolved levels locked."],
             ["level_select_unlocked_ahead", "1", "Level selection will have N number of unsolved levels unlocked after last solved level."],
             ["level_select_solve_symbol", "x", "Symbol that will be used for solved levels in level select menu"],
-            ["custom_font", "", "Custom font to use for text rendering."], 
+            ["custom_font", "", "Custom font to use for text rendering."],
+            ["font_size", "", "Controls the size of the custom_font"], 
+            ["local_radius", "X", "Radius around the player to execute rules in"],
+            ["runtime_metadata_twiddling", "", "Allows you to change some prelude flags during runtime using rules"],
+            ["runtime_metadata_twiddling_debug", "", "Prints in the console each time the metadata is twiddled"],
         ];
 
         var COLOR_WORDS = [
@@ -60,7 +64,8 @@
             "black", "white", "darkgray", "lightgray", "gray", "red", "darkred", "lightred", "brown", "darkbrown", "lightbrown", "orange", "yellow", "green", "darkgreen", "lightgreen", "blue", "lightblue", "darkblue", "purple", "pink", "transparent"];
         var RULE_COMMAND_WORDS = [
             "COMMAND",
-            "sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "nosave", "quit"];
+            "sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "nosave", "quit",
+            "global", "zoomscreen", "flickscreen", "smoothscreen", "key_repeat_interval", "again_interval", "realtime_interval"];
 
         var CARDINAL_DIRECTION_WORDS = [
             "DIRECTION",
