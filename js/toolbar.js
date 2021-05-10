@@ -46,12 +46,14 @@ function cancelClick() {
 	stopSolving();
 }
 
-function runClick() {
+function runClick()
+{
 	clearConsole();
 	compile(["restart"]);
 }
 
-function dateToReadable(title,time) {
+function dateToReadable(title, time)
+{
 	var year = time.getFullYear();
 	var month = time.getMonth()+1;
 	var date1 = time.getDate();
@@ -209,46 +211,71 @@ function levelEditorClick_Fn() {
     lastDownTarget=canvas;	
 }
 
-OAUTH_CLIENT_ID = "5ff7f613ca72eef56e1d";
+// const HOSTPAGEURL = "http://www.puzzlescript.net"
+// const PSFORKNAME = "PuzzleScript"
+const HOSTPAGEURL = "https://auroriax.github.io/PuzzleScript"
+const PSFORKNAME = "Puzzlescript+"
 
-function getAuthURL(){
-	var randomState = window.btoa(Array.prototype.map.call(
-		window.crypto.getRandomValues(new Uint8Array(24)),
-		function(x) { return String.fromCharCode(x); }).join(""));
+/* I don't want to setup the required server for an OAuth App, so for now we will use a slightly more complex method for the user, which is to create a personal identification token. */
+// OAUTH_CLIENT_ID = "211570277eb588cddf44";
+function getAuthURL()
+{
+	return HOSTPAGEURL+'/auth_pat.html';
+	// const randomState = window.btoa(Array.prototype.map.call(
+	// 	window.crypto.getRandomValues(new Uint8Array(24)),
+	// 	function(x) { return String.fromCharCode(x); }).join(""));
 
-	var authUrl = "https://github.com/login/oauth/authorize"
-		+ "?client_id=" + OAUTH_CLIENT_ID
-		+ "&scope=gist"
-		+ "&state=" + randomState
-		+ "&allow_signup=true";
-
-	return authUrl;
+	// return "https://github.com/login/oauth/authorize"
+	// 	+ "?client_id=" + OAUTH_CLIENT_ID
+	// 	+ "&scope=gist"
+	// 	+ "&state=" + randomState
+	// 	+ "&allow_signup=true";
 }
 
-function shareClick() {
-	var oauthAccessToken = window.localStorage.getItem("oauth_access_token");
-	if (typeof oauthAccessToken !== "string") {
+function printUnauthorized()
+{
+	const authUrl = getAuthURL();
+	consolePrint(
+		"<br>"+PSFORKNAME+" needs permission to share/save games through GitHub:<br><ul><li><a target=\"_blank\" href=\"" + authUrl + "\">Give "+PSFORKNAME+" permission</a></li></ul>",
+		true
+	);
+}
+
+function shareClick()
+{
+	return shareOnGitHub(true);
+}
+
+function cloudSaveClick()
+{
+	return shareOnGitHub(false);
+}
+
+
+function shareOnGitHub(is_public)
+{
+	const oauthAccessToken = window.localStorage.getItem("oauth_access_token");
+	if (typeof oauthAccessToken !== "string")
+	{
 		// Generates 32 letters of random data, like "liVsr/e+luK9tC02fUob75zEKaL4VpQn".
 		printUnauthorized();
 		return;
 	}
 
-	consolePrint("<br>Sending code to github...",true)
-	var title = "Untitled PuzzleScript Script";
-	if (state.metadata.title!==undefined) {
-		title=state.metadata.title + " (PuzzleScript Script)";
-	}
-	compile();
+	consolePrint("<br>Sending code to github...", true)
+	const title = (state.metadata.title !== undefined) ? state.metadata.title + " ("+PSFORKNAME+" Script)" : "Untitled "+PSFORKNAME+" Script";
+	
+	compile(["rebuild"]);
 
 
-	var source=editor.getValue();
+	const source = editor.getValue();
 
 	var gistToCreate = {
 		"description" : title,
-		"public" : true,
+		"public" : is_public,
 		"files": {
 			"readme.txt" : {
-				"content": "Play this game by pasting the script in http://www.puzzlescript.net/editor.html"
+				"content": "Play this game by pasting the script in "+HOSTPAGEURL+"/editor.html"
 			},
 			"script.txt" : {
 				"content": source
@@ -256,34 +283,36 @@ function shareClick() {
 		}
 	};
 
-	var githubURL = 'https://api.github.com/gists?access_token=' + oauthAccessToken;
+	const githubURL = 'https://api.github.com/gists';
 	var githubHTTPClient = new XMLHttpRequest();
 	githubHTTPClient.open('POST', githubURL);
-	githubHTTPClient.onreadystatechange = function() {		
-		if(githubHTTPClient.readyState!=4) {
+	githubHTTPClient.onreadystatechange = function()
+	{
+		if(githubHTTPClient.readyState != 4)
 			return;
-		}		
 		var result = JSON.parse(githubHTTPClient.responseText);
-		if (githubHTTPClient.status===403) {
+		if (githubHTTPClient.status === 403)
+		{
 			consoleError(result.message);
-		} else if (githubHTTPClient.status!==200&&githubHTTPClient.status!==201) {
+		}
+		else if (githubHTTPClient.status !== 200 && githubHTTPClient.status !== 201)
+		{
 			if (githubHTTPClient.statusText==="Unauthorized"){
 				consoleError("Authorization check failed.  You have to log back into GitHub (or give it permission again or something).");
 				window.localStorage.removeItem("oauth_access_token");
 			} else {
 				consoleError("HTTP Error "+ githubHTTPClient.status + ' - ' + githubHTTPClient.statusText);
-				consoleError("Try giving puzzlescript permission again, that might fix things...");
+				consoleError("Try giving "+PSFORKNAME+" permission again, that might fix things...");
 			}
-
 			printUnauthorized();
-		} else {
-			var id = result.id;
-			var url = "play.html?p="+id;
-			url=qualifyURL(url);
+		}
+		else
+		{
+			const id = result.id;
+			const url = qualifyURL("play.html?p="+id);
 
-			var editurl = "editor.html?hack="+id;
-			editurl=qualifyURL(editurl);
-			var sourceCodeLink = "Link to source code:<br><a target=\"_blank\"  href=\""+editurl+"\">"+editurl+"</a>";
+			const editurl = qualifyURL("editor.html?hack="+id);
+			const sourceCodeLink = "Link to source code:<br><a target=\"_blank\"  href=\""+editurl+"\">"+editurl+"</a>";
 
 
 			consolePrint('GitHub (<a onclick="githubLogOut();"  href="javascript:void(0);">log out</a>) submission successful.<br>',true);
@@ -299,20 +328,22 @@ function shareClick() {
 
 		}
 	}
-	githubHTTPClient.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-	var stringifiedGist = JSON.stringify(gistToCreate);
+	githubHTTPClient.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	githubHTTPClient.setRequestHeader("Authorization", "token "+oauthAccessToken);
+	const stringifiedGist = JSON.stringify(gistToCreate);
 	githubHTTPClient.send(stringifiedGist);
     lastDownTarget=canvas;	
 }
 
-function githubLogOut(){
+function githubLogOut()
+{
 	window.localStorage.removeItem("oauth_access_token");
 
-	var authUrl = getAuthURL();
+	const authUrl = getAuthURL();
 	consolePrint(
 		"<br>Logged out of Github.<br>" +
 		"<ul>" +
-		"<li><a target=\"_blank\" href=\"" + authUrl + "\">Give PuzzleScript permission</a></li>" +
+		"<li><a target=\"_blank\" href=\"" + authUrl + "\">Give "+PSFORKNAME+" permission</a></li>" +
 		"</ul>"
 				,true);
 }
