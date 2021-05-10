@@ -158,14 +158,14 @@ function isLevelSelectOptionSelected() {
 
 function generateTitleScreen()
 {
-	tryLoadCustomFont();
+  tryLoadCustomFont();
 
 	titleMode=(curlevel>0||curlevelTarget!==null)?1:0;
 
 	if (state.levels.length===0) {
 		titleImage=intro_template;
 		return;
-	}
+  }
 
 	var title = "PuzzleScript Game";
 	if (state.metadata.title!==undefined) {
@@ -298,7 +298,10 @@ function gotoLevelSelectScreen() {
 				break;
 			}
 		}
-	}
+  }
+  
+  state.metadata = deepClone(state.default_metadata);
+  twiddleMetadataExtras();
 
 	generateLevelSelectScreen();
 	redraw();
@@ -319,7 +322,7 @@ function generateLevelSelectScreen() {
 	"[ ]...Another section............|",
 	".................................|",
 	"[ ]...Another section............|"
-	*/
+  */
 
 	titleImage = [
 		"ESC: Back             Level Select",
@@ -2329,6 +2332,28 @@ Rule.prototype.queueCommands = function() {
   }
 };
 
+function twiddleMetadataExtras() {
+  if (state.metadata.realtime_interval!==undefined) {
+    autotick=0;
+    autotickinterval=state.metadata.realtime_interval*1000;
+  } else {
+    autotick=0;
+    autotickinterval=0;
+  }
+
+  if (state.metadata.again_interval!==undefined) {
+    againinterval=state.metadata.again_interval*1000;
+  } else {
+    againinterval=150;
+  }
+
+  if (state.metadata.key_repeat_interval!==undefined) {
+    repeatinterval=state.metadata.key_repeat_interval*1000;
+  } else {
+    repeatinterval=150;
+  }
+}
+
 function showTempMessage() {
   keybuffer=[];
   textMode=true;
@@ -3064,7 +3089,11 @@ function goToTitleScreen(){
 	titleScreen=true;
 	textMode=true;
 	doSetupTitleScreenLevelContinue();
-	//titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+  //titleSelection=(curlevel>0||curlevelTarget!==null)?1:0;
+  
+  state.metadata = deepClone(state.default_metadata);
+  twiddleMetadataExtras();
+
 	generateTitleScreen();
 }
 
