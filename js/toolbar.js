@@ -31,18 +31,15 @@ function levelEditorClick_Fn() {
     lastDownTarget=canvas;	
 }
 
-OAUTH_CLIENT_ID = "5fe44fa4c9d29308052b";
-
 function printUnauthorized(){
 
-	//var authUrl = getAuthURL();
+	var authUrl = getAuthURL();
 	consolePrint(
-		"Share does not work in this Puzzlescript fork. Sorry! You can still share your games in other ways.")
-			/*"<br>" +
+			"<br>" +
 			"PuzzleScript needs permission to share games through GitHub:<br>" +
 			"<ul>" +
 			"<li><a target=\"_blank\" href=\"" + authUrl + "\">Give PuzzleScript permission</a></li>" +
-			"</ul>",true);*/
+			"</ul>",true);
 }
 
 function cancelClick() {
@@ -212,7 +209,7 @@ function levelEditorClick_Fn() {
     lastDownTarget=canvas;	
 }
 
-OAUTH_CLIENT_ID = "211570277eb588cddf44";
+OAUTH_CLIENT_ID = "5ff7f613ca72eef56e1d";
 
 function getAuthURL(){
 	var randomState = window.btoa(Array.prototype.map.call(
