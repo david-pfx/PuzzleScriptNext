@@ -173,6 +173,7 @@ function generateTitleScreen()
 	}
 
 	if (titleMode===0) {
+        titleSelectOptions = 1;
 		if (titleSelected) {
 			titleImage = deepClone(titletemplate_firstgo_selected);		
 		} else {
@@ -441,7 +442,6 @@ function gotoSelectedLevel() {
 
 	updateLocalStorage();
 	resetFlickDat();
-	initSmoothCamera();
 	canvasResize();	
 	clearInputHistory();
 }
@@ -640,9 +640,11 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	        }
         }
 
-      backups=[]
-      restartTarget=backupLevel();
-    keybuffer=[];
+	    initSmoothCamera();
+
+	    backups=[]
+	    restartTarget=backupLevel();
+		keybuffer=[];
 
       if ('run_rules_on_level_start' in state.metadata) {
       processInput(-1,true);
@@ -668,7 +670,7 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
     }
     }
     loadLevelFromLevelDat(state,state.levels[levelindex],randomseed);
-    restoreLevel(target);
+    restoreLevel(target, true);
     restartTarget=target;
 }
 
@@ -784,26 +786,28 @@ var backups=[];
 var restartTarget;
 
 function backupLevel() {
-  var ret = {
-    dat : new Int32Array(level.objects),
-    width : level.width,
-    height : level.height,
-    oldflickscreendat: oldflickscreendat.concat([]),
-  };
-  if (state.metadata.runtime_metadata_twiddling !== undefined) {
-    ret.metadata = metadata = deepClone(state.metadata);
-  }
-  return ret;
+	var ret = {
+		dat : new Int32Array(level.objects),
+		width : level.width,
+		height : level.height,
+		oldflickscreendat: oldflickscreendat.concat([]),
+    cameraPositionTarget: Object.assign({}, cameraPositionTarget)
+	};
+	if (state.metadata.runtime_metadata_twiddling !== undefined) {
+      ret.metadata = metadata = deepClone(state.metadata);
+    }
+	return ret;
 }
 
 function level4Serialization() {
-  var ret = {
-    dat : Array.from(level.objects),
-    width : level.width,
-    height : level.height,
-    oldflickscreendat: oldflickscreendat.concat([])
-  };
-  return ret;
+	var ret = {
+		dat : Array.from(level.objects),
+		width : level.width,
+		height : level.height,
+		oldflickscreendat: oldflickscreendat.concat([]),
+    cameraPositionTarget: Object.assign({}, cameraPositionTarget)
+	};
+	return ret;
 }
 
 
@@ -998,7 +1002,6 @@ function setGameState(_state, command, randomseed) {
 	if(command[0] !== "rebuild") {
 		clearInputHistory();
 	}
-	initSmoothCamera();
 	canvasResize();
 
 	if (state.sounds.length==0&&state.metadata.youtube==null){
@@ -1051,41 +1054,50 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
-function restoreLevel(lev) {
-  oldflickscreendat=lev.oldflickscreendat.concat([]);
+function restoreLevel(lev, snapCamera) {
+	oldflickscreendat=lev.oldflickscreendat.concat([]);
 
-  level.objects = new Int32Array(lev.dat);
+	level.objects = new Int32Array(lev.dat);
 
-  if (level.width !== lev.width || level.height !== lev.height) {
-    level.width = lev.width;
-    level.height = lev.height;
-    level.n_tiles = lev.width * lev.height;
-    RebuildLevelArrays();
-    //regenerate all other stride-related stuff
-  }
-  else 
-  {
-  // layercount doesn't change
+	if (level.width !== lev.width || level.height !== lev.height) {
+		level.width = lev.width;
+		level.height = lev.height;
+		level.n_tiles = lev.width * lev.height;
+		RebuildLevelArrays();
+		//regenerate all other stride-related stuff
+	}
+	else 
+	{
+	// layercount doesn't change
 
-    for (var i=0;i<level.n_tiles;i++) {
-      level.movements[i]=0;
-      level.rigidMovementAppliedMask[i]=0;
-      level.rigidGroupIndexMask[i]=0;
-    } 
+		for (var i=0;i<level.n_tiles;i++) {
+			level.movements[i]=0;
+			level.rigidMovementAppliedMask[i]=0;
+			level.rigidGroupIndexMask[i]=0;
+		}	
 
-      for (var i=0;i<level.height;i++) {
-        var rcc = level.rowCellContents[i];
-        rcc.setZero();
+	    for (var i=0;i<level.height;i++) {
+	    	var rcc = level.rowCellContents[i];
+	    	rcc.setZero();
+	    }
+	    for (var i=0;i<level.width;i++) {
+	    	var ccc = level.colCellContents[i];
+	    	ccc.setZero();
+	    }
+	}
+
+    if (lev.cameraPositionTarget) {
+      cameraPositionTarget = Object.assign({}, lev.cameraPositionTarget);
+
+      if (snapCamera) {
+        cameraPosition = Object.assign({}, cameraPositionTarget)
       }
-      for (var i=0;i<level.width;i++) {
-        var ccc = level.colCellContents[i];
-        ccc.setZero();
-      }
-  }
-
+    }
+    
     if (state.metadata.runtime_metadata_twiddling !== undefined) {
      state.metadata = deepClone(lev.metadata);
     }
+
     againing=false;
     level.commandQueue=[];
     level.commandQueueSourceRules=[];
@@ -1113,14 +1125,12 @@ function DoRestart(force) {
 		consolePrint("--- restarting ---",true);
 	}
 
-	restoreLevel(restartTarget);
+	restoreLevel(restartTarget, true);
 	tryPlayRestartSound();
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
 	}
-	
-	initSmoothCamera();
 	
 	level.commandQueue=[];
 	level.commandQueueSourceRules=[];
@@ -2290,8 +2300,18 @@ Rule.prototype.queueCommands = function() {
 
       state.metadata[command[0]] = value;
       
-      if (command[0] === "zoomscreen" || command[0] === "flickscreen" || command[0] === "smoothscreen") {
+      if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
         twiddleMetaData(state, true);
+        canvasResize();
+      }
+
+      if (command[0] === "smoothscreen") {
+        if (value !== undefined) {
+          twiddleMetaData(state, true);
+          initSmoothCamera()
+        } else {
+          smoothscreen = false;
+        }
         canvasResize();
       }
 
@@ -2763,6 +2783,7 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 	    				backups.push(bak);
 	    			}
 	    			modified=true;
+	    			updateCameraPositionTarget();
 	    		}
 	    		break;
 	    	}
@@ -3070,7 +3091,6 @@ function nextLevel() {
 
 	updateLocalStorage();
 	resetFlickDat();
-	initSmoothCamera();
 	canvasResize();	
 	clearInputHistory();
 }

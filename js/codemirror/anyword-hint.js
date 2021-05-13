@@ -45,6 +45,7 @@
             ["mouse_rup","rmbup","Sets the object to place when right mouse button is released."],
             ["nokeyboard","","Allows the game to run without a Player object and movement."],
             ["smoothscreen", "[flick] WxH [IxJ] [S]", "Zooms the camera in to a WxH section of the map around the player and smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional speed argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. The optional flick keyword makes the camera move like flickscreen."],
+            ["smoothscreen_debug", "", "Draw smoothscreen debug information."],
             ["sprite_size", "5", "Size of sprites."],
             ["case_sensitive", "", "Makes object names and legend case sensitive."],
             ["level_select", "", "Show level selection option on main screen (use with sections in levels)."],

@@ -200,10 +200,7 @@ function glyphCount(){
     return count;
 }
 
-var cameraPositionTarget = {
-  x: 0,
-  y: 0
-};
+var cameraPositionTarget = null;
 
 var cameraPosition = {
   x: 0,
@@ -256,6 +253,40 @@ function getFlickCameraPosition (targetPosition, levelDimension, screenDimension
     var maxFlickGridCell = Math.floor((levelDimension - Math.ceil(screenDimension / 2) - Math.floor(boundaryDimension / 2) - flickGridOffset) / boundaryDimension);
 
     return Math.min(Math.max(flickGridPlayerCell, 0), maxFlickGridCell) * boundaryDimension + Math.floor(screenDimension / 2);
+}
+
+function updateCameraPositionTarget() {
+    var smoothscreenConfig = state.metadata.smoothscreen;
+    var playerPositions = getPlayerPositions();
+
+    if (!smoothscreenConfig || playerPositions.length === 0) {
+        return
+    }
+
+    var playerPosition = {
+        x: (playerPositions[0]/(level.height))|0,
+        y: (playerPositions[0]%level.height)|0
+    };
+
+    ['x', 'y'].forEach(function (coord) {
+        var screenDimension = coord === 'x' ? screenwidth : screenheight;
+
+        var dimensionName = coord === 'x' ? 'width' : 'height';
+        var levelDimension = level[dimensionName];
+        var boundaryDimension = smoothscreenConfig.boundarySize[dimensionName];
+
+        var playerVector = playerPosition[coord] - cameraPositionTarget[coord];
+        var direction = Math.sign(playerVector);
+        var boundaryVector = direction > 0
+          ? Math.ceil(boundaryDimension / 2)
+          : -(Math.floor(boundaryDimension / 2) + 1);
+
+        if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
+            cameraPositionTarget[coord] = smoothscreenConfig.flick
+              ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
+              : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
+        }
+    })
 }
 
 function redraw() {
@@ -345,38 +376,19 @@ function redraw() {
                 maxj=oldflickscreendat[3];
             }         
         } else if (smoothscreen) {
-            var smoothscreenConfig = state.metadata.smoothscreen;
-            var flick = smoothscreenConfig.flick;
-            var playerPositions = getPlayerPositions();
-
-            if (playerPositions.length > 0) {
-                var playerPosition = {
-                    x: (playerPositions[0]/(level.height))|0,
-                    y: (playerPositions[0]%level.height)|0
-                };
-
+            if (cameraPositionTarget !== null) {
                 ['x', 'y'].forEach(function (coord) {
-                    var screenDimension = coord === 'x' ? screenwidth : screenheight;
+                    var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
 
-                    var dimensionName = coord === 'x' ? 'width' : 'height';
-                    var levelDimension = level[dimensionName];
-                    var boundaryDimension = smoothscreenConfig.boundarySize[dimensionName];
-
-                    var playerVector = playerPosition[coord] - cameraPositionTarget[coord];
-                    var direction = Math.sign(playerVector);
-                    var boundaryVector = direction > 0
-                      ? Math.ceil(boundaryDimension / 2)
-                      : -(Math.floor(boundaryDimension / 2) + 1);
-
-                    if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
-                        cameraPositionTarget[coord] = smoothscreenConfig.flick
-                          ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
-                          : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
+                    if (cameraTargetVector === 0) {
+                        return;
+                    } else if (Math.abs(cameraTargetVector) < (0.5 / cellwidth)) {
+                        // Canvas doesn't actually render subpixels, but when the camera is less than half a subpixel away from target, snap to target
+                        cameraPosition[coord] = cameraPositionTarget[coord]
+                        return
                     }
 
-                    var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
-                    cameraPosition[coord] += cameraTargetVector * smoothscreenConfig.cameraSpeed;
-
+                    cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
                     cameraOffset[coord] = cameraPosition[coord] % 1;
                 })
 
@@ -421,6 +433,9 @@ function redraw() {
         }
 
         if (smoothscreen) {
+            if (state.metadata.smoothscreen.debug) {
+                drawSmoothScreenDebug(ctx);
+            }
             ctx.restore();
         }
 
@@ -428,6 +443,77 @@ function redraw() {
 	    	drawEditorIcons();
 	    }
     }
+}
+
+function drawSmoothScreenDebug(ctx) {
+    ctx.save();
+
+    var smoothscreenConfig = state.metadata.smoothscreen;
+    var boundarySize = smoothscreenConfig.boundarySize;
+
+    var playerPositions = getPlayerPositions();
+    if (playerPositions.length > 0) {
+        var playerPosition = {
+            x: (playerPositions[0]/(level.height))|0,
+            y: (playerPositions[0]%level.height)|0
+        };
+
+        var playerOffsetX = playerPosition.x - cameraPosition.x;
+        var playerOffsetY = playerPosition.y - cameraPosition.y;
+
+        ctx.fillStyle = '#00ff00';
+        ctx.beginPath();
+        ctx.arc(
+            xoffset + (Math.floor(screenwidth / 2) + playerOffsetX + 0.5) * cellwidth,
+            yoffset + (Math.floor(screenheight / 2) + playerOffsetY + 0.5) * cellheight,
+            cellwidth / 4,
+            0, 2* Math.PI
+        );
+        ctx.fill()
+    }
+
+    var targetOffsetX = cameraPositionTarget.x - cameraPosition.x;
+    var targetOffsetY = cameraPositionTarget.y - cameraPosition.y;
+
+    ctx.fillStyle = '#0000ff';
+    ctx.beginPath();
+    ctx.arc(
+        xoffset + (Math.floor(screenwidth / 2) + targetOffsetX) * cellwidth,
+        yoffset + (Math.floor(screenheight / 2) + targetOffsetY) * cellheight,
+        cellwidth / 8,
+        0, 2* Math.PI
+    );
+    ctx.fill()
+
+    ctx.strokeStyle = '#0000ff';
+    ctx.lineWidth = cellwidth / 16;
+    ctx.strokeRect(
+        xoffset + (Math.floor(screenwidth / 2) + targetOffsetX - Math.floor(boundarySize.width / 2)) * cellwidth,
+        yoffset + (Math.floor(screenheight / 2) + targetOffsetY - Math.floor(boundarySize.height / 2)) * cellheight,
+        boundarySize.width * cellwidth,
+        boundarySize.height * cellheight
+    );
+
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.arc(
+        xoffset + Math.floor(screenwidth / 2) * cellwidth,
+        yoffset + Math.floor(screenheight / 2) * cellheight,
+        cellwidth / 4,
+        0, 2* Math.PI
+    );
+    ctx.fill()
+
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = cellwidth / 8;
+    ctx.strokeRect(
+        xoffset + (Math.floor(screenwidth / 2) - Math.floor(boundarySize.width / 2)) * cellwidth,
+        yoffset + (Math.floor(screenheight / 2) - Math.floor(boundarySize.height / 2)) * cellheight,
+        boundarySize.width * cellwidth,
+        boundarySize.height * cellheight
+    );
+
+    ctx.restore()
 }
 
 function drawEditorIcons() {
@@ -571,6 +657,5 @@ function canvasResize() {
     oldtextmode=textMode;
     oldfgcolor=state.fgcolor;
 
-    initSmoothCamera();
     redraw();
 }
