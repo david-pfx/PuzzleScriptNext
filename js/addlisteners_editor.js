@@ -44,15 +44,6 @@ horizontalDragbar.addEventListener("mousedown", horizontalDragbarMouseDown, fals
 var verticalDragbar = document.getElementById("verticaldragbar");
 verticalDragbar.addEventListener("mousedown", verticalDragbarMouseDown, false);
 
-var normalSizeLink = document.getElementById("normalTextLink");
-normalSizeLink.addEventListener("click", normalTextSize, false);
-
-var bigSizeLink = document.getElementById("biggerTextLink");
-bigSizeLink.addEventListener("click", bigTextSize, false);
-
-var biggestSizeLink = document.getElementById("biggestTextLink");
-biggestSizeLink.addEventListener("click", biggestTextSize, false);
-
 window.addEventListener("resize", resize_all, false);
 window.addEventListener("load", reset_panels, false);
 
