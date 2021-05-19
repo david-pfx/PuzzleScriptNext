@@ -1130,7 +1130,9 @@ function DoRestart(force) {
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
-	}
+  }
+  
+  twiddleMetadataExtras();
 	
 	level.commandQueue=[];
 	level.commandQueueSourceRules=[];
