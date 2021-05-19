@@ -2580,6 +2580,7 @@ function calculateRowColMasks() {
 }
 
 var playerPositions;
+var playerPositionsAtTurnStart;
 
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak) {
@@ -2599,6 +2600,8 @@ function processInput(dir,dontDoWin,dontModify,bak) {
   }
   
   playerPositions= getPlayerPositions();
+playerPositionsAtTurnStart = getPlayerPositions();
+
     if (dir<=5) {
     	if (dir>=0 && dir<=4) {
 	        switch(dir){
@@ -2681,10 +2684,11 @@ function processInput(dir,dontDoWin,dontModify,bak) {
         }
 
 
-        if (playerPositions.length>0 && state.metadata.require_player_movement!==undefined) {
+        if (playerPositionsAtTurnStart.length>0 && state.metadata.require_player_movement!==undefined) {
           var somemoved=false;
-          for (var i=0;i<playerPositions.length;i++) {
-            var pos = playerPositions[i];
+          console.log(playerPositionsAtTurnStart);
+          for (var i=0;i<playerPositionsAtTurnStart.length;i++) {
+            var pos = playerPositionsAtTurnStart[i];
             var val = level.getCell(pos);
             if (state.playerMask.bitsClearInArray(val.data)) {
               somemoved=true;
