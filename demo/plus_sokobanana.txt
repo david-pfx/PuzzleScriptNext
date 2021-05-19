@@ -1,0 +1,691 @@
+title Sokobanana [Example ver.]
+author Tom Hermans [Auroriax]
+homepage auroriax.itch.io
+
+again_interval 0.085
+key_repeat_interval 0.16
+
+background_color yellow 
+text_color black
+
+noaction
+run_rules_on_level_start
+
+sprite_size 12x12
+
+level_select
+level_select_solve_symbol *
+
+========
+OBJECTS
+========
+Player0 P
+white black
+............
+...000000...
+...000000...
+.0011001100.
+.0011001100.
+...000000...
+...000000...
+...00..00...
+...00..00...
+..000..000..
+.0000..0000.
+............
+
+Player90
+white black
+............
+.0.....00...
+.00....00...
+.0000001100.
+.0000001100.
+.....000000.
+.....000000.
+.0000001100.
+.0000001100.
+.00....00...
+.0.....00...
+............
+
+Player180
+white black
+............
+.0000..0000.
+..000..000..
+...00..00...
+...00..00...
+...000000...
+...000000...
+.0011001100.
+.0011001100.
+...000000...
+...000000...
+............
+
+Player270
+white black
+............
+...00.....0.
+...00....00.
+.0011000000.
+.0011000000.
+.000000.....
+.000000.....
+.0011000000.
+.0011000000.
+...00....00.
+...00.....0.
+............
+
+AnimateDone
+transparent
+
+Background .
+#A0A090
+
+Banana B
+yellow black
+............
+.......11...
+.......11...
+......000...
+.....0000...
+....00000...
+...0000000..
+...000.0000.
+...00...000.
+..000....00.
+.000.....0..
+............
+
+Wall w
+yellow
+
+Box O
+#0080FF
+............
+............
+...000000...
+..00000000..
+..00000000..
+..00000000..
+..00000000..
+..00000000..
+..00000000..
+...000000...
+............
+............
+
+Pit A
+#000000C0
+............
+............
+............
+............
+...000000...
+..00000000..
+..00000000..
+..00000000..
+..00000000..
+...000000...
+............
+............
+
+BigPit T
+Black #808080
+............
+............
+............
+...000000...
+..00000000..
+.0000000000.
+.0000000000.
+.0000000000.
+..00000000..
+...000000...
+............
+............
+
+Goal G
+#00000080 #ffffff80
+110011001100
+110011001100
+001100110011
+001100110011
+110011001100
+110011001100
+001100110011
+001100110011
+110011001100
+110011001100
+001100110011
+001100110011
+
+ActivatedGoal copy:Goal
+black white
+
+DriftL
+Transparent
+
+DriftR
+Transparent
+
+DriftU
+Transparent
+
+DriftD
+Transparent
+
+Done
+Transparent
+
+BoxTarget S
+lightblue
+............
+...000000...
+..00000000..
+.00......00.
+.00......00.
+.00......00.
+.00......00.
+.00......00.
+.00......00.
+..00000000..
+...000000...
+............
+
+Signpost I
+brown black
+............
+.0000000000.
+.0000000000.
+.0011110000.
+.0000000000.
+.0011111100.
+.0000000000.
+.....00.....
+.....00.....
+.....00.....
+.....00.....
+............
+
+One
+black
+............
+....0000....
+....0000....
+......00....
+......00....
+......00....
+......00....
+......00....
+......00....
+......00....
+......00....
+............
+
+Two 
+black
+............
+....0000....
+...000000...
+..000..000..
+..000..000..
+......000...
+.....000....
+....000.....
+...000......
+..00000000..
+..00000000..
+............
+
+Three
+black
+............
+...000000...
+..00000000..
+........00..
+........00..
+....000000..
+....000000..
+........00..
+........00..
+..00000000..
+...000000...
+............
+
+Four
+black
+............
+......00....
+.....000....
+....0000....
+...00000....
+..000.00....
+..00..00....
+..00000000..
+..00000000..
+......00....
+......00....
+............
+
+Aye
+black
+............
+...000000...
+..00000000..
+..00....00..
+..00....00..
+..00000000..
+..00000000..
+..00....00..
+..00....00..
+..00....00..
+..00....00..
+............
+
+Bee
+black
+............
+..000000....
+..0000000...
+..00...00...
+..00...00...
+..0000000...
+..00000000..
+..00....00..
+..00....00..
+..00000000..
+..0000000...
+............
+
+Cee
+black
+............
+...0000000..
+..00000000..
+..000.......
+..00........
+..00........
+..00........
+..00........
+..000.......
+..00000000..
+...0000000..
+............
+
+SpaceTemp |
+black
+
+Space1
+black white black black
+000000000000
+000003300000
+000003300000
+000000000000
+000000000000
+022000000000
+022000000000
+000000011000
+000000011000
+000000000000
+000000000000
+000000000000
+
+Space2 copy:Space1
+black black white black
+
+Space3
+black black black white
+
+Moon
+Darkgray Gray Lightgray
+............
+...222222...
+...222222...
+.2211222200.
+.2211222200.
+.1122112200.
+.1122112200.
+.2211220000.
+.2211220000.
+...000000...
+...000000...
+............
+
+MiniTrigger
+Transparent
+
+PlayerMini0
+White White transparent
+............
+............
+............
+...001100...
+...001100...
+...220022...
+...220022...
+...001100...
+...001100...
+............
+............
+............
+
+PlayerMini90 copy:PlayerMini0
+White transparent White
+
+VanishTrigger
+Transparent
+
+Star1
+Yellow transparent transparent
+............
+.....22.....
+.....22.....
+.....11.....
+.....11.....
+.2211001122.
+.2211001122.
+.....11.....
+.....11.....
+.....22.....
+.....22.....
+............
+
+Star2 copy:Star1
+Yellow Yellow transparent
+
+Star3 copy:Star1
+Yellow Yellow Yellow
+
+Star4 copy:Star1
+Yellow Yellow Yellow
+
+Star5 copy:Star1
+Yellow Yellow Yellow
+
+Star6 copy:Star1
+transparent yellow yellow
+
+Star7 copy:Star1
+transparent transparent Yellow
+
+WMarker
+transparent
+
+FMarker
+transparent
+
+=======
+LEGEND
+=======
+(Level numbers)
+1 = Wall and One
+2 = Wall and Two
+3 = Wall and Three
+4 = Wall and Four
+
+[ = Wall and Aye
+] = Wall and Bee
+? = Wall and Cee
+
+(Game)
+Player = Player0 or Player90 or Player180 or Player270 or Star7
+
+Drift = DriftL or DriftR or DriftU or DriftD
+Obstacle = Wall or Signpost
+Driftable = Player or Box
+CantWalkInto = Pit or Bigpit
+
+Y = Box and BoxTarget
+} = Boxtarget and Pit
+Z = Box and Banana
+
+^ = SpaceTemp and BigPit
+/ = SpaceTemp and Moon
+K = SpaceTemp and VanishTrigger and Goal
+J = SpaceTemp and MiniTrigger
+
+=======
+SOUNDS
+=======
+SFX0 70928908 (Falling down)
+SFX1 96485908 (Slide)
+SFX3 1461507 (Stop sliding)
+SFX4 72598508 (Star)
+SFX5 48186508 (Sound when hole fills up)
+Endlevel 96979508 
+
+================
+COLLISIONLAYERS
+================
+Background
+Banana, Goal, ActivatedGoal, Pit, BigPit, MiniTrigger
+BoxTarget, SpaceTemp, Space1, Space2, Space3
+Player0, Player90, Player180, Player270, Wall, Box, Signpost, Moon, PlayerMini0, PlayerMini90, Star1, Star2, Star3, Star4, Star5, Star6, Star7
+Drift, One, Two, Three, Four, Aye, Bee, Cee, VanishTrigger
+Done
+AnimateDone
+WMarker, FMarker
+
+======
+RULES
+======
+(Debug mode skip levels)
+[action player] -> [] win
+
+(Space generation)
+[SpaceTemp] -> [random Space1 random Space2 random Space3]
+
+(Can't go into pits, but can slide over them)
+[> Player | CantWalkInto] -> [ Player | CantWalkInto]
+[Player Pit no Drift no Star7] -> [Pit Star1] sfx0
+[Player BigPit no Drift no Star7] -> [BigPit Star1] sfx0
+
+(Box pushing, again is used to make boxes fill up the hole right away)
+[> Player | Box] -> [> Player | > Box] again
+
+(Boxes fill up holes)
+[Box Pit no Drift] -> [background] sfx5
+[Box BigPit no Drift no Star7] -> [BigPit background Star1] sfx0
+
+(Signs)
+up [> Player | Signpost] -> [Player | Signpost] message Slide over the peels to get to the goal. If there are boxes on the level, don't forget to push these to the designated squares. Press [Z] to undo a move, or [R] to restart the puzzle. Good luck!
+
+(Player moves, steps on banana, slide starts)
+left  [left  Driftable | Banana] -> [Driftable DriftL | Banana ] SFX1
+right [right Driftable | Banana] -> [Driftable DriftR | Banana ] SFX1
+up    [up    Driftable | Banana] -> [Driftable DriftU | Banana ] SFX1
+down  [down  Driftable | Banana] -> [Driftable DriftD | Banana ] SFX1
+
+(Drift compute)
+late left [Driftable DriftL no Done | Driftable] -> [Driftable Done | DriftL Driftable] again
+late left [Driftable DriftL no Done | no Obstacle] ->  [ | Driftable DriftL Done] again
+late left [Driftable DriftL Done | Obstacle] ->  [Driftable | Obstacle] SFX3
+ late right [Driftable DriftR no Done | Driftable] -> [Driftable Done | DriftR Driftable] again
+ late right [Driftable DriftR no Done | no Obstacle] ->  [ | Driftable DriftR Done] again
+ late right [Driftable DriftR Done | Obstacle] ->  [Driftable | Obstacle] SFX3
+late up [Driftable DriftU no Done | Driftable] -> [Driftable Done | DriftU Driftable] again
+late up [Driftable DriftU no Done | no Obstacle] ->  [ | Driftable DriftU Done] again
+late up [Driftable DriftU Done | Obstacle] ->  [Driftable | Obstacle] SFX3
+ late down [Driftable DriftD no Done | Driftable] -> [Driftable Done | DriftD Driftable] again
+ late down [Driftable DriftD no Done | no Obstacle] ->  [ | Driftable DriftD Done] again
+ late down [Driftable DriftD Done | Obstacle] ->  [Driftable | Obstacle] SFX3
+
+[Done] -> []
+
+(Get rid of drifters that haven't moved this turn and we don't we won't need anymore)
+late [Driftable Drift no Done] -> [Driftable] SFX3 again
+
+(Ending)
+late [Star1 no AnimateDone] [no moon] -> [Star2 AnimateDone] [no moon] again
+late [Star1 no AnimateDone] [moon] -> [Star2 AnimateDone] [moon] SFX4 again
+late [Star2 no AnimateDone] -> [Star3 AnimateDone] again
+late [Star3 no AnimateDone] -> [Star4 AnimateDone] again
+late [Star4 no AnimateDone] -> [Star5 AnimateDone] again
+late [Star5 no AnimateDone] -> [Star6 AnimateDone] again
+late [Star6 no AnimateDone] -> [Star7 AnimateDone] again
+late [Star7 no AnimateDone] [no Moon] -> [] [no Moon]
+
+late [PlayerMini90 no Animatedone] -> [PlayerMini0 Animatedone] again
+late up [PlayerMini0 no Animatedone |] -> [ | PlayerMini90 Animatedone] again
+late [Player Minitrigger] -> [PlayerMini0]
+late [PlayerMini0 VanishTrigger] -> [VanishTrigger Star1]
+
+(Animation)
+late [Player0 Drift no animatedone] -> [Player90 Drift AnimateDone]
+late [Player90 Drift no animatedone] -> [Player180 Drift AnimateDone]
+late [Player180 Drift no animatedone] -> [Player270 Drift AnimateDone]
+late [Player270 Drift no animatedone] -> [Player0 Drift AnimateDone]
+late [Player no Drift no Star7]-> [Player0]
+late [AnimateDone] -> []
+
+(Check if all boxes are on a crate)
+late [Goal] -> [ActivatedGoal]
+late [BoxTarget no Box] [ActivatedGoal] -> [BoxTarget] [Goal]
+
+==============
+WINCONDITIONS
+==============
+Some Player on ActivatedGoal
+No Drift on Player
+All BoxTarget on Box
+
+=======
+LEVELS
+=======
+
+message Chapter I
+
+section 1A Getting the Slip
+.p..i..w
+www..b.w
+1[wwwgww
+wwwww..w
+w...t..w
+w.bttt.w
+ww....ww
+
+section 1B Slippery Trip 
+wwwwwwwwwww
+ww.....b..p
+wwbwbwb.w..
+ww.......wb
+wg.wbwbwbw.
+.b.b.......
+wwbwbwwwwwb
+1].........
+wwwwwwwwwww
+
+section 1C The Box and Banana
+so..p
+s....
+.wbw.
+.wo1.
+...?.
+w...g
+
+message Chapter II
+
+section 2A Trashure Trove
+wwwwgwwww
+2[wwtw...
+wwww.....
+ww..b...w
+.b.tb.wow
+p...t...w
+
+section 2B Newton's Cradle
+ww....twwww
+...w.ot....
+pbtgy.ts.ts
+...w..o..tw
+ww.......tw
+wwwwwwwww2]
+
+section 2C The Pit of Wit
+w....wwww
+w.wwbwwww
+w.wwtw2?w
+w.w.pwwww
+w.wo..o..
+.bss.ssw.
+.woot....
+.w..twwww
+...wgwwww
+
+message Chapter III
+
+section 3A Banana Bonanza
+3[..ttt...
+w..oaba...
+w.p.aba.o.
+w...t.too.
+w...tgt...
+
+section 3B Fruity Juices
+3]..wgww..w
+w..owawwo..
+w.ooaaaa.o.
+w...aaaaop.
+w..baaaab..
+
+section 3C Tightrope Walk
+ww....wwww
+ww.oooww3?
+aao.o.wwww
+aa.o...www
+aabttt.tga
+aabb.p.www
+
+message Chapter IV
+
+section 4A Slip 'n Slide
+4[wgwtst..w
+w..t..t..ow
+t..b.......
+st.btbbt...
+t..t..t.o..
+.p.o..b...t
+.b...tb..ts
+..wwwwwwwww
+
+section 4B Banana Split
+4].....a..ww
+wwaww.ta..wg
+.o..t..at.w.
+.bb.t..a..ta
+oo..t..a..op
+s...tb.a..ww
+
+section 4C Banana Bunch
+w4?wstwwww
+wwwwtgwwww
+w..tb.t..w
+wo...b..sw
+...wb.t.p.
+....tw..o.
+ww......ww
+
+section Epilogue
+message Epilogue
+|||||||
+|||k|||
+|||||||
+|/|||||
+|||j|||
+|||||||
+|||||||
+||^^^||
+|^...^|
+^.....^
+...b...
+.......
+...p...
+.......
+
+message The End
+
+message Sokobanana by Tom Hermans (@Auroriax). Thanks for playing!

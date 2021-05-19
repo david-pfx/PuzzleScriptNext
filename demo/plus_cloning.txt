@@ -1,0 +1,77 @@
+title Sprite Cloning Example
+author Tom Hermans [@Auroriax]
+homepage https://github.com/Auroriax/PuzzleScript/wiki/Sprite-parents
+
+========
+OBJECTS
+========
+
+Background .
+LIGHTGREEN GREEN
+11111
+01111
+11101
+11111
+10111
+
+BaseParasol P
+darkgreen transparent brown
+..1..
+.000.
+00000
+..2..
+..2..
+
+BlueParasol B copy:BaseParasol
+blue darkblue brown
+
+RedParasol R copy:BaseParasol
+red darkred darkbrown
+
+Player o
+Black Orange White Blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player, BaseParasol, BlueParasol
+RedParasol
+
+======
+RULES
+======
+
+(No rules, just walk around!)
+
+==============
+WINCONDITIONS
+==============
+
+
+=======
+LEVELS
+=======
+
+.......
+.p.o.r.
+.......
+.r..p..
+...b...
+.....b.
+.......
