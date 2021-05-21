@@ -2629,10 +2629,10 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	            {
 	                dir=parseInt('10000', 2);;
 	                break;
-				}
+				      }
 	        }
 	        playerPositions = startMovement(dir);
-		}
+		    }
 
         var i=0;
         level.bannedGroup = [];
@@ -2673,20 +2673,19 @@ playerPositionsAtTurnStart = getPlayerPositions();
         } while (i < 250 && rigidloop);
 
         if (i>=250) {
-			consolePrint("looped through 250 times, gave up. Too many loops!");
-			
-			applyRules(state.lateRules, state.lateLoopPoint, 0);
-			startRuleGroupIndex=0;
-			
-			backups.push(bak);
-			DoUndo(true,false);
-			return false;
+          consolePrint("looped through 250 times, gave up. Too many loops!");
+          
+          applyRules(state.lateRules, state.lateLoopPoint, 0);
+          startRuleGroupIndex=0;
+          
+          backups.push(bak);
+          DoUndo(true,false);
+          return false;
         }
 
-
-        if (playerPositionsAtTurnStart.length>0 && state.metadata.require_player_movement!==undefined) {
+        if (playerPositionsAtTurnStart.length>0 && state.metadata.require_player_movement!==undefined && dir >= 0) {
           var somemoved=false;
-          console.log(playerPositionsAtTurnStart);
+          //console.log(playerPositionsAtTurnStart);
           for (var i=0;i<playerPositionsAtTurnStart.length;i++) {
             var pos = playerPositionsAtTurnStart[i];
             var val = level.getCell(pos);
