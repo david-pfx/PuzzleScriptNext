@@ -514,25 +514,12 @@ function mouseAction(event,click,id) {
 					tryPlayTitleSound();
 					canvasResize();
 				} else if (mouseCoordY===2) {
-					var normalizedDelta = -3;
 					if (levelSelectScrollPos != 0) {
-						levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
-						titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
-
-						//console.log("Scrolling up",levelSelectScrollPos);
-						generateLevelSelectScreen();
-						redraw();
+						levelSelectScroll(-3)
 					}
 				} else if (mouseCoordY===12) {
-					var normalizedDelta = 3;
 					if (titleSelectOptions - amountOfLevelsOnScreen > levelSelectScrollPos) {
-						
-						levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
-						titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
-
-						//console.log("Scrolling down",levelSelectScrollPos);
-						generateLevelSelectScreen();
-						redraw();
+						levelSelectScroll(3)
 					}
 				} else {
 					var clickedLevel = -1;
@@ -882,9 +869,7 @@ function onMouseWheel(event) {
 	normalizedDelta = Math.sign(event.deltaY);
 
 	if (titleScreen && titleMode == 2 && (state.metadata.mouse_left || state.metadata.mouse_drag)) {
-		levelSelectScrollPos = clamp(levelSelectScrollPos + normalizedDelta, 0, state.sections.length - amountOfLevelsOnScreen);
-		titleSelection = clamp(titleSelection + normalizedDelta, 0, state.sections.length - 1);
-		generateLevelSelectScreen();
+		levelSelectScroll(normalizedDelta);
 
 		redraw();
 		prevent(event)
@@ -894,6 +879,14 @@ function onMouseWheel(event) {
 		redraw();
 		prevent(event)
 	}
+}
+
+function levelSelectScroll(direction) {
+	levelSelectScrollPos = clamp(levelSelectScrollPos + direction, 0, Math.max(state.sections.length - amountOfLevelsOnScreen, 0));
+	titleSelection = clamp(titleSelection + direction, 0, state.sections.length - 1);
+	console.log(levelSelectScrollPos + " " + titleSelection);
+	generateLevelSelectScreen();
+	redraw();
 }
 
 function clamp(number, min, max) {
