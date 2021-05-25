@@ -794,7 +794,9 @@ function backupLevel() {
     cameraPositionTarget: Object.assign({}, cameraPositionTarget)
 	};
 	if (state.metadata.runtime_metadata_twiddling !== undefined) {
-      ret.metadata = metadata = deepClone(state.metadata);
+      var metadata = deepClone(state.metadata)
+      delete metadata.custom_font;
+      ret.metadata = metadata;
     }
 	return ret;
 }
