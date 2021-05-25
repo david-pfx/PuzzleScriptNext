@@ -1,4 +1,4 @@
-title Runtime Metadata Twiddling
+title Runtime Metadata Twiddling v2
 author Tom H.
 homepage https://github.com/Auroriax/PuzzleScript/wiki/Realtime-Metadata-Twiddling
 
@@ -62,19 +62,19 @@ Orange Yellow
 00000
 
 SlowBtn s
-Red white
-00000
-00100
-01110
-00100
-00000
-
-FastBtn f
 lightblue white
 00000
 00000
 01110
 00000
+00000
+
+FastBtn f
+red white
+00000
+00100
+01110
+00100
 00000
 
 ZoomBtn z
@@ -117,6 +117,20 @@ Gray White
 01010
 00000
 
+UndoBlockButton U
+darkgray White
+00000
+01100
+00010
+01100
+00000
+
+LightModeBtn L
+White
+
+DarkModeBtn N
+Black
+
 ConveyorRight -
 Black White
 00000
@@ -158,7 +172,7 @@ COLLISIONLAYERS
 
 Background
 ConveyorRight, ConveyorDown
-SlowBtn, FastBtn, ZoomBtn, DefaultBtn, FlickBtn, FastWalkBtn, WipeButton
+SlowBtn, FastBtn, ZoomBtn, DefaultBtn, FlickBtn, FastWalkBtn, WipeButton, UndoBlockButton, DarkModeBtn, LightModeBtn
 Target
 Player, Wall, Crate
 
@@ -185,6 +199,18 @@ RULES
 
 [> Player | FastWalkBtn] -> key_repeat_interval 0.05
 
+[> Player | LightModeBtn] -> background_color #DDDDDD
+[> Player | LightModeBtn] -> text_color #222222
+[> Player | LightModeBtn] -> message Light mode enabled!
+
+[> Player | DarkModeBtn] -> background_color #222222
+[> Player | DarkModeBtn] -> text_color #DDDDDD
+[> Player | DarkModeBtn] -> message Dark mode enabled!
+
+[> Player | UndoBlockButton] -> noundo true
+[> Player | UndoBlockButton] -> norestart true
+[> Player | UndoBlockButton] -> message Muhaha, I've stolen your ability to undo and restart!
+
 (Buttons with special meanings)
 (DEFAULT will set the value that this setting was at the beginning of the level)
 [> Player | DefaultBtn] -> realtime_interval default
@@ -201,23 +227,24 @@ WINCONDITIONS
 ==============
 
 All Target on Crate
+Some Crate
 
 =======
 LEVELS
 =======
 
 section Testing Grounds
-...........
-.....----/.
-........./.
-...s.f.d./.
-........./.
-.....p.....
-...........
-...z...r...
-..........*
-...t...B..o
-...........
+...............
+.n.l.....----/.
+............./.
+.........s.f./.
+............./.
+.d.....p.......
+...............
+...............
+...............
+.u...z.t...b.r.
+...............
 
 section Level 1
 ####..

@@ -606,11 +606,7 @@ var simpleRelativeDirections = ['^', 'v', '<', '>'];
 var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
 //redeclaring here, i don't know why
 var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
-  "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval"];
-var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube',
-  'sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup','local_radius','font_size'];
-
-
+  "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color'];
 function directionalRule(rule) {
 	for (var i=0;i<rule.lhs.length;i++) {
 		var cellRow = rule.lhs[i];
@@ -851,7 +847,7 @@ function processRuleString(rule, state, curRules)
 						}
 						commands.push([token.toLowerCase(), messageStr]);
 						i=tokens.length;
-					} else if (preamble_params.includes(token.toLowerCase())) {
+					} else if (twiddleable_params.includes(token.toLowerCase())) {
 						if (!state.metadata.includes("runtime_metadata_twiddling")) {
 							logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
 						} else {

@@ -1096,6 +1096,7 @@ function restoreLevel(lev, snapCamera) {
     
     if (state.metadata.runtime_metadata_twiddling !== undefined) {
      state.metadata = deepClone(lev.metadata);
+     twiddleMetadataExtras();
     }
 
     againing=false;
@@ -1113,10 +1114,10 @@ function DoRestart(force) {
 	if (restarting===true){
 		return;
 	}
-	restarting=true;
 	if (force!==true && ('norestart' in state.metadata)) {
 		return;
-	}
+  }
+  restarting=true;
 	if (force===false) {
 		backups.push(backupLevel());
 	}
@@ -2290,17 +2291,20 @@ Rule.prototype.queueCommands = function() {
       messagetext=command[1];
     }
 
-    if (state.metadata.runtime_metadata_twiddling !== undefined && preamble_params.includes(command[0])) {
+    if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
 
       value = command[1];
 
       if (value == "wipe") {
-        value = undefined;
+        delete state.metadata[command[0]]; //value = undefined;
+        value = null;
       } else if (value == "default") {
         value = deepClone(state.default_metadata[command[0]]);
       }
 
-      state.metadata[command[0]] = value;
+      if (value != null) {
+        state.metadata[command[0]] = value;
+      }
       
       if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
         twiddleMetaData(state, true);
@@ -2317,31 +2321,7 @@ Rule.prototype.queueCommands = function() {
         canvasResize();
       }
 
-      if (command[0] === "realtime_interval") {
-        if (state.metadata.realtime_interval!==undefined) {
-          autotick=0;
-          autotickinterval=state.metadata.realtime_interval*1000;
-        } else {
-          autotick=0;
-          autotickinterval=0;
-        }
-      }
-
-      if (command[0] === "again_interval") {
-        if (state.metadata.again_interval!==undefined) {
-          againinterval=state.metadata.again_interval*1000;
-        } else {
-          againinterval=150;
-        }
-      }
-
-      if (command[0] === "key_repeat_interval") {
-        if (state.metadata.key_repeat_interval!==undefined) {
-          repeatinterval=state.metadata.key_repeat_interval*1000;
-        } else {
-          repeatinterval=150;
-        }
-      }
+      twiddleMetadataExtras()
 
       if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
         var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
@@ -2373,6 +2353,18 @@ function twiddleMetadataExtras() {
     repeatinterval=state.metadata.key_repeat_interval*1000;
   } else {
     repeatinterval=150;
+  }
+
+  if ('background_color' in state.metadata) {
+    state.bgcolor=colorToHex(colorPalette,state.metadata.background_color);
+  } else {
+    state.bgcolor="#000000";
+  }
+
+  if ('text_color' in state.metadata) {
+    state.fgcolor=colorToHex(colorPalette,state.metadata.text_color);
+  } else {
+    state.fgcolor="#FFFFFF";
   }
 }
 
