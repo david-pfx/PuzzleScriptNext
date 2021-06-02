@@ -7017,7 +7017,7 @@
           // template strings don't work for IE
           style = 'color: hsl(' + ~~(hsl[0] * 360) + ',' + ~~(hsl[1] * 100) + '%,' + ~~(hsl[2] * 100) + '%)';
         } else {
-          style = 'color:' + colorString;
+          style = 'color:' + colorString.substring(0,7); //Ignore transparency
         }
       }
       colorCache[colorString] = style;
