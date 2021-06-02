@@ -1,0 +1,267 @@
+title Nonogram
+author BoredMatt
+homepage https://boredmatt.itch.io
+
+background_color white
+text_color black
+sprite_size 8
+
+noundo
+
+run_rules_on_level_start
+
+mouse_left Click_L
+mouse_right Click_R
+mouse_drag Drag_L
+mouse_rdrag Drag_R
+mouse_up MouseUp_L
+mouse_rup MouseUp_R
+
+========
+OBJECTS
+========
+
+Background
+white
+
+One
+black
+........
+...0....
+..00....
+...0....
+...0....
+..000...
+........
+........
+
+Two
+black
+........
+..000...
+....0...
+..000...
+..0.....
+..000...
+........
+........
+
+Three
+black
+........
+..000...
+....0...
+...00...
+....0...
+..000...
+........
+........
+
+Four
+black
+........
+..0.0...
+..0.0...
+..000...
+....0...
+....0...
+........
+........
+
+Five
+black
+........
+..000...
+..0.....
+..000...
+....0...
+..000...
+........
+........
+
+Six
+black
+........
+..000...
+..0.....
+..000...
+..0.0...
+..000...
+........
+........
+
+Border_R
+gray
+.......0
+.......0
+.......0
+.......0
+.......0
+.......0
+.......0
+.......0
+
+Border_D
+gray
+........
+........
+........
+........
+........
+........
+........
+00000000
+
+Full_Cell
+black
+0000000.
+0000000.
+0000000.
+0000000.
+0000000.
+0000000.
+0000000.
+........
+
+Empty_Mark
+red
+........
+.0...0..
+..0.0...
+...0....
+..0.0...
+.0...0..
+........
+........
+
+Cell
+transparent
+
+Click_L
+transparent
+
+Click_R
+transparent
+
+Drag_L
+transparent
+
+Drag_R
+transparent
+
+MouseUp_L
+transparent
+
+MouseUp_R
+transparent
+
+Fill
+transparent
+
+Erase
+transparent
+
+Square
+transparent
+
+Player
+transparent
+
+=======
+LEGEND
+=======
+
+Hint = One or Two or Three or Four or Five or Six
+Click = Click_L or Click_R
+Drag = Drag_L or Drag_R
+MouseUp = MouseUp_L or MouseUp_R
+
+- = Background
+. = Cell
+1 = One
+2 = Two
+3 = Three
+4 = Four
+5 = Five
+6 = Six
+# = Cell and Square
+
+=======
+SOUNDS
+=======
+
+endlevel 8778703
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Fill, Erase
+Click, Drag, MouseUp
+Cell
+Border_R
+Border_D
+Hint, Full_Cell, Empty_Mark
+Square
+Player
+
+======
+RULES
+======
+
+(draw the grid)
+left [Cell|] -> [Cell Border_R|Border_R]
+up [Cell|] -> [Cell Border_D|Border_D]
+left [Border_D|] -> [Border_D|Border_D]
+up [Border_R|] -> [Border_R|Border_R]
+
+(exit fill or erase mode on mouse up event, delete the event)
+[MouseUp][Fill] -> [][]
+[MouseUp][Erase] -> [][]
+(ignore click or drag outside of the grid)
+[Click no Cell] -> []
+[Drag no Cell] -> []
+
+(enter fill or erase mode on click event, delete the event)
+[Cell Click_L no Full_Cell] -> [Cell Full_Cell Fill]
+[Cell Click_L Full_Cell] -> [Cell Erase]
+[Cell Click_R no Empty_Mark] -> [Cell Empty_Mark Fill]
+[Cell Click_R Empty_Mark] -> [Cell Erase]
+
+(fill or erase the cell depending on the mode on drag event, delete the event)
+[Drag_L][Fill] -> [Full_Cell][Fill]
+[Drag_R][Fill] -> [Empty_Mark][Fill]
+[Drag][Erase] -> [no Full_Cell no Empty_Mark][Erase]
+
+==============
+WINCONDITIONS
+==============
+
+all Square on Full_Cell
+all Full_Cell on Square
+
+=======
+LEVELS
+=======
+
+--15451
+-3.###.
+-3.###.
+-5#####
+-3.###.
+11.#.#.
+
+------11----
+------221---
+---23122264-
+-6..######..
+22.##....##.
+22.##....##.
+-2.......##.
+-3......###.
+-4....####..
+-2....##....
+--..........
+-2....##....
+-2....##....
