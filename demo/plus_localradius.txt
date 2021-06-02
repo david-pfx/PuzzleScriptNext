@@ -1,0 +1,136 @@
+title Local Radius Example
+author Tom Hermans
+homepage https://github.com/Auroriax/PuzzleScript/wiki/Merged-forks#jack-lances-branch
+
+background_color #332222
+
+local_radius 2
+run_rules_on_level_start
+
+========
+OBJECTS
+========
+
+Background
+LIGHTGREEN GREEN
+11111
+01111
+11101
+11111
+10111
+
+
+Target
+DarkBlue
+.....
+.000.
+.0.0.
+.000.
+.....
+
+Wall
+BROWN DARKBROWN
+00010
+11111
+01000
+11111
+00010
+
+Player
+Black Orange White Blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+Crate
+Orange Yellow
+00000
+0...0
+0...0
+0...0
+00000
+
+GlobalCrate
+Red
+.000.
+0...0
+0...0
+0...0
+.000.
+
+RadiusIndicator
+#ff000040
+
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+G = GlobalCrate
+@ = Crate and Target
+O = Target
+
+
+=======
+SOUNDS
+=======
+
+Crate MOVE 36772507
+endlevel 83744503
+startgame 92244503
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+Player, Wall, Crate, GlobalCrate
+RadiusIndicator
+
+======
+RULES
+======
+
+(Clean up radius visuals from last turn, globally)
+global [RadiusIndicator] -> []
+
+(Player pushes crates)
+[ >  Player | Crate ] -> [  >  Player | > Crate ]
+[ >  Player | GlobalCrate ] -> [  >  Player | > GlobalCrate ]
+
+(Crates push crates, but only while in the player radius)
+[> Crate | Crate] -> [> Crate | > Crate ]
+
+(Rows of global crates can push each other, even outside of the player radius)
+global [> GlobalCrate | GlobalCrate] -> [> GlobalCrate | > GlobalCrate ]
+
+(Create a visualization of the radius for the next turn, after player has moved)
+late [Player] -> [Player RadiusIndicator]
+late [RadiusIndicator | no RadiusIndicator] -> [RadiusIndicator | RadiusIndicator]
+
+==============
+WINCONDITIONS
+==============
+
+All Target on Crate
+
+=======
+LEVELS
+=======
+
+################
+#..............#
+#..gggg..***.o.#
+#..............#
+#...ggg...**.o.#
+#..............#
+##...gg.p..*.o.#
+##.............#
+################

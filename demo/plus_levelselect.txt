@@ -1,0 +1,246 @@
+title Level Select Microban
+author David Skinner
+homepage www.sneezingtiger.com/sokoban/levels/microbanText.html
+
+level_select
+level_select_lock
+level_select_unlocked_ahead 3
+level_select_solve_symbol V
+continue_is_level_select
+
+(
+My favourite set of sokoban levels - here're the first ten of the Microban set.
+
+I tried contacting this guy, but he seems to have vanished from the net. The levels are in lots of places online, so I'm just chancing my arm by including them.  BUT BE WARNED.
+)
+
+========
+OBJECTS
+========
+
+Background
+LIGHTGREEN GREEN
+11111
+01111
+11101
+11111
+10111
+
+
+Target
+DarkBlue
+.....
+.000.
+.0.0.
+.000.
+.....
+
+Wall
+BROWN DARKBROWN
+00010
+11111
+01000
+11111
+00010
+
+Player
+Black Orange White Blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+Crate
+Orange Yellow
+00000
+0...0
+0...0
+0...0
+00000
+
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+
+
+=======
+SOUNDS
+=======
+
+Crate MOVE 36772507
+endlevel 83744503
+startgame 92244503
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+Player, Wall, Crate
+
+======
+RULES
+======
+
+[ >  Player | Crate ] -> [  >  Player | > Crate  ]
+
+==============
+WINCONDITIONS
+==============
+
+All Target on Crate
+
+=======
+LEVELS
+=======
+
+section Adding a level select
+
+message ADDING A LEVEL SELECT
+message To add a level select, first add the LEVEL_SELECT prelude flag.
+message To actually use the level select you need to add SECTIONS between your levels. See the source code of this project.
+message A section starts where it's defined. If you play until the next secion, the current section is marked as completed in the level select!
+message So one section can contain multiple levels or messages if desired. Like this one!
+
+section Unlocking levels
+
+message UNLOCKING LEVELS
+message By default, you can play all sections from the start of the game.
+message You can limit this by adding the LEVEL_SELECT_LOCK flag. Now, if you finish a section, the next one becomes unlocked!
+message If you want more than one section ahead to be unlocked, set the  LEVEL_SELECT_UNLOCKED_AHEAD prelude flag to a number.
+
+section The title screen
+
+message THE TITLE SCREEN
+message If you have a level select, the title screen displays the option by default.
+message But if you add the CONTINUE_IS_LEVEL_SELECT flag, then pressing continue on the title screen will automatically toss players into the level select after starting.
+message Especially handy if your game has lots of short sections!
+message See more instructions here: dario-zubovic.github.io/PuzzleScript/Documentation/differences
+message The rest of this example is the Microban example, adapted to support level select. Press [Esc] to exit the level and enter level select.
+
+section Level 1
+
+message level 1 of 10
+
+####..
+#.O#..
+#..###
+#@P..#
+#..*.#
+#..###
+####..
+
+section Level 2
+message level 2 of 10
+
+######
+#....#
+#.#P.#
+#.*@.#
+#.O@.#
+#....#
+######
+
+section Level 3
+message level 3 of 10
+
+..####...
+###..####
+#.....*.#
+#.#..#*.#
+#.O.O#P.#
+#########
+
+section Level 4
+message level 4 of 10
+
+########
+#......#
+#.O@@*P#
+#......#
+#####..#
+....####
+
+section Level 5
+message level 5 of 10
+
+.#######
+.#.....#
+.#.O*O.#
+##.*P*.#
+#..O*O.#
+#......#
+########
+
+section Level 6
+message level 6 of 10
+
+######.#####
+#....###...#
+#.**.....#P#
+#.*.#OOO...#
+#...########
+#####.......
+
+section Level 7
+message level 7 of 10
+
+#######
+#.....#
+#.O*O.#
+#.*O*.#
+#.O*O.#
+#.*O*.#
+#..P..#
+#######
+
+section Level 8
+message level 8 of 10
+
+..######
+..#.OOP#
+..#.**.#
+..##.###
+...#.#..
+...#.#..
+####.#..
+#....##.
+#.#...#.
+#...#.#.
+###...#.
+..#####.
+
+section Level 9
+message level 9 of 10
+
+#####.
+#O..##
+#P**.#
+##...#
+.##..#
+..##O#
+...###
+
+section Level 10
+message level 10 of 10
+
+......#####
+......#O..#
+......#O#.#
+#######O#.#
+#.P.*.*.*.#
+#.#.#.#.###
+#.......#..
+#########..
+
+message congratulations!
