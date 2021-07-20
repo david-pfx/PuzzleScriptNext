@@ -185,7 +185,7 @@ var codeMirrorFn = function() {
     //var logicWords = ['all', 'no', 'on', 'some'];
     var sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
-      "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color'];
+      "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color','goto'];
     //var reg_commands = /\s*(sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|nosave)\s*/;
     var reg_name = /[\w]+\s*/;///\w*[a-uw-zA-UW-Z0-9_]/;
     //var reg_number = /[\d]+/;
@@ -202,7 +202,7 @@ var codeMirrorFn = function() {
     var reg_sounddirectionindicators = /\s*(up|down|left|right|horizontal|vertical|orthogonal)\s*/i;
     var reg_winconditionquantifiers = /^(all|any|no|some)$/i;
     //var reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|nosave)/;
-    var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message','global','zoomscreen','flickscreen','smoothscreen','noundo','norestart','background_color','text_color'];
+    var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message','global','zoomscreen','flickscreen','smoothscreen','noundo','norestart','background_color','text_color','goto'];
 
     var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube',
       'sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup','local_radius','font_size'];
@@ -1104,7 +1104,7 @@ var codeMirrorFn = function() {
                                 } else if (m==='global') {
                                     return 'DIRECTION';
                                 }else if (commandwords.indexOf(m)>=0) {
-									if (m==='message' || twiddleable_params.includes(m)) {
+									if (m==='message' || m==='goto' || twiddleable_params.includes(m)) {
 										state.tokenIndex=-4;
 									}                                	
                                 	return 'COMMAND';
@@ -1168,8 +1168,8 @@ var codeMirrorFn = function() {
                         if (sol)
                         {
                             if (stream.match(/\s*message\s*/i, true)) {
-                                state.tokenIndex = 1;//1/2/3 = message/level/section
-                                var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
+                                state.tokenIndex = 1;//1/2/3/4 = message/level/section/goto
+                                var newdat = ['message', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
                                 if (state.levels[state.levels.length - 1].length == 0) {
                                     state.levels.splice(state.levels.length - 1, 0, newdat);
                                 } else {
@@ -1177,9 +1177,19 @@ var codeMirrorFn = function() {
                                 }
                                 return 'MESSAGE_VERB';
                             } else if (stream.match(/\s*section\s*/i, true)) {
-                                state.tokenIndex = 3;//1/2/3 = message/level/section
+                                state.tokenIndex = 3;//1/2/3/4 = message/level/section/goto
                                 state.currentSection = mixedCase.slice(stream.pos).trim();
                                 return 'SECTION_VERB';
+                            } else if (stream.match(/\s*goto\s*/i, true)) {
+                                state.tokenIndex = 4;//1/2/3/4 = message/level/section/goto
+                                var newdat = ['goto', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
+                                if (state.levels[state.levels.length - 1].length == 0) {
+                                    state.levels.splice(state.levels.length - 1, 0, newdat);
+                                } else {
+                                    state.levels.push(newdat);
+                                }
+                                state.currentSection = null;
+                                return 'GOTO_VERB';
                             } else {
                                 var line = stream.match(reg_notcommentstart, false)[0].trim();
                                 state.tokenIndex = 2;
@@ -1209,13 +1219,10 @@ var codeMirrorFn = function() {
                                	return 'MESSAGE';
                             } else if (state.tokenIndex == 3) {
                                 stream.skipToEnd();
-
-                                if(state.metadata.indexOf("level_select")==-1) {
-                                    logError("Can't use sections without level_select parameter in preamble", state.lineNumber);
-                                    return 'ERROR';
-                                }
-
                                 return 'SECTION';
+                            } else if (state.tokenIndex == 4) {
+                                stream.skipToEnd();
+                                return 'GOTO';
                             }
                         }
 

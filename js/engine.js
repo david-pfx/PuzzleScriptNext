@@ -280,6 +280,10 @@ function generateTitleScreen()
 var levelSelectScrollPos = 0;
 
 function gotoLevelSelectScreen() {
+	if(state.metadata["level_select"] === undefined){
+		goToTitleScreen();
+		return;
+	}
 	levelSelectScrollPos = 0;
 	titleSelected = false;
 	timer = 0;
@@ -432,11 +436,11 @@ function generateLevelSelectScreen() {
 	}
 }
 
-function gotoSelectedLevel() {
+function gotoLevel(sectionIndex) {
 	againing = false;
 	messagetext = "";
 
-	curlevel = state.sections[titleSelection].firstLevel;
+	curlevel = state.sections[sectionIndex].firstLevel;
 
 	loadLevelFromStateOrTarget();
 
@@ -610,7 +614,18 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 		goToTitleScreen();
     	return;
     }
-    if (leveldat.message===undefined) {
+    if (leveldat.message !== undefined) {
+      // This "level" is actually a message.
+      tryPlayShowMessageSound();
+      drawMessageScreen();
+      canvasResize();
+      clearInputHistory();
+    } else if (leveldat.target !== undefined) {
+      // This "level" is actually a goto.
+      //tryPlayGotoSound();
+      setSectionSolved(state.levels[Number(curlevel)].section)
+      gotoLevel(leveldat.target);
+    } else {
       titleMode=0;
       textMode=false;
     level = leveldat.clone();
@@ -649,13 +664,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
       if ('run_rules_on_level_start' in state.metadata) {
       processInput(-1,true);
       }
-  } else {
-    tryPlayShowMessageSound();
-    drawMessageScreen();
-      canvasResize();
+      clearInputHistory();
   }
-
-  clearInputHistory();
 }
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
@@ -2291,6 +2301,10 @@ Rule.prototype.queueCommands = function() {
 
     if (command[0]==='message') {     
       messagetext=command[1];
+    }
+	
+    if (command[0]==='goto') {
+      gotoLevel(command[1]);
     }
 
     if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {

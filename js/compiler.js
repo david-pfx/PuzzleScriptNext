@@ -543,7 +543,7 @@ function levelsToArray(state) {
 			continue;
 		}
 		
-		if (level[0] == '\n') {
+		if (level[0] == 'message') {
 
 			var o = {
 				message: level[1],
@@ -554,6 +554,13 @@ function levelsToArray(state) {
 				logWarning('Message too long to fit on screen.', level[2]);
 			}
 
+			processedLevels.push(o);
+		} else if (level[0] == 'goto') {
+			var o = {
+				target: level[1],
+				lineNumber: level[2],
+				section: level[3]
+			};
 			processedLevels.push(o);
 		} else {
 			var o = levelFromString(state,level);
@@ -591,6 +598,54 @@ function extractSections(state) {
 	state.sections = sections;
 }
 
+function convertSectionNamesToIndices(state) {
+	var sectionMap = {};
+	var duplicateSections = {};
+	for (var s = 0; s < state.sections.length; s++) {
+		var sectionName = state.sections[s].name.toLowerCase();
+		if(sectionMap[sectionName] === undefined){
+			sectionMap[sectionName] = s;
+		}else{
+			duplicateSections[sectionName] = true;
+		}
+	}
+	
+	// GOTO commands in the RULES
+	for (var r = 0; r < state.rules.length; r++) {
+		var rule = state.rules[r];
+		for (var c = 0; c < rule.commands.length; c++) {
+			var command = rule.commands[c];
+			if (command[0] != 'goto') continue;
+			var sectionName = command[1].toLowerCase();
+			var sectionIndex = sectionMap[sectionName];
+			if (sectionIndex === undefined){
+				logError('Invalid GOTO command - There is no section named "'+command[1]+'".', rule.lineNumber);
+				sectionIndex = 0;
+			}else if (duplicateSections[sectionName] !== undefined){
+				logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'".', rule.lineNumber);
+				sectionIndex = 0;
+			}
+			command[1] = sectionIndex;
+		}
+	}
+	
+	// GOTO commands in the LEVELS
+	for (var i = 0; i < state.levels.length; i++) {
+		var level = state.levels[i];
+		if (level.target === undefined) continue; // This was a level or a message, but not a goto.
+		var targetName = level.target.toLowerCase();
+		var targetIndex = sectionMap[targetName];
+		if (targetIndex === undefined){
+			logError('Invalid GOTO command - There is no section named "'+command[1]+'".', level.lineNumber);
+			targetIndex = 0;
+		}else if (duplicateSections[targetName] !== undefined){
+			logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'".', level.lineNumber);
+			targetIndex = 0;
+		}
+		level.target = targetIndex;
+	}
+}
+
 var directionaggregates = {
 	'horizontal' : ['left', 'right'],
 	'vertical' : ['up', 'down'],
@@ -606,7 +661,7 @@ var simpleRelativeDirections = ['^', 'v', '<', '>'];
 var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
 //redeclaring here, i don't know why
 var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
-  "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color'];
+  "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color','goto'];
 function directionalRule(rule) {
 	for (var i=0;i<rule.lhs.length;i++) {
 		var cellRow = rule.lhs[i];
@@ -847,6 +902,15 @@ function processRuleString(rule, state, curRules)
 						}
 						commands.push([token.toLowerCase(), messageStr]);
 						i=tokens.length;
+					}else if (token.toLowerCase()==='goto') {
+						var messageIndex = findIndexAfterToken(origLine,tokens,i);
+						var messageStr = origLine.substring(messageIndex).trim();
+						if (messageStr===""){
+							messageStr=" ";
+							//needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
+						}
+						commands.push([token.toLowerCase(), messageStr]);
+						i=tokens.length;
 					} else if (twiddleable_params.includes(token.toLowerCase())) {
 						if (!state.metadata.includes("runtime_metadata_twiddling")) {
 							logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
@@ -920,6 +984,10 @@ function processRuleString(rule, state, curRules)
 		} else if (cmd==='cancel') {
 			if (commands.length>1 || rhs_cells.length>0) {
 				logError('The CANCEL command can only appear by itself on the right hand side of the arrow.', lineNumber);
+			}
+		} else if (cmd==='goto') {
+			if (commands.length>1 || rhs_cells.length>0) {
+				logError('The GOTO command can only appear by itself on the right hand side of the arrow.', lineNumber);
 			}
 		}
 	}
@@ -1905,6 +1973,7 @@ function checkNoLateRulesHaveMoves(state){
 	}
 }
 
+
 function generateRigidGroupList(state) {
 	var rigidGroupIndex_to_GroupIndex=[];
 	var groupIndex_to_RigidGroupIndex=[];
@@ -2652,6 +2721,7 @@ function loadFile(str) {
 	rulesToArray(state);
 
 	removeDuplicateRules(state);
+	convertSectionNamesToIndices(state);
 
 	if (debugMode) {
 		printRules(state);
