@@ -1188,7 +1188,6 @@ var codeMirrorFn = function() {
                                 } else {
                                     state.levels.push(newdat);
                                 }
-                                state.currentSection = null;
                                 return 'GOTO_VERB';
                             } else {
                                 var line = stream.match(reg_notcommentstart, false)[0].trim();
