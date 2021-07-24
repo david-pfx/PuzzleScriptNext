@@ -437,6 +437,10 @@ function generateLevelSelectScreen() {
 }
 
 function gotoLevel(sectionIndex) {
+  if (solving) {
+    return;
+  }
+
 	againing = false;
 	messagetext = "";
 
