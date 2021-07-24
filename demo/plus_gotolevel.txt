@@ -1,6 +1,6 @@
-title My Game
-author My Name Here
-homepage www.puzzlescript.net
+title Goto Level
+author TilmannR
+homepage auroriax.github.io/PuzzleScript/Documentation/levels.html#section-and-goto
 
 ========
 OBJECTS
