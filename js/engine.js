@@ -640,7 +640,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	        }
         }
 
-	    initSmoothCamera();
+      initSmoothCamera();
+      twiddleMetadataExtras();
 
 	    backups=[]
 	    restartTarget=backupLevel();
