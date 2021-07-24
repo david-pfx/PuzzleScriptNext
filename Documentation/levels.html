@@ -117,12 +117,46 @@ Levels are separated by blank lines, and you can also display messages if you wa
 <p>
 If you hold CTRL (or, on a Mac, CMD) and left click on the level in the text editor, it will load it in game.
 <p>
-<h3>What stuff is hard to do?</h3>
+<h3 id="section-and-goto">Section and Goto (new in PuzzleScript+)</h3>
 <p>
-Branching.  I have no support for it in terms of this level structure.  If you want a continuous open world you can set <b>zoomscreen</b>, <b>flickscreen</b>, or <b>smoothscreen</b> in the <a href="prelude.html">prelude</a>.
-<p>
-If you can think of an elegant way to implement level branching in the engine, <a href="mailto:analytic@gmail.com">let me know</a>, and I'll consider it : )
+If you want to use the level_select feature or the GOTO commands, you need to divide your game into named sections.
 
+<pre><code>MESSAGE Select your preferred difficulty setting.
+
+#########
+#...P...#
+#.E...H.#
+#########
+
+SECTION Easy Levels
+
+#########
+#.P..*O.#
+#########
+
+#########
+#.P.*.O.#
+#########
+
+GOTO The End
+
+SECTION Hard Levels
+
+#########
+#.P..*O.#
+#.......#
+#########
+
+#########
+#.P.....#
+#...* O.#
+#########
+
+SECTION The End
+
+MESSAGE Congratulations!</code></pre>
+
+You can use a GOTO command to redirect the player to any named section after the preceding level was won.
 
     </div><!-- /.container -->
 

@@ -1285,7 +1285,7 @@ function update() {
 			if(titleMode <= 1) {
 				nextLevel();
 			} else if(titleMode == 2) {
-				gotoSelectedLevel();
+				gotoLevel(titleSelection);
 			}
         }
     }

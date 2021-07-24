@@ -1,0 +1,182 @@
+title My Game
+author My Name Here
+homepage www.puzzlescript.net
+
+========
+OBJECTS
+========
+
+background .
+black  
+
+wall #
+brown darkbrown
+00010
+11111
+01000
+11111
+00010
+
+player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+one 1 
+red 
+..0..
+..0..
+..0..
+..0..
+..0..
+
+two 2
+yellow 
+.000.
+...0.
+.000.
+.0...
+.000.
+
+tre 3
+blue 
+.000.
+...0.
+.000.
+...0.
+.000.
+
+hub x
+gray
+0...0
+.0.0.
+..0..
+.0.0.
+0...0
+
+victory ~
+gray
+..0..
+...0.
+00000
+...0.
+..0..
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+background
+one, two, tre, hub, victory
+player, wall
+
+======
+RULES     
+======     
+
+late [player one] -> Goto SECTION 1
+late [player two] -> goto Section 2
+late [player tre] -> GOTO section 3
+late [player hub] -> goto hub
+late [player victory] -> win
+
+==============
+WINCONDITIONS
+==============
+
+=======     
+LEVELS
+=======
+message Intro
+
+#########
+#.......#
+#.......#
+#..p.~..#
+#.......#
+#.......#
+#########
+
+section Hub
+
+#########
+#.......#
+#.....1.#
+#.p...2.#
+#.....3.#
+#.......#
+#########
+
+section Section 1
+message Section 1, two levels
+
+#########
+#.......#
+#.x.p.~.#
+#.......#
+#########
+#..1.1..#
+#########
+
+#########
+#.......#
+#.x.p.~.#
+#.......#
+#########
+#..1.2..#
+#########
+
+goto Hub
+
+section Section 2
+message Section 2, three levels
+
+#########
+#.......#
+#.x.p.~.#
+#.......#
+#########
+#..2.1..#
+#########
+
+#########
+#.......#
+#.x.p.~.#
+#.......#
+#########
+#..2.2..#
+#########
+
+#########
+#.......#
+#.x.p.~.#
+#.......#
+#########
+#..2.3..#
+#########
+
+goto Hub
+
+section Section 3
+message Section 3, one levels
+
+#########
+#.......#
+#.x.p.~.#
+#.......#
+#########
+#..3.1..#
+#########
+
+goto Hub
