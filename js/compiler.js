@@ -555,7 +555,7 @@ function levelsToArray(state) {
 			if (splitMessage.length>12){
 				logWarning('Message too long to fit on screen.', level[2]);
 			}
-			if(o.section != previousSection) sectionTerminated = false;
+			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('Message unreachable due to previous GOTO.', level[2]);
 		} else if (level[0] == 'goto') {
 			o = {
@@ -563,12 +563,12 @@ function levelsToArray(state) {
 				lineNumber: level[2],
 				section: level[3]
 			};
-			if(o.section != previousSection) sectionTerminated = false;
+			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
 			sectionTerminated = true;
 		} else {
 			o = levelFromString(state,level);
-			if(o.section != previousSection) sectionTerminated = false;
+			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('Level unreachable due to previous GOTO.', o.lineNumber);
 		}
 		processedLevels.push(o);
