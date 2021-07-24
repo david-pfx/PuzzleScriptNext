@@ -441,6 +441,10 @@ function gotoLevel(sectionIndex) {
     return;
   }
 
+  if (sectionIndex < 0) {return;} //Invalid index
+
+  console.log(sectionIndex);
+
 	againing = false;
 	messagetext = "";
 

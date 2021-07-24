@@ -624,11 +624,11 @@ function convertSectionNamesToIndices(state) {
 			var sectionName = command[1].toLowerCase();
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
-				logError('Invalid GOTO command - There is no section named "'+command[1]+'".', rule.lineNumber);
-				sectionIndex = 0;
+				logError('Invalid GOTO command - There is no section named "'+command[1]+'". Either it does not exist, or it has zero levels.', rule.lineNumber);
+				sectionIndex = -1;
 			}else if (duplicateSections[sectionName] !== undefined){
-				logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'".', rule.lineNumber);
-				sectionIndex = 0;
+				logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'". Section names must be unique for GOTO to work.', rule.lineNumber);
+				sectionIndex = -1;
 			}
 			command[1] = sectionIndex;
 		}
