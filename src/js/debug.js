@@ -5,6 +5,7 @@ var inputHistory=[];
 var compiledText;
 var canOpenEditor=true;
 var IDE=true;
+var solving = false;
 
 function convertLevelToString() {
 	var out = '';
