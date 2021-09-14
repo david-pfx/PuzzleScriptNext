@@ -227,7 +227,7 @@
                     }
                 case 'levels':
                     {
-                        if (lineToCursor.trim().split(/\s+/ ).length<2) {
+                        if ("message".indexOf(lineToCursor.trim())===0) {
                             candlists.push(["MESSAGE_VERB","message"]);
                             candlists.push(["SECTION_VERB","section"]);
                             candlists.push(["GOTO_VERB"   ,"goto"   ]);

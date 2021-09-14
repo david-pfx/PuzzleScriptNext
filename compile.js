@@ -143,6 +143,7 @@ new Inliner('./src/standalone.html', function (error, html) {
                     "./src/js/codemirror/match-highlighter.js",
                     "./src/js/codemirror/show-hint.js",
                     "./src/js/codemirror/anyword-hint.js",
+                    "./src/js/codemirror/comment.js",
                     "./src/js/colors.js",
                     "./src/js/graphics.js",
                     "./src/js/inputoutput.js",
@@ -160,14 +161,23 @@ new Inliner('./src/standalone.html', function (error, html) {
                     "./src/js/addlisteners_editor.js",
                     "./src/js/makegif.js"];
 
-                var concatenated = files.map(fn=>fs.readFileSync(fn,encoding='utf-8')).concat();
-                var result = await minify(concatenated, { sourceMap: true });
-                result.code += "\n//# sourceMappingURL=localhost:8000/bin/js/scripts_compiled.js.map"
-                fs.writeFileSync('./bin/js/scripts_compiled.js',result.code);
-                fs.writeFileSync('./bin/js/scripts_compiled.js.map',result.map);
+            var corpus={};
+            for (var i=0;i<files.length;i++){
+                var fpath=files[i];
+                corpus["source/"+fpath.slice(9)]=fs.readFileSync(fpath,encoding='utf-8');
+            }
+            var result = await minify(
+                corpus, 
+                {
+                    sourceMap: {
+                    filename: "scripts_compiled.js",
+                    url: "scripts_compiled.js.map"
+                    }
+                });
+            fs.writeFileSync('./bin/js/scripts_compiled.js',result.code);
+            fs.writeFileSync('./bin/js/scripts_compiled.js.map',result.map);
 
 
-                
             files = [  
                 "./src/js/globalVariables.js",
                 "./src/js/debug_off.js",
@@ -184,12 +194,29 @@ new Inliner('./src/standalone.html', function (error, html) {
                 "./src/js/inputoutput.js",
                 "./src/js/mobile.js"];
 
-            concatenated = files.map(fn=>fs.readFileSync(fn,encoding='utf-8')).concat();
-            var result = await minify(concatenated, { sourceMap: true });
-            result.code += "\n//# sourceMappingURL=scripts_play_compiled.js.map"
+            
+            corpus={};
+            for (var i=0;i<files.length;i++){
+                var fpath=files[i];
+                corpus["source/"+fpath.slice(9)]=fs.readFileSync(fpath,encoding='utf-8');
+            }
+            
+            var result = await minify(
+                corpus, 
+                {
+                    sourceMap: {
+                    filename: "scripts_play_compiled.js",
+                    url: "scripts_play_compiled.js.map"
+                    }
+                });
             fs.writeFileSync('./bin/js/scripts_play_compiled.js',result.code);
             fs.writeFileSync('./bin/js/scripts_play_compiled.js.map',result.map);
-        
+                    
+            await ncp("./src/js", "./bin/js/source", function (err) {
+                if (err) {
+                return console.error(err);
+            }});
+
             console.log("compilation done");
 
             var editor = fs.readFileSync("./bin/editor.html", encoding='utf8');
