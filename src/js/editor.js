@@ -33,7 +33,11 @@ var editor = window.CodeMirror.fromTextArea(code, {
 	lineWrapping: true,
 	lineNumbers: true,
 	styleActiveLine: true,
-	extraKeys: {"Ctrl-/": "toggleComment"},
+	extraKeys: {
+		"Ctrl-/": "toggleComment",
+		"Cmd-/": "toggleComment",
+		"Esc":CodeMirror.commands.clearSearch
+		}
 	});
 	
 editor.on('mousedown', function(cm, event) {
@@ -117,6 +121,12 @@ function tryLoadGist(id) {
 
 	consolePrint("Contacting GitHub",true);
 	var githubHTTPClient = new XMLHttpRequest();
+    if (window.localStorage!==undefined && localStorage['oauth_access_token']!==undefined) {
+        var oauthAccessToken = window.localStorage.getItem("oauth_access_token");
+        if (typeof oauthAccessToken === "string") {
+            githubHTTPClient.setRequestHeader("Authorization","token "+oauthAccessToken);
+        }
+    }
 	githubHTTPClient.open('GET', githubURL);
 	githubHTTPClient.onreadystatechange = function() {
 	

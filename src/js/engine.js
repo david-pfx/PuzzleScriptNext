@@ -689,11 +689,14 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	    restartTarget=backupLevel();
 		keybuffer=[];
 
-      if ('run_rules_on_level_start' in state.metadata) {
-      processInput(-1,true);
-      }
-      clearInputHistory();
-  }
+	    if ('run_rules_on_level_start' in state.metadata) {
+			runrulesonlevelstart_phase=true;
+			processInput(-1,true);
+			runrulesonlevelstart_phase=false;
+	    }
+	}
+
+	clearInputHistory();
 }
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
@@ -1158,7 +1161,7 @@ function DoRestart(force) {
 		return;
 	}
 	restarting=true;
-	if (force===false) {
+	if (force!==true) {
 		backups.push(backupLevel());
 	}
 
@@ -2853,6 +2856,10 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	    	}
 	    }
 
+		if (dontModify && level.commandQueue.indexOf('win')>=0) {	
+	    	return true;	
+		}
+		
 		if (dontModify) {		
     		if (verbose_logging) {
     			consoleCacheDump();
@@ -2903,8 +2910,10 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
-				localStorage[document.URL+'_checkpoint']=backupStr;
-				localStorage[document.URL]=curlevel;
+				if (!!window.localStorage) {
+					localStorage[document.URL+'_checkpoint']=backupStr;
+					localStorage[document.URL]=curlevel;
+				}
 			}	 
 
 		    if (level.commandQueue.indexOf('again')>=0 && modified) {
@@ -2958,33 +2967,37 @@ function checkWin(dontDoWin) {
     dontDoWin=true;
   }
 
-  if (level.commandQueue.indexOf('win')>=0) {
-    consolePrint("Win Condition Satisfied");
-    if(!dontDoWin){
-      DoWin();
-    }
-    return;
-  }
+	if (level.commandQueue.indexOf('win')>=0) {
+		if (runrulesonlevelstart_phase){
+			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
+		} else {
+			consolePrint("Win Condition Satisfied");
+		}
+		if(!dontDoWin){
+			DoWin();
+		}
+		return;
+	}
 
-  var won= false;
-  if (state.winconditions.length>0)  {
-    var passed=true;
-    for (var wcIndex=0;wcIndex<state.winconditions.length;wcIndex++) {
-      var wincondition = state.winconditions[wcIndex];
-      var filter1 = wincondition[1];
-      var filter2 = wincondition[2];
-      var rulePassed=true;
-      switch(wincondition[0]) {
-        case -1://NO
-        {
-          for (var i=0;i<level.n_tiles;i++) {
-            var cell = level.getCellInto(i,_o10);
-            if ( (!filter1.bitsClearInArray(cell.data)) &&  
-               (!filter2.bitsClearInArray(cell.data)) ) {
-              rulePassed=false;
-              break;
-            }
-          }
+	var won= false;
+	if (state.winconditions.length>0)  {
+		var passed=true;
+		for (var wcIndex=0;wcIndex<state.winconditions.length;wcIndex++) {
+			var wincondition = state.winconditions[wcIndex];
+			var filter1 = wincondition[1];
+			var filter2 = wincondition[2];
+			var rulePassed=true;
+			switch(wincondition[0]) {
+				case -1://NO
+				{
+					for (var i=0;i<level.n_tiles;i++) {
+						var cell = level.getCellInto(i,_o10);
+						if ( (!filter1.bitsClearInArray(cell.data)) &&  
+							 (!filter2.bitsClearInArray(cell.data)) ) {
+							rulePassed=false;
+							break;
+						}
+					}
 
           break;
         }
@@ -3024,12 +3037,16 @@ function checkWin(dontDoWin) {
     won=passed;
   }
 
-  if (won) {
-    consolePrint("Win Condition Satisfied");
-    if (!dontDoWin){
-      DoWin();
-    }
-  }
+	if (won) {
+		if (runrulesonlevelstart_phase){
+			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
+		} else {
+			consolePrint("Win Condition Satisfied");
+		}
+		if (!dontDoWin){
+			DoWin();
+		}
+	}
 }
 
 function DoWin() {

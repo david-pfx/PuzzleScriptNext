@@ -1,7 +1,7 @@
 /*
 credits
 
-brunt of the work by stephen lavelle (www.increpare.com)
+brunt of the work by increpare (www.increpare.com)
 
 all open source mit license blah blah
 
@@ -21,8 +21,8 @@ for post-launch credits, check out activty on github.com/increpare/PuzzleScript
 */
 
 var compiling = false;
-var errorStrings = [];
-var errorCount=0;
+var errorStrings = [];//also stores warning strings
+var errorCount=0;//only counts errors
 
 var twiddleable_params = ['background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','noundo','norestart'];
 
@@ -61,7 +61,7 @@ function logError(str, lineNumber,urgent) {
 function logWarning(str, lineNumber,urgent) {
     if (compiling||urgent) {
         if (lineNumber === undefined) {
-            return logErrorNoLine(str,urgent);
+            return logWarningNoLine(str,urgent);
         }
         var errorString = '<a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);"><span class="errorTextLineNumber"> line ' + lineNumber.toString() + '</span></a> : ' + '<span class="warningText">' + str + '</span>';
          if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
@@ -72,6 +72,21 @@ function logWarning(str, lineNumber,urgent) {
         }
     }
 }
+
+function logWarningNoLine(str,urgent) {
+    if (compiling||urgent) {
+        var errorString = '<span class="warningText">' + str + '</span>';
+         if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
+            //do nothing, duplicate error
+         } else {
+            consolePrint(errorString,true);
+            errorStrings.push(errorString);
+        }
+        errorCount++;
+    }
+}
+
+
 function logErrorNoLine(str,urgent) {
     if (compiling||urgent) {
         var errorString = '<span class="errorText">' + str + '</span>';
@@ -184,22 +199,23 @@ var codeMirrorFn = function() {
     //var relativedirs = ['^', 'v', '<', '>', 'moving','stationary','parallel','perpendicular', 'no'];
     //var logicWords = ['all', 'no', 'on', 'some'];
     var sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
-	var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
-      "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color','goto'];
-    var reg_commands = /\p{Z}*(sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|nosave)\p{Z}*/u;
-    var reg_name = /[\p{L}\p{N}_]+[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
+    var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
+    "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color','goto'];
+	
+    var reg_commands = /[\p{Z}\s]*(sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|nosave)[\p{Z}\s]*/u;
+    var reg_name = /[\p{L}\p{N}_]+[\p{Z}\s]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
     var reg_number = /[\d]+/;
     var reg_soundseed = /\d+\b/;
-    var reg_spriterow = /[\.0-9]{5}\p{Z}*/u;
-    var reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}]*/u;
+    var reg_spriterow = /[\.0-9]{5}[\p{Z}\s]*/u;
+    var reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
     var reg_equalsrow = /[\=]+/;
     var reg_notcommentstart = /[^\(]+/;
     var reg_csv_separators = /[ \,]*/;
-    var reg_soundverbs = /(move|action|create|destroy|cantmove|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage|sfx0|sfx1|sfx2|sfx3|sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10)\p{Z}+/u;
+    var reg_soundverbs = /(move|action|create|destroy|cantmove|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage|sfx0|sfx1|sfx2|sfx3|sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10)[\p{Z}\s]+/u;
     var reg_directions = /^(action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
     var reg_loopmarker = /^(startloop|endloop)$/;
     var reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
-    var reg_sounddirectionindicators = /\p{Z}*(up|down|left|right|horizontal|vertical|orthogonal)\p{Z}*/u;
+    var reg_sounddirectionindicators = /[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)[\p{Z}\s]*/u;
     var reg_winconditionquantifiers = /^(all|any|no|some)$/;
     var reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|nosave)/;
     var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube',
@@ -512,7 +528,7 @@ var codeMirrorFn = function() {
                     {
 						var tryParseName = function() {
                             //LOOK FOR NAME
-                            var match_name = sol ? stream.match(reg_name, true) : stream.match(/[^\p{Z}\()]+\p{Z}*/u,true);
+                            var match_name = sol ? stream.match(reg_name, true) : stream.match(/[^\p{Z}\s\()]+[\p{Z}\s]*/u,true);
                             if (match_name == null) {
                                 stream.match(reg_notcommentstart, true);
                                 if (stream.pos>0){                                
@@ -682,7 +698,7 @@ var codeMirrorFn = function() {
                     {
                         if (sol) {
                             var ok = true;
-                            var splits = reg_notcommentstart.exec(stream.string)[0].split(/\p{Z}/u).filter(function(v) {return v !== ''});                          
+                            var splits = reg_notcommentstart.exec(stream.string)[0].split(/[\p{Z}\s]/u).filter(function(v) {return v !== ''});                          
                             splits.push(state.lineNumber);
                             state.sounds.push(splits);
                         }
@@ -700,7 +716,7 @@ var codeMirrorFn = function() {
                             state.tokenIndex++;
                             return 'SOUND';
                         } 
-                       	candname = stream.match(/[^\[\|\]\p{Z}]*/u, true);
+                       	candname = stream.match(/[^\[\|\]\p{Z}\s]*/u, true);
                        	if (candname!== null ) {
                        		var m = candname[0].trim();
                        		if (state.names.indexOf(m)>=0) {
@@ -824,7 +840,7 @@ var codeMirrorFn = function() {
                             var longer = stream.string.replace('=', ' = ');
                             longer = reg_notcommentstart.exec(longer)[0];
 
-                            var splits = longer.split(/\p{Z}/u).filter(function(v) {
+                            var splits = longer.split(/[\p{Z}\s]/u).filter(function(v) {
                                 return v !== '';
                             });
                             var ok = true;
@@ -989,7 +1005,7 @@ var codeMirrorFn = function() {
                             return 'NAME';
                         } else if (state.tokenIndex === 1) {
                             stream.next();
-                            stream.match(/\p{Z}*/u, true);
+                            stream.match(/[\p{Z}\s]*/u, true);
                             state.tokenIndex++;
                             return 'ASSSIGNMENT';
                         } else {
@@ -1061,7 +1077,7 @@ var codeMirrorFn = function() {
                         	stream.skipToEnd();
                         	return 'MESSAGE';
                         }
-                        if (stream.match(/\p{Z}*->\p{Z}*/u, true)) {
+                        if (stream.match(/[\p{Z}\s]*->[\p{Z}\s]*/u, true)) {
                             return 'ARROW';
                         }
                         if (ch === '[' || ch === '|' || ch === ']' || ch==='+') {
@@ -1069,18 +1085,18 @@ var codeMirrorFn = function() {
                             	state.tokenIndex = 1;
                             }
                             stream.next();
-                            stream.match(/\p{Z}*/u, true);
+                            stream.match(/[\p{Z}\s]*/u, true);
                             return 'BRACKET';
                         } else {
-                            var m = stream.match(/[^\[\|\]\p{Z}]*/u, true)[0].trim();
+                            var m = stream.match(/[^\[\|\]\p{Z}\s]*/u, true)[0].trim();
 
                             if (state.tokenIndex===0&&reg_loopmarker.exec(m)) {
                             	return 'BRACKET';
                             } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
-                                stream.match(/\p{Z}*/u, true);
+                                stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else if (state.tokenIndex === 1 && reg_directions.exec(m)) {
-                                stream.match(/\p{Z}*/u, true);
+                                stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else {
                                 if (state.names.indexOf(m) >= 0) {
@@ -1088,7 +1104,7 @@ var codeMirrorFn = function() {
                                         logError('Identifiers cannot appear outside of square brackets in rules, only directions can.', state.lineNumber);
                                         return 'ERROR';
                                     } else {
-                                        stream.match(/\p{Z}*/u, true);
+                                        stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
                                 }
@@ -1120,7 +1136,7 @@ var codeMirrorFn = function() {
                     {
                         if (sol) {
                         	var tokenized = reg_notcommentstart.exec(stream.string);
-                        	var splitted = tokenized[0].split(/\p{Z}/u);
+                        	var splitted = tokenized[0].split(/[\p{Z}\s]/u);
                         	var filtered = splitted.filter(function(v) {return v !== ''});
                             filtered.push(state.lineNumber);
                             
@@ -1129,7 +1145,7 @@ var codeMirrorFn = function() {
                         }
                         state.tokenIndex++;
 
-                        var match = stream.match(/[\p{Z}]*[\p{L}\p{N}_]+[\p{Z}]*/u);
+                        var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);
                         if (match === null) {
                                 logError('incorrect format of win condition.', state.lineNumber);
                                 stream.match(reg_notcommentstart, true);
@@ -1167,8 +1183,18 @@ var codeMirrorFn = function() {
                     {
                         if (sol)
                         {
-                            if (stream.match(/\p{Z}*message\p{Z}*/u, true)) {
+                            if (stream.match(/[\p{Z}\s]*message\b[\p{Z}\s]*/u, true)) {
                                 state.tokenIndex = 1;//1/2/3/4 = message/level/section/goto
+                                var newdat = ['message', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
+                                if (state.levels[state.levels.length - 1].length == 0) {
+                                    state.levels.splice(state.levels.length - 1, 0, newdat);
+                                } else {
+                                    state.levels.push(newdat);
+                                }
+                                return 'MESSAGE_VERB';//a duplicate of the previous section as a legacy thing for #589 
+                            } else if (stream.match(/[\p{Z}\s]*message[\p{Z}\s]*/u, true)) {//duplicating previous section because of #589
+                                logWarning("You probably meant to put a space after 'message' innit.  That's ok, I'll still interpret it as a message, but you probably want to put a space there.",state.lineNumber);
+								state.tokenIndex = 1;//1/2/3/4 = message/level/section/goto
                                 var newdat = ['message', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
                                 if (state.levels[state.levels.length - 1].length == 0) {
                                     state.levels.splice(state.levels.length - 1, 0, newdat);
@@ -1244,7 +1270,7 @@ var codeMirrorFn = function() {
 	            			state.tokenIndex=0;
 	            		}
 	            		if (state.tokenIndex==0) {
-		                    var match = stream.match(/[\p{Z}]*[\p{L}\p{N}_]+[\p{Z}]*/u);	                    
+		                    var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);	                    
 		                    if (match!==null) {
 		                    	var token = match[0].trim();
 		                    	if (sol) {

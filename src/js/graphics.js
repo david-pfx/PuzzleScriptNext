@@ -47,11 +47,13 @@ function drawTextWithCustomFont(txt, ctx, x, y) {
 function regenText(spritecanvas,spritectx) {
 	textImages={};
 
-    for (var n in font) {
-        if (font.hasOwnProperty(n)) {
-            textImages[n] = createSprite('char'+n,font[n], undefined, 1);
-        }
-    }
+	for (var n in font) {
+		if (font.hasOwnProperty(n)) {
+            fontstr = font[n].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
+            fontstr.shift();
+			textImages[n] = createSprite('char'+n,fontstr, undefined, 1);
+		}
+	}
 }
 
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
@@ -613,12 +615,13 @@ function canvasResize() {
 
 
     if (textMode) {
-        w=font['X'][0].length + 1;
-        h=font['X'].length + 1;
+        w=5 + 1;
+        h=font['X'].length/(w) + 1;
     }
 
-    cellwidth = w * ~~(cellwidth / w);
-    cellheight = h * ~~(cellheight / h);
+
+    cellwidth =w * Math.max( ~~(cellwidth / w),1);
+    cellheight = h * Math.max(~~(cellheight / h),1);
 
     if ((cellwidth == 0 || cellheight == 0) && !textMode) {
         cellwidth = w;

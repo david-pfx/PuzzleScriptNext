@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>PuzzleScript Gallery</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../Documentation/css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../Documentation/css/bootstrap-theme.css" rel="stylesheet">
+
+    <style>
+  .panel {
+    border:0;
+    margin:0;
+    box-shadow:none;
+  }
+.panel-body {
+  border:0;
+  background-color: transparent;
+  padding:0;
+  text-align: center;
+}
+.panel-footer {
+  border:0;
+  background-color: transparent;
+  padding:0;
+  text-align: center;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+.panel-body img {
+  width:100%;
+  max-height: 320px; 
+  object-fit: contain;
+  bottom:0px;
+  text-align: center;
+}
+.gamelinktitle{
+  font-weight: bold;
+}
+
+      .caption{
+        text-align: center;
+      }
+    </style>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript</a>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="container">
+<p>
+
+<p>
+      <!-- Example row of columns -->
+      <div class="row" id="gallerycontainer">
+      <center><h1>Gallery</h1></center>
+      <hr>
+        
+      </div>
+
+
+    </div><!-- /.container -->
+
+
+<script type="text/javascript" src="../games_dat.js"></script>
+
+
+<script>
+
+function escapeHtml(unsafe) {
+  console.log(unsafe);
+  return unsafe
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
+}
+
+
+function replaceContent() {
+  var columns = document.getElementById('gallerycontainer');
+
+  games_gallery.reverse();
+  var data = [];
+  for (var i=0;i<games_gallery.length;i++) {
+    dat=games_gallery[i];
+    dat.imgurl = "./gifs/"+dat.thumb;
+    dat.gameurl = dat.url;
+    if (dat.hasOwnProperty("homepage")===false){
+      dat.homepage=dat.url;
+    }
+    var str ='<div class="panel panel-default"><div class="panel-body"><a href="'+dat.url+'"><img src="'+dat.imgurl+'">​</a></div><div class="panel-footer"><a class="gamelinktitle" href="'+dat.url+'">'+escapeHtml(dat.title)+'</a> by <a href="'+dat.homepage+'">'+escapeHtml(dat.author)+'</a></div></div>';
+
+
+    data.push('<div class="col-xs-4">'+str+'</div>');
+  }
+  columns.innerHTML = data.join('');
+}
+
+replaceContent();
+ </script>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../Documentation/js/jquery.js"></script>
+    <script src="../Documentation/js/bootstrap.min.js"></script>
+  </body>
+</html>
