@@ -121,15 +121,18 @@ function tryLoadGist(id) {
 
 	consolePrint("Contacting GitHub",true);
 	var githubHTTPClient = new XMLHttpRequest();
-    if (window.localStorage!==undefined && localStorage['oauth_access_token']!==undefined) {
+
+	githubHTTPClient.open('GET', githubURL);
+
+	if (window.localStorage!==undefined && localStorage['oauth_access_token']!==undefined) {
         var oauthAccessToken = window.localStorage.getItem("oauth_access_token");
         if (typeof oauthAccessToken === "string") {
             githubHTTPClient.setRequestHeader("Authorization","token "+oauthAccessToken);
         }
     }
-	githubHTTPClient.open('GET', githubURL);
+
 	githubHTTPClient.onreadystatechange = function() {
-	
+	 
 		if(githubHTTPClient.readyState!=4) {
 			return;
 		}
