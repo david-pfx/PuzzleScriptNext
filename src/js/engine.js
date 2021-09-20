@@ -623,7 +623,7 @@ function drawMessageScreen() {
 
 var loadedLevelSeed=0;
 
-function loadLevelFromLevelDat(state,leveldat,randomseed) {	
+function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {	
 	if (randomseed==null) {
 		randomseed = (Math.random() + Date.now()).toString();
 	}
@@ -696,7 +696,9 @@ function loadLevelFromLevelDat(state,leveldat,randomseed) {
 	    }
 	}
 
-	clearInputHistory();
+	if (clearinputhistory===true){
+		clearInputHistory();
+	}
 }
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
