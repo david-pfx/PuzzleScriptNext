@@ -2744,10 +2744,10 @@ playerPositionsAtTurnStart = getPlayerPositions();
         }
 
 
-        if (playerPositions.length>0 && state.metadata.require_player_movement!==undefined) {
+        if (playerPositionsAtTurnStart.length>0 && state.metadata.require_player_movement!==undefined && dir >= 0) {
         	var somemoved=false;
-        	for (var i=0;i<playerPositions.length;i++) {
-        		var pos = playerPositions[i];
+        	for (var i=0;i<playerPositionsAtTurnStart.length;i++) {
+        		var pos = playerPositionsAtTurnStart[i];
         		var val = level.getCell(pos);
         		if (state.playerMask.bitsClearInArray(val.data)) {
         			somemoved=true;
