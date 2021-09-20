@@ -252,15 +252,15 @@ new Inliner('./src/standalone.html', function (error, html) {
 
             console.log("compressing html");
             
-            var htmlminify = require('html-minifier-terser').minify;
+            //var htmlminify = require('html-minifier-terser').minify;
             
-            glob("./bin/*.html", {}, async function (er, files) {
-                for (filename of files){
-                    var lines=fs.readFileSync(filename, encoding='utf8');
-                    var result = htmlminify(lines);
-                    fs.writeFileSync(filename,result);
-                }
-            });
+            //glob("./bin/*.html", {}, async function (er, files) {
+            //    for (filename of files){
+            //        var lines=fs.readFileSync(filename, encoding='utf8');
+            //        var result = htmlminify(lines);
+            //        fs.writeFileSync(filename,result);
+            //    }
+            //});*/
 
             
             (async function a() {
