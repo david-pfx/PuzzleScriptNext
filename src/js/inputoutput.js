@@ -1429,9 +1429,10 @@ function update() {
         }
     }
 
-    if (draw || (state !== undefined && state.metadata.smoothscreen !== undefined)) {
+	if (draw || (typeof state !== "undefined" && 
+		state.metadata.smoothscreen !== undefined)) {
       redraw();
-    }
+	}
 }
 
 // Lights, camera…function!
