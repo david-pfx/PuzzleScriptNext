@@ -336,6 +336,23 @@
             //state.legend_properties
             //state.objects
 
+            //if list is a single word and that matches what the current word is, don't show hint
+            if (list.length===1 && list[0].text.toLowerCase()===curWord){
+                list=[];
+            }
+            //if list contains the word that you've typed, put it to top of autocomplete list
+            for (var i=1;i<list.length;i++){
+                if (list[i].text.toLowerCase()===curWord){
+                    var newhead=list[i];
+                    list.splice(i,1);
+                    list.unshift(newhead);
+                    break;
+                }
+            }
+            //if you're editing mid-word rather than at the end, no hints.
+            if (tok.string.length>curWord.length){
+                list=[];
+            }
             return {
                 list: list,
                 from: CodeMirror.Pos(cur.line, start),
