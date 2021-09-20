@@ -3163,7 +3163,6 @@ function nextLevel() {
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
-	clearInputHistory();
 }
 
 function loadLevelFromStateOrTarget() {
