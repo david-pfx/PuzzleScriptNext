@@ -73,18 +73,8 @@
       </div>
     </div>
 
-    <div class="container">
-<p>
-
-<p>
-      <!-- Example row of columns -->
-      <div class="row" id="gallerycontainer">
-      <center><h1>Gallery</h1></center>
-      <hr>
-        
-      </div>
-
-
+    <center><h1>Gallery</h1></center>
+    <div class="container" id="gallerycontainer">
     </div><!-- /.container -->
 
 
@@ -107,20 +97,32 @@ function escapeHtml(unsafe) {
 function replaceContent() {
   var columns = document.getElementById('gallerycontainer');
 
+  var rowStart = '<div class="row">';
+  var rowEnd = '</div>'
+  var gamesPerRow = 3;
+
   games_gallery.reverse();
   var data = [];
+  data.push(rowStart);
   for (var i=0;i<games_gallery.length;i++) {
+    var startNewRow = i && !(i % gamesPerRow);
+    if(startNewRow) data.push(rowEnd, rowStart);
+    
     dat=games_gallery[i];
     dat.imgurl = "./gifs/"+dat.thumb;
     dat.gameurl = dat.url;
     if (dat.hasOwnProperty("homepage")===false){
       dat.homepage=dat.url;
     }
+    if (dat.homepage.startsWith("http")===false){
+      dat.homepage="https://"+dat.homepage
+    }
     var str ='<div class="panel panel-default"><div class="panel-body"><a href="'+dat.url+'"><img src="'+dat.imgurl+'">​</a></div><div class="panel-footer"><a class="gamelinktitle" href="'+dat.url+'">'+escapeHtml(dat.title)+'</a> by <a href="'+dat.homepage+'">'+escapeHtml(dat.author)+'</a></div></div>';
 
 
     data.push('<div class="col-xs-4">'+str+'</div>');
   }
+  data.push(rowEnd);
   columns.innerHTML = data.join('');
 }
 
