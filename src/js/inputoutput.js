@@ -1439,7 +1439,13 @@ var looping=false;
 // Lights, camera…function!
 var loop = function(){
 	looping=true;
-	update();
+	try {
+		update();
+	}
+	catch (e) {
+		//Something went wrong, but it's more important that the loop doesn't crash during errors
+		console.error(e);
+	}
 	if (document.visibilityState==='hidden'){
 		looping=false;
 		return;
