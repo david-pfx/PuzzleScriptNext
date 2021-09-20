@@ -2322,22 +2322,58 @@ Rule.prototype.tryApply = function() {
 };
 
 Rule.prototype.queueCommands = function() {
-  var commands = this.commands;
-  for(var i=0;i<commands.length;i++) {
-    var command=commands[i];
-    var already=false;
-    if (level.commandQueue.indexOf(command[0])>=0) {
-      continue;
-    }
-    level.commandQueue.push(command[0]);
-    level.commandQueueSourceRules.push(this);
+	var commands = this.commands;
+	
+	if (commands.length==0){
+		return;
+	}
 
-    if (verbose_logging){
-      var lineNumber = this.lineNumber;
-      var ruleDirection = dirMaskName[this.direction];
-      var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
-      consolePrint(logString,true);
-    }
+	//commandQueue is an array of strings, message.commands is an array of array of strings (For messagetext parameter), so I search through them differently
+	var preexisting_cancel=level.commandQueue.indexOf("cancel")>=0;
+	var preexisting_restart=level.commandQueue.indexOf("restart")>=0;
+	
+	var currule_cancel = false;
+	var currule_restart = false;
+	for (var i=0;i<commands.length;i++){
+		var cmd = commands[i][0];
+		if (cmd==="cancel"){
+			currule_cancel=true;
+		} else if (cmd==="restart"){
+			currule_restart=true;
+		}
+	}
+
+	//priority cancel > restart > everything else
+	//if cancel is the queue from other rules, ignore everything
+	if (preexisting_cancel){
+		return;
+	}
+	//if restart is in the queue from other rules, only apply if there's a cancel present here
+	if (preexisting_restart && !currule_cancel){
+		return;
+	}
+
+	//if you are writing a cancel or restart, clear the current queue
+	if (currule_cancel || currule_restart){
+		level.commandQueue=[];
+		messagetext="";
+	}
+
+	for(var i=0;i<commands.length;i++) {
+		var command=commands[i];
+		var already=false;
+		if (level.commandQueue.indexOf(command[0])>=0) {
+			continue;
+		}
+		level.commandQueue.push(command[0]);
+		level.commandQueueSourceRules.push(this);
+
+		if (verbose_logging){
+			var lineNumber = this.lineNumber;
+			var ruleDirection = dirMaskName[this.direction];
+			var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
+			consolePrint(logString,true);
+		}
 
     if (command[0]==='message') {     
       messagetext=command[1];
@@ -2789,7 +2825,6 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			}
 			processOutputCommands(level.commandQueue);
     		backups.push(bak);
-			messagetext = "";
     		DoUndo(true,false);
     		tryPlayCancelSound();
     		return false;
@@ -2803,7 +2838,6 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			}
 			processOutputCommands(level.commandQueue);
     		backups.push(bak);
-			messagetext = "";
 	    	DoRestart(true);
     		return true;
 		}
@@ -3183,6 +3217,10 @@ function goToTitleScreen(){
   
   state.metadata = deepClone(state.default_metadata);
   twiddleMetadataExtras();
+
+  if (canvas!==null){//otherwise triggers error in cat bastard test
+		regenSpriteImages();
+	}
 
 	generateTitleScreen();
 }
