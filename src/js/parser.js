@@ -431,7 +431,7 @@ var codeMirrorFn = function() {
                 }
 
                 //MATCH SECTION NAME
-                if (stream.match(reg_sectionNames, true)) {
+                if (sol && stream.match(reg_sectionNames, true)) {
                     state.section = stream.string.slice(0, stream.pos).trim().toLowerCase();
                     if (state.visitedSections.indexOf(state.section) >= 0) {
                         logError('cannot duplicate sections (you tried to duplicate \"' + state.section + '").', state.lineNumber);
