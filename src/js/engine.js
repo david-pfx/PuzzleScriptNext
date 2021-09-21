@@ -3280,3 +3280,92 @@ function clearLocalStorage() {
 		}
 	} catch(ex){ }
 }
+
+var cameraPositionTarget = null;
+
+var cameraPosition = {
+  x: 0,
+  y: 0
+};
+
+function initSmoothCamera() {
+    if (state===undefined || state.metadata.smoothscreen===undefined) {
+        return;
+    }
+
+    screenwidth=state.metadata.smoothscreen.screenSize.width;
+    screenheight=state.metadata.smoothscreen.screenSize.height;
+
+    var boundarySize = state.metadata.smoothscreen.boundarySize;
+    var flick = state.metadata.smoothscreen.flick;
+
+    var playerPositions = getPlayerPositions();
+    if (playerPositions.length>0) {
+        var playerPosition = {
+            x: (playerPositions[0]/(level.height))|0,
+            y: (playerPositions[0]%level.height)|0
+        };
+
+        cameraPositionTarget = {
+            x: flick
+              ? getFlickCameraPosition(playerPosition.x, level.width, screenwidth, boundarySize.width)
+              : getCameraPosition(playerPosition.x, level.width, screenwidth),
+            y: flick
+              ? getFlickCameraPosition(playerPosition.y, level.height, screenheight, boundarySize.height)
+              : getCameraPosition(playerPosition.y, level.height, screenheight)
+        };
+
+        cameraPosition.x = cameraPositionTarget.x;
+        cameraPosition.y = cameraPositionTarget.y;
+    }
+}
+
+function getCameraPosition (targetPosition, levelDimension, screenDimension) {
+    return Math.min(
+        Math.max(targetPosition, Math.floor(screenDimension / 2)),
+        levelDimension - Math.ceil(screenDimension / 2)
+    );
+}
+
+function getFlickCameraPosition (targetPosition, levelDimension, screenDimension, boundaryDimension) {
+    var flickGridOffset = (Math.floor(screenDimension / 2) - Math.floor(boundaryDimension / 2));
+    var flickGridPlayerPosition = targetPosition - flickGridOffset;
+    var flickGridPlayerCell = Math.floor(flickGridPlayerPosition / boundaryDimension);
+    var maxFlickGridCell = Math.floor((levelDimension - Math.ceil(screenDimension / 2) - Math.floor(boundaryDimension / 2) - flickGridOffset) / boundaryDimension);
+
+    return Math.min(Math.max(flickGridPlayerCell, 0), maxFlickGridCell) * boundaryDimension + Math.floor(screenDimension / 2);
+}
+
+function updateCameraPositionTarget() {
+    var smoothscreenConfig = state.metadata.smoothscreen;
+    var playerPositions = getPlayerPositions();
+
+    if (!smoothscreenConfig || playerPositions.length === 0) {
+        return
+    }
+
+    var playerPosition = {
+        x: (playerPositions[0]/(level.height))|0,
+        y: (playerPositions[0]%level.height)|0
+    };
+
+    ['x', 'y'].forEach(function (coord) {
+        var screenDimension = coord === 'x' ? screenwidth : screenheight;
+
+        var dimensionName = coord === 'x' ? 'width' : 'height';
+        var levelDimension = level[dimensionName];
+        var boundaryDimension = smoothscreenConfig.boundarySize[dimensionName];
+
+        var playerVector = playerPosition[coord] - cameraPositionTarget[coord];
+        var direction = Math.sign(playerVector);
+        var boundaryVector = direction > 0
+          ? Math.ceil(boundaryDimension / 2)
+          : -(Math.floor(boundaryDimension / 2) + 1);
+
+        if (Math.abs(playerVector) - Math.abs(boundaryVector) >= 0) {
+            cameraPositionTarget[coord] = smoothscreenConfig.flick
+              ? getFlickCameraPosition(playerPosition[coord], levelDimension, screenDimension, boundaryDimension)
+              : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
+        }
+    })
+}
