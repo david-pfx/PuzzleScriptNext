@@ -145,6 +145,7 @@ new Inliner('./src/standalone.html', function (error, html) {
                     "./src/js/jsgif/LZWEncoder.js",
                     "./src/js/jsgif/NeuQuant.js",
                     "./src/js/jsgif/GIFEncoder.js",
+                    "./src/js/storagewrapper.js",
                     "./src/js/debug.js",
                     "./src/js/globalVariables.js",
                     "./src/js/font.js",
@@ -195,6 +196,7 @@ new Inliner('./src/standalone.html', function (error, html) {
 
 
             files = [  
+                "./src/js/storagewrapper.js",
                 "./src/js/globalVariables.js",
                 "./src/js/debug_off.js",
                 "./src/js/font.js",

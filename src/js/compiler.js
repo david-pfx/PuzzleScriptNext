@@ -653,7 +653,11 @@ function convertSectionNamesToIndices(state) {
 
 var directionaggregates = {
     'horizontal': ['left', 'right'],
+    'horizontal_par': ['left', 'right'],
+    'horizontal_perp': ['left', 'right'],
     'vertical': ['up', 'down'],
+    'vertical_par': ['up', 'down'],
+    'vertical_perp': ['up', 'down'],
     'moving': ['up', 'down', 'left', 'right', 'action'],
     'orthogonal': ['up', 'down', 'left', 'right'],
     'perpendicular': ['^', 'v'],
@@ -1081,6 +1085,9 @@ function rulesToArray(state) {
 
     }
 
+    for (i=0;i<rules4.length;i++){
+        makeSpawnedObjectsStationary(state,rules4[i],rule.lineNumber);
+    }
     state.rules = rules4;
 }
 
@@ -1113,6 +1120,49 @@ function rewriteUpLeftRules(rule) {
             rule.rhs[i].reverse();
         }
     }
+}
+
+//expands all properties to list of all things it could be, filterio
+function getPossibleObjectsFromCell(state, cell) {
+    var result = [];
+    for (var j = 0; j < cell.length; j += 2) {
+        var dir = cell[j];
+        var name = cell[j + 1];
+        if (name in state.objects){
+            result.push(name);
+        }
+        else if (name in state.propertiesDict) {
+            var aliases = state.propertiesDict[name];
+            for (var k = 0; k < aliases.length; k++) {
+                var alias = aliases[k];
+                result.push(alias);
+            }        
+        }
+    }
+    return result;
+}
+
+//expands all properties to list of all things it could be, filterio
+function getPossibleMovementfullObjectsFromCell(state, cell) {
+    var result = [];
+    for (var j = 0; j < cell.length; j += 2) {
+        var dir = cell[j];
+        var name = cell[j + 1];
+        if (dir===''){
+            continue;
+        }
+        if (name in state.objects){
+            result.push(name);
+        }
+        if (name in state.propertiesDict) {
+            var aliases = state.propertiesDict[name];
+            for (var k = 0; k < aliases.length; k++) {
+                var alias = aliases[k];
+                result.push(alias);
+            }        
+        }
+    }
+    return result;
 }
 
 function getPropertiesFromCell(state, cell) {
@@ -1343,6 +1393,43 @@ function concretizePropertyRule(state, rule, lineNumber) {
     return result;
 }
 
+function makeSpawnedObjectsStationary(state,rule,lineNumber){
+    //movement not getting correctly cleared from tile #492
+    //[ > Player | ] -> [ Crate | Player ] if there was a player already in the second cell, it's not replaced with a stationary player.
+    //if there are properties remaining by this stage, just ignore them ( c.f. "[ >  Moveable | Moveable ] -> [ > Moveable | > Moveable ]" in block faker, what's left in this form) - this only happens IIRC when the properties span a single layer so it's)
+    //if am object without moving-annotations appears on the RHS, and that object is not present on the lhs (either explicitly as an object, or implicitly in a property), add a 'stationary'
+    if (rule.late){
+        return;
+    }
+
+    for (var j = 0; j < rule.rhs.length; j++) {
+        var row_l = rule.lhs[j];
+        var row_r = rule.rhs[j];
+        for (var k = 0; k < row_r.length; k++) {
+            var cell=row_r[k];
+
+            //this is super intricate. uff. 
+            var objects_l = getPossibleObjectsFromCell(state, row_l[k]);
+            var stuff_l = getPossibleMovementfullObjectsFromCell(state, row_l[k]);
+            var layers = objects_l.map(n=>state.objects[n].layer);
+            for (var l = 0; l < cell.length; l += 2) {
+                var dir = cell[l];
+                if (dir!==""){
+                    continue;
+                }
+                var name = cell[l + 1];
+                if (name in state.propertiesDict || objects_l.indexOf(name)>=0){
+                    continue;
+                }
+                var r_layer = state.objects[name].layer;
+                if (layers.indexOf(r_layer)===-1){
+                    cell[l]='stationary';
+                }
+            }
+        }
+    }
+
+}
 
 function concretizeMovingRule(state, rule, lineNumber) {
 
@@ -1359,7 +1446,7 @@ function concretizeMovingRule(state, rule, lineNumber) {
                 var cur_rulerow = cur_rule.lhs[j];
                 for (var k = 0; k < cur_rulerow.length; k++) {
                     var cur_cell = cur_rulerow[k];
-                    var movings = getMovings(state, cur_cell);
+                    var movings = getMovings(state, cur_cell); //finds aggregate directions
                     if (movings.length > 0) {
                         shouldremove = true;
                         modified = true;
@@ -1372,12 +1459,20 @@ function concretizeMovingRule(state, rule, lineNumber) {
                             var concreteDirection = concreteDirs[l];
                             var newrule = deepCloneRule(cur_rule);
 
+                            //deep copy replacements
                             newrule.movingReplacement = {};
                             for (var moveTerm in cur_rule.movingReplacement) {
                                 if (cur_rule.movingReplacement.hasOwnProperty(moveTerm)) {
                                     var moveDat = cur_rule.movingReplacement[moveTerm];
-                                    newrule.movingReplacement[moveTerm] = [moveDat[0], moveDat[1], moveDat[2]];
+                                    newrule.movingReplacement[moveTerm] = [moveDat[0], moveDat[1], moveDat[2],moveDat[3],moveDat[4],moveDat[5]];
                                 }
+                            }
+                            newrule.aggregateDirReplacement = {};
+                            for (var moveTerm in cur_rule.aggregateDirReplacement) {
+                                if (cur_rule.aggregateDirReplacement.hasOwnProperty(moveTerm)) {
+                                    var moveDat = cur_rule.aggregateDirReplacement[moveTerm];
+                                    newrule.aggregateDirReplacement[moveTerm] = [moveDat[0], moveDat[1], moveDat[2]];
+                                }                                
                             }
 
                             concretizeMovingInCell(newrule.lhs[j][k], ambiguous_dir, cand_name, concreteDirection);
@@ -1385,10 +1480,18 @@ function concretizeMovingRule(state, rule, lineNumber) {
                                 concretizeMovingInCell(newrule.rhs[j][k], ambiguous_dir, cand_name, concreteDirection); //do for the corresponding rhs cell as well
                             }
 
-                            if (newrule.movingReplacement[cand_name] === undefined) {
-                                newrule.movingReplacement[cand_name] = [concreteDirection, 1, ambiguous_dir];
+                            if (newrule.movingReplacement[cand_name+ambiguous_dir] === undefined) {
+                                newrule.movingReplacement[cand_name+ambiguous_dir] = [concreteDirection, 1, ambiguous_dir,cand_name,j,k];
                             } else {
-                                newrule.movingReplacement[cand_name][1] = newrule.movingReplacement[cand_name][1] + 1;
+                                var mr = newrule.movingReplacement[cand_name+ambiguous_dir];
+                                if (j!==mr[4] || k!==mr[5]){
+                                    mr[1] = mr[1] + 1;
+                                }
+                            }
+                            if (newrule.aggregateDirReplacement[ambiguous_dir] === undefined) {
+                                newrule.aggregateDirReplacement[ambiguous_dir] = [concreteDirection, 1, ambiguous_dir];
+                            } else {
+                                newrule.aggregateDirReplacement[ambiguous_dir][1] = newrule.aggregateDirReplacement[ambiguous_dir][1] + 1;
                             }
 
                             result.push(newrule);
@@ -1419,11 +1522,7 @@ function concretizeMovingRule(state, rule, lineNumber) {
                 var concreteMovement = replacementInfo[0];
                 var occurrenceCount = replacementInfo[1];
                 var ambiguousMovement = replacementInfo[2];
-                if ((ambiguousMovement in ambiguous_movement_dict) || (occurrenceCount !== 1)) {
-                    ambiguous_movement_dict[ambiguousMovement] = "INVALID";
-                } else {
-                    ambiguous_movement_dict[ambiguousMovement] = concreteMovement
-                }
+                var ambiguousMovement_attachedObject = replacementInfo[3];
 
                 if (occurrenceCount === 1) {
                     //do the replacement
@@ -1431,17 +1530,52 @@ function concretizeMovingRule(state, rule, lineNumber) {
                         var cellRow_rhs = cur_rule.rhs[j];
                         for (var k = 0; k < cellRow_rhs.length; k++) {
                             var cell = cellRow_rhs[k];
-                            concretizeMovingInCell(cell, ambiguousMovement, cand_name, concreteMovement);
+                            concretizeMovingInCell(cell, ambiguousMovement, ambiguousMovement_attachedObject, concreteMovement);
                         }
                     }
                 }
+
             }
         }
+
+        
+        var ambiguous_movement_names_dict = {};
+        for (var cand_name in cur_rule.aggregateDirReplacement) {
+            if (cur_rule.aggregateDirReplacement.hasOwnProperty(cand_name)) {
+                var replacementInfo = cur_rule.aggregateDirReplacement[cand_name];
+                var concreteMovement = replacementInfo[0];
+                var occurrenceCount = replacementInfo[1];
+                var ambiguousMovement = replacementInfo[2];
+                if ((ambiguousMovement in ambiguous_movement_names_dict) || (occurrenceCount !== 1)) {
+                    ambiguous_movement_names_dict[ambiguousMovement] = "INVALID";
+                } else {
+                    ambiguous_movement_names_dict[ambiguousMovement] = concreteMovement
+                }
+            }
+        }        
 
         //for each ambiguous word, if there's a single ambiguous movement specified in the whole lhs, then replace that wholesale
         for (var ambiguousMovement in ambiguous_movement_dict) {
             if (ambiguous_movement_dict.hasOwnProperty(ambiguousMovement) && ambiguousMovement !== "INVALID") {
                 concreteMovement = ambiguous_movement_dict[ambiguousMovement];
+                if (concreteMovement === "INVALID") {
+                    continue;
+                }
+                for (var j = 0; j < cur_rule.rhs.length; j++) {
+                    var cellRow_rhs = cur_rule.rhs[j];
+                    for (var k = 0; k < cellRow_rhs.length; k++) {
+                        var cell = cellRow_rhs[k];
+                        concretizeMovingInCellByAmbiguousMovementName(cell, ambiguousMovement, concreteMovement);
+                    }
+                }
+            }
+        }
+
+        
+        //further replacements - if a movement word appears once on the left, can use to disambiguate remaining ones on the right
+        for (var ambiguousMovement in ambiguous_movement_names_dict) {
+            if (ambiguous_movement_names_dict.hasOwnProperty(ambiguousMovement) && ambiguousMovement !== "INVALID") {
+                concreteMovement = ambiguous_movement_names_dict[ambiguousMovement];
                 if (concreteMovement === "INVALID") {
                     continue;
                 }
@@ -1560,11 +1694,12 @@ function convertRelativeDirsToAbsolute(rule) {
 }
 
 var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
+//I use _par/_perp just to keep track of providence for replacement purposes later.
 var relativeDict = {
-    'right': ['up', 'down', 'left', 'right', 'horizontal', 'vertical'],
-    'up': ['left', 'right', 'down', 'up', 'vertical', 'horizontal'],
-    'down': ['right', 'left', 'up', 'down', 'vertical', 'horizontal'],
-    'left': ['down', 'up', 'right', 'left', 'horizontal', 'vertical']
+    'right': ['up', 'down', 'left', 'right', 'horizontal_par', 'vertical_perp'],
+    'up': ['left', 'right', 'down', 'up', 'vertical_par', 'horizontal_perp'],
+    'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
+    'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
 };
 
 function absolutifyRuleCell(forward, cell) {
@@ -1599,240 +1734,254 @@ var dirMasks = {
 };
 
 function rulesToMask(state) {
-	/*
-	*/
-	var layerCount = state.collisionLayers.length;
-	var layerTemplate = [];
-	for (var i = 0; i < layerCount; i++) {
-		layerTemplate.push(null);
-	}
+    /*
 
-	for (var i = 0; i < state.rules.length; i++) {
-		var rule = state.rules[i];
-		for (var j = 0; j < rule.lhs.length; j++) {
-			var cellrow_l = rule.lhs[j];
-			var cellrow_r = rule.rhs[j];
-			for (var k = 0; k < cellrow_l.length; k++) {
-				var cell_l = cellrow_l[k];
-				var layersUsed_l = layerTemplate.concat([]);
-				var objectsPresent = new BitVec(STRIDE_OBJ);
-				var objectsMissing = new BitVec(STRIDE_OBJ);
-				var anyObjectsPresent = [];
-				var movementsPresent = new BitVec(STRIDE_MOV);
-				var movementsMissing = new BitVec(STRIDE_MOV);
+    */
+    var layerCount = state.collisionLayers.length;
+    var layerTemplate = [];
+    for (var i = 0; i < layerCount; i++) {
+        layerTemplate.push(null);
+    }
 
-				var objectlayers_l = new BitVec(STRIDE_MOV);
-				for (var l = 0; l < cell_l.length; l += 2) {
-					var object_dir = cell_l[l];
-					if (object_dir==='...') {
-						objectsPresent = ellipsisPattern;
-						if (cell_l.length!==2) {
-							logError("You can't have anything in with an ellipsis. Sorry.",rule.lineNumber);
-						} else if ((k===0)||(k===cellrow_l.length-1)) {
-							logError("There's no point in putting an ellipsis at the very start or the end of a rule",rule.lineNumber);
-						} else if (rule.rhs.length>0) {
-							var rhscell=cellrow_r[k];
-							if (rhscell.length!==2 || rhscell[0]!=='...') {
-								logError("An ellipsis on the left must be matched by one in the corresponding place on the right.",rule.lineNumber);								
-							}
-						} 
-						break;
-					}  else if (object_dir==='random') {
-						logError("'random' cannot be matched on the left-hand side, it can only appear on the right",rule.lineNumber);
-						continue;
-					}
+    for (var i = 0; i < state.rules.length; i++) {
+        var rule = state.rules[i];
+        for (var j = 0; j < rule.lhs.length; j++) {
+            var cellrow_l = rule.lhs[j];
+            var cellrow_r = rule.rhs[j];
+            for (var k = 0; k < cellrow_l.length; k++) {
+                var cell_l = cellrow_l[k];
+                var layersUsed_l = layerTemplate.concat([]);
+                var objectsPresent = new BitVec(STRIDE_OBJ);
+                var objectsMissing = new BitVec(STRIDE_OBJ);
+                var anyObjectsPresent = [];
+                var movementsPresent = new BitVec(STRIDE_MOV);
+                var movementsMissing = new BitVec(STRIDE_MOV);
 
-					var object_name = cell_l[l + 1];
-					var object = state.objects[object_name];
-					var objectMask = state.objectMasks[object_name];
-					if (object) {
-						var layerIndex = object.layer|0;
-					} else {
-						var layerIndex = state.propertiesSingleLayer[object_name];
-					}
+                var objectlayers_l = new BitVec(STRIDE_MOV);
+                for (var l = 0; l < cell_l.length; l += 2) {
+                    var object_dir = cell_l[l];
+                    if (object_dir === '...') {
+                        objectsPresent = ellipsisPattern;
+                        if (cell_l.length !== 2) {
+                            logError("You can't have anything in with an ellipsis. Sorry.", rule.lineNumber);
+                        } else if ((k === 0) || (k === cellrow_l.length - 1)) {
+                            logError("There's no point in putting an ellipsis at the very start or the end of a rule", rule.lineNumber);
+                        } else if (rule.rhs.length > 0) {
+                            var rhscell = cellrow_r[k];
+                            if (rhscell.length !== 2 || rhscell[0] !== '...') {
+                                logError("An ellipsis on the left must be matched by one in the corresponding place on the right.", rule.lineNumber);
+                            }
+                        }
+                        break;
+                    } else if (object_dir === 'random') {
+                        logError("'random' cannot be matched on the left-hand side, it can only appear on the right", rule.lineNumber);
+                        continue;
+                    }
 
-					if (typeof(layerIndex)==="undefined"){
-						logError("Oops!  " +object_name.toUpperCase()+" not assigned to a layer.",rule.lineNumber);
-					}
+                    var object_name = cell_l[l + 1];
+                    var object = state.objects[object_name];
+                    var objectMask = state.objectMasks[object_name];
+                    if (object) {
+                        var layerIndex = object.layer | 0;
+                    } else {
+                        var layerIndex = state.propertiesSingleLayer[object_name];
+                    }
 
-					if (object_dir==='no') {
-						objectsMissing.ior(objectMask);
-					} else {
-						var existingname = layersUsed_l[layerIndex];
-						if (existingname !== null) {
-							rule.discard=[object_name.toUpperCase(),existingname.toUpperCase()];
-						}
+                    if (typeof(layerIndex) === "undefined") {
+                        logError("Oops!  " + object_name.toUpperCase() + " not assigned to a layer.", rule.lineNumber);
+                    }
 
-						layersUsed_l[layerIndex] = object_name;
+                    if (object_dir === 'no') {
+                        objectsMissing.ior(objectMask);
+                    } else {
+                        var existingname = layersUsed_l[layerIndex];
+                        if (existingname !== null) {
+                            rule.discard = [object_name.toUpperCase(), existingname.toUpperCase()];
+                        }
 
-						if (object) {
-							objectsPresent.ior(objectMask);
-							objectlayers_l.ishiftor(0x1f, 5*layerIndex);
-						} else {
-							anyObjectsPresent.push(objectMask);
-						}
+                        layersUsed_l[layerIndex] = object_name;
 
-						if (object_dir==='stationary') {
-							movementsMissing.ishiftor(0x1f, 5*layerIndex);
-						} else {
-							movementsPresent.ishiftor(dirMasks[object_dir], 5 * layerIndex);
-						}
-					}
-				}
+                        if (object) {
+                            objectsPresent.ior(objectMask);
+                            objectlayers_l.ishiftor(0x1f, 5 * layerIndex);
+                        } else {
+                            anyObjectsPresent.push(objectMask);
+                        }
 
-				if (rule.rhs.length>0) {
-					var rhscell = cellrow_r[k];
-					var lhscell = cellrow_l[k];
-					if (rhscell[0]==='...' && lhscell[0]!=='...' ) {
-						logError("An ellipsis on the right must be matched by one in the corresponding place on the left.",rule.lineNumber);								
-					}
-					for (var l=0;l<rhscell.length;l+=2) {
-						var content=rhscell[l];
-						if (content==='...') {
-							if (rhscell.length!==2) {
-								logError("You can't have anything in with an ellipsis. Sorry.",rule.lineNumber);							
-							}
-						}
-					}
-				}
+                        if (object_dir === 'stationary') {
+                            movementsMissing.ishiftor(0x1f, 5 * layerIndex);
+                        } else {
+                            movementsPresent.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                        }
+                    }
+                }
 
-				if (objectsPresent === ellipsisPattern) {
-					cellrow_l[k] = ellipsisPattern;
-					continue;
-				} else {
-					cellrow_l[k] = new CellPattern([objectsPresent, objectsMissing, anyObjectsPresent, movementsPresent, movementsMissing, null]);
-				}
+                if (rule.rhs.length > 0) {
+                    var rhscell = cellrow_r[k];
+                    var lhscell = cellrow_l[k];
+                    if (rhscell[0] === '...' && lhscell[0] !== '...') {
+                        logError("An ellipsis on the right must be matched by one in the corresponding place on the left.", rule.lineNumber);
+                    }
+                    for (var l = 0; l < rhscell.length; l += 2) {
+                        var content = rhscell[l];
+                        if (content === '...') {
+                            if (rhscell.length !== 2) {
+                                logError("You can't have anything in with an ellipsis. Sorry.", rule.lineNumber);
+                            }
+                        }
+                    }
+                }
 
-				if (rule.rhs.length===0) {
-					continue;
-				}
+                if (objectsPresent === ellipsisPattern) {
+                    cellrow_l[k] = ellipsisPattern;
+                    continue;
+                } else {
+                    cellrow_l[k] = new CellPattern([objectsPresent, objectsMissing, anyObjectsPresent, movementsPresent, movementsMissing, null]);
+                }
 
-				var cell_r = cellrow_r[k];
-				var layersUsed_r = layerTemplate.concat([]);
-				var layersUsedRand_r = layerTemplate.concat([]);
+                if (rule.rhs.length === 0) {
+                    continue;
+                }
 
-				var objectsClear = new BitVec(STRIDE_OBJ);
-				var objectsSet = new BitVec(STRIDE_OBJ);
-				var movementsClear = new BitVec(STRIDE_MOV);
-				var movementsSet = new BitVec(STRIDE_MOV);
+                var cell_r = cellrow_r[k];
+                var layersUsed_r = layerTemplate.concat([]);
+                var layersUsedRand_r = layerTemplate.concat([]);
 
-				var objectlayers_r = new BitVec(STRIDE_MOV);
-				var randomMask_r = new BitVec(STRIDE_OBJ);
-				var postMovementsLayerMask_r = new BitVec(STRIDE_MOV);
-				var randomDirMask_r = new BitVec(STRIDE_MOV);
-				for (var l = 0; l < cell_r.length; l += 2) {
-					var object_dir = cell_r[l];
-					var object_name = cell_r[l + 1];
+                var objectsClear = new BitVec(STRIDE_OBJ);
+                var objectsSet = new BitVec(STRIDE_OBJ);
+                var movementsClear = new BitVec(STRIDE_MOV);
+                var movementsSet = new BitVec(STRIDE_MOV);
 
-					if (object_dir==='...') {
-						//logError("spooky ellipsis found! (should never hit this)");
-						break;
-					} else if (object_dir==='random') {
-						if (object_name in state.objectMasks) {
-							var mask = state.objectMasks[object_name];
- 							randomMask_r.ior(mask);
- 							var values;
- 							if (state.propertiesDict.hasOwnProperty(object_name)) {
- 								values = state.propertiesDict[object_name];
- 							} else {
- 								values = [object_name];
- 							}
- 							for (var m = 0; m < values.length; m++) {
- 								var subobject = values[m];
- 								var layerIndex = state.objects[subobject].layer|0;
- 								var existingname = layersUsed_r[layerIndex];
- 								if (existingname !== null) {
- 									var o1 = subobject.toUpperCase();
- 									var o2 = existingname.toUpperCase();
- 									if (o1!==o2) {
- 										logWarning("This rule may try to spawn a "+o1+" with random, but also requires a "+o2+" be here, which is on the same layer - they shouldn't be able to coexist!", rule.lineNumber); 									
- 									}
- 								}
- 
- 								layersUsedRand_r[layerIndex] = subobject;
- 							}                      
+                var objectlayers_r = new BitVec(STRIDE_MOV);
+                var randomMask_r = new BitVec(STRIDE_OBJ);
+                var postMovementsLayerMask_r = new BitVec(STRIDE_MOV);
+                var randomDirMask_r = new BitVec(STRIDE_MOV);
+                for (var l = 0; l < cell_r.length; l += 2) {
+                    var object_dir = cell_r[l];
+                    var object_name = cell_r[l + 1];
 
-						} else {
-							logError('You want to spawn a random "'+object_name.toUpperCase()+'", but I don\'t know how to do that',rule.lineNumber);
-						}
-						continue;
-					}
+                    if (object_dir === '...') {
+                        //logError("spooky ellipsis found! (should never hit this)");
+                        break;
+                    } else if (object_dir === 'random') {
+                        if (object_name in state.objectMasks) {
+                            var mask = state.objectMasks[object_name];
+                            randomMask_r.ior(mask);
+                            var values;
+                            if (state.propertiesDict.hasOwnProperty(object_name)) {
+                                values = state.propertiesDict[object_name];
+                            } else {
+                                values = [object_name];
+                            }
+                            for (var m = 0; m < values.length; m++) {
+                                var subobject = values[m];
+                                var layerIndex = state.objects[subobject].layer | 0;
+                                var existingname = layersUsed_r[layerIndex];
+                                if (existingname !== null) {
+                                    var o1 = subobject.toUpperCase();
+                                    var o2 = existingname.toUpperCase();
+                                    if (o1 !== o2) {
+                                        logWarning("This rule may try to spawn a " + o1 + " with random, but also requires a " + o2 + " be here, which is on the same layer - they shouldn't be able to coexist!", rule.lineNumber);
+                                    }
+                                }
 
-					var object = state.objects[object_name];
-					var objectMask = state.objectMasks[object_name];
-					if (object) {
-						var layerIndex = object.layer|0;
-					} else {
-						var layerIndex = state.propertiesSingleLayer[object_name];
-					}
+                                layersUsedRand_r[layerIndex] = subobject;
+                            }
 
-					
-					if (object_dir=='no') {
-						objectsClear.ior(objectMask);
-					} else {
-						var existingname = layersUsed_r[layerIndex];
-						if (existingname === null) {
- 							existingname = layersUsedRand_r[layerIndex];
- 						}
+                        } else {
+                            logError('You want to spawn a random "' + object_name.toUpperCase() + '", but I don\'t know how to do that', rule.lineNumber);
+                        }
+                        continue;
+                    }
 
-						if (existingname !== null) {
-							if (rule.hasOwnProperty('discard')){
+                    var object = state.objects[object_name];
+                    var objectMask = state.objectMasks[object_name];
+                    if (object) {
+                        var layerIndex = object.layer | 0;
+                    } else {
+                        var layerIndex = state.propertiesSingleLayer[object_name];
+                    }
 
-							} else {
-								logError('Rule matches object types that can\'t overlap: "' + object_name.toUpperCase() + '" and "' + existingname.toUpperCase() + '".',rule.lineNumber);
-							}
-						}
 
-						layersUsed_r[layerIndex] = object_name;
+                    if (object_dir == 'no') {
+                        objectsClear.ior(objectMask);
+                    } else {
+                        var existingname = layersUsed_r[layerIndex];
+                        if (existingname === null) {
+                            existingname = layersUsedRand_r[layerIndex];
+                        }
 
-						if (object_dir.length>0) {
-							postMovementsLayerMask_r.ishiftor(0x1f, 5*layerIndex);
-						}
+                        if (existingname !== null) {
+                            if (rule.hasOwnProperty('discard')) {
 
-						var layerMask = state.layerMasks[layerIndex];
+                            } else {
+                                logError('Rule matches object types that can\'t overlap: "' + object_name.toUpperCase() + '" and "' + existingname.toUpperCase() + '".', rule.lineNumber);
+                            }
+                        }
 
-						if (object) {
-							objectsSet.ibitset(object.id);
-							objectsClear.ior(layerMask);
-							objectlayers_r.ishiftor(0x1f, 5*layerIndex);
-						} else {
-							// shouldn't need to do anything here...
-						}
-						if (object_dir==='stationary') {
-							movementsClear.ishiftor(0x1f, 5*layerIndex);
-						} if (object_dir==='randomdir') {
-							randomDirMask_r.ishiftor(dirMasks[object_dir], 5 * layerIndex);
-						} else {						
-							movementsSet.ishiftor(dirMasks[object_dir], 5 * layerIndex);
-						};
-					}
-				}
+                        layersUsed_r[layerIndex] = object_name;
 
-				if (!(objectsPresent.bitsSetInArray(objectsSet.data))) {
-					objectsClear.ior(objectsPresent); // clear out old objects
-				}
-				if (!(movementsPresent.bitsSetInArray(movementsSet.data))) {
-					movementsClear.ior(movementsPresent); // ... and movements
-				}
+                        if (object_dir.length > 0) {
+                            postMovementsLayerMask_r.ishiftor(0x1f, 5 * layerIndex);
+                        }
 
-				for (var l = 0; l < layerCount; l++) {
-					if (layersUsed_l[l] !== null && layersUsed_r[l] === null) {
-						// a layer matched on the lhs, but not on the rhs
-						objectsClear.ior(state.layerMasks[l]);
-						postMovementsLayerMask_r.ishiftor(0x1f, 5*l);
-					}
-				}
+                        var layerMask = state.layerMasks[layerIndex];
 
-				objectlayers_l.iclear(objectlayers_r);
+                        if (object) {
+                            objectsSet.ibitset(object.id);
+                            objectsClear.ior(layerMask);
+                            objectlayers_r.ishiftor(0x1f, 5 * layerIndex);
+                        } else {
+                            // shouldn't need to do anything here...
+                        }
+                        //possibility - if object not present on lhs in same position, clear movement
+                        if (object_dir === 'stationary') {
+                            movementsClear.ishiftor(0x1f, 5 * layerIndex);
+                        }                
+                        if (object_dir === 'randomdir') {
+                            randomDirMask_r.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                        } else {
+                            movementsSet.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                        };
+                    }
+                }
 
-				postMovementsLayerMask_r.ior(objectlayers_l);
-				if (objectsClear || objectsSet || movementsClear || movementsSet || postMovementsLayerMask_r) {
-					// only set a replacement if something would change
-					cellrow_l[k].replacement = new CellReplacement([objectsClear, objectsSet, movementsClear, movementsSet, postMovementsLayerMask_r, randomMask_r, randomDirMask_r]);
-				}
-			}
-		}
-	}
+                //I don't know why these two ifs here are needed.
+                if (!(objectsPresent.bitsSetInArray(objectsSet.data))) {
+                    objectsClear.ior(objectsPresent); // clear out old objects
+                }
+                if (!(movementsPresent.bitsSetInArray(movementsSet.data))) {
+                    movementsClear.ior(movementsPresent); // ... and movements
+                }
+
+                /*
+                for rules like this I want to clear movements on newly-spawned entities
+                    [ >  Player | Crate ] -> [  >  Player | > Crate  ]
+                    [ > Player | ] -> [ Crate | Player ]
+
+                WITHOUT havin this rule remove movements
+                    [ > Player | ] -> [ Crate | Player ]
+                (bug #492)
+                */
+               
+                for (var l = 0; l < layerCount; l++) {
+                    if (layersUsed_l[l] !== null && layersUsed_r[l] === null) {
+                        // a layer matched on the lhs, but not on the rhs
+                        objectsClear.ior(state.layerMasks[l]);
+                        postMovementsLayerMask_r.ishiftor(0x1f, 5 * l);
+                    }
+                }
+
+                objectlayers_l.iclear(objectlayers_r);
+
+                postMovementsLayerMask_r.ior(objectlayers_l);
+                if (objectsClear || objectsSet || movementsClear || movementsSet || postMovementsLayerMask_r) {
+                    // only set a replacement if something would change
+                    cellrow_l[k].replacement = new CellReplacement([objectsClear, objectsSet, movementsClear, movementsSet, postMovementsLayerMask_r, randomMask_r, randomDirMask_r]);
+                }
+            }
+        }
+    }
 }
 
 function cellRowMasks(rule) {
@@ -2261,45 +2410,47 @@ function twiddleMetaData(state, update = false) {
 }
 
 function processWinConditions(state) {
-//	[-1/0/1 (no,some,all),ob1,ob2] (ob2 is background by default)
-	var newconditions=[]; 
-	for (var i=0;i<state.winconditions.length;i++)  {
-		var wincondition=state.winconditions[i];
-		if (wincondition.length==0) {
-			return;
-		}
-		var num=0;
-		switch(wincondition[0].toLowerCase()) {
-			case 'no':{num=-1;break;}
-			case 'all':{num=1;break;}
-		}
+    //	[-1/0/1 (no,some,all),ob1,ob2] (ob2 is background by default)
+    var newconditions = [];
+    for (var i = 0; i < state.winconditions.length; i++) {
+        var wincondition = state.winconditions[i];
+        if (wincondition.length == 0) {
+            return;
+        }
+        var num = 0;
+        switch (wincondition[0]) {
+            case 'no':
+                { num = -1; break; }
+            case 'all':
+                { num = 1; break; }
+        }
 
-		var lineNumber=wincondition[wincondition.length-1];
+        var lineNumber = wincondition[wincondition.length - 1];
 
-		var n1 = wincondition[1];
-		var n2;
-		if (wincondition.length==5) {
-			n2 = wincondition[3];
-		} else {
-			n2 = '\nall\n';
-		}
+        var n1 = wincondition[1];
+        var n2;
+        if (wincondition.length == 5) {
+            n2 = wincondition[3];
+        } else {
+            n2 = '\nall\n';
+        }
 
-		var mask1=0;
-		var mask2=0;
-		if (n1 in state.objectMasks) {
-			mask1=state.objectMasks[n1];
-		} else {
-			logError('unwelcome term "' + n1 +'" found in win condition. Win conditions objects have to be objects or properties (defined using "or", in terms of other properties)', lineNumber);
-		}
-		if (n2 in state.objectMasks) {
-			mask2=state.objectMasks[n2];
-		} else {
-			logError('unwelcome term "' + n2+ '" found in win condition. Win conditions objects have to be objects or properties (defined using "or", in terms of other properties)', lineNumber);
-		}
-		var newcondition = [num,mask1,mask2,lineNumber];
-		newconditions.push(newcondition);
-	}
-	state.winconditions=newconditions;
+        var mask1 = 0;
+        var mask2 = 0;
+        if (n1 in state.objectMasks) {
+            mask1 = state.objectMasks[n1];
+        } else {
+            logError('Unwelcome term "' + n1 + '" found in win condition. Win conditions objects have to be objects or properties (defined using "or", in terms of other properties)', lineNumber);
+        }
+        if (n2 in state.objectMasks) {
+            mask2 = state.objectMasks[n2];
+        } else {
+            logError('Unwelcome term "' + n2 + '" found in win condition. Win conditions objects have to be objects or properties (defined using "or", in terms of other properties)', lineNumber);
+        }
+        var newcondition = [num, mask1, mask2, lineNumber];
+        newconditions.push(newcondition);
+    }
+    state.winconditions = newconditions;
 }
 
 function printCellRow(cellRow) {

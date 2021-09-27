@@ -95,20 +95,19 @@ function saveClick() {
 	}
 
 	var curSaveArray = [];
-	if (localStorage['saves']===undefined) {
-
-	} else {
-		var curSaveArray = JSON.parse(localStorage.saves);
+	if (storage_has('saves')) {
+		var curSaveArray = JSON.parse(storage_get('saves'));
 	}
 
 	if (curSaveArray.length>maximumsavedprojects) {
 		curSaveArray.splice(0,1);
 	}
 	curSaveArray.push(saveDat);
-	var savesDatStr = JSON.stringify(curSaveArray);
 
+
+	var savesDatStr = JSON.stringify(curSaveArray);
 	try {
-		localStorage['saves']=savesDatStr;
+	storage_set('saves',savesDatStr);
 	}
 	catch (e) {
 		console.log(e);
@@ -133,6 +132,9 @@ function saveClick() {
 		window.history.pushState({}, document.title, "./" +beforeQueryString);
 	}
 	//clear parameters from url bar if any present
+	if (curSaveArray.length===maximumsavedprojects){
+		consolePrint("WARNING: your <i>locally saved file list</i> has reached its maximum capacity of "+maximumsavedprojects+" files - older saved files will be deleted when you save in future.",true);
+	}
 }
 
 window.addEventListener( "pageshow", function ( event ) {
@@ -157,8 +159,8 @@ function loadDropDownChange() {
  		return;
  	}
 
-	var saveString = localStorage['saves'];
-	if (saveString===undefined) {
+	var saveString = storage_get('saves');
+	if (saveString === null) {
 			consolePrint("Eek, trying to load a file, but there's no local storage found. Eek!",true);
 	} 
 
@@ -190,10 +192,10 @@ function repopulateSaveDropdown(saves) {
 
 	if (saves===undefined) {
 		try {
-			if (localStorage['saves']===undefined) {
+			if (!storage_has('saves')) {
 				return;
 			} else {
-				saves = JSON.parse(localStorage["saves"]);
+				saves = JSON.parse(storage_get("saves"));
 			}
 		} catch (ex) {
 			return;
@@ -272,12 +274,9 @@ function cloudSaveClick()
 	return shareOnGitHub(false);
 }
 
-
-function shareOnGitHub(is_public)
-{
-	const oauthAccessToken = window.localStorage.getItem("oauth_access_token");
-	if (typeof oauthAccessToken !== "string")
-	{
+function shareClick() {
+	var oauthAccessToken = storage_get("oauth_access_token");
+	if (typeof oauthAccessToken !== "string") {
 		// Generates 32 letters of random data, like "liVsr/e+luK9tC02fUob75zEKaL4VpQn".
 		printUnauthorized();
 		return;
@@ -320,7 +319,7 @@ function shareOnGitHub(is_public)
 		{
 			if (githubHTTPClient.statusText==="Unauthorized"){
 				consoleError("Authorization check failed.  You have to log back into GitHub (or give it permission again or something).");
-				window.localStorage.removeItem("oauth_access_token");
+				storage_remove("oauth_access_token");
 			} else {
 				consoleError("HTTP Error "+ githubHTTPClient.status + ' - ' + githubHTTPClient.statusText);
 				consoleError("Try giving "+PSFORKNAME+" permission again, that might fix things...");
@@ -356,9 +355,8 @@ function shareOnGitHub(is_public)
     lastDownTarget=canvas;	
 }
 
-function githubLogOut()
-{
-	window.localStorage.removeItem("oauth_access_token");
+function githubLogOut(){
+	storage_remove("oauth_access_token");
 
 	const authUrl = getAuthURL();
 	consolePrint(

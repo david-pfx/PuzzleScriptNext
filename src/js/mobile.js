@@ -161,7 +161,7 @@ Mobile.debugDot = function (event) {
             return;
         }
         if (!this.gestured) {
-            if (event.touches.length === 0) {
+            if (event.touches.length === 0 && event.target.id!=="unMuteButton" && event.target.id!=="muteButton" ) {
                 this.handleTap();
             }
         }
@@ -519,8 +519,11 @@ Mobile.debugDot = function (event) {
         this.tabAffordance = assemblyElem.getElementsByClassName('tab-affordance')[0];
         this.tabElem = assemblyElem.getElementsByClassName('tab-icon')[0];
 
+        //the reason I'm adding all these empty click events is on safari to disable double-tap to zoom (also needs some other css settings. cf https://github.com/increpare/PuzzleScript/issues/599 SMGDH)
         this.tabAffordance.addEventListener('touchstart', openCallback);
+        this.tabAffordance.addEventListener("click", event => {});
         this.tabElem.addEventListener('touchstart', openCallback);
+        this.tabElem.addEventListener("click", event => {});
 
         body = document.getElementsByTagName('body')[0];
         body.appendChild(assemblyElem);
@@ -545,7 +548,9 @@ Mobile.debugDot = function (event) {
         this.closeAffordance = this.menuElem.getElementsByClassName('close-affordance')[0];
         closeTab = this.menuElem.getElementsByClassName('close')[0];
         this.closeAffordance.addEventListener('touchstart', closeCallback);
+        this.closeAffordance.addEventListener("click", event => {});
         closeTab.addEventListener('touchstart', closeCallback);
+        closeTab.addEventListener("click", event => {});
 
         undo = this.menuElem.getElementsByClassName('undo')[0];
         if (undo) {
@@ -553,6 +558,7 @@ Mobile.debugDot = function (event) {
                 event.stopPropagation();
                 self.emitKeydown('undo');
             });
+            undo.addEventListener("click", event => {});
         }
         restart = this.menuElem.getElementsByClassName('restart')[0];
         if (restart) {
@@ -560,6 +566,7 @@ Mobile.debugDot = function (event) {
                 event.stopPropagation();
                 self.emitKeydown('restart');
             });
+            restart.addEventListener("click", event => {});
         }
 
         quit = this.menuElem.getElementsByClassName('quit')[0];
@@ -567,6 +574,7 @@ Mobile.debugDot = function (event) {
             event.stopPropagation();
             self.emitKeydown('quit');
         });
+        quit.addEventListener("click", event => {});
 
         body = document.getElementsByTagName('body')[0];
         body.appendChild(this.menuElem);

@@ -630,6 +630,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	loadedLevelSeed = randomseed;
 	RandomGen = new RNG(loadedLevelSeed);
 	forceRegenImages=true;
+	ignoreNotJustPressedAction=true;
 	titleScreen=false;
 	titleMode=(curlevel>0||curlevelTarget!==null)?1:0;
 	titleSelection=0;
@@ -643,6 +644,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
     }
     if (leveldat.message !== undefined) {
       // This "level" is actually a message.
+      ignoreNotJustPressedAction=true;
       tryPlayShowMessageSound();
       drawMessageScreen();
       canvasResize();
@@ -2461,14 +2463,15 @@ function twiddleMetadataExtras() {
 }
 
 function showTempMessage() {
-  keybuffer=[];
-  textMode=true;
-  titleScreen=false;
-  quittingMessageScreen=false;
-  messageselected=false;
-  tryPlayShowMessageSound();
-  drawMessageScreen();
-  canvasResize();
+	keybuffer=[];
+	textMode=true;
+	titleScreen=false;
+	quittingMessageScreen=false;
+	messageselected=false;
+	ignoreNotJustPressedAction=true;
+	tryPlayShowMessageSound();
+	drawMessageScreen();
+	canvasResize();
 }
 
 function processOutputCommands(commands) {
@@ -2946,10 +2949,8 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
-				if (!!window.localStorage) {
-					localStorage[document.URL+'_checkpoint']=backupStr;
-					localStorage[document.URL]=curlevel;
-				}
+				storage_set(document.URL+'_checkpoint',backupStr);
+				storage_set(document.URL,curlevel);				
 			}	 
 
 		    if (level.commandQueue.indexOf('again')>=0 && modified) {
@@ -3117,7 +3118,8 @@ function nextLevel() {
 	if (state && state.levels && (curlevel>state.levels.length) ){
 		curlevel=state.levels.length-1;
 	}
-	
+  
+  ignoreNotJustPressedAction=true;
 	if (titleScreen && titleMode <= 1) {
 		if(isContinueOptionSelected()) {
 			// continue
@@ -3174,7 +3176,11 @@ function nextLevel() {
 			if(solvedSections.length == state.sections.length) {
 				if(state.metadata["level_select"] === undefined) {
 					// solved all
-					clearLocalStorage();
+          try{
+            storage_remove(document.URL);
+            storage_remove(document.URL+'_checkpoint');				
+          } catch(ex){
+          }
 					
 					curlevel=0;
 					curlevelTarget=null;
@@ -3233,17 +3239,18 @@ function resetFlickDat() {
 
 function updateLocalStorage() {
 	try {
-		if (!!window.localStorage) {
-			localStorage[document.URL]=curlevel;
-			if (curlevelTarget!==null){
-				restartTarget=level4Serialization();
-				var backupStr = JSON.stringify(restartTarget);
-				localStorage[document.URL+'_checkpoint']=backupStr;
-			} else {
-				localStorage.removeItem(document.URL+"_checkpoint");
-			}
-		}
-	} catch (ex) { }
+		
+		storage_set(document.URL,curlevel);
+		if (curlevelTarget!==null){
+			restartTarget=level4Serialization();
+			var backupStr = JSON.stringify(restartTarget);
+			storage_set(document.URL+'_checkpoint',backupStr);
+		} else {
+			storage_remove(document.URL+"_checkpoint");
+		}		
+		
+	} catch (ex) {
+  }
 }
 
 function setSectionSolved(section) {
