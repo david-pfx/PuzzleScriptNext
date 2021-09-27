@@ -364,13 +364,6 @@ var games_gallery = [
     "author": "Connorses [Loneship Games]"
   },
   {
-    "url": "https://www.ben-reilly.com/weakly-games/007-dinnertime/",
-    "thumb": "dinnertime.gif",
-    "title": "Dinnertime!",
-    "author": "Ben Reilly",
-    "homepage": "https://www.ben-reilly.com/"
-  },
-  {
     "url": "https://www.puzzlescript.net/play.html?p=09d9778d0e69116c5406",
     "thumb": "09d9778d0e69116c5406.gif",
     "title": "pretender to the crown",
@@ -773,10 +766,17 @@ var games_gallery = [
     "homepage": "https://galactical.itch.io/"
   },
   {
-    "url": "https://www.puzzlescript.net/editor.html?hack=3754910c54ef200ac105b4152654bbea",
+    "url": "https://www.puzzlescript.net/play.html?p=3754910c54ef200ac105b4152654bbea",
     "thumb": "ezra.gif",
     "title": "Sokodig",
     "author": "Ezra Szanton",
     "homepage": "https://www.ezras.work/"
+  },
+  {
+    "url": "https://nebu-soku.itch.io/two-worlds",
+    "thumb": "twoworlds.gif",
+    "title": "Two Worlds",
+    "author": "nebu soku",
+    "homepage": "https://nebu-soku.itch.io"
   },
 ]
