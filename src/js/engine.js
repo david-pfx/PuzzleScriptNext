@@ -2293,10 +2293,11 @@ Rule.prototype.applyAt = function(delta,tuple,check) {
       ruleDirection="";
     }
 
-    var logString = '<font color="green">Rule <a onclick="jumpToLine(' + rule.lineNumber + ');"  href="javascript:void(0);">' + rule.lineNumber + '</a> ' + 
-      ruleDirection + ' applied.</font>';
-    consolePrint(logString);
-  }
+		var inspectString =  addToDebugTimeline(level,rule.lineNumber);
+		var logString = `${inspectString} <font color="green">Rule <a onclick="jumpToLine(${rule.lineNumber});"  href="javascript:void(0);">${rule.lineNumber}</a> ${ruleDirection} applied.</font></span>`;
+		consolePrint(logString);
+		
+	}
 
     return result;
 };
@@ -2378,7 +2379,7 @@ Rule.prototype.queueCommands = function() {
 			var lineNumber = this.lineNumber;
 			var ruleDirection = dirMaskName[this.direction];
 			var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
-			consolePrint(logString,true);
+			consolePrint(logString,false);
 		}
 
     if (command[0]==='message') {     
@@ -2691,7 +2692,10 @@ var playerPositionsAtTurnStart;
 function processInput(dir,dontDoWin,dontModify,bak) {
 	againing = false;
 
-	if (verbose_logging) { 
+var bak = backupLevel();
+var inputindex=dir;  
+
+if (verbose_logging) { 
 	 	if (dir===-1) {
 	 		consolePrint('Turn starts with no input.')
 	 	} else {
@@ -2699,15 +2703,17 @@ function processInput(dir,dontDoWin,dontModify,bak) {
 			consolePrint('Turn starts with input of ' + ['up','left','down','right','action','mouse'][dir]+'.');
 	 	}
 	}
-
-	if (bak==undefined) {
-		bak = backupLevel();
-  }
   
-  playerPositions= getPlayerPositions();
+  playerPositions= [];
 playerPositionsAtTurnStart = getPlayerPositions();
 
     if (dir<=5) {
+
+      if (verbose_logging) { 
+        debugger_turnIndex++;
+        addToDebugTimeline(level,-2);//pre-movement-applied debug state
+      }
+
     	if (dir>=0 && dir<=4) {
 	        switch(dir){
 	            case 0://up
@@ -2737,9 +2743,23 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				      }
 	        }
 	        playerPositions = startMovement(dir);
-		    }
+		}
+			
+		
+		if (verbose_logging) { 
+			consolePrint('Applying rules');
 
-        var i=0;
+			var inspectString = addToDebugTimeline(level,-1);
+				
+			 if (dir===-1) {
+				 consolePrint(`${inspectString} Turn starts with no input.</span>`)
+			 } else {
+				//  consolePrint('=======================');
+				consolePrint(`${inspectString} Turn starts with input of ${['up','left','down','right','action', 'mouse'][inputindex]}.</span>`);
+			 }
+		}
+
+		
         level.bannedGroup = [];
         rigidBackups = [];
         level.commandQueue=[];
@@ -2755,13 +2775,14 @@ playerPositionsAtTurnStart = getPlayerPositions();
 
     calculateRowColMasks();
 
+        var i=0;
         do {
         //not particularly elegant, but it'll do for now - should copy the world state and check
         //after each iteration
         	rigidloop=false;
         	i++;
         	
-        	if (verbose_logging){consolePrint('applying rules');}
+
 
         	applyRules(state.rules, state.loopPoint, startRuleGroupIndex, level.bannedGroup);
         	var shouldUndo = resolveMovements();
@@ -2769,9 +2790,31 @@ playerPositionsAtTurnStart = getPlayerPositions();
         	if (shouldUndo) {
         		rigidloop=true;
         		restorePreservationState(startState);
+
+				if (verbose_logging && rigidloop && i>0){				
+					consolePrint('Relooping through rules because of rigid.');
+						
+					debugger_turnIndex++;
+					addToDebugTimeline(level,-2);//pre-movement-applied debug state
+				}
+
         		startRuleGroupIndex=0;//rigidGroupUndoDat.ruleGroupIndex+1;
         	} else {
-        		if (verbose_logging){consolePrint('applying late rules');}
+        		if (verbose_logging){
+
+					var eof_idx = debug_visualisation_array[debugger_turnIndex].length+1;//just need some number greater than any rule group
+					var inspectString = addToDebugTimeline(level,eof_idx);
+
+					consolePrint(`${inspectString} Processed movements.</span>`);
+					
+					if (state.lateRules.length>0){
+											
+						debugger_turnIndex++;
+						addToDebugTimeline(level,-2);//pre-movement-applied debug state
+					
+						consolePrint('Applying late rules');
+					}
+				}
         		applyRules(state.lateRules, state.lateLoopPoint, 0);
         		startRuleGroupIndex=0;
         	}
@@ -2936,7 +2979,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 
 	    if (textMode===false) {
 	    	if (verbose_logging) { 
-	    		consolePrint('Checking win condition.');
+	    		consolePrint('Checking win conditions.');
 			}
 			if (dontDoWin===undefined){
 				dontDoWin = false;
@@ -2984,10 +3027,13 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			    messagetext = oldmessagetext;
 		    }   
 		}
-		    
-
-      level.commandQueue=[];
-      level.commandQueueSourceRules=[];
+		
+		if (verbose_logging) { 
+			consolePrint(`Turn complete`);    
+		}
+		
+	    level.commandQueue=[];
+	    level.commandQueueSourceRules=[];
 
     }
 

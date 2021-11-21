@@ -114,11 +114,16 @@ function clearConsole() {
 	code.innerHTML = '';
 	var objDiv = document.getElementById('lowerarea');
 	objDiv.scrollTop = objDiv.scrollHeight;
+		
+	//clear up debug stuff.
+	debugger_turnIndex=0;
+	debug_visualisation_array=[];
+	diffToVisualize=null;
 }
 
 var clearConsoleClick = document.getElementById("clearConsoleClick");
 clearConsoleClick.addEventListener("click", clearConsole, false);
-
+clearConsoleClick.addEventListener("click", clearConsole, false);
 function verboseToggle() {
 	if (!titleScreen) {
 	verbose_logging = !verbose_logging;
@@ -129,4 +134,5 @@ function verboseToggle() {
 }
 
 var verboseLoggingClick = document.getElementById("verboseLoggingClick");
+verboseLoggingClick.addEventListener("click", verboseToggle, false);
 verboseLoggingClick.addEventListener("click", verboseToggle, false);

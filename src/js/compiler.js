@@ -47,163 +47,166 @@ var colorPalette;
 
 function generateExtraMembers(state) {
 
-	if (state.collisionLayers.length===0) {
-		logError("No collision layers defined.  All objects need to be in collision layers.");
-	}
+    if (state.collisionLayers.length === 0) {
+        logError("No collision layers defined.  All objects need to be in collision layers.");
+    }
 
-	//annotate objects with layers
-	//assign ids at the same time
-	state.idDict = {};
-	var idcount=0;
-	for (var layerIndex = 0; layerIndex < state.collisionLayers.length; layerIndex++) {
-		for (var j = 0; j < state.collisionLayers[layerIndex].length; j++)
-		{
-			var n = state.collisionLayers[layerIndex][j];
-			if (n in  state.objects)  {
-				var o = state.objects[n];
-				o.layer = layerIndex;
-				o.id=idcount;
-				state.idDict[idcount]=n;
-				idcount++;
-			}
-		}
-	}
+    //annotate objects with layers
+    //assign ids at the same time
+    state.idDict = [];
+    var idcount = 0;
+    for (var layerIndex = 0; layerIndex < state.collisionLayers.length; layerIndex++) {
+        for (var j = 0; j < state.collisionLayers[layerIndex].length; j++) {
+            var n = state.collisionLayers[layerIndex][j];
+            if (n in state.objects) {
+                var o = state.objects[n];
+                o.layer = layerIndex;
+                o.id = idcount;
+                state.idDict[idcount] = n;
+                idcount++;
+            }
+        }
+    }
 
-	//set object count
-	state.objectCount = idcount;
+    //set object count
+    state.objectCount = idcount;
 
-	//calculate blank mask template
-	var layerCount = state.collisionLayers.length;
-	var blankMask = [];
-	for (var i = 0; i < layerCount; i++) {
-		blankMask.push(-1);
-	}
+    //calculate blank mask template
+    var layerCount = state.collisionLayers.length;
+    var blankMask = [];
+    for (var i = 0; i < layerCount; i++) {
+        blankMask.push(-1);
+    }
 
-	// how many words do our bitvecs need to hold?
-	STRIDE_OBJ = Math.ceil(state.objectCount/32)|0;
-	STRIDE_MOV = Math.ceil(layerCount/5)|0;
-	state.STRIDE_OBJ=STRIDE_OBJ;
-	state.STRIDE_MOV=STRIDE_MOV;
-	
-	//get colorpalette name
-	debugMode=false;
-	verbose_logging=false;
-	throttle_movement=false;
-	colorPalette=colorPalettes.arnecolors;
-	for (var i=0;i<state.metadata.length;i+=2){
-		var key = state.metadata[i];
-		var val = state.metadata[i+1];
-		if (key==='color_palette') {
-			if (val in colorPalettesAliases) {
-				val = colorPalettesAliases[val];
-			}
-			if (colorPalettes[val]===undefined) {
-				logError('Palette "'+val+'" not found, defaulting to arnecolors.',0);
-			}else {
-				colorPalette=colorPalettes[val];
-			}
-		} else if (key==='debug') {
-			debugMode=true;
-			cache_console_messages=true;
-		} else if (key ==='verbose_logging') {
-			verbose_logging=true;
-			cache_console_messages=true;
-		} else if (key==='throttle_movement') {
-			throttle_movement=true;
-		}
-	}
+    // how many words do our bitvecs need to hold?
+    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;
+    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;
+    state.STRIDE_OBJ = STRIDE_OBJ;
+    state.STRIDE_MOV = STRIDE_MOV;
 
-	//convert colors to hex
-	for (var n in state.objects) {
-	      if (state.objects.hasOwnProperty(n)) {
-			//convert color to hex
-	      	var o = state.objects[n];
-	      	if (o.colors.length>10) {
-	      		logError("a sprite cannot have more than 10 colors.  Why you would want more than 10 is beyond me.",o.lineNumber+1);
-	      	}
-	      	for (var i=0;i<o.colors.length;i++) {
-	      		var c = o.colors[i];
-				if (isColor(c)) {
-					c = colorToHex(colorPalette,c);
-					o.colors[i] = c;
-				} else {
-					logError('Invalid color specified for object "' + n + '", namely "' + o.colors[i] + '".', o.lineNumber + 1);
-					o.colors[i] = '#ff00ff'; // magenta error color
-				}
-			}
-		}
-	}
+    //get colorpalette name
+    debugMode = false;
+    verbose_logging = false;
+    throttle_movement = false;
+    colorPalette = colorPalettes.arnecolors;
+    for (var i = 0; i < state.metadata.length; i += 2) {
+        var key = state.metadata[i];
+        var val = state.metadata[i + 1];
+        if (key === 'color_palette') {
+            if (val in colorPalettesAliases) {
+                val = colorPalettesAliases[val];
+            }
+            if (colorPalettes[val] === undefined) {
+                logError('Palette "' + val + '" not found, defaulting to arnecolors.', 0);
+            } else {
+                colorPalette = colorPalettes[val];
+            }
+        } else if (key === 'debug') {
+            if (IDE && unitTesting===false){
+                debugMode = true;
+                cache_console_messages = true;
+            }
+        } else if (key === 'verbose_logging') {
+            if (IDE && unitTesting===false){
+                verbose_logging = true;
+                cache_console_messages = true;
+            }
+        } else if (key === 'throttle_movement') {
+            throttle_movement = true;
+        }
+    }
 
-	//generate sprite matrix
-	for (var n in state.objects) {
-	      if (state.objects.hasOwnProperty(n)) {
-	      	var o = state.objects[n];
-	      	if (o.colors.length==0) {
-	      		logError('color not specified for object "' + n +'".',o.lineNumber);
-	      		o.colors=["#ff00ff"];
-			  }
-			 if (o.cloneSprite !== "") {
-				//console.log("To clone: "+o.cloneSprite);
-				if (state.objects.hasOwnProperty(o.cloneSprite)) {
-					
-					if (state.objects[o.cloneSprite].cloneSprite === "") {
-						o.spritematrix = deepClone(state.objects[o.cloneSprite].spritematrix);
-						//console.log(o.spritematrix);
-					} else {
-						logError("The sprite that "+n+" attempted to clone ("+o.cloneSprite+") clones a sprite itself ("+state.objects[o.cloneSprite].cloneSprite + "), so it can't clone the sprite! You'll need to set up the cloning differently.",o.lineNumber);
-					}
-				} else {
-					logError(n +" attempted to clone the sprite matrix of "+o.cloneSprite+", but that object doesn't exist?!",o.lineNumber);
-				}
-			 } 
-			  /*else /*if (o.colors[o.colors.length-1][0] !== "#") {
-				  var objectToClone = o.colors[o.colors.length-1];
-				  if (state.objects.hasOwnProperty(objectToClone)) {
-					o.spritematrix = objectToClone.spritematrix;
-					o.spritematrix = generateSpriteMatrix(o.spritematrix);
-					logWarning("Cloned "+objectToClone, o.lineNumber);
-					continue;
-				} else {
-					logError("Attempted to clone the sprite matrix of "+objectToClone+", but that object doesn't exist?!")
-				}
-			}*/
-			else if (o.spritematrix.length===0) {
-				o.spritematrix = new Array(state.sprite_size);
-				var zeros = new Array(state.sprite_size);
-				for(var i = 0; i < state.sprite_size; i++) {
-					zeros[i] = 0;
-				}
-				for(var i = 0; i < state.sprite_size; i++) {
-					o.spritematrix[i] = zeros;
-				}
-			} else {
-				if ( o.spritematrix.length!==state.sprite_size) {
-					logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
-				} else {
-					for(var i = 0; i < state.sprite_size; i++) {
-						if(o.spritematrix[i].length!==state.sprite_size) {
-							logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
-							break;
-						}
-					}
-				}
-				o.spritematrix = generateSpriteMatrix(o.spritematrix);
-			}
-		}
-	}
+    //convert colors to hex
+    for (var n in state.objects) {
+        if (state.objects.hasOwnProperty(n)) {
+            //convert color to hex
+            var o = state.objects[n];
+            if (o.colors.length > 10) {
+                logError("a sprite cannot have more than 10 colors.  Why you would want more than 10 is beyond me.", o.lineNumber + 1);
+            }
+            for (var i = 0; i < o.colors.length; i++) {
+                var c = o.colors[i];
+                if (isColor(c)) {
+                    c = colorToHex(colorPalette, c);
+                    o.colors[i] = c;
+                } else {
+                    logError('Invalid color specified for object "' + n + '", namely "' + o.colors[i] + '".', o.lineNumber + 1);
+                    o.colors[i] = '#ff00ff'; // magenta error color
+                }
+            }
+        }
+    }
+
+    //generate sprite matrix
+    for (var n in state.objects) {
+        if (state.objects.hasOwnProperty(n)) {
+            var o = state.objects[n];
+            if (o.colors.length==0) {
+                logError('color not specified for object "' + n +'".',o.lineNumber);
+                o.colors=["#ff00ff"];
+            }
+           if (o.cloneSprite !== "") {
+              //console.log("To clone: "+o.cloneSprite);
+              if (state.objects.hasOwnProperty(o.cloneSprite)) {
+                  
+                  if (state.objects[o.cloneSprite].cloneSprite === "") {
+                      o.spritematrix = deepClone(state.objects[o.cloneSprite].spritematrix);
+                      //console.log(o.spritematrix);
+                  } else {
+                      logError("The sprite that "+n+" attempted to clone ("+o.cloneSprite+") clones a sprite itself ("+state.objects[o.cloneSprite].cloneSprite + "), so it can't clone the sprite! You'll need to set up the cloning differently.",o.lineNumber);
+                  }
+              } else {
+                  logError(n +" attempted to clone the sprite matrix of "+o.cloneSprite+", but that object doesn't exist?!",o.lineNumber);
+              }
+           } 
+            /*else /*if (o.colors[o.colors.length-1][0] !== "#") {
+                var objectToClone = o.colors[o.colors.length-1];
+                if (state.objects.hasOwnProperty(objectToClone)) {
+                  o.spritematrix = objectToClone.spritematrix;
+                  o.spritematrix = generateSpriteMatrix(o.spritematrix);
+                  logWarning("Cloned "+objectToClone, o.lineNumber);
+                  continue;
+              } else {
+                  logError("Attempted to clone the sprite matrix of "+objectToClone+", but that object doesn't exist?!")
+              }
+          }*/
+          else if (o.spritematrix.length===0) {
+              o.spritematrix = new Array(state.sprite_size);
+              var zeros = new Array(state.sprite_size);
+              for(var i = 0; i < state.sprite_size; i++) {
+                  zeros[i] = 0;
+              }
+              for(var i = 0; i < state.sprite_size; i++) {
+                  o.spritematrix[i] = zeros;
+              }
+          } else {
+              if ( o.spritematrix.length!==state.sprite_size) {
+                  logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
+              } else {
+                  for(var i = 0; i < state.sprite_size; i++) {
+                      if(o.spritematrix[i].length!==state.sprite_size) {
+                          logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
+                          break;
+                      }
+                  }
+              }
+              o.spritematrix = generateSpriteMatrix(o.spritematrix);
+          }
+        }
+    }
 
 
-	//calculate glyph dictionary
-	var glyphDict = {};
-	for (var n in state.objects) {
-	      if (state.objects.hasOwnProperty(n)) {
-	      	var o = state.objects[n];
-			var mask = blankMask.concat([]);
-			mask[o.layer] = o.id;
-			glyphDict[n] = mask;
-		}
-	}
- 	var added=true;
+    //calculate glyph dictionary
+    var glyphDict = {};
+    for (var n in state.objects) {
+        if (state.objects.hasOwnProperty(n)) {
+            var o = state.objects[n];
+            var mask = blankMask.concat([]);
+            mask[o.layer] = o.id;
+            glyphDict[n] = mask;
+        }
+    }
+    var added = true;
     while (added) {
         added = false;
 
