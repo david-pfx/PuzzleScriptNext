@@ -7017,7 +7017,7 @@
           // template strings don't work for IE
           style = 'color: hsl(' + ~~(hsl[0] * 360) + ',' + ~~(hsl[1] * 100) + '%,' + ~~(hsl[2] * 100) + '%)';
         } else {
-          style = 'color:' + colorString.substring(0,7); //Ignore transparency
+          style = 'color:' + colorString;
         }
       }
       colorCache[colorString] = style;
@@ -7029,9 +7029,10 @@
   function elt(tag, content, className, style) {
     var e = document.createElement(tag);
     if (className) {
-      if(className.indexOf("cm-MULTICOLOR")===0){
+      var multicol_idx=className.indexOf("cm-MULTICOLOR")
+      if(multicol_idx===0){
+        style = styleFromHexCode(className.substr(13));
         className="cm-COLOR"
-        style = styleFromHexCode(content[0].textContent);
       } else if (className.indexOf("cm-COLOR-#") !== -1) {
         var color = className.match(/cm-COLOR-(#[0-9a-fA-F]+)/)[1];
         style = styleFromHexCode(color);

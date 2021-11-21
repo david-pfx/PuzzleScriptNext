@@ -1889,7 +1889,7 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
   return result;
 }
 */
-
+/*
 function DoesCellRowMatchWildCard(direction,cellRow,i,maxk,mink) {
   if (mink === undefined) {
     mink = 0;
@@ -1935,7 +1935,7 @@ function DoesCellRowMatchWildCard(direction,cellRow,i,maxk,mink) {
     }  
     return false;
 }
-
+*/
 //say cellRow has length 3
 /*
 CellRow Matches can be specialized to look something like:
@@ -1945,7 +1945,7 @@ function cellRowMatchesFunctionGenerate(direction,cellRow,i) {
   return cellRow[0].matches(i)&&cellRow[1].matches((i+d)%level.n_tiles)&&cellRow[2].matches((i+2*d)%level.n_tiles);
 }
 */
-
+/*
 function DoesCellRowMatch(direction,cellRow,i,k) {
   var cellPattern = cellRow[0];
     if (cellPattern.matches(i)) {
@@ -1975,7 +1975,7 @@ function DoesCellRowMatch(direction,cellRow,i,k) {
     }  
     return false;
 }
-
+*/
 function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask, isGlobal) {  
   var result=[];
   
@@ -2240,29 +2240,24 @@ Rule.prototype.directional = function(){
 }
 
 Rule.prototype.applyAt = function(delta,tuple,check) {
-  var rule = this;
-  //have to double check they apply
-  //Q: why?
-    if (check) {
-        var ruleMatches=true;                
-        for (var cellRowIndex=0;cellRowIndex<rule.patterns.length;cellRowIndex++) {
-          if (rule.isEllipsis[cellRowIndex]) {//if ellipsis
-              if (DoesCellRowMatchWildCard(rule.direction,rule.patterns[cellRowIndex],tuple[cellRowIndex][0],
-                tuple[cellRowIndex][1]+1, tuple[cellRowIndex][1])===false) { /* pass mink to specify */
-                    ruleMatches=false;
-                    break;
-                }
-          } else {
-              if (DoesCellRowMatch(rule.direction,rule.patterns[cellRowIndex],tuple[cellRowIndex])===false) {
-                    ruleMatches=false;
-                    break;
-                }
-          }
-        }
-        if (ruleMatches === false ) {
-            return false;
-        }
-    }
+	var rule = this;
+	//have to double check they apply 
+	//(cf test ellipsis bug: rule matches two candidates, first replacement invalidates second)
+	if (check)
+	{
+		for (var cellRowIndex=0; cellRowIndex<this.patterns.length; cellRowIndex++)
+		{
+			if (this.isEllipsis[cellRowIndex]) //if ellipsis
+			{
+				if ( this.cellRowMatches[cellRowIndex](this.patterns[cellRowIndex], tuple[cellRowIndex][0], tuple[cellRowIndex][1]+1, tuple[cellRowIndex][1]).length == 0 )
+					return false
+			}
+			else if ( ! this.cellRowMatches[cellRowIndex](this.patterns[cellRowIndex], tuple[cellRowIndex]) )
+				return false
+		}
+	}
+
+
     var result=false;
     
     //APPLY THE RULE
