@@ -2294,7 +2294,7 @@ Rule.prototype.applyAt = function(delta,tuple,check) {
     }
 
 		var inspectString =  addToDebugTimeline(level,rule.lineNumber);
-		var logString = `${inspectString} <font color="green">Rule <a onclick="jumpToLine(${rule.lineNumber});"  href="javascript:void(0);">${rule.lineNumber}</a> ${ruleDirection} applied.</font></span>`;
+		var logString = `${inspectString}<font color="green">Rule <a onclick="jumpToLine(${rule.lineNumber});"  href="javascript:void(0);">${rule.lineNumber}</a> ${ruleDirection} applied.</font></span>`;
 		consolePrint(logString);
 		
 	}
@@ -2548,7 +2548,10 @@ function applyRuleGroup(ruleGroup) {
             propagated = rule.tryApply() || propagated;
         }
         if (propagated) {
-          loopPropagated=true;
+        	loopPropagated=true;
+			
+			debugger_turnIndex++;
+			addToDebugTimeline(level,-2);//pre-movement-applied debug state
         }
     }
 
@@ -2572,28 +2575,34 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
       loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
       }
         if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
-          ruleGroupIndex = loopPoint[ruleGroupIndex];
-          loopPropagated=false;
-          loopCount++;
-      if (loopCount > 200) {
-          var ruleGroup=rules[ruleGroupIndex];
-          logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
-          break;
-      }
+        	ruleGroupIndex = loopPoint[ruleGroupIndex];
+        	loopPropagated=false;
+        	loopCount++;
+			if (loopCount > 200) {
+    			var ruleGroup=rules[ruleGroupIndex];
+			   	logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
+			   	break;
+			}
+			
+			debugger_turnIndex++;
+			addToDebugTimeline(level,-2);//pre-movement-applied debug state
         } else {
-          ruleGroupIndex++;
-          if (ruleGroupIndex===rules.length) {
-            if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
-              ruleGroupIndex = loopPoint[ruleGroupIndex];
-              loopPropagated=false;
-              loopCount++;
-          if (loopCount > 200) {
-              var ruleGroup=rules[ruleGroupIndex];
-              logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
-              break;
-          }
-            } 
-          }
+        	ruleGroupIndex++;
+        	if (ruleGroupIndex===rules.length) {
+        		if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
+		        	ruleGroupIndex = loopPoint[ruleGroupIndex];
+		        	loopPropagated=false;
+		        	loopCount++;
+					if (loopCount > 200) {
+		    			var ruleGroup=rules[ruleGroupIndex];
+					   	logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
+					   	break;
+					}
+		        } 
+        	}
+			
+			debugger_turnIndex++;
+			addToDebugTimeline(level,-2);//pre-movement-applied debug state
         }
     }
 }
@@ -2752,10 +2761,10 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			var inspectString = addToDebugTimeline(level,-1);
 				
 			 if (dir===-1) {
-				 consolePrint(`${inspectString} Turn starts with no input.</span>`)
+				 consolePrint(`${inspectString}Turn starts with no input.</span>`)
 			 } else {
 				//  consolePrint('=======================');
-				consolePrint(`${inspectString} Turn starts with input of ${['up','left','down','right','action', 'mouse'][inputindex]}.</span>`);
+				consolePrint(`${inspectString}Turn starts with input of ${['up','left','down','right','action','mouse'][inputindex]}.</span>`);
 			 }
 		}
 
@@ -2805,7 +2814,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 					var eof_idx = debug_visualisation_array[debugger_turnIndex].length+1;//just need some number greater than any rule group
 					var inspectString = addToDebugTimeline(level,eof_idx);
 
-					consolePrint(`${inspectString} Processed movements.</span>`);
+					consolePrint(`${inspectString}Processed movements.</span>`);
 					
 					if (state.lateRules.length>0){
 											
