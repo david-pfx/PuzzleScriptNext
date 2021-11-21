@@ -369,7 +369,6 @@ function githubLogOut(){
 }
 
 function rebuildClick() {
-	clearConsole();
 	compile(["rebuild"]);
 }
 
