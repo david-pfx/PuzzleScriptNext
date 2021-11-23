@@ -415,8 +415,10 @@ function generateExtraMembers(state) {
             logError("background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').");
         } else {
             var o = state.objects[state.idDict[0]];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            if (o!=null){
+                backgroundid = o.id;
+                backgroundlayer = o.layer;
+            }
             logError("you have to define something to be the background");
         }
     } else {
@@ -2089,21 +2091,22 @@ function ruleGroupRandomnessTest(ruleGroup) {
 function ruleGroupDiscardOverlappingTest(ruleGroup) {
     if (ruleGroup.length === 0)
         return;
-    var firstLineNumber = ruleGroup[0].lineNumber;
-    var allbad = true;
-    var example = null;
+
     for (var i = 0; i < ruleGroup.length; i++) {
         var rule = ruleGroup[i];
         if (rule.hasOwnProperty('discard')) {
-            example = rule['discard'];
             ruleGroup.splice(i, 1);
+
+            //if rule before isn't of same linenumber, and rule after isn't of same linenumber, 
+            //then a rule has been totally erased and you should throw an error!
+            if ( (i===0 || ruleGroup[i-1].lineNumber !==  rule.lineNumber ) 
+                && (i<ruleGroup.length-1 && ruleGroup[i+1].lineNumber !==  rule.lineNumber) || ruleGroup.length===0) {
+                var example = rule['discard'];
+                
+                logError(example[0] + ' and ' + example[1] + ' can never overlap, but this rule requires that to happen.', rule.lineNumber);
+            }
             i--;
-        } else {
-            allbad = false;
         }
-    }
-    if (allbad) {
-        logError(example[0] + ' and ' + example[1] + ' can never overlap, but this rule requires that to happen.', firstLineNumber);
     }
 }
 
@@ -3070,7 +3073,11 @@ function compile(command, text, randomseed) {
     }*/
 
     if (errorCount > 0) {
-        consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript engine, please consider dropping an email to analytic@gmail.com with a link to the game and I\'ll try make sure it\'s back working ASAP.</span>');
+        if (IDE===false){
+            consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript engine, please consider dropping an email to analytic@gmail.com with a link to the game and I\'ll try make sure it\'s back working ASAP.</span>');
+        } else{
+            consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.</span>');
+        }
     } else {
         var ruleCount = 0;
         for (var i = 0; i < state.rules.length; i++) {
