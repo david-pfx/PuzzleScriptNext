@@ -2018,41 +2018,58 @@ function cellRowMasks(rule) {
     return ruleMasks;
 }
 
-function collapseRules(groups) {
-	for (var gn = 0; gn < groups.length; gn++) {
-		var rules = groups[gn];
-		for (var i = 0; i < rules.length; i++) {
-			var oldrule = rules[i];
-			var newrule = [0,[],oldrule.rhs.length>0,oldrule.lineNumber/*ellipses,group number,rigid,commands,randomrule,[cellrowmasks]*/];
-			var ellipses = [];
-			for (var j=0;j<oldrule.lhs.length;j++) {
-				ellipses.push(false);
-			}
+function cellRowMasks_Movements(rule){
+    var ruleMasks_mov = [];
+    var lhs = rule[1];
+    for (var i = 0; i < lhs.length; i++) {
+        var cellRow = lhs[i];
+        var rowMask = new BitVec(STRIDE_MOV);
+        for (var j = 0; j < cellRow.length; j++) {
+            if (cellRow[j] === ellipsisPattern)
+                continue;
+            rowMask.ior(cellRow[j].movementsPresent);
+        }
+        ruleMasks_mov.push(rowMask);
+    }
+    return ruleMasks_mov;
+}
 
-			newrule[0]=dirMasks[oldrule.direction];
-			for (var j = 0; j < oldrule.lhs.length; j++) {
-				var cellrow_l = oldrule.lhs[j];
-				for (var k = 0; k < cellrow_l.length; k++) {
-					if (cellrow_l[k] === ellipsisPattern) {
-						if (ellipses[j]) {
-							logError("You can't use two ellipses in a single cell match pattern.  If you really want to, please implement it yourself and send me a patch :) ", oldrule.lineNumber);
-						} 
-						ellipses[j]=true;
-					}
-				}
-				newrule[1][j] = cellrow_l;
-			}
-			newrule.push(ellipses);
-			newrule.push(oldrule.groupNumber);
-			newrule.push(oldrule.rigid);
-			newrule.push(oldrule.commands);
-			newrule.push(oldrule.randomRule);			
-			newrule.push(cellRowMasks(newrule));
-			newrule.push(oldrule.globalRule);
-			rules[i] = new Rule(newrule);
-		}
-	}
-	matchCache = {}; // clear match cache so we don't slowly leak memory
+function collapseRules(groups) {
+    for (var gn = 0; gn < groups.length; gn++) {
+        var rules = groups[gn];
+        for (var i = 0; i < rules.length; i++) {
+            var oldrule = rules[i];
+            var newrule = [0, [], oldrule.rhs.length > 0, oldrule.lineNumber /*ellipses,group number,rigid,commands,randomrule,[cellrowmasks]*/ ];
+            var ellipses = [];
+            for (var j = 0; j < oldrule.lhs.length; j++) {
+                ellipses.push(false);
+            }
+
+            newrule[0] = dirMasks[oldrule.direction];
+            for (var j = 0; j < oldrule.lhs.length; j++) {
+                var cellrow_l = oldrule.lhs[j];
+                for (var k = 0; k < cellrow_l.length; k++) {
+                    if (cellrow_l[k] === ellipsisPattern) {
+                        if (ellipses[j]) {
+                            logError("You can't use two ellipses in a single cell match pattern.  If you really want to, please implement it yourself and send me a patch :) ", oldrule.lineNumber);
+                        }
+                        ellipses[j] = true;
+                    }
+                }
+                newrule[1][j] = cellrow_l;
+            }
+            newrule.push(ellipses);
+            newrule.push(oldrule.groupNumber);
+            newrule.push(oldrule.rigid);
+            newrule.push(oldrule.commands);
+            newrule.push(oldrule.randomRule);
+            newrule.push(cellRowMasks(newrule));
+            newrule.push(cellRowMasks_Movements(newrule));
+            newrule.push(oldrule.globalRule);
+            rules[i] = new Rule(newrule);
+        }
+    }
+    matchCache = {}; // clear match cache so we don't slowly leak memory
 }
 
 function ruleGroupRandomnessTest(ruleGroup) {
