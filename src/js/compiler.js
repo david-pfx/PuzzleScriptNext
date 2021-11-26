@@ -765,16 +765,17 @@ var curcellrow = []; // [  [up, cat]  [ down, mouse ] ]
 
 var incellrow = false;
 
-var appendGroup=false;
-var rhs = false;
-var lhs_cells = [];
-var rhs_cells = [];
-var late = false;
-var rigid = false;
-var groupNumber=lineNumber;
-var commands=[];
-var randomRule=false;
-var globalRule=false;
+    var appendGroup = false;
+    var rhs = false;
+    var lhs_cells = [];
+    var rhs_cells = [];
+    var late = false;
+    var rigid = false;
+    var groupNumber = lineNumber;
+    var commands = [];
+    var randomRule = false;
+    var has_plus = false;
+    var globalRule=false;
 
 if (tokens.length===1) {
     if (tokens[0]==="startloop" ) {
@@ -794,48 +795,54 @@ if (tokens.indexOf('->') == -1) {
     logError("A rule has to have an arrow in it.  There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
 }
 
-var curcell=[];
-var bracketbalance=0;
-for (var i = 0; i < tokens.length; i++)
-{
-    var token = tokens[i];
-    switch (parsestate) {
-        case 0: {
-            //read initial directions
-            if (token==='+') {					
-                if (groupNumber===lineNumber) {
-                    if (curRules.length==0) {
-                        logError('The "+" symbol, for joining a rule with the group of the previous rule, needs a previous rule to be applied to.');							
-                    }
-                    if (i!==0) {
-                        logError('The "+" symbol, for joining a rule with the group of the previous rule, must be the first symbol on the line ');
-                    }						
-                    groupNumber = curRules[curRules.length-1].groupNumber;
-                } else {
-                    logError('Two "+"s ("append to previous rule group" symbol) applied to the same rule.',lineNumber);
-                }
-            } else if (token in directionaggregates) {
-                directions = directions.concat(directionaggregates[token]);						
-            } else if (token==='late') {
-                    late=true;
-            } else if (token==='rigid') {
-                rigid=true;
-            } else if (token==='random') {
-                randomRule=true;
-            } else if (token==='global') {
-                globalRule=true;
-            }else if (simpleAbsoluteDirections.indexOf(token) >= 0) {
-                directions.push(token);
-            } else if (simpleRelativeDirections.indexOf(token) >= 0) {
-                logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
-            } else if (token == '[') {
-                if (directions.length == 0) {
-                    directions = directions.concat(directionaggregates['orthogonal']);
-                }
-                parsestate = 1;
-                i--;
-            } else {
-                logError("The start of a rule must consist of some number of directions (possibly 0), before the first bracket, specifying in what directions to look (with no direction specified, it applies in all four directions).  It seems you've just entered \"" + token.toUpperCase() + '\".', lineNumber);
+    var curcell = [];
+    var bracketbalance = 0;
+    for (var i = 0; i < tokens.length; i++) {
+        var token = tokens[i];
+        switch (parsestate) {
+            case 0:
+                {
+                    //read initial directions
+                    if (token === '+') {
+                        has_plus=true;
+                        if (groupNumber === lineNumber) {
+                            if (curRules.length == 0) {
+                                logError('The "+" symbol, for joining a rule with the group of the previous rule, needs a previous rule to be applied to.');
+                            }
+                            if (i !== 0) {
+                                logError('The "+" symbol, for joining a rule with the group of the previous rule, must be the first symbol on the line ');
+                            }
+                            groupNumber = curRules[curRules.length - 1].groupNumber;
+                        } else {
+                            logError('Two "+"s ("append to previous rule group" symbol) applied to the same rule.', lineNumber);
+                        }
+                    } else if (token in directionaggregates) {
+                        directions = directions.concat(directionaggregates[token]);
+                    } else if (token === 'late') {
+                        late = true;
+                    } else if (token === 'rigid') {
+                        rigid = true;
+                    } else if (token === 'random') {
+                        randomRule = true;
+                        if (has_plus)
+                        {
+                            logError(`A rule-group can only be marked random by the opening rule in the group (aka, a '+' and 'random' can't appear as rule modifiers on the same line).  Why? Well, you see "random" isn't a property of individual rules, but of whole rule groups.  It indicates that a single possible application of some rule from the whole group should be applied at random.`, lineNumber) 
+                        }
+
+                    }else if (token==='global') {
+                        globalRule=true;
+                    } else if (simpleAbsoluteDirections.indexOf(token) >= 0) {
+                        directions.push(token);
+                    } else if (simpleRelativeDirections.indexOf(token) >= 0) {
+                        logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
+                    } else if (token == '[') {
+                        if (directions.length == 0) {
+                            directions = directions.concat(directionaggregates['orthogonal']);
+                        }
+                        parsestate = 1;
+                        i--;
+                    } else {
+                        logError("The start of a rule must consist of some number of directions (possibly 0), before the first bracket, specifying in what directions to look (with no direction specified, it applies in all four directions).  It seems you've just entered \"" + token.toUpperCase() + '\".', lineNumber);
             }
             break;
         }
@@ -2074,19 +2081,7 @@ function collapseRules(groups) {
     matchCache = {}; // clear match cache so we don't slowly leak memory
 }
 
-function ruleGroupRandomnessTest(ruleGroup) {
-    if (ruleGroup.length === 0)
-        return;
-    var firstLineNumber = ruleGroup[0].lineNumber;
-    for (var i = 1; i < ruleGroup.length; i++) {
-        var rule = ruleGroup[i];
-        if (rule.lineNumber === firstLineNumber) // random [A | B] gets turned into 4 rules, skip
-            continue;
-        if (rule.randomRule) {
-            logError("A rule-group can only be marked random by the first rule", rule.lineNumber);
-        }
-    }
-}
+
 
 function ruleGroupDiscardOverlappingTest(ruleGroup) {
     if (ruleGroup.length === 0)
@@ -2130,7 +2125,6 @@ function arrangeRulesByGroupNumber(state) {
     for (var groupNumber in aggregates) {
         if (aggregates.hasOwnProperty(groupNumber)) {
             var ruleGroup = aggregates[groupNumber];
-            ruleGroupRandomnessTest(ruleGroup);
             ruleGroupDiscardOverlappingTest(ruleGroup);
             if (ruleGroup.length > 0) {
                 result.push(ruleGroup);
@@ -2141,7 +2135,6 @@ function arrangeRulesByGroupNumber(state) {
     for (var groupNumber in aggregates_late) {
         if (aggregates_late.hasOwnProperty(groupNumber)) {
             var ruleGroup = aggregates_late[groupNumber];
-            ruleGroupRandomnessTest(ruleGroup);
             ruleGroupDiscardOverlappingTest(ruleGroup);
             if (ruleGroup.length > 0) {
                 result_late.push(ruleGroup);
