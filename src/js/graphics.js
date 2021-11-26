@@ -124,12 +124,21 @@ function generateGlyphImages() {
 	glyphImagesCorrespondance=[];
 	glyphImages=[];
 	
+    seenobjects = {};
 	for (var n in state.glyphDict) {
-		if (n.length==1 && state.glyphDict.hasOwnProperty(n)) {
+		if (n.length==1 && state.glyphDict.hasOwnProperty(n)) {            
 			var g=state.glyphDict[n];
 			var sprite = makeSpriteCanvas("C"+n)
 			var spritectx = sprite.getContext('2d');
 			glyphImagesCorrespondance.push(n);
+
+            /* hide duplicate entries from editor palette*/
+            var trace = g.join(",");
+            if (seenobjects.hasOwnProperty(trace)){
+                continue;
+            }
+            seenobjects[trace]=true;
+
 			for (var i=0;i<g.length;i++){
 				var id = g[i];
 				if (id===-1) {
@@ -262,7 +271,6 @@ var x;
 var y;
 var cellwidth;
 var cellheight;
-var magnification;
 var xoffset;
 var yoffset;
 
@@ -722,7 +730,6 @@ function canvasResize() {
         yoffset = (canvas.height - cellheight * screenheight) / 2;
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
     }
-    magnification = ((cellwidth/w)*5)|0;
 
     if (levelEditorOpened && !textMode) {
     	xoffset+=cellwidth;
