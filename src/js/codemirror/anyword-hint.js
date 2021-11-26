@@ -170,6 +170,7 @@
             var excludeProperties = false;
             var excludeAggregates = false;
             var candlists = [];
+            var toexclude = [];
             switch (state.section) {
                 case 'objects':
                     {
@@ -180,6 +181,10 @@
                     }
                 case 'legend':
                     {
+                        var splits = lineToCursor.toLowerCase().split(/[\p{Z}\s]/u).filter(function(v) {
+                            return v !== '';
+                        });
+                        toexclude=splits;
                         if (lineToCursor.indexOf('=')>=0){
                             if ((lineToCursor.trim().split(/\s+/ ).length%2)===1){
                                 addObjects=true;
@@ -199,7 +204,12 @@
                     }
                 case 'collisionlayers':
                     {
+                        var splits = lineToCursor.toLowerCase().split(/[,\p{Z}\s]/u).filter(function(v) {
+                            return v !== '';
+                        });
+                        toexclude=splits;
                         addObjects=true;
+                        excludeAggregates=true;
                         break;
                     }
                 case 'rules':
@@ -336,7 +346,15 @@
             //state.legend_properties
             //state.objects
 
-            //if list is a single word and that matches what the current word is, don't show hint
+            //remove words from the toexclude list
+            for (var i=0;i<list.length;i++){
+                var lc = list[i].text.toLowerCase();
+                if (toexclude.indexOf(lc)>=0){
+                    list.splice(i,1);
+                    i--;
+                }
+            }
+                    //if list is a single word and that matches what the current word is, don't show hint
             if (list.length===1 && list[0].text.toLowerCase()===curWord){
                 list=[];
             }

@@ -855,8 +855,8 @@ var codeMirrorFn = function() {
 	                                logWarning('You named an object "' + candname + '", but this is a keyword. Don\'t do that!', state.lineNumber);
 	                            }
                                 if (splits.indexOf(candname, 2)>=2) {
-                                    logError("You can't define object " + candname + " in terms of itself!", state.lineNumber);
-                                    ok = false;
+                                    logError("You can't define object " + candname.toUpperCase() + " in terms of itself!", state.lineNumber);
+                                    // ok = false;
                                 }
                                 checkNameNew(state,candname);
                         	}
