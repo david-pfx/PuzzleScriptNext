@@ -1608,6 +1608,13 @@ function Rule(rule) {
 	this.cellRowMasks = rule[9];
   this.cellRowMasks_Movements = rule[10];
   this.isGlobal = rule[11];
+	this.ruleMask = this.cellRowMasks.reduce( (acc, m) => { acc.ior(m); return acc }, new BitVec(STRIDE_OBJ) );
+
+	/*I tried out doing a ruleMask_movements as well along the lines of the above,
+	but it didn't help at all - I guess because almost every tick there are movements 
+	somewhere on the board - move filtering works well at a row/col level, but is pretty 
+	useless (or worse than useless) on a boardwide level*/
+
 	this.cellRowMatches = [];
 	for (var i=0;i<this.patterns.length;i++) {
 		this.cellRowMatches.push(this.generateCellRowMatchesFunction(this.patterns[i],this.isEllipsis[i]));
@@ -2255,7 +2262,10 @@ function restorePreservationState(preservationState) {;
 //  rigidBackups = preservationState.rigidBackups;
 }
 
-Rule.prototype.findMatches = function() {
+Rule.prototype.findMatches = function() {	
+	if ( ! this.ruleMask.bitsSetInArray(level.mapCellContents.data) )
+		return [];
+
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
