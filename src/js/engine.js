@@ -992,7 +992,8 @@ function setGameState(_state, command, randomseed) {
 					continue;
 				}
 				var targetLevel = i;
-				curlevel=i;
+				curlevel=targetLevel;
+				curlevelTarget=null;
 			    winning=false;
 			    timer=0;
 			    titleScreen=false;
@@ -1011,7 +1012,8 @@ function setGameState(_state, command, randomseed) {
 		case "loadLevel":
 		{
 			var targetLevel = command[1];
-			curlevel=i;
+			curlevel=targetLevel;
+			curlevelTarget=null;
 		    winning=false;
 		    timer=0;
 		    titleScreen=false;
@@ -1032,6 +1034,7 @@ function setGameState(_state, command, randomseed) {
 				var level= state.levels[i];
 				if(level.lineNumber<=targetLine+1) {
 					curlevel=i;
+					curlevelTarget=null;
 				    winning=false;
 				    timer=0;
 				    titleScreen=false;
@@ -2555,6 +2558,7 @@ function applyRandomRuleGroup(level,ruleGroup) {
   return modified;
 }
 
+
 function applyRuleGroup(ruleGroup) {
 	if (ruleGroup[0].isRandom) {
 		return applyRandomRuleGroup(level,ruleGroup);
@@ -2563,6 +2567,7 @@ function applyRuleGroup(ruleGroup) {
   var loopPropagated=false;
     var propagated=true;
     var loopcount=0;
+	var nothing_happened_counter = -1;
     while(propagated) {
       loopcount++;
       if (loopcount>200) 
@@ -2571,9 +2576,17 @@ function applyRuleGroup(ruleGroup) {
         break;
       }
         propagated=false;
+
         for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
-            var rule = ruleGroup[ruleIndex];            
-            propagated = rule.tryApply(level) || propagated;
+            var rule = ruleGroup[ruleIndex];     
+			if (rule.tryApply(level)){
+				propagated=true;
+				nothing_happened_counter=0;//why am I resetting to 1 rather than 0? because I've just verified that applications of the current rule are exhausted
+			} else {
+				nothing_happened_counter++;
+			}
+			if ( nothing_happened_counter === ruleGroup.length)
+				break;
         }
         if (propagated) {
         	loopPropagated=true;
@@ -3282,6 +3295,7 @@ function nextLevel() {
 
 			if(!skip) {
 				curlevel++;
+				curlevelTarget=null;
 				textMode=false;
 				titleScreen=false;
 				quittingMessageScreen=false;
