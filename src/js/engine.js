@@ -2851,8 +2851,9 @@ var playerPositionsAtTurnStart;
 function processInput(dir,dontDoWin,dontModify,bak) {
 	againing = false;
 
-var bak = backupLevel();
-var inputindex=dir;  
+	if (bak==undefined) {
+		bak = backupLevel();
+	}
   
   playerPositions= [];
 playerPositionsAtTurnStart = getPlayerPositions();
