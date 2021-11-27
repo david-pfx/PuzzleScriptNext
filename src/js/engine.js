@@ -2228,37 +2228,6 @@ function generateTuples(lists) {
     return tuples;
 }
 
-var rigidBackups=[]
-
-function commitPreservationState(ruleGroupIndex) {
-  var propagationState = {
-    ruleGroupIndex:ruleGroupIndex,
-    objects:new Int32Array(level.objects),
-    movements:new Int32Array(level.movements),
-    rigidGroupIndexMask:level.rigidGroupIndexMask.concat([]),
-    rigidMovementAppliedMask:level.rigidMovementAppliedMask.concat([]),
-    bannedGroup:level.bannedGroup.concat([]),
-    commandQueue:level.commandQueue.concat([]),
-    commandQueueSourceRules:level.commandQueueSourceRules.concat([])
-  };
-  rigidBackups[ruleGroupIndex]=propagationState;
-  return propagationState;
-}
-
-function restorePreservationState(preservationState) {;
-//don't need to concat or anythign here, once something is restored it won't be used again.
-  level.objects = new Int32Array(preservationState.objects);
-  level.movements = new Int32Array(preservationState.movements);
-  level.rigidGroupIndexMask = preservationState.rigidGroupIndexMask.concat([]);
-    level.rigidMovementAppliedMask = preservationState.rigidMovementAppliedMask.concat([]);
-    level.commandQueue = preservationState.commandQueue.concat([]);
-    level.commandQueueSourceRules = preservationState.commandQueueSourceRules.concat([]);
-    sfxCreateMask.setZero();
-    sfxDestroyMask.setZero();
-  consolePrint("Rigid movement application failed, rolling back");
-
-//  rigidBackups = preservationState.rigidBackups;
-}
 
 Rule.prototype.findMatches = function() {	
 	if ( ! this.ruleMask.bitsSetInArray(level.mapCellContents.data) )
@@ -2674,7 +2643,7 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 
 
 //if this returns!=null, need to go back and reprocess
-function resolveMovements(dir){
+function resolveMovements(level, bannedGroup){
     var moved=true;
     while(moved){
         moved=false;
@@ -2684,48 +2653,48 @@ function resolveMovements(dir){
     }
     var doUndo=false;
 
-  for (var i=0;i<level.n_tiles;i++) {
-    var cellMask = level.getCellInto(i,_o6);
-    var movementMask = level.getMovements(i);
-    if (!movementMask.iszero()) {
-      var rigidMovementAppliedMask = level.rigidMovementAppliedMask[i];
-      if (rigidMovementAppliedMask !== 0) {
-        movementMask.iand(rigidMovementAppliedMask);
-        if (!movementMask.iszero()) {
-          //find what layer was restricted
-          for (var j=0;j<level.layerCount;j++) {
-            var layerSection = movementMask.getshiftor(0x1f, 5*j);
-            if (layerSection!==0) {
-              //this is our layer!
-              var rigidGroupIndexMask = level.rigidGroupIndexMask[i];
-              var rigidGroupIndex = rigidGroupIndexMask.getshiftor(0x1f, 5*j);
-              rigidGroupIndex--;//group indices start at zero, but are incremented for storing in the bitfield
-              var groupIndex = state.rigidGroupIndex_to_GroupIndex[rigidGroupIndex];
-              level.bannedGroup[groupIndex]=true;
-              //backtrackTarget = rigidBackups[rigidGroupIndex];
-              doUndo=true;
-              break;
-            }
-          }
-        }
-      }
-      for (var j=0;j<state.sfx_MovementFailureMasks.length;j++) {
-        var o = state.sfx_MovementFailureMasks[j];
-        var objectMask = o.objectMask;
-        if (objectMask.anyBitsInCommon(cellMask)) {
-          var directionMask = o.directionMask;
-          if (movementMask.anyBitsInCommon(directionMask) && seedsToPlay_CantMove.indexOf(o.seed)===-1) {
-            seedsToPlay_CantMove.push(o.seed);
-          }
-        }
-      }
-      }
+	for (var i=0;i<level.n_tiles;i++) {
+		var cellMask = level.getCellInto(i,_o6);
+		var movementMask = level.getMovements(i);
+		if (!movementMask.iszero()) {
+			var rigidMovementAppliedMask = level.rigidMovementAppliedMask[i];
+			if (rigidMovementAppliedMask !== 0) {
+				movementMask.iand(rigidMovementAppliedMask);
+				if (!movementMask.iszero()) {
+					//find what layer was restricted
+					for (var j=0;j<level.layerCount;j++) {
+						var layerSection = movementMask.getshiftor(0x1f, 5*j);
+						if (layerSection!==0) {
+							//this is our layer!
+							var rigidGroupIndexMask = level.rigidGroupIndexMask[i];
+							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(0x1f, 5*j);
+							rigidGroupIndex--;//group indices start at zero, but are incremented for storing in the bitfield
+							var groupIndex = state.rigidGroupIndex_to_GroupIndex[rigidGroupIndex];
+							bannedGroup[groupIndex]=true;
+							//backtrackTarget = rigidBackups[rigidGroupIndex];
+							doUndo=true;
+							break;
+						}
+					}
+				}
+			}
+			for (var j=0;j<state.sfx_MovementFailureMasks.length;j++) {
+				var o = state.sfx_MovementFailureMasks[j];
+				var objectMask = o.objectMask;
+				if (objectMask.anyBitsInCommon(cellMask)) {
+					var directionMask = o.directionMask;
+					if (movementMask.anyBitsInCommon(directionMask) && seedsToPlay_CantMove.indexOf(o.seed)===-1) {
+						seedsToPlay_CantMove.push(o.seed);
+					}
+				}
+			}
+    	}
 
-      for (var j=0;j<STRIDE_MOV;j++) {
-        level.movements[j+i*STRIDE_MOV]=0;
-      }
-      level.rigidGroupIndexMask[i]=0;
-      level.rigidMovementAppliedMask[i]=0;
+    	for (var j=0;j<STRIDE_MOV;j++) {
+    		level.movements[j+i*STRIDE_MOV]=0;
+    	}
+	    level.rigidGroupIndexMask[i]=0;
+	    level.rigidMovementAppliedMask[i]=0;
     }
     return doUndo;
 }
@@ -2836,15 +2805,21 @@ playerPositionsAtTurnStart = getPlayerPositions();
 		}
 
 		
-        level.bannedGroup = [];
-        rigidBackups = [];
+        bannedGroup = [];
         level.commandQueue=[];
         level.commandQueueSourceRules=[];
         var startRuleGroupIndex=0;
         var rigidloop=false;
-        var startState = commitPreservationState();
-      sfxCreateMask.setZero();
-      sfxDestroyMask.setZero();
+		const startState = {
+			objects: new Int32Array(level.objects),
+			movements: new Int32Array(level.movements),
+			rigidGroupIndexMask: level.rigidGroupIndexMask.concat([]),
+			rigidMovementAppliedMask: level.rigidMovementAppliedMask.concat([]),
+			commandQueue: [],
+			commandQueueSourceRules: []
+		}
+	    sfxCreateMask.setZero();
+	    sfxDestroyMask.setZero();
 
     seedsToPlay_CanMove=[];
     seedsToPlay_CantMove=[];
@@ -2860,12 +2835,28 @@ playerPositionsAtTurnStart = getPlayerPositions();
         	
 
 
-        	applyRules(state.rules, state.loopPoint, startRuleGroupIndex, level.bannedGroup);
-        	var shouldUndo = resolveMovements();
+        	applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
+        	var shouldUndo = resolveMovements(level,bannedGroup);
 
         	if (shouldUndo) {
         		rigidloop=true;
-        		restorePreservationState(startState);
+
+				{
+					// trackback
+					consolePrint("Rigid movement application failed. Rolling back...")
+					//don't need to concat or anythign here, once something is restored it won't be used again.
+					level.objects = new Int32Array(startState.objects)
+					level.movements = new Int32Array(startState.movements)
+					level.rigidGroupIndexMask = startState.rigidGroupIndexMask.concat([])
+					level.rigidMovementAppliedMask = startState.rigidMovementAppliedMask.concat([])
+					// TODO: shouldn't we also save/restore the level data computed by level.calculateRowColMasks() ?
+					level.commandQueue = startState.commandQueue.concat([])
+					level.commandQueueSourceRules = startState.commandQueueSourceRules.concat([])
+					sfxCreateMask.setZero()
+					sfxDestroyMask.setZero()
+					// TODO: should
+
+				}
 
 				if (verbose_logging && rigidloop && i>0){				
 					consolePrint('Relooping through rules because of rigid.');
