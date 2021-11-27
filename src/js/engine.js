@@ -1405,6 +1405,12 @@ function Level(lineNumber, width, height, layerCount, objects, section) {
 	this.commandQueueSourceRules = [];
 }
 
+Level.prototype.delta_index = function(direction)
+{
+	const [dx, dy] = dirMasksDelta[direction]
+	return dx*this.height + dy
+}
+
 Level.prototype.clone = function() {
 	var clone = new Level(this.lineNumber, this.width, this.height, this.layerCount, null, this.section);
 	clone.objects = new Int32Array(this.objects);
@@ -1625,71 +1631,63 @@ function Rule(rule) {
 
 
 Rule.prototype.generateCellRowMatchesFunction = function(cellRow,hasEllipsis)  {
-  if (hasEllipsis==false) {
-    var delta = dirMasksDelta[this.direction];
-    var d0 = delta[0];
-    var d1 = delta[1];
-    var cr_l = cellRow.length;
+	if (hasEllipsis==false) {
+		var cr_l = cellRow.length;
 
-      /*
-      hard substitute in the first one - if I substitute in all of them, firefox chokes.
-      */
-    var fn = "var d = "+d1+"+"+d0+"*level.height;\n";
-    var mul = STRIDE_OBJ === 1 ? '' : '*'+STRIDE_OBJ; 
-    for (var i = 0; i < STRIDE_OBJ; ++i) {
-      fn += 'var cellObjects' + i + ' = level.objects[i' + mul + (i ? '+'+i: '') + '];\n';
-    }
-    mul = STRIDE_MOV === 1 ? '' : '*'+STRIDE_MOV;
-    for (var i = 0; i < STRIDE_MOV; ++i) {
-      fn += 'var cellMovements' + i + ' = level.movements[i' + mul + (i ? '+'+i: '') + '];\n';
-    }
-    fn += "return "+cellRow[0].generateMatchString('0_');// cellRow[0].matches(i)";
-    for (var cellIndex=1;cellIndex<cr_l;cellIndex++) {
-      fn+="&&cellRow["+cellIndex+"].matches((i+"+cellIndex+"*d))";
-    }
-    fn+=";";
+		/*
+		hard substitute in the first one - if I substitute in all of them, firefox chokes.
+		*/
+		var fn = "";
+		var mul = STRIDE_OBJ === 1 ? '' : '*'+STRIDE_OBJ;	
+		for (var i = 0; i < STRIDE_OBJ; ++i) {
+			fn += 'var cellObjects' + i + ' = objects[i' + mul + (i ? '+'+i: '') + '];\n';
+		}
+		mul = STRIDE_MOV === 1 ? '' : '*'+STRIDE_MOV;
+		for (var i = 0; i < STRIDE_MOV; ++i) {
+			fn += 'var cellMovements' + i + ' = movements[i' + mul + (i ? '+'+i: '') + '];\n';
+		}
+		fn += "return "+cellRow[0].generateMatchString('0_');// cellRow[0].matches(i)";
+		for (var cellIndex=1;cellIndex<cr_l;cellIndex++) {
+			fn+="&&cellRow["+cellIndex+"].matches(i+"+cellIndex+"*d, objects, movements)";
+		}
+		fn+=";";
 
-    if (fn in matchCache) {
-      return matchCache[fn];
-    }
-    //console.log(fn.replace(/\s+/g, ' '));
-    return matchCache[fn] = new Function("cellRow","i",fn);
-  } else {
-    var delta = dirMasksDelta[this.direction];
-    var d0 = delta[0];
-    var d1 = delta[1];
-    var cr_l = cellRow.length;
+		if (fn in matchCache) {
+			return matchCache[fn];
+		}
+		//console.log(fn.replace(/\s+/g, ' '));
+		return matchCache[fn] = new Function("cellRow","i", 'd', 'objects', 'movements',fn);
+	} else {
+		var cr_l = cellRow.length;
 
-
-    var fn = "var d = "+d1+"+"+d0+"*level.height;\n";
-    fn += "var result = [];\n"
-    fn += "if(cellRow[0].matches(i)";
-    var cellIndex=1;
-    for (;cellRow[cellIndex]!==ellipsisPattern;cellIndex++) {
-      fn+="&&cellRow["+cellIndex+"].matches((i+"+cellIndex+"*d))";
-    }
-    cellIndex++;
-    fn+=") {\n";
-    fn+="\tfor (var k=kmin;k<kmax;k++) {\n"
-    fn+="\t\tif(cellRow["+cellIndex+"].matches((i+d*(k+"+(cellIndex-1)+")))";
-    cellIndex++;
-    for (;cellIndex<cr_l;cellIndex++) {
-      fn+="&&cellRow["+cellIndex+"].matches((i+d*(k+"+(cellIndex-1)+")))";      
-    }
-    fn+="){\n";
-    fn+="\t\t\tresult.push([i,k]);\n";
-    fn+="\t\t}\n"
-    fn+="\t}\n";        
-    fn+="}\n";    
-    fn+="return result;"
+		var fn = "var result = [];\n"
+		fn += "if(cellRow[0].matches(i, objects, movements)";
+		var cellIndex=1;
+		for (;cellRow[cellIndex]!==ellipsisPattern;cellIndex++) {
+			fn+="&&cellRow["+cellIndex+"].matches(i+"+cellIndex+"*d, objects, movements)";
+		}
+		cellIndex++;
+		fn+=") {\n";
+		fn+="\tfor (var k=kmin;k<kmax;k++) {\n"
+		fn+="\t\tif(cellRow["+cellIndex+"].matches((i+d*(k+"+(cellIndex-1)+")), objects, movements)";
+		cellIndex++;
+		for (;cellIndex<cr_l;cellIndex++) {
+			fn+="&&cellRow["+cellIndex+"].matches((i+d*(k+"+(cellIndex-1)+")), objects, movements)";			
+		}
+		fn+="){\n";
+		fn+="\t\t\tresult.push([i,k]);\n";
+		fn+="\t\t}\n"
+		fn+="\t}\n";				
+		fn+="}\n";		
+		fn+="return result;"
 
 
-    if (fn in matchCache) {
-      return matchCache[fn];
-    }
-    //console.log(fn.replace(/\s+/g, ' '));
-    return matchCache[fn] = new Function("cellRow","i","kmax","kmin",fn);
-  }
+		if (fn in matchCache) {
+			return matchCache[fn];
+		}
+		//console.log(fn.replace(/\s+/g, ' '));
+		return matchCache[fn] = new Function("cellRow","i","kmax","kmin", 'd', "objects", "movements",fn);
+	}
 //say cellRow has length 3, with a split in the middle
 /*
 function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink) {
@@ -1787,22 +1785,22 @@ CellPattern.prototype.generateMatchString = function() {
 }
 
 CellPattern.prototype.generateMatchFunction = function() {
-  var i;
-  var fn = '';
-  var mul = STRIDE_OBJ === 1 ? '' : '*'+STRIDE_OBJ; 
-  for (var i = 0; i < STRIDE_OBJ; ++i) {
-    fn += '\tvar cellObjects' + i + ' = level.objects[i' + mul + (i ? '+'+i: '') + '];\n';
-  }
-  mul = STRIDE_MOV === 1 ? '' : '*'+STRIDE_MOV;
-  for (var i = 0; i < STRIDE_MOV; ++i) {
-    fn += '\tvar cellMovements' + i + ' = level.movements[i' + mul + (i ? '+'+i: '') + '];\n';
-  }
-  fn += "return " + this.generateMatchString()+';';
-  if (fn in matchCache) {
-    return matchCache[fn];
-  }
-  //console.log(fn.replace(/\s+/g, ' '));
-  return matchCache[fn] = new Function("i",fn);
+	var i;
+	var fn = '';
+	var mul = STRIDE_OBJ === 1 ? '' : '*'+STRIDE_OBJ;	
+	for (var i = 0; i < STRIDE_OBJ; ++i) {
+		fn += '\tvar cellObjects' + i + ' = objects[i' + mul + (i ? '+'+i: '') + '];\n';
+	}
+	mul = STRIDE_MOV === 1 ? '' : '*'+STRIDE_MOV;
+	for (var i = 0; i < STRIDE_MOV; ++i) {
+		fn += '\tvar cellMovements' + i + ' = movements[i' + mul + (i ? '+'+i: '') + '];\n';
+	}
+	fn += "return " + this.generateMatchString()+';';
+	if (fn in matchCache) {
+		return matchCache[fn];
+	}
+	//console.log(fn.replace(/\s+/g, ' '));
+	return matchCache[fn] = new Function("i", "objects", "movements", fn);
 }
 
 CellPattern.prototype.toJSON = function() {
@@ -2029,7 +2027,7 @@ function DoesCellRowMatch(direction,cellRow,i,k) {
     return false;
 }
 */
-function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_Movements, isGlobal) {	
+function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_Movements,d, isGlobal) {	
 	var result=[];
 	
 	if ((!cellRowMask.bitsSetInArray(level.mapCellContents.data))||
@@ -2091,7 +2089,7 @@ function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_
 
 			for (var x=xmin;x<xmax;x++) {
 				var i = x*level.height+y;
-				if (cellRowMatch(cellRow,i))
+				if (cellRowMatch(cellRow,i,d, level.objects, level.movements))
 				{
 					result.push(i);
 				}
@@ -2106,7 +2104,7 @@ function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_
 
 			for (var y=ymin;y<ymax;y++) {
 				var i = x*level.height+y;
-				if (cellRowMatch(	cellRow,i))
+				if (cellRowMatch(	cellRow,i, d, level.objects, level.movements))
 				{
 					result.push(i);
 				}
@@ -2118,7 +2116,7 @@ function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_
 }
 
 
-function matchCellRowWildCard(direction, cellRowMatch, cellRow,cellRowMask,cellRowMask_Movements) {
+function matchCellRowWildCard(direction, cellRowMatch, cellRow,cellRowMask,cellRowMask_Movements,d) {
 	var result=[];
 	if ((!cellRowMask.bitsSetInArray(level.mapCellContents.data))
 	|| (!cellRowMask_Movements.bitsSetInArray(level.mapCellContents_Movements.data))) {
@@ -2180,7 +2178,7 @@ function matchCellRowWildCard(direction, cellRowMatch, cellRow,cellRowMask,cellR
 					window.console.log("EEEP2 "+direction);					
 				}
 
-				result.push.apply(result, cellRowMatch(cellRow,i,kmax,0));
+				result.push.apply(result, cellRowMatch(cellRow,i,kmax,0, d, level.objects, level.movements));
 			}
 		}
 	} else {
@@ -2202,7 +2200,7 @@ function matchCellRowWildCard(direction, cellRowMatch, cellRow,cellRowMask,cellR
         } else {
           window.console.log("EEEP2 "+direction);
         }
-        result.push.apply(result, cellRowMatch(cellRow,i,kmax,0));
+        result.push.apply(result, cellRowMatch(cellRow,i,kmax,0, d, level.objects, level.movements));
       }
     }   
   }
@@ -2266,6 +2264,8 @@ Rule.prototype.findMatches = function() {
 	if ( ! this.ruleMask.bitsSetInArray(level.mapCellContents.data) )
 		return [];
 
+	const d = level.delta_index(this.direction)
+
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2273,9 +2273,9 @@ Rule.prototype.findMatches = function() {
         var cellRow = this.patterns[cellRowIndex];
         var matchFunction = this.cellRowMatches[cellRowIndex];
         if (this.isEllipsis[cellRowIndex]) {//if ellipsis     
-        	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex]);  
+        	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d);  
         } else {
-        	var match = matchCellRow(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex], this.isGlobal);               	
+        	var match = matchCellRow(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d, this.isGlobal);               	
         }
         if (match.length===0) {
             return [];
@@ -2304,7 +2304,7 @@ Rule.prototype.directional = function(){
     return false;
 }
 
-Rule.prototype.applyAt = function(delta,tuple,check) {
+Rule.prototype.applyAt = function(level,tuple,check,delta) {
 	var rule = this;
 	//have to double check they apply 
 	//(cf test ellipsis bug: rule matches two candidates, first replacement invalidates second)
@@ -2314,10 +2314,10 @@ Rule.prototype.applyAt = function(delta,tuple,check) {
 		{
 			if (this.isEllipsis[cellRowIndex]) //if ellipsis
 			{
-				if ( this.cellRowMatches[cellRowIndex](this.patterns[cellRowIndex], tuple[cellRowIndex][0], tuple[cellRowIndex][1]+1, tuple[cellRowIndex][1]).length == 0 )
+				if ( this.cellRowMatches[cellRowIndex](this.patterns[cellRowIndex], tuple[cellRowIndex][0], tuple[cellRowIndex][1]+1, tuple[cellRowIndex][1], delta, level.objects, level.movements).length == 0 )
 					return false
 			}
-			else if ( ! this.cellRowMatches[cellRowIndex](this.patterns[cellRowIndex], tuple[cellRowIndex]) )
+			else if ( ! this.cellRowMatches[cellRowIndex](this.patterns[cellRowIndex], tuple[cellRowIndex], delta, level.objects, level.movements) )
 				return false
 		}
 	}
@@ -2326,8 +2326,6 @@ Rule.prototype.applyAt = function(delta,tuple,check) {
     var result=false;
     
     //APPLY THE RULE
-    var d0 = delta[0]*level.height;
-    var d1 = delta[1];
     for (var cellRowIndex=0;cellRowIndex<rule.patterns.length;cellRowIndex++) {
         var preRow = rule.patterns[cellRowIndex];
         
@@ -2336,14 +2334,14 @@ Rule.prototype.applyAt = function(delta,tuple,check) {
             var preCell = preRow[cellIndex];
 
             if (preCell === ellipsisPattern) {
-              var k = tuple[cellRowIndex][1];
-              currentIndex = (currentIndex+(d1+d0)*k);
-              continue;
+            	var k = tuple[cellRowIndex][1];
+            	currentIndex += delta*k;
+            	continue;
             }
 
             result = preCell.replace(rule, currentIndex) || result;
 
-            currentIndex = (currentIndex+d1+d0);
+            currentIndex += delta;
         }
     }
 
@@ -2362,8 +2360,8 @@ Rule.prototype.applyAt = function(delta,tuple,check) {
     return result;
 };
 
-Rule.prototype.tryApply = function() {
-  var delta = dirMasksDelta[this.direction];
+Rule.prototype.tryApply = function(level) {
+	const delta = level.delta_index(this.direction);
 
     //get all cellrow matches
     var matches = this.findMatches();
@@ -2371,16 +2369,16 @@ Rule.prototype.tryApply = function() {
       return false;
     }
 
-    var result=false; 
-  if (this.hasReplacements) {
-      var tuples = generateTuples(matches);
-      for (var tupleIndex=0;tupleIndex<tuples.length;tupleIndex++) {
-          var tuple = tuples[tupleIndex];
-          var shouldCheck=tupleIndex>0;
-          var success = this.applyAt(delta,tuple,shouldCheck);
-          result = success || result;
-      }
-  }
+    var result=false;	
+	if (this.hasReplacements) {
+	    var tuples = generateTuples(matches);
+	    for (var tupleIndex=0;tupleIndex<tuples.length;tupleIndex++) {
+	        var tuple = tuples[tupleIndex];
+	        var shouldCheck=tupleIndex>0;
+	        var success = this.applyAt(level,tuple,shouldCheck,delta);
+	        result = success || result;
+	    }
+	}
 
     if (matches.length>0) {
       this.queueCommands();
@@ -2554,34 +2552,34 @@ function processOutputCommands(commands) {
 	}
 }
 
-function applyRandomRuleGroup(ruleGroup) {
-  var propagated=false;
+function applyRandomRuleGroup(level,ruleGroup) {
+	var propagated=false;
 
-  var matches=[];
-  for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
-    var rule=ruleGroup[ruleIndex];
-    var ruleMatches = rule.findMatches();
-    if (ruleMatches.length>0) {
-        var tuples  = generateTuples(ruleMatches);
-        for (var j=0;j<tuples.length;j++) {
-          var tuple=tuples[j];
-        matches.push([ruleIndex,tuple]);
-        }
-    }   
-  }
+	var matches=[];
+	for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
+		var rule=ruleGroup[ruleIndex];
+		var ruleMatches = rule.findMatches();
+		if (ruleMatches.length>0) {
+	    	var tuples  = generateTuples(ruleMatches);
+	    	for (var j=0;j<tuples.length;j++) {
+	    		var tuple=tuples[j];
+				matches.push([ruleIndex,tuple]);
+	    	}
+		}		
+	}
 
   if (matches.length===0)
   {
     return false;
   } 
 
-  var match = matches[Math.floor(RandomGen.uniform()*matches.length)];
-  var ruleIndex=match[0];
-  var rule=ruleGroup[ruleIndex];
-  var delta = dirMasksDelta[rule.direction];
-  var tuple=match[1];
-  var check=false;
-  var modified = rule.applyAt(delta,tuple,check);
+	var match = matches[Math.floor(RandomGen.uniform()*matches.length)];
+	var ruleIndex=match[0];
+	var rule=ruleGroup[ruleIndex];
+	var tuple=match[1];
+	var check=false;
+	const delta = level.delta_index(rule.direction)
+	var modified = rule.applyAt(level,tuple,check,delta);
 
     rule.queueCommands();
 
@@ -2589,9 +2587,9 @@ function applyRandomRuleGroup(ruleGroup) {
 }
 
 function applyRuleGroup(ruleGroup) {
-  if (ruleGroup[0].isRandom) {
-    return applyRandomRuleGroup(ruleGroup);
-  }
+	if (ruleGroup[0].isRandom) {
+		return applyRandomRuleGroup(level,ruleGroup);
+	}
 
   var loopPropagated=false;
     var propagated=true;
@@ -2606,7 +2604,7 @@ function applyRuleGroup(ruleGroup) {
         propagated=false;
         for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
             var rule = ruleGroup[ruleIndex];            
-            propagated = rule.tryApply() || propagated;
+            propagated = rule.tryApply(level) || propagated;
         }
         if (propagated) {
         	loopPropagated=true;
