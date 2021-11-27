@@ -1120,9 +1120,26 @@ function RebuildLevelArrays() {
 
 var messagetext="";
 function restoreLevel(lev, snapCamera) {
+	var diffing = lev.hasOwnProperty("diff");
+
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
 
-	level.objects = new Int32Array(lev.dat);
+	if (diffing){
+		var index=0;
+		while (index<lev.dat.length){
+			var start_index = lev.dat[index];
+			var copy_length = lev.dat[index+1];
+			if (copy_length===0){
+				break;//tail of buffer is all 0s
+			}
+			for (j=0;j<copy_length;j++){
+				level.objects[start_index+j]=lev.dat[index+2+j];
+			}
+			index += 2 + copy_length;
+		}
+	} else {	
+		level.objects = new Int32Array(lev.dat);
+	}
 
 	if (level.width !== lev.width || level.height !== lev.height) {
 		level.width = lev.width;
@@ -1175,6 +1192,76 @@ var smoothscreen=false;
 var screenwidth=0;
 var screenheight=0;
 
+//compresses 'before' into diff
+function consolidateDiff(before,after){
+	if (before.width !== after.width || before.height!==after.height || before.dat.length!==after.dat.length){
+		return before;
+	}
+	if (before.hasOwnProperty("diff")||after.hasOwnProperty("diff")){
+		return before;
+	}
+	//only generate diffs if level size is bigger than this
+	if (before.dat.length<512){
+		return before;
+	}
+	//diff structure: repeating ( start,length, [ data ] )
+	var result = new Int32Array(512);
+	var position=0;
+	var chain=false;
+	var chain_start_idx_in_diff=-1;
+	var before_dat = before.dat;
+	var after_dat = after.dat;
+	for (var i=0;i<before_dat.length;i++){
+		if (chain===false){
+			if (before_dat[i]!==after_dat[i]){
+				chain=true;
+				chain_start_idx_in_diff = position;
+
+				if (result.length<position+4){
+					var doubled = new Int32Array(2*result.length);
+					doubled.set(result);
+					result = doubled;
+				}
+
+				result[position+0]=i;
+				result[position+1]=1;
+				result[position+2]=before_dat[i];
+				position+=3;
+			}
+		} else {
+			if (before_dat[i]!==after_dat[i]){
+				
+				if (position+1>=result.length){
+					if (result.length<position+4){
+						var doubled = new Int32Array(2*result.length);
+						doubled.set(result);
+						result = doubled;
+					}	
+				}
+				result[chain_start_idx_in_diff+1]++;
+				result[position]=before_dat[i];
+				position++;
+			} else {
+				chain=false;
+			}
+		}
+	}
+	return {		
+		diff : true,
+		dat : result,
+		width : before.width,
+		height : before.height,
+		oldflickscreendat: before.oldflickscreendat
+	}
+}
+
+function addUndoState(state){
+	backups.push(state);
+	if(backups.length>2 && !backups[backups.length-1].hasOwnProperty("diff")){
+		backups[backups.length-3]=consolidateDiff(backups[backups.length-3],backups[backups.length-2]);
+	}
+}
+
 function DoRestart(force) {
 	if (restarting===true){
 		return;
@@ -1184,7 +1271,7 @@ function DoRestart(force) {
 	}
 	restarting=true;
 	if (force!==true) {
-		backups.push(backupLevel());
+		addUndoState(backupLevel());
 	}
 
 	if (verbose_logging) {
@@ -1206,16 +1293,21 @@ function DoRestart(force) {
 }
 
 function backupDiffers(){
-  if (backups.length==0){
-    return true;
-  }
-  var bak = backups[backups.length-1];
-  for (var i=0;i<level.objects.length;i++) {
-      if (level.objects[i]!==bak.dat[i]) {
-        return true;
-      }
-    }
-    return false;
+	if (backups.length==0){
+		return true;
+	}
+	var bak = backups[backups.length-1];
+
+	if (bak.hasOwnProperty("diff")){
+		return bak.dat.length!==0 && bak.dat[1]!==0;//if it's empty or if it's all 0s
+	} else {
+		for (var i=0;i<level.objects.length;i++) {
+			if (level.objects[i]!==bak.dat[i]) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
 
 function DoUndo(force,ignoreDuplicates) {
@@ -2927,7 +3019,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	    			consolePrint('require_player_movement set, but no player movement detected, so cancelling turn.');
 	    			consoleCacheDump();
 				}
-        		backups.push(bak);
+        		addUndoState(bak);
         		DoUndo(true,false);
         		return false;
         	}
@@ -2954,7 +3046,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	    		consolePrintFromRule('CANCEL command executed, cancelling turn.',r,true);
 			}
 			processOutputCommands(level.commandQueue);
-    		backups.push(bak);
+    		addUndoState(bak);
     		DoUndo(true,false);
     		tryPlayCancelSound();
     		return false;
@@ -2967,7 +3059,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	    		consoleCacheDump();
 			}
 			processOutputCommands(level.commandQueue);
-    		backups.push(bak);
+    		addUndoState(bak);
 	    	DoRestart(true);
     		return true;
 		}
@@ -3008,12 +3100,12 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	        		if (verbose_logging) {
 	        			consoleCacheDump();
 	        		}
-	        		backups.push(bak);
+	        		addUndoState(bak);
 	        		DoUndo(true,false);
 					return true;
 				} else {
 					if (dir!==-1 && save_backup) {
-	    				backups.push(bak);
+	    				addUndoState(bak);
 	    			}
 	    			modified=true;
 	    			updateCameraPositionTarget();
