@@ -186,11 +186,55 @@ late [ Temp ] -> [ ]</code></pre>
       <dt>youtube 5MJLi5_dyn0</dt>
       <dd>If you write the youtube tag followed by the ID of a youtube video, it will play in the background.  Exported builds using this, obviously enough, will no longer be fully self-contained, but some might like it :)  You'll only hear the music in the exported or shared versions, not in the editor.</dd>
 			<dt>zoomscreen WxH</dt>
-			<dd>Zooms the camera in to a WxH section of the map around the player, centered on the player.</dd>
+      <dd>Zooms the camera in to a WxH section of the map around the player, centered on the player.</dd>
+      <h1 id="psplus">New in PS+ <img src="../images/psplus_mascot_32.png"></h1>
+      <dt> <i></i></dt>
+      <dd></dd>
+      <h2>Mouse controls (ThatScar)</h2>
+      <dt>mouse_left <i>object</i></dt>
+      <dd>If the player clicks on a specific tile of the screen, then this object will be created there before any other rules are done. If you don't specify an object name, it will look for an object called "lmb". Once you add this flag, various things (like the title screen) will change to reflect that the game is mainly mouse-controlled.</dd>
+      <dt>mouse_drag <i>object</i></dt>
+      <dd>If the player has clicked and is moving their mouse, it will place this object & start a turn when the cursor moves into a different cell. If you don't specify an object name, it will look for an object called "drag"</dd>
+      <dt>mouse_up <i>object</i></dt>
+      <dd>If the player has clicked and is releasing their mouse button, it will place this object then do a turn.</dd>
+      <dt>mouse_right, mouse_rdrag, mouse_rup <i>object</i></dt>
+      <dd>Similar to the above three, but for the right mouse button.</dd>
+      <h2>Level Select (Dario)</h2>
+      <dt>level_select</dt>
+      <dd>Adding this will add a level select to your game. By default, this will allow the player to play all levels in any order. In order to add entries to the level select, add a <b>section</b> in-between your levels.</dd>
+      <dt>continue_is_level_select</dt>
+      <dd>Don't show an extra option for the Level Select on the main menu. Instead, the "continue" button will open it, instead of continuing the game.</dd>
+      <dt>level_select_lock</dt>
+      <dd>Will lock any levels that haven't been solved yet or are next to be solved.</dd>
+      <dt>level_select_unlocked_ahead</dt>
+      <dd>How many levels to unlock ahead after the last solved level when <b>level_select_lock</b> is on, 1 by default.</dd>
+      <dt>level_select_solve_symbol</dt>
+      <dd>Which symbol to display for levels that have been solved in the level select. It's a checkmark by default, but you can change it in case you're using a <b>custom_font</b> that doesn't have a checkmark glyph.</dd>
+      <h2>Custom Font (Dario)</h2>
+      <dt>custom_font <i>data:font/otf;base64,</i></dt>
+      <dd>Allows you to load in a custom font file via a data stream. This works best with monospace fonts & font files with very small sizes (under 20KB). If you have a font file and you want to convert it into base64, use a tool like <a href="https://base64.guru/converter/encode/file">File to Base64</a> with the "Data URI" output format, then paste it into the editor.</dd>
+      <dt>font_size <i>size</i></dt>
+      <dd>Font size is in em, meaning 1 is the default and is treated as a percentage (e.g. 0.5 is half font size & 2 is double the normal font size). Can only be used with custom_font.</dd>
+      <h2>Smoothscreen (sftrabbit)</h2>
       <dt>smoothscreen <i>flick</i> WxH <i>IxJ S</i></dt>
       <dd>Zooms the camera in to a WxH section of the map around the playerand smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional S argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. Additionally, the optional <i>flick</i> keyword makes the camera move like flickscreen, where the camera always moves the full boundary width/height. To get a smooth version of flick screen, provide the <i>flick</i> keyword and make WxH and IxJ the same dimensions.</dd>
       <dt>smoothscreen_debug</dt>
       <dd>Render debug information about the smoothscreen camera. The red circle and box represent the camera's position and the boundary around it. The blue circle and box are at the position the camera is moving towards. The green circle marks the location of the player that is being followed by the camera.</dd>
+      <h2>Runtime Metadata Twiddling (PS+)</h2>
+      <dt>runtime_metadata_twiddling</dt>
+      <dd>Allows you to change some prelude properties while the game is running using commands. More info here QQQ.</dd>
+      <dt>runtime_metadata_twiddling_debug</dt>
+      <dd>Will log into the console whenever a prelude property is changed.</dd>
+      <h2>Misc. (Dario & Jack Lance)</h2>
+      <dt>local_radius <i>radius</i></dt>
+      <dd>If you set the local_radius flag to a whole number, then the game will only check rules that are in that amount of tiles (a square radius) around the player (or one of the players if you have multiple players in the level). If you still want to have rules to be checked anywhere on the level, preface them with the <b>global</b> keyword like this: 
+<pre><code>(Rows of global crates can push each other, even outside of the player radius)
+global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
+        You generally don't need to use this unless you have a really big level, a ton of rules, and your game would otherwise run slowly.</dd>
+      <dt>case_sensitive</dt>
+      <dd>Will force the engine to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.</dd>
+      <dt>sprite_size <i>size</i></dt>
+      <dd>Instead of 5x5, this option allows you to pick other square resolutions for your sprites. Do note that all sprites MUST be of this size for the game to display correctly. If you need help with upscaling your sprites, <a href="plus_sprite_upscaler_tool.html">there's a helpful tool available here.</a></dd>
 		</dl>
 
 

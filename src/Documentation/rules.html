@@ -199,8 +199,15 @@ late [Shadow] -> []</code></pre>
       <dd>Gives the player a message.  So you can say things like "Message Hello World".  Reads everything to its right, so it has to be the rightmost argument.</dd>
       <dt>sfx0 ... sfx10</dt>
       <dd>Sound effects banks - you associate these to sounds in the <a href="sounds.html">sounds</a> section, and then you can trigger them in rules by mentioning them.</dd>
-      <dt>Goto (new in Puzzlescript+)</dt>
-      <dd>immediately switches to a different level. This does not count as a win and cannot be undone by the player. Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
+	  <h1 id="psplus">New in PS+ <img src="../images/psplus_mascot_32.png"> </h1>
+	  <dt>Prelude flags (zoomscreen, intervals, etc.)</dt>
+      <dd>If <b>runtime_metadata_twiddling</b> is enabled, there are some prelude flags you can invoke as a command to change them at runtime. More info here QQQ.</dd>
+	  <dt>nosave</dt>
+      <dd>Forces the engine to NOT save the current state to the undo stack. Useful if you still want to process turns where not much is happening, but don't want them to flood the undo stack.</dd>
+	  <dt>exit</dt>
+	  <dd>If you add exit after a rule, it'll behave as if the player pressed Escape: meaning it will exit out of the level. It is intended to allow mouse-controlled games to click a button to back to the title screen or level select without using the keyboard.</dd>
+	  <dt>Goto</dt>
+      <dd>Immediately switches to a different level. This does not count as a win and cannot be undone by the player. Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
       <pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
 late [ Player Hub ] -> GOTO Hub</code></pre></dd>
     </dl>

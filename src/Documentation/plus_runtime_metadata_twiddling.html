@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>PuzzleScript Documentation</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+              <li><a href="../editor.html">Make A Game</a></li>
+              
+              <li class="active"><a href="documentation.html">Documentation</a></li>
+          </ul>          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
+            <li><a href="https://github.com/increpare/puzzlescript">GitHub</a></li>
+            <li><a href="https://github.com/sponsors/increpare">Sponsor</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+<p>
+<ol class="breadcrumb">
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Runtime Metadata Twiddling</li>
+</ol>
+<p>
+
+<h1>Runtime Metadata Twiddling <img src="../images/psplus_mascot_32.png"></h1>
+<br>
+If you want to change the realtime_interval of your game during runtime, you can add <b>runtime_metadata_twiddling</b> to your prelude. To see log output of metadata changes, add <b>runtime_metadata_twiddling_debug</b>.
+<p></p>
+After this prelude flag has been set, you can change the parameters of some prelude flags based on rule patterns like this:
+
+<pre><code>[> Player | SlowBtn] -> realtime_interval 0.5
+[> Player | FlickBtn] -> [> Player | ] smoothscreen flick 5x5 3x3
+</code></pre>
+Any changes you make with this will be included in the undo history of the level.
+
+Currently the prelude flags that support this are:
+
+<ul>
+<li>zoomscreen</li>
+<li>flickscreen</li>
+<li>smoothscreen</li>
+<li>key_repeat_interval</li>
+<li>realtime_interval</li>
+<li>again_interval</li>
+<li>background_color</li>
+<li>text_color (for <b>message</b>)</li>
+<li>noundo (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+<li>norestart (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+</ul>
+
+You can also combine these directives with rule patterns and other flags like <b>nosave</b> and <b>again</b>. Just like with <b>message</b>, the prelude flag needs to be the rightmost argument in the rule:
+
+<pre><code>[ Player ConveyorRight] -> [right Player ConveyorRight] again again_interval 0.5
+</code></pre>
+
+Two special parameters allow you to access a previous value or completely wipe the prelude flag:
+<ul>
+    <li><b>default</b> will return the value to how it was at the beginning of the level.</li>
+    <li><b>wipe</b> removes the option and value from the metadata (allowing you to do cool stuff like toggling realtime on and off).</li>
+</ul>
+
+You use these special keywords like this:
+<pre><code>[> Player | WipeButton] -> realtime_interval wipe
+</code></pre>
+
+<h1>Special cases</h1>
+<h2>noundo</h2>
+
+Once a turn ends with <b>noundo</b> being set, that turn becomes irreversible, meaning you can't undo back past it. This is different from using the <b>nosave</b> command, which will only avoid saving the current turn to the undo stack. So if you have:
+
+<pre><code>[> Player | no SkipUndo] -> noundo wipe
+[> Player | SkipUndo] -> noundo yes
+
+[> Player | SkipSave] -> nosave
+</code></pre>
+
+It will skip each turn after you walked off an <b>SkipSave</b> object when undoing, and you will be unable to rewind to any turns you did before stepping on the <b>SkipUndo</b> button. <a href="https://auroriax.github.io/PuzzleScript/editor.html?hack=b1c465cf3860ec2d7d7dd166883c60d5">Example available here.</a>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

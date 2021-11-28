@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>PuzzleScript Documentation</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- For Sprite Upscaler Tool-->
+    <style>
+      textarea {
+          font-family: monospace;
+      }
+      input {
+          width: 30px;
+      }
+      #statusBox {
+          color: red;
+      }
+      button {
+          height:30px;
+      }
+      textarea {
+          white-space: pre;
+          overflow-wrap: normal;
+          overflow-x: scroll;
+      }
+  </style>
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+              <li><a href="../editor.html">Make A Game</a></li>
+              
+              <li class="active"><a href="documentation.html">Documentation</a></li>
+          </ul>          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
+            <li><a href="https://github.com/increpare/puzzlescript">GitHub</a></li>
+            <li><a href="https://github.com/sponsors/increpare">Sponsor</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+<p>
+<ol class="breadcrumb">
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Sprite upscaler tool</li>
+</ol>
+<p>
+
+<h1>Sprite Upscaler Tool <img src="../images/psplus_mascot_32.png"></h1>
+<br>
+So you've changed the <b>sprite_size</b>, but you're having trouble upscaling all your objects to match the new resolution? Or you need to do make some other changes to your sprites? This tool will help you modify your sprites. Some of this functionality was adapted from <a href="https://github.com/jcmiller11/psUtil">jcgyo's psUtil</a>.
+<p></p>
+<button onclick="copy()">Copy to clipboard</button>&nbsp;
+<button onclick="clean()">Clear</button>&nbsp;
+<button onclick="example()">Load Example</button>
+    <br>
+    <textarea id="textBox" rows="20" cols="120" placeholder="Ascii Art to manipulate..."></textarea>
+    <p></p>
+    <button id="undoButton" onclick="undo()">↩ Undo</button> •
+    Rotate: 
+        <button onclick="cw()">CW ↻</button> 
+        <button onclick="ccw()">CCW ↺</button> •
+    Mirror: 
+        <button onclick="fliph()">Hor ↔</button> 
+        <button onclick="flipv()">Ver ↕</button> •
+    Scale: ×<input id="scaleBox" type="text" type="number" value="2"> 
+        <button onclick="scaleh()">Hor.</button>
+        <button onclick="scalev()">Ver.</button> •
+    Repeat:  ×<input id="repeatBox" type="text" type="number" value="2"> 
+        <button onclick="repeath()">Hor →</button>
+        <button onclick="repeatv()">Ver ↓</button>
+        
+    <br><br>
+    <b><div id="statusBox"></div></b>
+
+    <script>
+        inited = false;
+        prev = "";
+
+        document.addEventListener("DOMContentLoaded", HtmlLoaded);
+
+        function HtmlLoaded() {
+            textBox = document.getElementById("textBox");
+            scaleBox = document.getElementById("scaleBox");
+            repeatBox = document.getElementById("repeatBox");
+            statusBox = document.getElementById("statusBox");
+
+            undoButton = document.getElementById("undoButton");
+            undoButton.disabled = true;
+
+            inited = true;
+
+            if (textBox.value == "") {
+                example();
+            }
+
+            if (scaleBox.value == "") {
+                scaleBox.value = 2;
+            }
+
+            if (repeatBox.value == "") {
+                repeatBox.value = 2;
+            }
+        }
+
+        function clean() {
+            prev = textBox.value;
+            undoButton.disabled = false;
+
+            textBox.value = "";
+            textBox.focus();
+            error("Canvas cleared.")
+        }
+
+        function example() {
+            prev = textBox.value;
+            undoButton.disabled = false;
+
+            textBox.value = //It is escaped really weirdly, see original in comment below
+            ".000.\r\n.111.\r\n22222\r\n.333.\r\n.3.3.";
+
+            error("Loaded example.")
+        }
+
+        function reverseString(str) {
+            return str.split("").reverse().join("");
+        }
+
+        function fliph() {
+            var str = textBox.value;
+
+            output (flipHorizontal(str));
+        }
+
+        function flipv() {
+            var str = textBox.value;
+            output(str.split("\n").reverse().join("\n"));
+        }
+
+        function cw() {
+            var str = textBox.value;
+            str = rotate(str);
+            output(str);
+        }
+
+        function ccw() {
+            var str = textBox.value;
+            //Yes this is very lazy, I know XD
+            str = rotate(str);
+            str = rotate(str);
+            str = rotate(str);
+            output(str);
+        }
+
+        function scalev() {
+            if (!valid(scaleBox.value)) {
+                return;
+            }
+
+            var str = textBox.value;
+            var lines = str.split("\n");
+            var out = [];
+            for (var i = 0; i != lines.length; i++) {
+                for (var j = 0; j != scaleBox.value; j++) {
+                    out.push(lines[i]);
+                }
+            }
+            output (out.join("\n"));
+        }
+
+        function scaleh() {
+            if (!valid(scaleBox.value)) {
+                return;
+            }
+
+            var str = textBox.value;
+            var lines = str.split("\n");
+            var out = [];
+            for (var i = 0; i != lines.length; i++) {
+                out[i] = "";
+                for (var j = 0; j != lines[i].length; j++) {
+                    var char = lines[i].charAt(j);
+                    out[i] += char.repeat(scaleBox.value);
+                }
+            }
+            output (out.join("\n"));
+        }
+
+        function repeath() {
+            if (!valid(repeatBox.value)) {
+                return;
+            }
+            var str = textBox.value;
+            var lines = str.split("\n");
+            for (var i = 0; i != lines.length; i++) {
+                lines[i] = lines[i].repeat(repeatBox.value);
+            }
+            output (lines.join("\n"));
+        }
+
+        function repeatv() {
+            if (!valid(repeatBox.value)) {
+                return;
+            }
+
+            var str = textBox.value;
+            for (var i = 1; i != repeatBox.value; i++) {
+                str += "\n" + str;   
+            }
+            output(str);
+        }
+
+        function rotate(str) {
+            lines = str.split("\n");
+            spunArray = new Array();
+            longest = 0;
+            lines.forEach(function(line) {
+                if(line.length>longest) {
+                    longest = line.length;
+                }
+            })
+            lines = lines.map(function(line) {
+                return line.padEnd(longest);
+            })
+            for(let y = 0;y<longest;y++) {
+                spunArray[y] = new Array();
+                for(let x = 0;x<lines.length;x++) {
+                    spunArray[y][x]=lines[x].charAt(y);
+                }
+            }
+            lines = spunArray.map(function(line) {
+                return line.join("");
+            })
+            return flipHorizontal(lines.join("\n"));
+        }
+
+        function flipHorizontal(str) {
+            lines = str.split("\n");
+            lines = lines.map(function(line) { 
+            return reverseString(line);
+            });
+            return lines.join("\n");
+        }
+
+        function undo() {
+            textBox.value = prev;
+            undoButton.disabled = true;
+        }
+
+        function valid(number) {
+            if (number < 2) {
+                error("Factor "+number+" is invalid: Number for this operation should be 2 or higher.");
+                return false;
+            }
+            return true;
+        }
+
+        function error(str) {
+            statusBox.innerHTML = str;
+        }
+
+        function output(val) {
+            if (val != textBox.value) {
+                prev = textBox.value;
+                undoButton.disabled = false;
+
+                textBox.value = val;
+                error("");
+            }
+        }
+
+        //Obtained from https://stackoverflow.com/a/30810322
+        function copy() {
+            if (!navigator.clipboard) {
+                error("ERROR: Could not copy to clipboard.")
+                return;
+            }
+            var text = textBox.value;
+            navigator.clipboard.writeText(text).then(function() {
+                error("Copied to clipboard!");
+            }, function(err) {
+                error("ERROR: Could not copy to clipboard. "+err);
+            });
+        }
+    </script>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

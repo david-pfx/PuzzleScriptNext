@@ -134,6 +134,59 @@ PINK WHITE BLACK
 <p>
 	<p>
 
+    <h1 id="psplus">New in PS+ <img src="../images/psplus_mascot_32.png"></h1>
+    <p>
+      For starters, you can now use transparent colors when defining a hex color (like #ff000088).
+<p></p>
+      But you can also clone entire sprites between objects. If you're making a game with a lot of very similar sprites, this technique will help you to avoid sprite data duplication.
+
+      Say we have two walls, Wall and AltWall. In classic Puzzlescript, you'd define them like this in the OBJECTS section:
+      
+<pre><code>Wall #
+BROWN DARKBROWN
+00010
+11111
+01000
+11111
+00010
+
+AltWall $
+BLUE DARKBLUE
+00010
+11111
+01000
+11111
+00010</code></pre>
+      
+      However, since both have the same sprite matrix, you can also define the second object like this in Puzzlescript+:
+      
+<pre><code>AltWall $ copy:Wall
+BLUE DARKBLUE</code></pre>
+      
+      This copies the sprite from Wall to AltWall using the copy:, and then applies the new palette. (You must still specify the colors, even if they would stay the same.) There are some limitations with this system, but most of those should throw an error if run into them.
+      <p></p>
+      You can use this in some hacky ways which are especially handy if you have a large <b>sprite_size</b>. For example, imagine these wall corners that we want to autogenerate between walls. Of course, we could create four sprites with the corner rotating 90 degrees in each, but with some trickery, we could also do:
+      
+<pre><code>EdgeTopLeft
+black transparent transparent transparent
+00.11
+0...1
+.....
+2...3
+22.33
+
+EdgeTopRight copy:EdgeTopLeft
+transparent black transparent transparent
+
+EdgeBottomLeft copy:EdgeTopLeft
+transparent transparent black transparent
+
+EdgeBottomRight copy:EdgeTopLeft
+transparent transparent transparent black    </code></pre>
+      
+      By applying <b>transparent</b> tactically, we can essentially wrap four non-overlapping sprites into one.
+    </p>
+
 
 
     </div><!-- /.container -->
