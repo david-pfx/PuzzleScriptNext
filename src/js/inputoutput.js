@@ -658,7 +658,7 @@ function onMouseDown(event) {
         	dragging=true;
         	rightdragging=false;
         	anyEditsSinceMouseDown=false;
-        	if (levelEditorOpened) {
+        	if (levelEditorOpened && !textMode) {
         		return levelEditorClick(event,true);
         	} else if ("mouse_left" in state.metadata) {
 				return mouseAction(event,true,state.lmbID);		// must break to not execute dragging=false;
