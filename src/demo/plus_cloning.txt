@@ -1,6 +1,6 @@
 title Sprite Cloning Example
 author Tom Hermans [@Auroriax]
-homepage https://github.com/Auroriax/PuzzleScript/wiki/Sprite-parents
+homepage https://auroriax.github.io/PuzzleScript/Documentation/objects.html#psplus
 
 ========
 OBJECTS

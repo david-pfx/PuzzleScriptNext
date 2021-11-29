@@ -1,6 +1,6 @@
 title Runtime Metadata Twiddling v2
 author Tom H.
-homepage https://github.com/Auroriax/PuzzleScript/wiki/Realtime-Metadata-Twiddling
+homepage https://auroriax.github.io/PuzzleScript//Documentation/plus_runtime_metadata_twiddling.html
 
 runtime_metadata_twiddling
 runtime_metadata_twiddling_debug

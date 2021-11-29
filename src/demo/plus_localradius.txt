@@ -1,6 +1,6 @@
 title Local Radius Example
 author Tom Hermans
-homepage https://github.com/Auroriax/PuzzleScript/wiki/Merged-forks#jack-lances-branch
+homepage https://auroriax.github.io/PuzzleScript/Documentation/prelude.html#local_radius
 
 background_color #332222
 

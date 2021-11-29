@@ -225,12 +225,13 @@ late [ Temp ] -> [ ]</code></pre>
       <dd>Allows you to change some prelude properties while the game is running using commands. <a href="plus_runtime_metadata_twiddling.html">More info here.</a></dd>
       <dt>runtime_metadata_twiddling_debug</dt>
       <dd>Will log into the console whenever a prelude property is changed.</dd>
-      <h2>Misc. (Dario & Jack Lance)</h2>
+      <h2 id="local_radius">Local Radius (Jack Lance)</h2>
       <dt>local_radius <i>radius</i></dt>
       <dd>If you set the local_radius flag to a whole number, then the game will only check rules that are in that amount of tiles (a square radius) around the player (or one of the players if you have multiple players in the level). If you still want to have rules to be checked anywhere on the level, preface them with the <b>global</b> keyword like this: 
 <pre><code>(Rows of global crates can push each other, even outside of the player radius)
 global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
         You generally don't need to use this unless you have a really big level, a ton of rules, and your game would otherwise run slowly.</dd>
+      <h2>Misc. (Dario)</h2>
       <dt>case_sensitive</dt>
       <dd>Will force the engine to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.</dd>
       <dt>sprite_size <i>size</i></dt>
