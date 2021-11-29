@@ -2906,7 +2906,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				 consolePrint(`Turn starts with no input.`,false,null,inspect_ID)
 			 } else {
 				//  consolePrint('=======================');
-				consolePrint(`Turn starts with input of ${['up','left','down','right','action','mouse'][inputindex]}.`,false,null,inspect_ID);
+				consolePrint(`Turn starts with input of ${['up','left','down','right','action','mouse'][dir]}.`,false,null,inspect_ID);
 			 }
 		}
 
