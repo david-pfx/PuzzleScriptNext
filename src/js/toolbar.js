@@ -238,7 +238,7 @@ function levelEditorClick_Fn() {
 // const HOSTPAGEURL = "http://www.puzzlescript.net"
 // const PSFORKNAME = "PuzzleScript"
 const HOSTPAGEURL = "https://auroriax.github.io/PuzzleScript"
-const PSFORKNAME = "Puzzlescript+"
+const PSFORKNAME = "Puzzlescript Plus"
 
 /* I don't want to setup the required server for an OAuth App, so for now we will use a slightly more complex method for the user, which is to create a personal identification token. */
 // OAUTH_CLIENT_ID = "211570277eb588cddf44";
