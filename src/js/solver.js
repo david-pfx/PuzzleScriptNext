@@ -17,6 +17,13 @@ async function solve() {
 	if(levelEditorOpened) return;
 	if(solving) return;
 	if(textMode || state.levels.length === 0) return;
+	var was_verbose_logging = false;
+	if (verbose_logging) {
+		verbose_logging = false;
+		cache_console_messages = false;
+		was_verbose_logging = true;
+		consolePrint("Disabling verbose logging to speed up solver")
+	}
 	precalcDistances();
 	abortSolver = false;
 	muted = true;
@@ -43,10 +50,15 @@ async function solve() {
 	var iters = 0;
 	var size = 1;
 	var discovered = 1;
+
 	while(!queue.isEmpty()) {
 		if(abortSolver) {
 			consolePrint("solver aborted");
 			cancelLink.hidden = true;
+
+			verbose_logging = was_verbose_logging;
+			cache_console_messages = was_verbose_logging;
+
 			break;
 		}
 		iters++;
@@ -78,18 +90,63 @@ async function solve() {
 				}
 				var nms = ms + act2str[actions[i]];
 				if(winning || hasUsedCheckpoint) {
-					muted = false;
-					solving = false;
-					winning = false;
 					hasUsedCheckpoint = false;
 					var chunks = "(" + chunkString(nms, 5).join(" ") + ")";
+
+					verbose_logging = true;
+					cache_console_messages = true;
+
 					consolePrint("solution found: (" + nms.length + " steps, " + size + " positions explored)");
 					consolePrint(chunks);
 					console.log("solution found:\n" + chunks);
+
+
+					var step_limit = 200;
+					if (nms.length >= step_limit) {
+						consolePrint("More than "+step_limit + " steps needed to solve puzzle, not printing individual states");
+					} else {
+						verbose_logging = false;
+						//Reload starting state
+						DoRestart();
+
+						addToDebugTimeline(level, 0);
+
+						for(var i = 0; i != nms.length; i++) {
+
+							var char = nms[i];
+
+							var action = -1;
+
+							for (j=0; j != act2str.length; j++) {
+								if (char == act2str[j]) {
+									action = j; break;
+								}
+							}
+
+							verbose_logging = false;
+							var changedSomething = processInput(action);
+							while(againing) {
+								changedSomething = processInput(-1) || changedSomething;
+							}
+							verbose_logging = true;
+
+							var turn_id = addToDebugTimeline(level, i+2);
+							consolePrint("Turn "+(i+1)+", input "+char, false, null, turn_id);
+						}
+					}			
+
 					solvingProgress.innerHTML = "";
 					deltatime = oldDT;
-					playSound(13219900);
 					DoRestart();
+
+					verbose_logging = was_verbose_logging;
+					cache_console_messages = was_verbose_logging;
+
+					solving = false;
+					muted = false;
+					winning = false;
+					playSound(13219900);
+
 					redraw();
 					cancelLink.hidden = true;
 					return;
@@ -106,6 +163,10 @@ async function solve() {
 	DoRestart();
 	consolePrint("no solution found (" + size + " positions explored)");
 	console.log("no solution found");
+
+	verbose_logging = was_verbose_logging;
+	cache_console_messages = was_verbose_logging;
+
 	solvingProgress.innerHTML = "";
 	deltatime = oldDT;
 	playSound(52291704);
