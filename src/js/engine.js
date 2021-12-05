@@ -2849,6 +2849,8 @@ var playerPositionsAtTurnStart;
 
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak) {
+var startDir = dir;
+
 	againing = false;
 
 	if (bak==undefined) {
@@ -2906,7 +2908,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				 consolePrint(`Turn starts with no input.`,false,null,inspect_ID)
 			 } else {
 				//  consolePrint('=======================');
-				consolePrint(`Turn starts with input of ${['up','left','down','right','action','mouse'][dir]}.`,false,null,inspect_ID);
+				consolePrint(`Turn starts with input of ${['up','left','down','right','action','mouse'][startDir]}.`,false,null,inspect_ID);
 			 }
 		}
 
