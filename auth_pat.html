@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Puzzlescript+ Login</title>
+	<title>Puzzlescript Plus Login</title>
 	<style>
 		body {
 			margin: 50px;
@@ -12,9 +12,9 @@
 
 <body>
 	<div id="main">
-		<p>Puzzlescript+ requires a slightly different way to authenticate your GitHub account so I don't have to set up a server to handle it properly. Sorry! Here's how it works:</p>
+		<p>Puzzlescript Plus requires a slightly different way to authenticate your GitHub account so I don't have to set up a server to handle it properly. Sorry! Here's how it works:</p>
 		<p>1) Go to the <a target="_blank" href="https://github.com/settings/tokens/new">New Personal Access Token</a> page on GitHub.<br>
-			2) As the Note, enter Puzzlescript+ (or anything you want, really).<br>
+			2) As the Note, enter Puzzlescript Plus (or anything you want, really).<br>
 			3) For Scopes, make sure you <b>ONLY</b> check "gist". Leave the rest disabled, if you enable more it can become a security risk for your account.<br>
 			4) Then, click "Generate token". On the next page, you'll be able to see the new personal access token. <b>This code acts basically a password for your account</b>, so don't share it anywhere but here! Copy it down here, press submit, and it should work!</p>
 		<form>
@@ -26,7 +26,7 @@
 			<p><i>Credits to Clément Sparrow for implementing this alternative Github authentication  method!</i></p>
 	</div>
 	<div style="display: none;" id="success">
-		<p>PuzzleScript+ has been authorized to save your game as a Gist on GitHub on your behalf from this browser. The token was saved, and if it was correct you can now share games. <a target="_blank" href="/editor.html">Open the editor</a> and click SHARE to test it! If for some reason it does not work, click the button below and try the authorization procedure again.</p>
+		<p>PuzzleScript Plus has been authorized to save your game as a Gist on GitHub on your behalf from this browser. The token was saved, and if it was correct you can now share games. <a target="_blank" href="/editor.html">Open the editor</a> and click SHARE to test it! If for some reason it does not work, click the button below and try the authorization procedure again.</p>
 		<button onclick="resetCredential();">Reset GitHub credential</button>
 	</div>
 <script>
