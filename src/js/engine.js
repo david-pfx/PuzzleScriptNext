@@ -2610,6 +2610,8 @@ function twiddleMetadataExtras() {
 }
 
 function showTempMessage() {
+if (solving) {return;}
+
 	keybuffer=[];
 	textMode=true;
 	titleScreen=false;
