@@ -105,6 +105,8 @@ async function solve() {
 					if (nms.length >= step_limit) {
 						consolePrint("More than "+step_limit + " steps needed to solve puzzle, not printing individual states");
 					} else {
+
+						winning = false;
 						verbose_logging = false;
 						//Reload starting state
 						DoRestart();
@@ -124,14 +126,22 @@ async function solve() {
 							}
 
 							verbose_logging = false;
-							var changedSomething = processInput(action);
+
+							var again_turns = 0;
+							processInput(action);
 							while(againing) {
-								changedSomething = processInput(-1) || changedSomething;
+								processInput(-1);
+								again_turns++;
 							}
 							verbose_logging = true;
 
 							var turn_id = addToDebugTimeline(level, i+2);
-							consolePrint("Turn "+(i+1)+", input "+char, false, null, turn_id);
+
+							var txt = "Turn "+(i+1)+", input "+char;
+							if (again_turns >= 1) {
+								txt += " (again turns: "+again_turns+")";
+							}
+							consolePrint(txt, false, null, turn_id);
 						}
 					}			
 
