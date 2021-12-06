@@ -1177,6 +1177,11 @@ function restoreLevel(lev, snapCamera) {
     }
     
     if (state.metadata.runtime_metadata_twiddling !== undefined) {
+		if (lev.metadata === undefined) {
+			lev.metadata = deepClone(state.default_metadata);
+			consolePrint("RUNTIME METADATA TWIDDLING: Reloaded level state that did not have saved metadata. "+
+			"Likely this state was recovered from a CHECKPOINT. Using the default metadata instead.", true);
+		}
      state.metadata = deepClone(lev.metadata);
      twiddleMetadataExtras();
     }
