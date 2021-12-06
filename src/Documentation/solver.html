@@ -59,26 +59,33 @@
 <p>
 
 
-<h1>How to use the Solver</h1>
+<h1>How to use the Solver <img src="../images/psplus_mascot_32.png"></h1>
 <p>
-To try to automatically solve a level, load it and click on <b>Solve</b> at the top bar, or hit <b>F9</b>. The solver will attempt to solve the puzzle, starting from the current state, not the starting state (so you can already partially pre-solve it if you want to).
+To try to automatically solve a level, load it and click on <b>Solve</b> at the top bar, or hit <b>F9</b>. The solver will attempt to solve the puzzle, starting from the current state, not the starting state (so you can already partially pre-solve it if you want to). It will conclude that the puzzle is solvable when the puzzle is won (either through win conditions or the <b>win</b> command) or when a <b>checkpoint</b> command activates.
 <p>
 To cancel the solver, click on <b>Stop Solver</b> or hit <b>F8</b> or <b>ESC</b>.
-If a solution is found, it will be placed on the message log, along with previews from the visual debugger so you can preview each turn of the solution individually. Do note that this is not necessarily the shortest solution—but it does prove that the puzzle is winnable.
+If a solution is found, it will be placed on the message log, along with previews from the visual debugger so you can preview each turn of the solution individually. Do note that this is not necessarily the shortest solution—but it does prove that the puzzle is winnable. 
+
+<img src="./images/plus_visual_solver.png">
+<p></p>
+In case the solver runs out of states to check without finding a solution, it will stop and conclude the puzzle is unsolvable.
 
 <h2><i>When</i> to use the Solver</h2>
 The solver works best when the levels are relatively small, and the winning conditions are of the form <b>all X on Y</b>, <b>no X</b> or <b>no X on Y</b>.
 
 <h2>Improving solver performance</h2>
-If the solver takes a long time to find a solution in a timely manner, you can attempt the following:
+If the solver takes a long time to find a solution, you can attempt the following to speed it up:
 <ul>
 <li>Does your game have any "dead" states after which the level becomes unwinnable? Consider making that explicit by attempting to detect it using rules, and removing the player in cases like that, to avoid the solver from being stuck too long in a state of which you already know is unwinnable.</li>
-<li>Are you not using the <b>action</b> input in your game? Consider adding <b>noaction</b> to the prelude. The solver automatically detects this flag, and removes action from the directions/inputs it has to test for each turn, making it faster.</li>
+<li>Are you not using the <b>action</b> input in your game? Consider adding <b>noaction</b> to the prelude. The solver automatically detects this flag, and removes <b>action</b> from the directions/inputs it has to test for each turn, making it faster.</li>
 <li>The solver scores the various states, judging by how many of the win conditions are met. If possible, consider not using the <b>win</b> command. Instead, add more specific <b>win conditions</b>, this allows the solver to prioritize exploring states that already have some of the win conditions met.</li>
+<li>Disable any visual effects in your level. The solver is smart enough to prevent exploring states it has already visited. But this only works when the entire level state are completely identical to each other. If you have a lot of visual effects on your level, consider diabling them to improve this duplicate state detection.</li>
 <li>If you are still experiencing long waiting times, as a last resort you could cut out a part of a larger level and test that smaller part of it. Solving time increases exponentially the bigger the level is & the more rules you have, so make it as small as you can.</li>
 </ul>
 
 The solver ignores special commands like <b>goto</b> and such, so don't worry too much about those. Note that the solver does not work together with some features, most notably mouse input.
+<p></p>
+<i>Documentation page adapted from Puzzlescript Solver docs by Marcosdon</i>
 
 </div><!-- /.container -->
 
