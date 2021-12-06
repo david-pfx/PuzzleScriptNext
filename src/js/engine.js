@@ -969,7 +969,7 @@ function setGameState(_state, command, randomseed) {
 		    titleScreen=true;
 		    tryPlayTitleSound();
 		    textMode=true;
-		    titleSelection=showContinueOptionOnTitleScreen()?1:0;
+		    titleSelection=0;
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
@@ -978,7 +978,21 @@ function setGameState(_state, command, randomseed) {
 		    if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
-		    generateTitleScreen();
+
+			if (state.metadata.skip_title_screen!==undefined) {
+				consolePrint("skip_title_screen enabled, proceeding to do exactly as it says on the tin.")
+				if(state.metadata["continue_is_level_select"] !== undefined) {
+					gotoLevelSelectScreen();
+				}
+				else if(titleMode <= 1) {
+					nextLevel();
+				} else if(titleMode == 2) {
+					gotoLevel(titleSelection);
+				}
+			} else {
+				generateTitleScreen();
+			}
+
 		    break;
 		}
 		case "rebuild":

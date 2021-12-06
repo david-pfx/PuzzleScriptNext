@@ -221,7 +221,7 @@ var codeMirrorFn = function() {
     var preamble_params = ['title','author','homepage','background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','color_palette','youtube',
       'sprite_size','level_select_unlocked_ahead','level_select_solve_symbol','custom_font', 'mouse_left','mouse_drag','mouse_right','mouse_rdrag','mouse_up','mouse_rup','local_radius','font_size'];
     var preamble_keywords = ['run_rules_on_level_start','norepeat_action','require_player_movement','debug','verbose_logging','throttle_movement','noundo','noaction','norestart','scanline',
-      'case_sensitive','level_select','continue_is_level_select','level_select_lock','settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'smoothscreen_debug'];
+      'case_sensitive','level_select','continue_is_level_select','level_select_lock','settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'smoothscreen_debug','skip_title_screen'];
     var keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','nosave','message','global','zoomscreen','flickscreen','smoothscreen','noundo','norestart','background_color','text_color','goto'];
 
     //  var keywordRegex = new RegExp("\\b(("+cons.join(")|(")+"))$", 'i');
