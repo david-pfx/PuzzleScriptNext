@@ -3088,7 +3088,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
     		return true;
 		}
 		
-		if (level.commandQueue.indexOf('quit')>=0) {
+		if (level.commandQueue.indexOf('quit')>=0 && !solving) {
 			if (verbose_logging) { 
 				var r = level.commandQueueSourceRules[level.commandQueue.indexOf('restart')];
 				consolePrintFromRule('QUIT command executed, exiting level.',r);
