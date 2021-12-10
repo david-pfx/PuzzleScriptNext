@@ -637,7 +637,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	ignoreNotJustPressedAction=true;
 	titleScreen=false;
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
-	titleSelection=showContinueOptionOnTitleScreen()?1:0;
+	titleSelection=0;
   titleSelected=false;
   state.metadata = deepClone(state.default_metadata);
     againing=false;
