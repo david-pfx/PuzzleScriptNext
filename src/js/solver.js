@@ -143,13 +143,14 @@ async function solve() {
 							}
 							consolePrint(txt, false, null, turn_id);
 						}
-					}			
+					}	
+					
+					verbose_logging = was_verbose_logging;
 
 					solvingProgress.innerHTML = "";
 					deltatime = oldDT;
 					DoRestart();
 
-					verbose_logging = was_verbose_logging;
 					cache_console_messages = was_verbose_logging;
 
 					solving = false;
