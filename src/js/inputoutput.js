@@ -946,7 +946,7 @@ function onMouseWheel(event) {
 function levelSelectScroll(direction) {
 	levelSelectScrollPos = clamp(levelSelectScrollPos + direction, 0, Math.max(state.sections.length - amountOfLevelsOnScreen, 0));
 	titleSelection = clamp(titleSelection + direction, 0, state.sections.length - 1);
-	console.log(levelSelectScrollPos + " " + titleSelection);
+	//console.log(levelSelectScrollPos + " " + titleSelection);
 	generateLevelSelectScreen();
 }
 
