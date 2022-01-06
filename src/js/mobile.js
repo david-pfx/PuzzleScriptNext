@@ -413,6 +413,10 @@ Mobile.debugDot = function (event) {
     // Method to be called when we've detected a swipe and some action
     // is called for.
     proto.handleSwipe = function (direction, touchCount) {
+        if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
+            return;
+        }
+
         if (touchCount === 1) {
             this.emitKeydown(this.swipeDirection);
         } else if (touchCount > 1) {
@@ -422,6 +426,10 @@ Mobile.debugDot = function (event) {
     };
 
     proto.handleTap = function () {
+        if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
+            return;
+        }
+
         this.emitKeydown('action');
     };
 

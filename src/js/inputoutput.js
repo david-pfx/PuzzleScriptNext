@@ -856,7 +856,11 @@ var mousePixelX=0;
 var mousePixelY=0;
 
 function setMouseCoord(e){
-    var coords = canvas.relMouseCoords(e);
+	var coords = canvas.relMouseCoords(e);
+	if (isNaN(coords.x) || isNaN(coords.y)) {
+		console.warn("[SetMouseCoord] Did not recieve valid mouse coords from event. \
+			Ignoring it (since I'm assuming this is a faked keypress that was generated on mobile).")
+	}
     mousePixelX=coords.x-xoffset;
 	mousePixelY=coords.y-yoffset;
 	mouseCoordX=Math.floor(mousePixelX/cellwidth);
