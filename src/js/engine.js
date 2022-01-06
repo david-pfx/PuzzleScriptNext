@@ -457,6 +457,9 @@ function generateLevelSelectScreen() {
 	for(var i = titleImage.length; i < 13; i++) {
 		titleImage.push("                                  ");
 	}
+
+	regenSpriteImages();
+	redraw();
 }
 
 function gotoLevel(sectionIndex) {

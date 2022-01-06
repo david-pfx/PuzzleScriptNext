@@ -549,7 +549,6 @@ function mouseAction(event,click,id) {
 							quittingTitleScreen=true;
 							
 							generateLevelSelectScreen();
-							redraw();
 						}
 					}
 				}
@@ -945,7 +944,6 @@ function levelSelectScroll(direction) {
 	titleSelection = clamp(titleSelection + direction, 0, state.sections.length - 1);
 	console.log(levelSelectScrollPos + " " + titleSelection);
 	generateLevelSelectScreen();
-	redraw();
 }
 
 function clamp(number, min, max) {
