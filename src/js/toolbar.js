@@ -293,7 +293,7 @@ function shareClick() {
 
 	var gistToCreate = {
 		"description" : title,
-		"public" : is_public,
+		"public" : true,
 		"files": {
 			"readme.txt" : {
 				"content": "Play this game by pasting the script in "+HOSTPAGEURL+"/editor.html"
