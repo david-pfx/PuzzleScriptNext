@@ -58,6 +58,7 @@
             ["runtime_metadata_twiddling", "", "Allows you to change some prelude flags during runtime using rules"],
             ["runtime_metadata_twiddling_debug", "", "Prints in the console each time the metadata is twiddled"],
             ["skip_title_screen", "", "Will skip the title screen when the game initializes, booting straight into the level or level select"],
+            ["tween_length", "", "Will animate objects that are moving using LEFT, RIGHT, UP, and DOWN. Value in seconds is the duration."],
         ];
 
         var COLOR_WORDS = [

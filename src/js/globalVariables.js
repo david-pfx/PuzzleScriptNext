@@ -51,6 +51,9 @@ var norepeat_action=false;
 var oldflickscreendat=[];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
 var keybuffer = [];
 
+var tweeninterval=0;
+var tweentimer=0;
+
 var restarting=false;
 
 var messageselected=false;

@@ -425,15 +425,34 @@ function redraw() {
 		screenOffsetY = minj;
 
         var renderBorderSize = smoothscreen ? 1 : 0;
+        var objectKeys = Object.keys(state.objects);
 
-        for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-            for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                var posIndex = j + i * curlevel.height;
-                var posMask = curlevel.getCellInto(posIndex,_o12);                
-                for (var k = 0; k < state.objectCount; k++) {
+        var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
+
+        for (var k = 0; k < state.objectCount; k++) {
+            for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+                for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                    var posIndex = j + i * curlevel.height;
+                    var posMask = curlevel.getCellInto(posIndex,_o12);                
+                
                     if (posMask.get(k) != 0) {                  
                         var sprite = spriteimages[k];
-                        ctx.drawImage(sprite, Math.floor(xoffset + (i-mini-cameraOffset.x) * cellwidth), Math.floor(yoffset + (j-minj-cameraOffset.y) * cellheight));
+
+                        var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
+                        var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
+
+                        if (level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                            var dir = level.movedEntities[posIndex+"-"+k];
+
+                            var delta = dirMasksDelta[dir];
+
+                            var shiftx = cellwidth*delta[0]*tween
+                            var shifty = cellheight*delta[1]*tween
+
+                            ctx.drawImage(sprite, Math.floor(x-shiftx), Math.floor(y-shifty));
+                        } else {
+                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                        }
                     }
                 }
             }

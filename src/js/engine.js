@@ -1,4 +1,3 @@
-
 var RandomGen = new RNG();
 
 var intro_template = [
@@ -945,9 +944,15 @@ function setGameState(_state, command, randomseed) {
     }
 
     if (state.metadata.key_repeat_interval!==undefined) {
-    repeatinterval=state.metadata.key_repeat_interval*1000;
+    	repeatinterval=state.metadata.key_repeat_interval*1000;
     } else {
       repeatinterval=150;
+	}
+	
+	if (state.metadata.tween_length!==undefined) {
+		tweeninterval=state.metadata.tween_length*1000;
+    } else {
+		tweeninterval = 0;
     }
 
     if (state.metadata.again_interval!==undefined) {
@@ -1451,7 +1456,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 
     var layerMask = state.layerMasks[layer];
     var targetMask = level.getCellInto(targetIndex,_o7);
-    var sourceMask = level.getCellInto(positionIndex,_o8);
+	var sourceMask = level.getCellInto(positionIndex,_o8);
 
     if (layerMask.anyBitsInCommon(targetMask) && (dirMask!=16)) {
         return false;
@@ -1475,7 +1480,14 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     targetMask.ior(movingEntities);
 
     level.setCell(positionIndex, sourceMask);
-    level.setCell(targetIndex, targetMask);
+	level.setCell(targetIndex, targetMask);
+
+	for (let i = 1; i < state.objectCount; i++) {
+		if (movingEntities.get(i) != 0) {
+			level.movedEntities[targetIndex+"-"+i] = dirMask;
+		}
+	}
+	tweentimer = 0;
 	
     var colIndex=(targetIndex/level.height)|0;
 	var rowIndex=(targetIndex%level.height);
@@ -1499,7 +1511,7 @@ function repositionEntitiesAtCell(positionIndex) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
                 movementMask.ishiftclear(layerMovement, 5*layer);
-                moved = true;
+				moved = true;
             }
         }
     }
@@ -2593,6 +2605,12 @@ function twiddleMetadataExtras() {
     againinterval=150;
   }
 
+  if (state.metadata.tween_length!==undefined) {
+	tweeninterval=state.metadata.tween_length*1000;
+	} else {
+		tweeninterval = 0;
+	}
+
   if (state.metadata.key_repeat_interval!==undefined) {
     repeatinterval=state.metadata.key_repeat_interval*1000;
   } else {
@@ -2773,11 +2791,14 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 
 //if this returns!=null, need to go back and reprocess
 function resolveMovements(level, bannedGroup){
-    var moved=true;
+	var moved=true;
+	
+	level.movedEntities = [];
+
     while(moved){
         moved=false;
         for (var i=0;i<level.n_tiles;i++) {
-          moved = repositionEntitiesAtCell(i) || moved;
+		  moved = repositionEntitiesAtCell(i) || moved;
         }
     }
     var doUndo=false;
