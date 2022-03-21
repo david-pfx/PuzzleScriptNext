@@ -1145,6 +1145,7 @@ function restoreLevel(lev, snapCamera) {
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
+	level.movedEntities = {};
 
 	if (diffing){
 		var index=0;
@@ -2793,7 +2794,7 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 function resolveMovements(level, bannedGroup){
 	var moved=true;
 	
-	level.movedEntities = [];
+	level.movedEntities = {};
 
     while(moved){
         moved=false;

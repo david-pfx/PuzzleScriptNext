@@ -425,37 +425,54 @@ function redraw() {
 		screenOffsetY = minj;
 
         var renderBorderSize = smoothscreen ? 1 : 0;
-        var objectKeys = Object.keys(state.objects);
+        var tweening = state.metadata.tween_length;
 
-        var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
-
-        for (var k = 0; k < state.objectCount; k++) {
-            for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-                for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var posMask = curlevel.getCellInto(posIndex,_o12);                
-                
+        for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+            for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                var posIndex = j + i * curlevel.height;
+                var posMask = curlevel.getCellInto(posIndex,_o12);    
+                for (var k = 0; k < state.objectCount; k++) {            
+            
                     if (posMask.get(k) != 0) {                  
                         var sprite = spriteimages[k];
 
                         var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                         var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
 
-                        if (level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
-                            var dir = level.movedEntities[posIndex+"-"+k];
-
-                            var delta = dirMasksDelta[dir];
-
-                            var shiftx = cellwidth*delta[0]*tween
-                            var shifty = cellheight*delta[1]*tween
-
-                            ctx.drawImage(sprite, Math.floor(x-shiftx), Math.floor(y-shifty));
-                        } else {
-                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                        if (tweening && level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                            //Only draw if this sprite is not tweening
+                            continue;
                         }
+                            
+                        ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
                     }
                 }
             }
+        }
+
+        //Draw tweening objects on top of the static objects
+        if (tweening && level.movedEntities) {
+            var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
+            Object.keys(level.movedEntities).forEach(function(key) {
+                var id = key.split("-"); //pos-object
+                var i = Math.floor(id[0] / curlevel.height);
+                var j = id[0] % curlevel.height;
+                var k = id[1];
+
+                var sprite = spriteimages[k];
+
+                var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
+                var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
+
+                var dir = level.movedEntities[key];
+
+                var delta = dirMasksDelta[dir];
+
+                var shiftx = cellwidth*delta[0]*tween
+                var shifty = cellheight*delta[1]*tween
+
+                ctx.drawImage(sprite, Math.floor(x-shiftx), Math.floor(y-shifty));
+            });
         }
         
         if (diffToVisualize!==null){
