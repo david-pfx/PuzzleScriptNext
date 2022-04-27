@@ -1483,12 +1483,15 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     level.setCell(positionIndex, sourceMask);
 	level.setCell(targetIndex, targetMask);
 
-	for (let i = 1; i < state.objectCount; i++) {
-		if (movingEntities.get(i) != 0) {
-			level.movedEntities[targetIndex+"-"+i] = dirMask;
+	if (state.metadata.tween_length) {
+		for (let i = 1; i < state.objectCount; i++) {
+			if (movingEntities.get(i) != 0) {
+				level.movedEntities[targetIndex+"-"+i] = dirMask;
+			}
 		}
+		tweentimer = 0;
+		//console.log(level.movedEntities)
 	}
-	tweentimer = 0;
 	
     var colIndex=(targetIndex/level.height)|0;
 	var rowIndex=(targetIndex%level.height);

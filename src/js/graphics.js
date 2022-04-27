@@ -464,6 +464,13 @@ function redraw() {
 
             tween = EasingFunctions[tween_name](tween);
 
+            var tween_snap = state.sprite_size;
+            if (state.metadata.tween_snap!==undefined) {
+                tween_snap = state.metadata.tween_snap;
+            }
+
+            tween = Math.floor(tween * tween_snap) / tween_snap;
+
             Object.keys(level.movedEntities).forEach(function(key) {
                 var id = key.split("-"); //pos-object
                 var i = Math.floor(id[0] / curlevel.height);
@@ -477,12 +484,17 @@ function redraw() {
 
                 var dir = level.movedEntities[key];
 
-                var delta = dirMasksDelta[dir];
+                if (dir < 16) { //Cardinal directions
+                    var delta = dirMasksDelta[dir];
 
-                var shiftx = cellwidth*delta[0]*tween
-                var shifty = cellheight*delta[1]*tween
+                    x -= cellwidth*delta[0]*tween
+                    y -= cellheight*delta[1]*tween
+                } else if (dir == 16) { //Action button
+                    ctx.globalAlpha = 1-tween;
+                }
 
-                ctx.drawImage(sprite, Math.floor(x-shiftx), Math.floor(y-shifty));
+                ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                ctx.globalAlpha = 1;
             });
         }
         

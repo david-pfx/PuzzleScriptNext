@@ -58,8 +58,9 @@
             ["runtime_metadata_twiddling", "", "Allows you to change some prelude flags during runtime using rules"],
             ["runtime_metadata_twiddling_debug", "", "Prints in the console each time the metadata is twiddled"],
             ["skip_title_screen", "", "Will skip the title screen when the game initializes, booting straight into the level or level select"],
-            ["tween_length", "", "Will animate objects that are moving using LEFT, RIGHT, UP, and DOWN. Duration in seconds."],
+            ["tween_length", "0.05", "Will animate objects that are moving using LEFT, RIGHT, UP, and DOWN. Duration in seconds."],
             ["tween_easing", "linear", "How movement animations should lerp when using TWEEN_LENGTH, e.g. 'easeInQuad', 'easeOutCubic', etc."],
+            ["tween_snap", "5", "With how much granularity to snap to the underlying sprite grid. Uses the SPRITE_SIZE by default."],
         ];
 
         var COLOR_WORDS = [
