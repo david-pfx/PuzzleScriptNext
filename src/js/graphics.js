@@ -6,7 +6,16 @@ function createSprite(name,spritegrid, colors, padding) {
 	var sprite = makeSpriteCanvas(name);
 	var spritectx = sprite.getContext('2d');
 
-    spritectx.clearRect(0, 0, cellwidth, cellheight);
+    renderSprite(spritectx, spritegrid, colors, padding, 0, 0);
+
+    return sprite;
+}
+
+function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
+    var offsetX = x * cellwidth;
+    var offsetY = y * cellheight;
+
+    spritectx.clearRect(offsetX, offsetY, cellwidth, cellheight);
 
 	var w = spritegrid[0].length;
 	var h = spritegrid.length;
@@ -24,12 +33,10 @@ function createSprite(name,spritegrid, colors, padding) {
                 var cy = (j * ch)|0;
                 var cx = (k * cw)|0;
                 spritectx.fillStyle = colors[val];
-                spritectx.fillRect(cx, cy, cw, pixh);
+                spritectx.fillRect(offsetX + cx, offsetY + cy, cw, pixh);
             }
         }
     }
-
-    return sprite;
 }
 
 function drawTextWithCustomFont(txt, ctx, x, y) {
@@ -63,6 +70,7 @@ function regenText(spritecanvas,spritectx) {
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
 
 var spriteimages;
+var spritesheetCanvas = null;
 function regenSpriteImages() {
 	if (textMode) {
         spriteimages = [];
@@ -78,12 +86,28 @@ function regenSpriteImages() {
         return;
     }
     spriteimages = [];
+    
+    var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
+
+    if (spritesheetCanvas == null) {
+        spritesheetCanvas = document.createElement('canvas');
+    }
+
+    spritesheetCanvas.width = spritesheetSize * cellwidth;
+    spritesheetCanvas.height = spritesheetSize * cellheight;
+
+    var spritesheetContext = spritesheetCanvas.getContext('2d')
 
     for (var i = 0; i < sprites.length; i++) {
         if (sprites[i] == undefined) {
             continue;
         }
+
         spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
+        
+        var spriteX = (i % spritesheetSize)|0;
+        var spriteY = (i / spritesheetSize)|0;
+        renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY);
     }
 
     if (canOpenEditor) {
@@ -144,7 +168,7 @@ function generateGlyphImages() {
 				var id = g[i];
 				if (id===-1) {
 					continue;
-				}
+                }
 				spritectx.drawImage(spriteimages[id], 0, 0);
 			}
 			glyphImages.push(sprite);
@@ -295,7 +319,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (spriteimages===undefined) {
+    if (spritesheetCanvas===null) {
         regenSpriteImages();
     }
 
@@ -426,6 +450,7 @@ function redraw() {
 		screenOffsetY = minj;
 
         var renderBorderSize = smoothscreen ? 1 : 0;
+        var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
         var tweening = state.metadata.tween_length && level.movedEntities;
 
         if (!tweening) { //Seperated tweening/non-tweening draw loops for performance considerations
@@ -436,17 +461,16 @@ function redraw() {
                     for (var k = 0; k < state.objectCount; k++) {            
                 
                         if (posMask.get(k) != 0) {                  
-                            var sprite = spriteimages[k];
+                            var spriteX = (k % spritesheetSize)|0;
+                            var spriteY = (k / spritesheetSize)|0;
 
                             var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                             var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
-
-                            /*if (tweening && level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
-                                //Only draw if this sprite is not tweening
-                                continue;
-                            }*/
                                 
-                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                            ctx.drawImage(
+                                spritesheetCanvas, 
+                                spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
+                                Math.floor(x), Math.floor(y), cellwidth, cellheight);
                         }
                     }
                 }
@@ -477,7 +501,8 @@ function redraw() {
                         var posMask = curlevel.getCellInto(posIndex,_o12);                
                     
                         if (posMask.get(k) != 0) {                  
-                            var sprite = spriteimages[k];
+                            var spriteX = (k % spritesheetSize)|0;
+                            var spriteY = (k / spritesheetSize)|0;
     
                             var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                             var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
@@ -493,10 +518,13 @@ function redraw() {
                                 } else if (dir == 16) { //Action button
                                     ctx.globalAlpha = 1-tween;
                                 }
-                            } 
+                            }
                             
-                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
-                            ctx.globalAlpha = 1
+                            ctx.drawImage(
+                                spritesheetCanvas, 
+                                spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
+                                Math.floor(x), Math.floor(y), cellwidth, cellheight);
+                            //ctx.globalAlpha = 1
                         }
                     }
                 }
