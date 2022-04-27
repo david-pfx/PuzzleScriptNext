@@ -426,76 +426,81 @@ function redraw() {
 		screenOffsetY = minj;
 
         var renderBorderSize = smoothscreen ? 1 : 0;
-        var tweening = state.metadata.tween_length;
+        var tweening = state.metadata.tween_length && level.movedEntities;
 
-        for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-            for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                var posIndex = j + i * curlevel.height;
-                var posMask = curlevel.getCellInto(posIndex,_o12);    
-                for (var k = 0; k < state.objectCount; k++) {            
-            
-                    if (posMask.get(k) != 0) {                  
-                        var sprite = spriteimages[k];
+        if (!tweening) { //Seperated tweening/non-tweening draw loops for performance considerations
+            for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+                for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                    var posIndex = j + i * curlevel.height;
+                    var posMask = curlevel.getCellInto(posIndex,_o12);    
+                    for (var k = 0; k < state.objectCount; k++) {            
+                
+                        if (posMask.get(k) != 0) {                  
+                            var sprite = spriteimages[k];
 
-                        var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
-                        var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
+                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
+                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
 
-                        if (tweening && level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
-                            //Only draw if this sprite is not tweening
-                            continue;
+                            /*if (tweening && level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                                //Only draw if this sprite is not tweening
+                                continue;
+                            }*/
+                                
+                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
                         }
-                            
-                        ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
                     }
                 }
             }
-        }
-
-        //Draw tweening objects on top of the static objects
-        if (tweening && level.movedEntities) {
-            
+        } else { //Loop when tweening
             var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
 
+            //Defaults
             var tween_name = "linear";
+            var tween_snap = state.sprite_size;
+
+            //Lookup
             if (state.metadata.tween_easing!==undefined && EasingFunctions[state.metadata.tween_easing]!== undefined) {
                 tween_name = state.metadata.tween_easing.toLowerCase();
-
             }
-
-            tween = EasingFunctions[tween_name](tween);
-
-            var tween_snap = state.sprite_size;
             if (state.metadata.tween_snap!==undefined) {
                 tween_snap = state.metadata.tween_snap;
             }
 
+            //Apply
+            tween = EasingFunctions[tween_name](tween);
             tween = Math.floor(tween * tween_snap) / tween_snap;
 
-            Object.keys(level.movedEntities).forEach(function(key) {
-                var id = key.split("-"); //pos-object
-                var i = Math.floor(id[0] / curlevel.height);
-                var j = id[0] % curlevel.height;
-                var k = id[1];
+            for (var k = 0; k < state.objectCount; k++) {
+                for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+                    for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                        var posIndex = j + i * curlevel.height;
+                        var posMask = curlevel.getCellInto(posIndex,_o12);                
+                    
+                        if (posMask.get(k) != 0) {                  
+                            var sprite = spriteimages[k];
+    
+                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
+                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
 
-                var sprite = spriteimages[k];
-
-                var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
-                var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
-
-                var dir = level.movedEntities[key];
-
-                if (dir < 16) { //Cardinal directions
-                    var delta = dirMasksDelta[dir];
-
-                    x -= cellwidth*delta[0]*tween
-                    y -= cellheight*delta[1]*tween
-                } else if (dir == 16) { //Action button
-                    ctx.globalAlpha = 1-tween;
+                            var dir = level.movedEntities[posIndex+"-"+k];
+    
+                            if (level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                                if (dir != 16) { //Cardinal directions
+                                    var delta = dirMasksDelta[dir];
+                
+                                    x -= cellwidth*delta[0]*tween
+                                    y -= cellheight*delta[1]*tween
+                                } else if (dir == 16) { //Action button
+                                    ctx.globalAlpha = 1-tween;
+                                }
+                            } 
+                            
+                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                            ctx.globalAlpha = 1
+                        }
+                    }
                 }
-
-                ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
-                ctx.globalAlpha = 1;
-            });
+            }
         }
         
         if (diffToVisualize!==null){
