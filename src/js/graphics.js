@@ -396,6 +396,7 @@ function redraw() {
                     }
 
                     cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
+                    //console.log(coord + " "+ cameraPosition[coord])
                     cameraOffset[coord] = cameraPosition[coord] % 1;
                 })
 
@@ -425,15 +426,78 @@ function redraw() {
 		screenOffsetY = minj;
 
         var renderBorderSize = smoothscreen ? 1 : 0;
+        var tweening = state.metadata.tween_length && level.movedEntities;
 
-        for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-            for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                var posIndex = j + i * curlevel.height;
-                var posMask = curlevel.getCellInto(posIndex,_o12);                
-                for (var k = 0; k < state.objectCount; k++) {
-                    if (posMask.get(k) != 0) {                  
-                        var sprite = spriteimages[k];
-                        ctx.drawImage(sprite, Math.floor(xoffset + (i-mini-cameraOffset.x) * cellwidth), Math.floor(yoffset + (j-minj-cameraOffset.y) * cellheight));
+        if (!tweening) { //Seperated tweening/non-tweening draw loops for performance considerations
+            for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+                for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                    var posIndex = j + i * curlevel.height;
+                    var posMask = curlevel.getCellInto(posIndex,_o12);    
+                    for (var k = 0; k < state.objectCount; k++) {            
+                
+                        if (posMask.get(k) != 0) {                  
+                            var sprite = spriteimages[k];
+
+                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
+                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
+
+                            /*if (tweening && level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                                //Only draw if this sprite is not tweening
+                                continue;
+                            }*/
+                                
+                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                        }
+                    }
+                }
+            }
+        } else { //Loop when tweening
+            var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
+
+            //Defaults
+            var tween_name = "linear";
+            var tween_snap = state.sprite_size;
+
+            //Lookup
+            if (state.metadata.tween_easing!==undefined && EasingFunctions[state.metadata.tween_easing]!== undefined) {
+                tween_name = state.metadata.tween_easing.toLowerCase();
+            }
+            if (state.metadata.tween_snap!==undefined) {
+                tween_snap = state.metadata.tween_snap;
+            }
+
+            //Apply
+            tween = EasingFunctions[tween_name](tween);
+            tween = Math.floor(tween * tween_snap) / tween_snap;
+
+            for (var k = 0; k < state.objectCount; k++) {
+                for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+                    for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                        var posIndex = j + i * curlevel.height;
+                        var posMask = curlevel.getCellInto(posIndex,_o12);                
+                    
+                        if (posMask.get(k) != 0) {                  
+                            var sprite = spriteimages[k];
+    
+                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
+                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
+
+                            var dir = level.movedEntities[posIndex+"-"+k];
+    
+                            if (level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                                if (dir != 16) { //Cardinal directions
+                                    var delta = dirMasksDelta[dir];
+                
+                                    x -= cellwidth*delta[0]*tween
+                                    y -= cellheight*delta[1]*tween
+                                } else if (dir == 16) { //Action button
+                                    ctx.globalAlpha = 1-tween;
+                                }
+                            } 
+                            
+                            ctx.drawImage(sprite, Math.floor(x), Math.floor(y));
+                            ctx.globalAlpha = 1
+                        }
                     }
                 }
             }
@@ -754,3 +818,37 @@ function canvasResize() {
 
     redraw();
 }
+
+//Source: https://gist.github.com/gre/1650294
+/*
+ * Easing Functions - inspired from http://gizma.com/easing/
+ * only considering the t value for the range [0, 1] => [0, 1]
+ */
+EasingFunctions = {
+    // no easing, no acceleration
+    linear: t => t,
+    // accelerating from zero velocity
+    easeinquad: t => t*t,
+    // decelerating to zero velocity
+    easeoutquad: t => t*(2-t),
+    // acceleration until halfway, then deceleration
+    easeinoutquad: t => t<.5 ? 2*t*t : -1+(4-2*t)*t,
+    // accelerating from zero velocity 
+    easeincubic: t => t*t*t,
+    // decelerating to zero velocity 
+    easeoutcubic: t => (--t)*t*t+1,
+    // acceleration until halfway, then deceleration 
+    easeinoutcubic: t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1,
+    // accelerating from zero velocity 
+    easeinquart: t => t*t*t*t,
+    // decelerating to zero velocity 
+    easeoutquart: t => 1-(--t)*t*t*t,
+    // acceleration until halfway, then deceleration
+    easeinoutquart: t => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t,
+    // accelerating from zero velocity
+    easeinquint: t => t*t*t*t*t,
+    // decelerating to zero velocity
+    easeoutquint: t => 1+(--t)*t*t*t*t,
+    // acceleration until halfway, then deceleration 
+    easeinoutquint: t => t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t
+  }

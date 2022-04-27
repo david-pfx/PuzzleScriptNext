@@ -1370,8 +1370,10 @@ function checkKey(e,justPressed) {
 function update() {
     var draw = false;
 
-    timer+=deltatime;
-    input_throttle_timer+=deltatime;
+	timer+=deltatime;
+	tweentimer+=deltatime;
+	input_throttle_timer+=deltatime;
+
     if (quittingTitleScreen) {
         if (timer/1000>0.3) {
 			quittingTitleScreen=false;
@@ -1442,7 +1444,7 @@ function update() {
     }
 
 	if (draw || (typeof state !== "undefined" && 
-		state.metadata.smoothscreen !== undefined)) {
+		(state.metadata.smoothscreen !== undefined || state.metadata.tween_length !== undefined))) {
       redraw();
 	}
 }
