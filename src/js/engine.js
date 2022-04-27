@@ -546,16 +546,29 @@ function deepClone(item) {
     return result;
 }
 
-function wordwrap( str, width ) {
+function wordwrap( str, width, handleNewlines = false ) {
  
     width = width || 75;
     var cut = true;
  
     if (!str) { return str; }
  
-    var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
- 
-    return str.match( RegExp(regex, 'g') );
+	var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
+
+	if (!handleNewlines) {
+	
+		return str.match( RegExp(regex, 'g') );
+	} else {
+		splitNewlines = str.split("\\n");
+		var splitString  = [];
+	
+		splitNewlines.forEach(splitStr => {
+			splitString = splitString.concat(splitStr.match( RegExp(regex, 'g') ));
+		}) 
+		
+		//console.log(splitString);
+		return splitString;
+	}
  
 }
 
@@ -591,7 +604,7 @@ function drawMessageScreen() {
 		message = messagetext;
 	}
 	
-	splitMessage = wordwrap(message,titleImage[0].length);
+	splitMessage = wordwrap(message,titleImage[0].length, true);
 
 
 	var offset = 5-((splitMessage.length/2)|0);
@@ -601,6 +614,7 @@ function drawMessageScreen() {
 
 	var count = Math.min(splitMessage.length,12);
 	for (var i=0;i<count;i++) {
+		if (!splitMessage[i]) {continue;}
 		var m = splitMessage[i];
 		var row = offset+i;	
 		var messageLength=m.length;
