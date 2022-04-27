@@ -103,7 +103,9 @@ function regenSpriteImages() {
             continue;
         }
 
-        spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
+        if (canOpenEditor) {
+            spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
+        }
         
         var spriteX = (i % spritesheetSize)|0;
         var spriteY = (i / spritesheetSize)|0;
