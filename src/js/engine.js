@@ -551,7 +551,9 @@ function wordwrap( str, width, handleNewlines = false ) {
     width = width || 75;
     var cut = true;
  
-    if (!str) { return str; }
+	if (!str) { return str; }
+	
+	//console.log("Before: "+str)
  
 	var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
 
@@ -615,11 +617,19 @@ function drawMessageScreen() {
 	var count = Math.min(splitMessage.length,12);
 	for (var i=0;i<count;i++) {
 		if (!splitMessage[i]) {continue;}
-		var m = splitMessage[i];
+		var m = splitMessage[i].trimRight();
 		var row = offset+i;	
 		var messageLength=m.length;
 		var lmargin = ((width-messageLength)/2)|0;
-		var rmargin = width-messageLength-lmargin;
+		if (state.metadata.message_text_align) {
+			var align = state.metadata.message_text_align.toLowerCase();
+			if (align == "left") {
+				lmargin = 0;
+			} else if (align == "right") {
+				lmargin = (width-messageLength);
+			}
+		}
+		//var rmargin = width-messageLength-lmargin;
 		var rowtext = titleImage[row];
 		titleImage[row]=rowtext.slice(0,lmargin)+m+rowtext.slice(lmargin+m.length);		
 	}

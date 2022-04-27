@@ -210,11 +210,13 @@ late [ Temp ] -> [ ]</code></pre>
       <dd>How many levels to unlock ahead after the last solved level when <b>level_select_lock</b> is on, 1 by default.</dd>
       <dt>level_select_solve_symbol</dt>
       <dd>Which symbol to display for levels that have been solved in the level select. It's a checkmark by default, but you can change it in case you're using a <b>custom_font</b> that doesn't have a checkmark glyph.</dd>
-      <h2>Custom Font (Dario)</h2>
+      <h2>Text settings (Dario & PS+)</h2>
       <dt>custom_font <i>data:font/otf;base64,</i></dt>
       <dd>Allows you to load in a custom font file via a data stream. This works best with monospace fonts & font files with very small sizes (under 20KB). If you have a font file and you want to convert it into base64, use a tool like <a href="https://base64.guru/converter/encode/file">File to Base64</a> with the "Data URI" output format, then paste it into the editor.</dd>
       <dt>font_size <i>size</i></dt>
       <dd>Font size is in em, meaning 1 is the default and is treated as a percentage (e.g. 0.5 is half font size & 2 is double the normal font size). Can only be used with custom_font.</dd>
+      <dt>message_text_align <i>left/center/right</i></dt>
+      <dd>How to align text for messages: 'left', 'center' (default), or 'right'. If you need more control over the text layout, you can also use \n to manually add a newline.</dd>
       <h2>Smoothscreen (sftrabbit)</h2>
       <dt>smoothscreen <i>flick</i> WxH <i>IxJ S</i></dt>
       <dd>Zooms the camera in to a WxH section of the map around the playerand smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional S argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. Additionally, the optional <i>flick</i> keyword makes the camera move like flickscreen, where the camera always moves the full boundary width/height. To get a smooth version of flick screen, provide the <i>flick</i> keyword and make WxH and IxJ the same dimensions.</dd>
