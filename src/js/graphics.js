@@ -396,6 +396,7 @@ function redraw() {
                     }
 
                     cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
+                    //console.log(coord + " "+ cameraPosition[coord])
                     cameraOffset[coord] = cameraPosition[coord] % 1;
                 })
 
@@ -452,7 +453,17 @@ function redraw() {
 
         //Draw tweening objects on top of the static objects
         if (tweening && level.movedEntities) {
+            
             var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
+
+            var tween_name = "linear";
+            if (state.metadata.tween_easing!==undefined && EasingFunctions[state.metadata.tween_easing]!== undefined) {
+                tween_name = state.metadata.tween_easing.toLowerCase();
+
+            }
+
+            tween = EasingFunctions[tween_name](tween);
+
             Object.keys(level.movedEntities).forEach(function(key) {
                 var id = key.split("-"); //pos-object
                 var i = Math.floor(id[0] / curlevel.height);
@@ -790,3 +801,37 @@ function canvasResize() {
 
     redraw();
 }
+
+//Source: https://gist.github.com/gre/1650294
+/*
+ * Easing Functions - inspired from http://gizma.com/easing/
+ * only considering the t value for the range [0, 1] => [0, 1]
+ */
+EasingFunctions = {
+    // no easing, no acceleration
+    linear: t => t,
+    // accelerating from zero velocity
+    easeinquad: t => t*t,
+    // decelerating to zero velocity
+    easeoutquad: t => t*(2-t),
+    // acceleration until halfway, then deceleration
+    easeinoutquad: t => t<.5 ? 2*t*t : -1+(4-2*t)*t,
+    // accelerating from zero velocity 
+    easeincubic: t => t*t*t,
+    // decelerating to zero velocity 
+    easeoutcubic: t => (--t)*t*t+1,
+    // acceleration until halfway, then deceleration 
+    easeinoutcubic: t => t<.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1,
+    // accelerating from zero velocity 
+    easeinquart: t => t*t*t*t,
+    // decelerating to zero velocity 
+    easeoutquart: t => 1-(--t)*t*t*t,
+    // acceleration until halfway, then deceleration
+    easeinoutquart: t => t<.5 ? 8*t*t*t*t : 1-8*(--t)*t*t*t,
+    // accelerating from zero velocity
+    easeinquint: t => t*t*t*t*t,
+    // decelerating to zero velocity
+    easeoutquint: t => 1+(--t)*t*t*t*t,
+    // acceleration until halfway, then deceleration 
+    easeinoutquint: t => t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t
+  }
