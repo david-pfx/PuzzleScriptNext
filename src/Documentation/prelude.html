@@ -236,6 +236,32 @@ global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
       <dd>Will force the engine to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.</dd>
       <dt>sprite_size <i>size</i></dt>
       <dd>Instead of 5x5, this option allows you to pick other square resolutions for your sprites. Do note that all sprites MUST be of this size for the game to display correctly. If you need help with upscaling your sprites, <a href="plus_sprite_upscaler_tool.html">there's a helpful tool available here.</a></dd>
+      <h2 id="tweening">Tweening (PS+)</h2>
+      <p>Although you can animate your game using again, PS+ offers a more generalized method of inbetweening movement you can use instead!</p>
+      <dt>tween_length <i>0.05</i></dt>
+      <dd>Enables tweens for LEFT, RIGHT, UP, and DOWN object movement, and for ACTION (will fade in that object). Tweens will take the duration you specify in seconds An object must execute its movement for this animation to play, currently there is no way to play an animation without moving.<br>
+        Note that if the next turn starts before this tween is completed, the previous tween instantly completes. For this reason, we recommend setting the tween_length very low, somewhere between 0.05 and 0.075 seconds, but at least lower than the AGAIN_INTERVAL and KEY_REPEAT_INTERVAL, and to avoid using it in games that use REALTIME_INTERVAL.</dd>
+        <dt>tween_easing <i>easeInQuad</i></dt>
+        <dd>When using TWEEN_LENGTH, you can use these to indicate how the movement should lerp.
+
+          The following options are valid. (To view these in action, see <a href="https://easings.net/" target="_blank">easings.net</a>).
+          <ul>
+          <li>linear (default)</li>
+          <li>easeInQuad</li>
+          <li>easeOutQuad</li>
+          <li>easeInOutQuad</li>
+          <li>easeInCubic</li>
+          <li>easeOutCubic</li>
+          <li>easeInOutCubic</li>
+          <li>easeInQuart</li>
+          <li>easeOutQuart</li>
+          <li>easeInOutQuart</li>
+          <li>easeInQuint</li>
+          <li>easeOutQuint</li>
+          <li>easeInOutQuint</li>
+        </ul></dd>
+        <dt>tween_snap <i>5</i></dt>
+        <dd>By default, the tween will snap to the SPRITE_SIZE to conform to the pixel grid. However, with this prelude you can overwrite this if you want the transition to happen more granually when the canvas is drawn on a large scale. You can even put it to a very high number (like 1000) to make the snapping essentially smoothless.</dd>
       <h2>Misc. (PS+)</h2>
       <dt>skip_title_screen</dt>
       <dd>Will skip the title screen when the game initializes. Instead, it will act like the "continue" button has been pressed, opening either the level, message, or level select based on game progress and other prelude flags.</dd>
