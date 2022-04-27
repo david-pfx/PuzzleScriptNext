@@ -675,7 +675,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
     if (leveldat.message !== undefined) {
       // This "level" is actually a message.
       ignoreNotJustPressedAction=true;
-      tryPlayShowMessageSound();
+	  tryPlayShowMessageSound();
+	  twiddleMetadataExtras();
       drawMessageScreen();
       canvasResize();
       clearInputHistory();
