@@ -30,7 +30,7 @@ function buildStandalone(sourceCode) {
 	if (state.metadata.title!==undefined) {
 		title=state.metadata.title;
 	}
-	var homepage = "www.puzzlescript.net";
+	var homepage = "auroriax.github.io/PuzzleScript";
 	if (state.metadata.homepage!==undefined) {
 		homepage=state.metadata.homepage;
 	}
