@@ -223,36 +223,49 @@ function generateTitleScreen()
 		}
 	}
 
-	var noAction = 'noaction' in state.metadata;	
-	var noUndo = 'noundo' in state.metadata;
-	var noRestart = 'norestart' in state.metadata;
+	if (state.metadata.text_controls) {
+		for (var i=0;i<titleImage.length;i++)
+		{
+			titleImage[i]=titleImage[i].replace(/\./g, ' ');
+		}
 
-	titleImage[10] = ".arrow keys to move...............";
-
-	if (noAction) {
-		titleImage[11]=".X to select......................";
+		var customText = state.metadata.text_controls;
+		var wrappedText = wordwrap(customText, 35, true);
+		if (wrappedText[0]) {titleImage[10] = wrappedText[0]}
+		if (wrappedText[1]) {titleImage[11] = wrappedText[1]}
+		if (wrappedText[2]) {titleImage[12] = wrappedText[2]}
 	} else {
-		titleImage[11]=" X to action......................"
-	}
+		var noAction = 'noaction' in state.metadata;	
+		var noUndo = 'noundo' in state.metadata;
+		var noRestart = 'norestart' in state.metadata;
 
-	if (noUndo && noRestart) {
-		titleImage[12]="..................................";
-	} else if (noUndo) {
-		titleImage[12]=".R to restart.....................";
-	} else if (noRestart) {
-		titleImage[12]=".Z to undo........................";
-	} else {
-		titleImage[12]=".Z to undo, R to restart..........";
-	}
+		titleImage[10] = ".arrow keys to move...............";
 
-	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
-		titleImage[10]="..................................";
-		titleImage[11]=".MOUSE to interact................";
-		titleImage[12]=".MMB to undo, R to restart........";
-	}
-	for (var i=0;i<titleImage.length;i++)
-	{
-		titleImage[i]=titleImage[i].replace(/\./g, ' ');
+		if (noAction) {
+			titleImage[11]=".X to select......................";
+		} else {
+			titleImage[11]=" X to action......................"
+		}
+
+		if (noUndo && noRestart) {
+			titleImage[12]="..................................";
+		} else if (noUndo) {
+			titleImage[12]=".R to restart.....................";
+		} else if (noRestart) {
+			titleImage[12]=".Z to undo........................";
+		} else {
+			titleImage[12]=".Z to undo, R to restart..........";
+		}
+
+		if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
+			titleImage[10]="..................................";
+			titleImage[11]=".MOUSE to interact................";
+			titleImage[12]=".MMB to undo, R to restart........";
+		}
+		for (var i=0;i<titleImage.length;i++)
+		{
+			titleImage[i]=titleImage[i].replace(/\./g, ' ');
+		}
 	}
 
 	var width = titleImage[0].length;
@@ -581,14 +594,25 @@ function drawMessageScreen() {
 
 	titleMode=0;
 	textMode=true;
-	if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata)
-		titleImage = deepClone(messagecontainer_template_mouse);
-	else
+	if ("text_message_continue" in state.metadata) {
 		titleImage = deepClone(messagecontainer_template);
 
-	for (var i=0;i<titleImage.length;i++)
-	{
-		titleImage[i]=titleImage[i].replace(/\./g, ' ');
+		for (var i=0;i<titleImage.length;i++)
+		{
+			titleImage[i]=titleImage[i].replace(/\./g, ' ');
+		}
+		
+		titleImage[10] = state.metadata.text_message_continue;
+	} else {
+		if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata)
+			titleImage = deepClone(messagecontainer_template_mouse);
+		else
+			titleImage = deepClone(messagecontainer_template);
+
+		for (var i=0;i<titleImage.length;i++)
+		{
+			titleImage[i]=titleImage[i].replace(/\./g, ' ');
+		}
 	}
 
 	var emptyLineStr = titleImage[9];

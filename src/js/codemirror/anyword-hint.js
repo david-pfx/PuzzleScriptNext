@@ -61,7 +61,9 @@
             ["tween_length", "0.05", "Will animate objects that are moving using LEFT, RIGHT, UP, and DOWN. Duration in seconds."],
             ["tween_easing", "linear", "How movement animations should lerp when using TWEEN_LENGTH, e.g. 'easeInQuad', 'easeOutCubic', etc."],
             ["tween_snap", "5", "With how much granularity to snap to the underlying sprite grid. Uses the SPRITE_SIZE by default."],
-            ["message_text_align", "center", "Towards which side message text should align. left, center (default), or right."]
+            ["message_text_align", "center", "Towards which side message text should align. left, center (default), or right."],
+            ["text_controls", "arrow keys to move /nX to action", "Overwrite keyboard/mouse control description on the title screen."],
+            ["text_message_continue", "[x] or [space] to continue!", "Overwrite the text below messages that normally says 'X to continue'."],
         ];
 
         var COLOR_WORDS = [
