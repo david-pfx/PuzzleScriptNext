@@ -408,11 +408,19 @@ function generateLevelSelectScreen() {
 			}
 		}
 
-		if(state.metadata.level_select_unlocked_ahead === undefined) {
+		if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
+			logErrorNoLine("You can't both have level select unlocked ahead & rollover methods, please choose just one!", true);
+			unlockedUntil += 1;
+		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
+			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
+		}
+		else if(state.metadata.level_select_unlocked_ahead === undefined) {
 			unlockedUntil += 1;
 		} else {
 			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
 		}	
+
+		console.log("total: " + state.sections.length + "unsolved: " + unsolvedSections + " until:" + unlockedUntil)
 	}
 	//console.log(unlockedUntil);
 
@@ -601,7 +609,7 @@ function drawMessageScreen() {
 		{
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
-		
+
 		titleImage[10] = state.metadata.text_message_continue;
 	} else {
 		if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata)

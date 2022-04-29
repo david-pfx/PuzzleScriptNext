@@ -199,7 +199,7 @@ late [ Temp ] -> [ ]</code></pre>
       <dd>If the player has clicked and is releasing their mouse button, it will place this object then do a turn.</dd>
       <dt>mouse_right, mouse_rdrag, mouse_rup <i>object</i></dt>
       <dd>Similar to the above three, but for the right mouse button. Note that you can also Ctrl + Left Click to get the right mouse button behaviour in-game.</dd>
-      <h2>Level Select (Dario)</h2>
+      <h2 id="level_select">Level Select (Dario)</h2>
       <dt>level_select</dt>
       <dd>Adding this will add a level select to your game. By default, this will allow the player to play all levels in any order. In order to add entries to the level select, add a <b>section</b> in-between your levels.</dd>
       <dt>continue_is_level_select</dt>
@@ -207,7 +207,11 @@ late [ Temp ] -> [ ]</code></pre>
       <dt>level_select_lock</dt>
       <dd>Will lock any levels that haven't been solved yet or are next to be solved.</dd>
       <dt>level_select_unlocked_ahead</dt>
-      <dd>How many levels to unlock ahead after the last solved level when <b>level_select_lock</b> is on, 1 by default.</dd>
+      <dd>How many levels to unlock ahead after the last solved level when <b>level_select_lock</b> is on, 1 by default.<br>
+      If you set it to 3, then section 1, 2, and 3 will be available. If you solve section 2, then you'll unlock 4 and 5. (So there will always be three levels unlocked AFTER the last solved level at max.)</dd>
+      <dt>level_select_unlocked_rollover</dt>
+      <dd>Alternative to LEVEL_SELECT_UNLOCKED_AHEAD that more strictly limits the number of unsolved levels at any time.<br>
+      If you set this to 3, then section 1, 2, and 3 will be available at the start. If you solve section 2, then only section 4 will unlock. (So there will only ever be three "unsolved" levels at most.) </dd>
       <dt>level_select_solve_symbol</dt>
       <dd>Which symbol to display for levels that have been solved in the level select. It's a checkmark by default, but you can change it in case you're using a <b>custom_font</b> that doesn't have a checkmark glyph.</dd>
       <h2>Text settings (Dario & PS+)</h2>
