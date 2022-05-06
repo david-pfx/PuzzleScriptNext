@@ -2378,7 +2378,7 @@ function twiddleMetaData(state, update = false) {
 		if (args.length > 2) {
 			const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
 			if (cameraSpeedMatch) {
-				smoothscreen.cameraSpeed = parseFloat(cameraSpeedMatch.groups.speed)
+				smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
 			} else {
 				logErrorNoLine('smoothscreen given third argument ' + args[2] + ' but must be a number')
 				validArguments = false

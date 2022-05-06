@@ -45,7 +45,7 @@ function drawTextWithCustomFont(txt, ctx, x, y) {
     ctx.textAlign = "center";
     var fontSize = 1;
     if (state.metadata.font_size !== undefined) {
-        fontSize = parseFloat(state.metadata.font_size)
+        fontSize = Math.max(parseFloat(state.metadata.font_size), 0)
     }
     ctx.font = (cellheight * fontSize) + "px PuzzleCustomFont";
     ctx.fillText(txt, x, y);
@@ -489,7 +489,7 @@ function redraw() {
                 tween_name = state.metadata.tween_easing.toLowerCase();
             }
             if (state.metadata.tween_snap!==undefined) {
-                tween_snap = state.metadata.tween_snap;
+                tween_snap = Math.max(parseInt(state.metadata.tween_snap), 1);
             }
 
             //Apply

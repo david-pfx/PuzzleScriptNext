@@ -2667,7 +2667,7 @@ function twiddleMetadataExtras() {
   }
 
   if (state.metadata.tween_length!==undefined) {
-	tweeninterval=state.metadata.tween_length*1000;
+	tweeninterval=Math.max(state.metadata.tween_length*1000, 0);
 	} else {
 		tweeninterval = 0;
 	}
