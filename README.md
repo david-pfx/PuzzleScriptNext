@@ -22,15 +22,16 @@ Many more people have directly & indirectly contributed to PS+, so here's a list
 - Cel-iki/BoredMatt for helping me make code examples
 - jsmiller11 for writing [psUtil](https://github.com/jcmiller11/psUtil) (that I adapted for the PS+ sprite upscaler tool)
 - ClementSparrow who is making [their own cool Puzzlescript fork](https://github.com/ClementSparrow/Pattern-Script), from which I used the alternate Github authentication method!
+- MinoMe for contributing sprite tweening!
 - And everyone that has made cool games using the tool! You can see [a list of PS+ games in the Gallery](https://auroriax.github.io/PuzzleScript/Gallery/index.html).
 
-All of the used forks & original repo are licenced under MIT, and so is this repo. See below.
+The original Puzzlescript project, and the code that I added on top of it, are both available under the MIT license. See the license text below. For features from other forks, please check their individual project page links in the list above to see their licensing information.
 
 -------
 
 The MIT License (MIT)
 
-Copyright (c) 2013 increpare
+Copyright (c) 2013 increpare, 2021-2022 Tom Hermans
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
