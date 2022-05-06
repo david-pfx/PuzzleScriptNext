@@ -512,6 +512,9 @@ function mouseAction(event,click,id) {
 					titleButtonSelected();
 				}
 			} else if (titleMode===2) {
+				if (quittingTitleScreen || titleSelected) {
+					return;
+				}
 				//console.log(mouseCoordY);
 				if (mouseCoordY===0) {
 					titleSelection = 0;
@@ -1320,6 +1323,10 @@ function checkKey(e,justPressed) {
 	    			}
     			}
     			else if (inputdir===0||inputdir===2) {
+					if (quittingTitleScreen || titleSelected) {
+						return;
+					}
+					
     				if (inputdir===0){
     					titleSelection--;    					
     				} else {
