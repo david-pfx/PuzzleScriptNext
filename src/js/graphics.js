@@ -526,7 +526,7 @@ function redraw() {
                                 spritesheetCanvas, 
                                 spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
                                 Math.floor(x), Math.floor(y), cellwidth, cellheight);
-                            //ctx.globalAlpha = 1
+                            ctx.globalAlpha = 1;
                         }
                     }
                 }
