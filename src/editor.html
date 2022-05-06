@@ -25,22 +25,43 @@
 
 <div id="leftpanel">
 <form id="form1" name="form1"  action="javascript:void(0);"><textarea id="code" class="codeform" name="code" rows="20" cols="20" style="display:none;">
-title My Game
+(
+Hello there! 
+
+This is a special starting template for PuzzleScript Plus highlighting the most important differences from vanilla PuzzleScript. It's intended as a "Hello World" of sorts. So it's handy if you already know how vanilla PuzzleScript works before diving into this.
+
+If you immediately want to working on a game instead, consider using the "Basic" or "Blank Project" example instead.
+
+For more info, don't forget to check out the NEW EXAMPLES and the DOCS. Enjoy!
+)
+
+title My PS+ Game
 author My Name Here
-homepage www.puzzlescript.net
+homepage auroriax.github.io/PuzzleScript
+
+tween_length 0.03
+smoothscreen 5x5
+level_select
+runtime_metadata_twiddling
+text_controls Your PuzzleScript Plus journey starts here! \nHello world!
 
 ========
 OBJECTS
 ========
 
 Background 
-GREEN  
+LIGHTGRAY GRAY
+00010
+11111
+01000
+11111
+00010
+
+Wall copy:Background
+DARKGRAY BLACK
 
 Target 
-DarkBlue    
-
-Wall 
-BROWN
+#00000080
 
 Player 
 Blue   
@@ -68,14 +89,15 @@ COLLISIONLAYERS
 ================
 
 Background
-Target
 Player, Wall, Crate
+Target
 
 ======
 RULES     
 ======     
 
-[ >  Player | Crate ] -> [  >  Player | > Crate  ]     
+[ >  Player | Crate ] -> [  >  Player | > Crate  ]
+[action Player] -> background_color #222222
 
 ==============
 WINCONDITIONS
@@ -87,11 +109,30 @@ All Target on Crate
 LEVELS
 =======
 
+section Level 1
 #########
 #.......#
 #.....@.#
 #.P.*.O.#
 #.......#
+#.......#
+#########
+
+section Level 2
+#########
+#.......#
+#..o....#
+#.o...*.#
+#....*p##
+#.....###
+#########
+
+section Level 3
+#########
+#.......#
+##..o.#.#
+#.*.p.*.#
+#.#.o.#.#
 #.......#
 #########
 </textarea></form>
