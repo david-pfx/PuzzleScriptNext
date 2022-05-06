@@ -484,7 +484,11 @@ function mouseAction(event,click,id) {
 	if (textMode) {
 		if (!click)
 			return;
-		if (titleScreen && !quittingTitleScreen && !titleSelected) {
+		if (titleScreen) {
+			if (quittingTitleScreen || titleSelected) {
+				return;
+			}
+
 			if (titleMode===0) {
 				titleButtonSelected();
 			} else if (titleMode===1) {
