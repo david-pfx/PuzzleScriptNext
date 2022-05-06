@@ -1278,7 +1278,7 @@ var codeMirrorFn = function() {
 		                    	if (sol) {
 		                    		if (preamble_params.indexOf(token)>=0) {
 		                    			
-                                        if (token==='youtube' || token==='author' || token==='homepage' || token==='title' || token==='custom_font') {
+                                        if (token==='youtube' || token==='author' || token==='homepage' || token==='title' || token==='custom_font' || token==='text_controls' || token==='text_message_continue') {
                                             stream.string=mixedCase;
                                         }
                                         
