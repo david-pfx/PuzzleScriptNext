@@ -188,7 +188,7 @@ late [ Temp ] -> [ ]</code></pre>
 			<dt>zoomscreen WxH</dt>
       <dd>Zooms the camera in to a WxH section of the map around the player, centered on the player.</dd>
       <h1 id="psplus">New in PS+ <img src="../images/psplus_mascot_32.png"></h1>
-      <dt> <i></i></dt>
+      <dt> There are many new prelude flags in PuzzleScript Plus, allowing you to enable mouse controls, level select, text settings, camera/tweening options, and much more.</dt>
       <dd></dd>
       <h2>Mouse controls (ThatScar)</h2>
       <dt>mouse_left <i>object</i></dt>
@@ -237,11 +237,6 @@ late [ Temp ] -> [ ]</code></pre>
 <pre><code>(Rows of global crates can push each other, even outside of the player radius)
 global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
         You generally don't need to use this unless you have a really big level, a ton of rules, and your game would otherwise run slowly.</dd>
-      <h2>Misc. (Dario)</h2>
-      <dt>case_sensitive</dt>
-      <dd>Will force the engine to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.</dd>
-      <dt>sprite_size <i>size</i></dt>
-      <dd>Instead of 5x5, this option allows you to pick other square resolutions for your sprites. Do note that all sprites MUST be of this size for the game to display correctly. If you need help with upscaling your sprites, <a href="plus_sprite_upscaler_tool.html">there's a helpful tool available here.</a></dd>
       <h2 id="tweening">Tweening (PS+)</h2>
       <p>Although you can animate your game using again, PS+ offers a more generalized method of inbetweening movement you can use instead!</p>
       <dt>tween_length <i>0.05</i></dt>
@@ -268,6 +263,11 @@ global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
         </ul></dd>
         <dt>tween_snap <i>5</i></dt>
         <dd>By default, the tween will snap to the SPRITE_SIZE to conform to the pixel grid. However, with this prelude you can overwrite this if you want the transition to happen more granually when the canvas is drawn on a large scale. You can even put it to a very high number (like 1000) to make the snapping essentially smoothless.</dd>
+      <h2>Misc. (Dario)</h2>
+      <dt>case_sensitive</dt>
+      <dd>Will force the engine to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.</dd>
+      <dt>sprite_size <i>size</i></dt>
+      <dd>Instead of 5x5, this option allows you to pick other square resolutions for your sprites. Do note that all sprites MUST be of this size for the game to display correctly. If you need help with upscaling your sprites, <a href="plus_sprite_upscaler_tool.html">there's a helpful tool available here.</a></dd>
       <h2>Misc. (PS+)</h2>
       <dt>skip_title_screen</dt>
       <dd>Will skip the title screen when the game initializes. Instead, it will act like the "continue" button has been pressed, opening either the level, message, or level select based on game progress and other prelude flags.</dd>
