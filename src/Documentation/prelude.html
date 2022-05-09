@@ -243,23 +243,23 @@ global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
       <dd>Enables tweens for LEFT, RIGHT, UP, and DOWN object movement, and for ACTION (will fade in that object). Tweens will take the duration you specify in seconds An object must execute its movement for this animation to play, currently there is no way to play an animation without moving.<br>
         Note that if the next turn starts before this tween is completed, the previous tween instantly completes. For this reason, we recommend setting the tween_length very low, somewhere between 0.05 and 0.075 seconds, but at least lower than the AGAIN_INTERVAL and KEY_REPEAT_INTERVAL, and to avoid using it in games that use REALTIME_INTERVAL.</dd>
         <dt>tween_easing <i>easeInQuad</i></dt>
-        <dd>When using TWEEN_LENGTH, you can use these to indicate how the movement should lerp.
+        <dd>When using TWEEN_LENGTH, you can use these to indicate how the movement should lerp. Just like with COLOR_PALETTE you can use either the name or the number.
 
           The following options are valid. (To view these in action, see <a href="https://easings.net/" target="_blank">easings.net</a>).
           <ul>
-          <li>linear (default)</li>
-          <li>easeInQuad</li>
-          <li>easeOutQuad</li>
-          <li>easeInOutQuad</li>
-          <li>easeInCubic</li>
-          <li>easeOutCubic</li>
-          <li>easeInOutCubic</li>
-          <li>easeInQuart</li>
-          <li>easeOutQuart</li>
-          <li>easeInOutQuart</li>
-          <li>easeInQuint</li>
-          <li>easeOutQuint</li>
-          <li>easeInOutQuint</li>
+          <li>1: linear (default)</li>
+          <li>2: easeInQuad</li>
+          <li>3: easeOutQuad</li>
+          <li>4: easeInOutQuad</li>
+          <li>5: easeInCubic</li>
+          <li>6: easeOutCubic</li>
+          <li>7: easeInOutCubic</li>
+          <li>8: easeInQuart</li>
+          <li>9: easeOutQuart</li>
+          <li>10: easeInOutQuart</li>
+          <li>11: easeInQuint</li>
+          <li>12: easeOutQuint</li>
+          <li>13: easeInOutQuint</li>
         </ul></dd>
         <dt>tween_snap <i>5</i></dt>
         <dd>By default, the tween will snap to the SPRITE_SIZE to conform to the pixel grid. However, with this prelude you can overwrite this if you want the transition to happen more granually when the canvas is drawn on a large scale. You can even put it to a very high number (like 1000) to make the snapping essentially smoothless.</dd>

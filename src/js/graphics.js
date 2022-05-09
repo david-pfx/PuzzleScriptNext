@@ -485,15 +485,23 @@ function redraw() {
             var tween_snap = state.sprite_size;
 
             //Lookup
-            if (state.metadata.tween_easing!==undefined && EasingFunctions[state.metadata.tween_easing]!== undefined) {
-                tween_name = state.metadata.tween_easing.toLowerCase();
+            if (state.metadata.tween_easing!==undefined){
+                tween_name = state.metadata.tween_easing;
+                if (parseInt(tween_name) != NaN) {
+                    tween_name = easingAliases[parseInt(tween_name)];
+                    console.log(tween_name);
+                }
+                tween_name = tween_name.toLowerCase();
             }
             if (state.metadata.tween_snap!==undefined) {
                 tween_snap = Math.max(parseInt(state.metadata.tween_snap), 1);
             }
 
             //Apply
-            tween = EasingFunctions[tween_name](tween);
+
+            if (EasingFunctions[tween_name] != null) {
+                tween = EasingFunctions[tween_name](tween);
+            }
             tween = Math.floor(tween * tween_snap) / tween_snap;
 
             for (var k = 0; k < state.objectCount; k++) {
@@ -881,4 +889,20 @@ EasingFunctions = {
     easeoutquint: t => 1+(--t)*t*t*t*t,
     // acceleration until halfway, then deceleration 
     easeinoutquint: t => t<.5 ? 16*t*t*t*t*t : 1+16*(--t)*t*t*t*t
+  }
+
+  easingAliases = {
+      1: "linear",
+      2: "easeInQuad",
+      3: "easeOutQuad",
+      4: "easeInOutQuad",
+      5: "easeInCubic",
+      6: "easeOutCubic",
+      7: "easeInOutCubic",
+      8: "easeInQuart",
+      9: "easeOutQuart",
+      10: "easeInOutQuart",
+      11: "easeInQuint",
+      12: "easeOutQuint",
+      13: "easeInOutQuint"
   }
