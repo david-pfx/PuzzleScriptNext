@@ -1198,11 +1198,15 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
-function restoreLevel(lev, snapCamera) {
+function restoreLevel(lev, snapCamera, resetTween = true) {
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
-	level.movedEntities = {};
+
+	if (resetTween) {
+		level.movedEntities = {};
+		console.log("Wiped movedEntities (level)")
+	}
 
 	if (diffing){
 		var index=0;
@@ -1395,7 +1399,7 @@ function backupDiffers(){
 	}
 }
 
-function DoUndo(force,ignoreDuplicates) {
+function DoUndo(force,ignoreDuplicates, resetTween = true) {
   if ((!levelEditorOpened)&&('noundo' in state.metadata && force!==true)) {
     return;
   }
@@ -1411,7 +1415,7 @@ function DoUndo(force,ignoreDuplicates) {
 
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
-    restoreLevel(torestore);
+    restoreLevel(torestore, null, resetTween);
     backups = backups.splice(0,backups.length-1);
     if (! force) {
       tryPlayUndoSound();
@@ -2853,8 +2857,6 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 //if this returns!=null, need to go back and reprocess
 function resolveMovements(level, bannedGroup){
 	var moved=true;
-	
-	level.movedEntities = {};
 
     while(moved){
         moved=false;
@@ -3049,7 +3051,12 @@ playerPositionsAtTurnStart = getPlayerPositions();
         	
 
 
-        	applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
+			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
+			
+			if (!dontModify) {
+				level.movedEntities = {};
+				console.log("Wiped movedEntities (movement)")
+			}
         	var shouldUndo = resolveMovements(level,bannedGroup);
 
         	if (shouldUndo) {
@@ -3210,7 +3217,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	        			consoleCacheDump();
 	        		}
 	        		addUndoState(bak);
-	        		DoUndo(true,false);
+	        		DoUndo(true,false, false);
 					return true;
 				} else {
 					if (dir!==-1 && save_backup) {
