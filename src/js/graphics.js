@@ -487,9 +487,9 @@ function redraw() {
             //Lookup
             if (state.metadata.tween_easing!==undefined){
                 tween_name = state.metadata.tween_easing;
-                if (parseInt(tween_name) != NaN) {
+                if (parseInt(tween_name) != NaN && easingAliases[parseInt(tween_name)]) {
                     tween_name = easingAliases[parseInt(tween_name)];
-                    console.log(tween_name);
+                    //console.log(tween_name);
                 }
                 tween_name = tween_name.toLowerCase();
             }

@@ -1205,7 +1205,7 @@ function restoreLevel(lev, snapCamera, resetTween = true) {
 
 	if (resetTween) {
 		level.movedEntities = {};
-		console.log("Wiped movedEntities (level)")
+		//console.log("Wiped movedEntities (level)")
 	}
 
 	if (diffing){
@@ -3055,7 +3055,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			
 			if (!dontModify) {
 				level.movedEntities = {};
-				console.log("Wiped movedEntities (movement)")
+				//console.log("Wiped movedEntities (movement)")
 			}
         	var shouldUndo = resolveMovements(level,bannedGroup);
 
