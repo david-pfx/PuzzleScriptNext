@@ -1198,13 +1198,15 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
+var currentMovedEntities = {};
+var newMovedEntities = {};
 function restoreLevel(lev, snapCamera, resetTween = true) {
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
 
 	if (resetTween) {
-		level.movedEntities = {};
+		currentMovedEntities = {};
 		//console.log("Wiped movedEntities (level)")
 	}
 
@@ -1547,10 +1549,9 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 	if (state.metadata.tween_length) {
 		for (let i = 1; i < state.objectCount; i++) {
 			if (movingEntities.get(i) != 0) {
-				level.movedEntities[targetIndex+"-"+i] = dirMask;
+				newMovedEntities[targetIndex+"-"+i] = dirMask;
 			}
 		}
-		tweentimer = 0;
 		//console.log(level.movedEntities)
 	}
 	
@@ -2957,6 +2958,10 @@ var playerPositionsAtTurnStart;
 
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak) {
+	if (!dontModify) {
+		newMovedEntities = {};
+	}
+
 var startDir = dir;
 
 	againing = false;
@@ -3053,10 +3058,6 @@ playerPositionsAtTurnStart = getPlayerPositions();
 
 			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
 			
-			if (!dontModify) {
-				level.movedEntities = {};
-				//console.log("Wiped movedEntities (movement)")
-			}
         	var shouldUndo = resolveMovements(level,bannedGroup);
 
         	if (shouldUndo) {
@@ -3319,6 +3320,9 @@ playerPositionsAtTurnStart = getPlayerPositions();
 		if (verbose_logging) { 
 			consolePrint(`Turn complete`);    
 		}
+
+		currentMovedEntities = newMovedEntities;
+		tweentimer = 0;
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];

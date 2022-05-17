@@ -453,7 +453,7 @@ function redraw() {
 
         var renderBorderSize = smoothscreen ? 1 : 0;
         var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
-        var tweening = state.metadata.tween_length && level.movedEntities;
+        var tweening = state.metadata.tween_length && currentMovedEntities;
 
         if (!tweening) { //Seperated tweening/non-tweening draw loops for performance considerations
             for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
@@ -516,10 +516,10 @@ function redraw() {
     
                             var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                             var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
-
-                            var dir = level.movedEntities[posIndex+"-"+k];
     
-                            if (level.movedEntities && level.movedEntities[posIndex+"-"+k]) {
+                            if (currentMovedEntities && currentMovedEntities[posIndex+"-"+k]) {
+                                var dir = currentMovedEntities[posIndex+"-"+k];
+
                                 if (dir != 16) { //Cardinal directions
                                     var delta = dirMasksDelta[dir];
                 
