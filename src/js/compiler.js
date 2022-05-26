@@ -2951,7 +2951,12 @@ function loadFile(str) {
 
 	generateSoundData(state);
 
-	formatHomePage(state);
+    formatHomePage(state);
+    
+    //Puzzlescript Plus errors
+    if (state.metadata.tween_length && state.lateRules.length >= 1) {
+        logError("You can't use tweens in a game that also has late rules.", undefined, true);
+    }
 
 	delete state.commentLevel;
 	delete state.names;
