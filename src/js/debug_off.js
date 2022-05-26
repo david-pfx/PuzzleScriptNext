@@ -33,8 +33,13 @@ function consoleCacheDump(str){
 
 function consoleError(str,lineNumber){
 	var errorText = document.getElementById("errormessage");
-	str=stripTags(str);
-	errorText.innerHTML+=str+"<br>";
+	if (errorText) {
+		str=stripTags(str);
+		errorText.innerHTML+=str+"<br>";
+	} else {
+		//No element available, log to console instead
+		console.error(str, lineNumber)
+	}
 }
 
 function logErrorNoLine(str){
