@@ -3122,6 +3122,16 @@ playerPositionsAtTurnStart = getPlayerPositions();
           return false;
         }
 
+		/// Taken from zarawesome, thank you :)
+		if (level.commandQueue.indexOf('undo')>=0) {
+			if (verbose_logging) {
+				consoleCacheDump();
+				consolePrint('UNDO command executed, undoing turn.',true);
+			}
+			messagetext = "";
+			DoUndo(true,false);
+			return true;
+		}
 
         if (playerPositionsAtTurnStart.length>0 && state.metadata.require_player_movement!==undefined && dir >= 0) {
         	var somemoved=false;
@@ -3144,17 +3154,6 @@ playerPositionsAtTurnStart = getPlayerPositions();
         	}
         	//play player cantmove sounds here
         }
-		
-		/// Taken from zarawesome, thank you :)
-	    if (level.commandQueue.indexOf('undo')>=0) {
-	    	if (verbose_logging) {
-	    		consoleCacheDump();
-	    		consolePrint('UNDO command executed, undoing turn.',true);
-			}
-			messagetext = "";
-    		DoUndo(true,false);
-    		return true;
-		}
 
 
 
