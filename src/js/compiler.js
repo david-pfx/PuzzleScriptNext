@@ -2955,7 +2955,7 @@ function loadFile(str) {
     
     //Puzzlescript Plus errors
     if (state.metadata.tween_length && state.lateRules.length >= 1) {
-        logError("You can't use tweens in a game that also has late rules.", undefined, true);
+        logWarning("Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
     }
 
 	delete state.commentLevel;

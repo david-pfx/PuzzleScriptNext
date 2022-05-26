@@ -504,7 +504,18 @@ function redraw() {
             }
             tween = Math.floor(tween * tween_snap) / tween_snap;
 
+            var objectArray = [];
+
+            for (var n in state.objects) {
+                objectArray.push(state.objects[n]);
+            }
+
+            objectArray = objectArray.sort((a, b) => a.id > b.id ? 1 : -1)
+
             for (var k = 0; k < state.objectCount; k++) {
+                var object = objectArray[k];
+                var layerID = object.layer;
+
                 for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
                     for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
                         var posIndex = j + i * curlevel.height;
@@ -513,12 +524,15 @@ function redraw() {
                         if (posMask.get(k) != 0) {                  
                             var spriteX = (k % spritesheetSize)|0;
                             var spriteY = (k / spritesheetSize)|0;
+
+                            
+                        //console.log(posIndex + " " + layerID);
     
                             var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                             var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
     
-                            if (currentMovedEntities && currentMovedEntities[posIndex+"-"+k]) {
-                                var dir = currentMovedEntities[posIndex+"-"+k];
+                            if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
+                                var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
 
                                 if (dir != 16) { //Cardinal directions
                                     var delta = dirMasksDelta[dir];

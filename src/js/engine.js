@@ -1547,15 +1547,6 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 
     level.setCell(positionIndex, sourceMask);
 	level.setCell(targetIndex, targetMask);
-
-	if (state.metadata.tween_length) {
-		for (let i = 1; i < state.objectCount; i++) {
-			if (movingEntities.get(i) != 0) {
-				newMovedEntities[targetIndex+"-"+i] = dirMask;
-			}
-		}
-		//console.log(level.movedEntities)
-	}
 	
     var colIndex=(targetIndex/level.height)|0;
 	var rowIndex=(targetIndex%level.height);
@@ -1578,6 +1569,13 @@ function repositionEntitiesAtCell(positionIndex) {
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
+				if (state.metadata.tween_length) {
+					var delta = dirMasksDelta[layerMovement];
+					var targetIndex = (positionIndex+delta[1]+delta[0]*level.height);
+
+					newMovedEntities["p"+targetIndex+"-l"+layer] = layerMovement;
+				}
+
                 movementMask.ishiftclear(layerMovement, 5*layer);
 				moved = true;
             }
