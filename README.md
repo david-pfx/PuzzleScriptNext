@@ -22,8 +22,32 @@ Many more people have directly & indirectly contributed to PS+, so here's a list
 - Cel-iki/BoredMatt for helping me make code examples
 - jsmiller11 for writing [psUtil](https://github.com/jcmiller11/psUtil) (that I adapted for the PS+ sprite upscaler tool)
 - ClementSparrow who is making [their own cool Puzzlescript fork](https://github.com/ClementSparrow/Pattern-Script), from which I used the alternate Github authentication method!
-- MinoMe for contributing sprite tweening!
+- MinoMe/Kalixtan for contributing sprite tweening!
 - And everyone that has made cool games using the tool! You can see [a list of PS+ games in the Gallery](https://auroriax.github.io/PuzzleScript/Gallery/index.html).
+
+-------
+
+## Branches
+`master` is the current state of the engine as is currently live. While `develop` is where new features & fixes are being worked on before they go live.
+
+## Contributing, Bug reports & Pull Requests
+
+Want to help with reporting issues extending Puzzlescript Plus? Please note that I made this fork to help me with making cool games—although working on the engine is also fun, it's not my main focus. I'll pick up any bugs reported, but likely won't work on big feature requests, for the sake of my free time and engine stability.
+
+**Bug reports**
+
+If you find a bug, please report it! I'll resolve most of the bug reports, depending on the impact and severity. Please do note that the more info you can provide on the bug, the sooner you can expect it to be fixed! If the bug actually originated from any of the merged forks, I'll make sure the correct developer gets notified, so don't worry too much about that.
+
+**Feature requests**
+
+Generally for feature requests, I look at how *useful* a given feature is going to be and how much *time* it will cost to fully implement. Generally, I won't work on features that would take too long to implement, or are useful in only a limited number of use cases. 
+If you are not sure about the scope, suggest it anyway! I might not pick up big features, but I might pick up bugs & smaller features that come out of such reports.
+
+**Pull Requests**
+
+PRs are a bit of a double edged sword for me— they are super fun to receive, but they always require a lot of work from me to QA before merging it in. So you are expected to adhere to the feature request rules for PRs too. Consider adding a feature request to the tracker, stating that you want to start working on a PR to implement it, so I can give you feedback & a green light before you start working on it. Otherwise, your PR might get closed without merging.
+
+-------
 
 The original Puzzlescript project, and the code that I added on top of it, are both available under the MIT license. See the license text below. For features from other forks, please check their individual project page links in the list above to see their licensing information.
 
