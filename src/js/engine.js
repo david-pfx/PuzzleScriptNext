@@ -1,3 +1,5 @@
+var onLevelRestarted = new Event("levelRestarted");
+
 var RandomGen = new RNG();
 
 var intro_template = [
@@ -810,12 +812,14 @@ function loadLevelFromState(state,levelindex,randomseed) {
   curlevel=levelindex;
   curlevelTarget=null;
     if (leveldat!==undefined && leveldat.message===undefined) {
+		document.dispatchEvent(new CustomEvent("psplusLevelLoaded", {detail: levelindex}));
       if (levelindex=== 0){ 
       tryPlayStartLevelSound();
     } else {
       tryPlayStartLevelSound();     
     }
-    }
+	}
+
     loadLevelFromLevelDat(state,leveldat,randomseed);
 }
 
@@ -1394,6 +1398,7 @@ function DoRestart(force) {
 
 	restoreLevel(restartTarget, true);
 	tryPlayRestartSound();
+	document.dispatchEvent(new CustomEvent("psplusLevelRestarted", {detail: curlevel}));
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);

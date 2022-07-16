@@ -992,6 +992,8 @@ function titleButtonSelected() {
 		quittingTitleScreen=true;
 		generateTitleScreen();
 		canvasResize();
+
+		document.dispatchEvent(new Event("psplusGameStarted"));
 	}
 }
 
@@ -1332,6 +1334,7 @@ function checkKey(e,justPressed) {
 						
 						if(titleMode == 1) {
 							generateTitleScreen();
+							document.dispatchEvent(new Event("psplusGameStarted"));
 						} else if(titleMode == 2) {
 							generateLevelSelectScreen();
 						}
