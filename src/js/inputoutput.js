@@ -1316,6 +1316,7 @@ function checkKey(e,justPressed) {
     	if (state.levels.length===0) {
     		//do nothing
     	} else if (titleScreen) {
+			if (isSitelocked()) {return;}
     		if (titleMode===0) {
     			if (inputdir===4&&justPressed) {
     				titleButtonSelected();

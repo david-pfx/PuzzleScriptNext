@@ -3063,6 +3063,10 @@ function compile(command, text, randomseed) {
 
     clearInputHistory();
 
+    if (isSitelocked() && IDE) {
+        logError("The game is sitelocked. To continue testing, add the current domain '"+window.location.origin+ "' to the list.", undefined, true);
+    }
+
     consoleCacheDump();
 
 }
@@ -3073,4 +3077,25 @@ function qualifyURL(url) {
     var a = document.createElement('a');
     a.href = url;
     return a.href;
+}
+
+function isSitelocked() {
+    if (state.metadata.sitelock_origin_whitelist === undefined) {
+        return false;
+    }
+
+    var sites = state.metadata.sitelock_origin_whitelist.split(" ");
+    sites.push("auroriax.github.io");
+
+    var domain = window.location.origin;
+    var shouldLock = true;
+
+    for (var i = 0; i < sites.length; i += 1) {
+        if (domain == sites[i]) {
+            shouldLock = false;
+            break;
+        }
+    }
+
+    return shouldLock;
 }
