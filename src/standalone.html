@@ -26,6 +26,12 @@
 	</span>
 </div>
 </div>
+<script>
+	if (window.document.documentMode) {
+		document.getElementById('errormessage').innerHTML = "Internet Explorer is not supported.<br>Consider updating to another browser.";
+		//We can't really stop execution of the rest of the code here. Should crash soon enough.
+	} 
+</script>
 
 <script src="js/storagewrapper.js"></script>
 <script src="js/globalVariables.js"></script>
