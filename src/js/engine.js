@@ -516,7 +516,6 @@ function generateLevelSelectScreen() {
 		titleImage.push("                                  ");
 	}
 
-	regenSpriteImages();
 	redraw();
 }
 

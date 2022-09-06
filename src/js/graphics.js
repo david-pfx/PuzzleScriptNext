@@ -338,9 +338,6 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (spritesheetCanvas===null) {
-        regenSpriteImages();
-    }
 
     var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
 
@@ -371,6 +368,10 @@ function redraw() {
                 }
             }
         } else {
+            if (spritesheetCanvas===null) {
+                regenSpriteImages();
+            }
+            
             for(var i = 0; i < titleHeight; i++) {
                 var row = titleImage[i];
                 drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
