@@ -65,7 +65,8 @@
             ["text_controls", "arrow keys to move /nX to action", "Overwrite keyboard/mouse control description on the title screen."],
             ["text_message_continue", "[x] or [space] to continue!", "Overwrite the text below messages that normally says 'X to continue'."],
             ["level_select_unlocked_rollover", "3", "An alternative to LEVEL_SELECT_UNLOCKED_AHEAD, which applies a strict maximum number of unsolved levels."],
-            ["sitelock_origin_whitelist", "auroriax.github.io","Exported versions of the game will only run on sites with this domain."]
+            ["sitelock_origin_whitelist", "https://auroriax.github.io:1234","Exported versions of the game will only run on sites with this origin."],
+            ["sitelock_hostname_whitelist", "auroriax.github.io","Exported versions of the game will only run on sites with this hostname."]
         ];
 
         var COLOR_WORDS = [

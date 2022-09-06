@@ -3082,22 +3082,37 @@ function qualifyURL(url) {
 }
 
 function isSitelocked() {
-    if (state.metadata.sitelock_origin_whitelist === undefined) {
+    if (state.metadata.sitelock_origin_whitelist === undefined && state.metadata.sitelock_hostname_whitelist === undefined) {
         return false;
     }
 
-    var sites = state.metadata.sitelock_origin_whitelist.split(" ");
-    sites.push("auroriax.github.io");
+    if (IDE == true) {
+        return false; //Don't sitelock in editor
+    }
 
-    var domain = window.location.origin;
-    var shouldLock = true;
+    if (state.metadata.sitelock_origin_whitelist === undefined) {
+        var origins = state.metadata.sitelock_origin_whitelist.split(" ");
 
-    for (var i = 0; i < sites.length; i += 1) {
-        if (domain == sites[i]) {
-            shouldLock = false;
-            break;
+        var origin = window.location.origin;
+
+        for (var i = 0; i < origins.length; i += 1) {
+            if (origin == origins[i]) {
+                return false;
+            }
         }
     }
 
-    return shouldLock;
+    if (state.metadata.sitelock_hostname_whitelist == undefined) {
+        var hostnames = state.metadata.sitelock_hostname_whitelist.split(" ");
+
+        var hostname = window.location.hostname;
+
+        for (var i = 0; i < hostnames.length; i += 1) {
+            if (hostname == hostnames[i]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
