@@ -482,8 +482,16 @@ var y2 = 5;
 function mouseAction(event,click,id) {
 	
 	if (textMode) {
-		if (!click)
+		if (!click) {
+			if (quittingTitleScreen) {return;}
+
+			if (!mouseInCanvas || mouseCoordY < 0 || mouseCoordY > 12) {
+				hoverSelection = -1;
+			} else {
+				hoverSelection = mouseCoordY;
+			}
 			return;
+		}
 		if (titleScreen) {
 			if (quittingTitleScreen || titleSelected) {
 				return;
@@ -895,7 +903,20 @@ function mouseMove(event) {
     		levelEditorRightClick(event,false);
     	}
 	    redraw();
-    } else if (dragging && "mouse_drag" in state.metadata) {
+	} else if (titleScreen && IsMouseGameInputEnabled()) {
+		var prevHoverSelection = hoverSelection;
+		setMouseCoord(event);
+		mouseAction(event,false,null);
+		if (prevHoverSelection != hoverSelection) {
+			if (titleMode == 1) {
+				generateTitleScreen();
+				redraw();
+			} else if (titleMode == 2) {
+				generateLevelSelectScreen();
+				redraw();
+			}
+		}
+	} else if (dragging && "mouse_drag" in state.metadata) {
     	setMouseCoord(event);
     	mouseAction(event,false,state.dragID);
 	    redraw();
@@ -953,7 +974,7 @@ function onMouseWheel(event) {
 	//console.log("Scroll "+event.deltaY);
 	normalizedDelta = Math.sign(event.deltaY);
 
-	if (titleScreen && titleMode == 2 && (state.metadata.mouse_left || state.metadata.mouse_drag)) {
+	if (titleScreen && titleMode == 2 && (IsMouseGameInputEnabled())) {
 		levelSelectScroll(normalizedDelta);
 
 		redraw();

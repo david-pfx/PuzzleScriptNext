@@ -114,19 +114,23 @@ var titletemplate_empty = [
 var title_options = [[
 	".............continue.............",
 	"...........#.continue.#...........",
-	"############.continue.############"
+	"############.continue.############",
+	"...........>.continue.<...........",
 ], [
 	"...........level select...........",
 	".........#.level select.#.........",
-	"##########.level select.##########"
+	"##########.level select.##########",
+	".........>.level select.<..........",
 ], [
 	".............settings.............",
 	"...........#.settings.#...........",
-	"############.settings.############"
+	"############.settings.############",
+	"...........>.settings.<...........",
 ], [
 	".............new game.............",
 	"...........#.new game.#...........",
-	"############.new game.############"
+	"############.new game.############",
+	"...........>.new game.<...........", //QQQ
 ]];
 
 var titleImage=[];
@@ -138,6 +142,7 @@ var titleMode=0;//1 means title screen with options, 2 means level select
 var titleSelection=0;
 var titleSelectOptions=2;
 var titleSelected=false;
+var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
 
 function showContinueOptionOnTitleScreen(){
 	return (curlevel>0||curlevelTarget!==null)&&(curlevel in state.levels);
@@ -229,6 +234,13 @@ function generateTitleScreen()
 
 		for(var i = 0; i < titleSelectOptions; i++) {
 			var version = 0;
+			
+			var j = 0;
+			if(titleSelectOptions == 2 && i == 1) {
+				j = 1;
+			}
+			var lineInTitle = 5 + i + j;
+
 			if(titleSelection == i) {
 				if(titleSelected) {
 					version = 2;
@@ -237,12 +249,11 @@ function generateTitleScreen()
 				}
 			}
 
-			var j = 0;
-			if(titleSelectOptions == 2 && i == 1) {
-				j = 1;
+			if (hoverSelection == lineInTitle && !titleSelected && hoverSelection >= 0) {
+				version = 3;
 			}
 
-			titleImage[5 + i + j] = deepClone(title_options[availableOptions[i]][version]);
+			titleImage[lineInTitle] = deepClone(title_options[availableOptions[i]][version]);
 		}
 	}
 
@@ -280,7 +291,7 @@ function generateTitleScreen()
 			titleImage[12]=".Z to undo, R to restart..........";
 		}
 
-		if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata) {
+		if (IsMouseGameInputEnabled()) {
 			titleImage[10]="..................................";
 			titleImage[11]=".MOUSE to interact................";
 			titleImage[12]=".MMB to undo, R to restart........";
@@ -477,8 +488,12 @@ function generateLevelSelectScreen() {
 			solved_symbol = state.metadata.level_select_solve_symbol;
 		}
 		var line = (solved ? solved_symbol : " ") + " ";
+
+		var hover_symbol = " ";
+		if (selected) {hover_symbol = "#"}
+		if (hoverSelection - 3 == i) {hover_symbol = ">"}
 		
-		line += (selected ? "#" : " ") + " " + name;
+		line += hover_symbol + " " + name;
 		for(var j = name.length; j < 25; j++) {
 			if(selected && titleSelected && j != name.length) {
 				line += "#";
@@ -635,7 +650,7 @@ function drawMessageScreen() {
 
 		titleImage[10] = state.metadata.text_message_continue;
 	} else {
-		if ("mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata)
+		if (IsMouseGameInputEnabled())
 			titleImage = deepClone(messagecontainer_template_mouse);
 		else
 			titleImage = deepClone(messagecontainer_template);
@@ -3590,6 +3605,7 @@ function goToTitleScreen(){
 	messagetext="";
 	titleScreen=true;
 	textMode=true;
+	hoverSelection=-1;
 	doSetupTitleScreenLevelContinue();
   //titleSelection=showContinueOptionOnTitleScreen()?1:0;
   
@@ -3747,4 +3763,9 @@ function updateCameraPositionTarget() {
               : getCameraPosition(playerPosition[coord] - boundaryVector + direction, levelDimension, screenDimension);
         }
     })
+}
+
+
+function IsMouseGameInputEnabled() {
+	return "mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata;
 }
