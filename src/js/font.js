@@ -4256,3 +4256,10 @@ var font = {
 00000
 00000`,
 }
+
+var fontKeys = Object.keys(font);
+
+var fontIndex = {};
+for (var i = 0; i < fontKeys.length; i++) {
+	fontIndex[fontKeys[i]] = i;
+}

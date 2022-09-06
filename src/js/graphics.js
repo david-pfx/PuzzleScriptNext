@@ -12,6 +12,10 @@ function createSprite(name,spritegrid, colors, padding) {
 }
 
 function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
+    if (colors === undefined) {
+        colors = ['#00000000', state.fgcolor];
+    }
+
     var offsetX = x * cellwidth;
     var offsetY = y * cellheight;
 
@@ -51,18 +55,31 @@ function drawTextWithCustomFont(txt, ctx, x, y) {
     ctx.fillText(txt, x, y);
 }
 
-function regenText(spritecanvas,spritectx) {
-	textImages={};
+var textsheetCanvas = null;
 
-	for (var rowidx in titleImage) {
-        var row=titleImage[rowidx];
-        for (var nidx in row) {
-            var n = row[nidx];
-            if (font.hasOwnProperty(n) && !textImages.hasOwnProperty(n)) {
-                fontstr = font[n].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
-                fontstr.shift();
-                textImages[n] = createSprite('char'+n,fontstr, undefined, 1);
-            }
+function regenText(spritecanvas,spritectx) {
+    if (textsheetCanvas == null) {
+        textsheetCanvas = document.createElement('canvas');
+    }
+
+    var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+
+    textsheetCanvas.width = textsheetSize * cellwidth;
+    textsheetCanvas.height = textsheetSize * cellheight * 2;
+
+    var textsheetContext = textsheetCanvas.getContext('2d');
+
+    for (var n = 0; n < fontKeys.length; n++) {
+        var key = fontKeys[n];
+        if (font.hasOwnProperty(key)) {
+            fontstr = font[key].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
+            fontstr.shift();
+
+            var textX = (n % textsheetSize)|0;
+            var textY = (n / textsheetSize)|0;
+
+            renderSprite(textsheetContext, fontstr, undefined, 1, textX, textY);
+            renderSprite(textsheetContext, fontstr, ['#00000000', '#000000'], 1, textX, textY + textsheetSize);
         }
     }
 }
@@ -325,6 +342,8 @@ function redraw() {
         regenSpriteImages();
     }
 
+    var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+
     if (textMode) {
         ctx.fillStyle = state.bgcolor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -333,9 +352,21 @@ function redraw() {
             for (var i = 0; i < titleWidth; i++) {
                 for (var j = 0; j < titleHeight; j++) {
                     var ch = titleImage[j].charAt(i);
-                    if (ch in textImages) {
-                        var sprite = textImages[ch];
-                        ctx.drawImage(sprite, xoffset + i * cellwidth, yoffset + j * cellheight);                   
+                    if (ch in font) {
+                        var index = fontIndex[ch];
+                        var textX = (index % textsheetSize)|0;
+                        var textY = (index / textsheetSize)|0;
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(
+                            textsheetCanvas,
+                            textX * textcellwidth,
+                            textY * textcellheight,
+                            textcellwidth, textcellheight,
+                            xoffset + i * cellwidth,
+                            yoffset + j * cellheight,
+                            cellwidth, cellheight
+                        );
+                        ctx.imageSmoothingEnabled = true;
                     }
                 }
             }
@@ -776,6 +807,10 @@ var oldcellheight=0;
 var oldtextmode=-1;
 var oldfgcolor=-1;
 var forceRegenImages=false;
+
+var textcellwidth = 0;
+var textcellheight = 0;
+
 function canvasResize() {
     canvas.width = canvas.parentNode.clientWidth;
     canvas.height = canvas.parentNode.clientHeight;
@@ -857,6 +892,11 @@ function canvasResize() {
     cellheight = cellheight|0;
     xoffset = xoffset|0;
     yoffset = yoffset|0;
+
+    if (textMode) {
+        textcellwidth = cellwidth;
+        textcellheight = cellheight;
+    }
 
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
     	forceRegenImages=false;
