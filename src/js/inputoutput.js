@@ -569,6 +569,8 @@ function mouseAction(event,click,id) {
 			drawMessageScreen();
 		}
 	} else {
+		if (winning) {return;}
+
 		x1 = x2;
 		y1 = y2;
 		x2 = mousePixelX;
