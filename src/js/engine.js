@@ -450,15 +450,12 @@ function generateLevelSelectScreen() {
 			}
 		}
 
-		if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
-			logErrorNoLine("You can't both have level select unlocked ahead & rollover methods, please choose just one!", true);
+		if(state.metadata.level_select_unlocked_ahead === undefined) {
 			unlockedUntil += 1;
 		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
 			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
 		}
-		else if(state.metadata.level_select_unlocked_ahead === undefined) {
-			unlockedUntil += 1;
-		} else {
+		else {
 			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
 		}	
 
