@@ -1253,7 +1253,7 @@ function RebuildLevelArrays() {
 var messagetext="";
 var currentMovedEntities = {};
 var newMovedEntities = {};
-function restoreLevel(lev, snapCamera, resetTween = true) {
+function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) {
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
@@ -1321,8 +1321,8 @@ function restoreLevel(lev, snapCamera, resetTween = true) {
 			consolePrint("RUNTIME METADATA TWIDDLING: Reloaded level state that did not have saved metadata. "+
 			"Likely this state was recovered from a CHECKPOINT. Using the default metadata instead.", true);
 		}
-     state.metadata = deepClone(lev.metadata);
-     twiddleMetadataExtras();
+	 state.metadata = deepClone(lev.metadata);
+     twiddleMetadataExtras(resetAutoTick);
     }
 
     againing=false;
@@ -1455,7 +1455,7 @@ function backupDiffers(){
 	}
 }
 
-function DoUndo(force,ignoreDuplicates, resetTween = true) {
+function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true) {
   if ((!levelEditorOpened)&&('noundo' in state.metadata && force!==true)) {
     return;
   }
@@ -1471,7 +1471,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true) {
 
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
-    restoreLevel(torestore, null, resetTween);
+    restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
     if (! force) {
       tryPlayUndoSound();
@@ -2708,9 +2708,11 @@ Rule.prototype.queueCommands = function() {
   }
 };
 
-function twiddleMetadataExtras() {
+function twiddleMetadataExtras(resetAutoTick = true) {
   if (state.metadata.realtime_interval!==undefined) {
-    autotick=0;
+	if (resetAutoTick) {
+		autotick=0;
+	}
     autotickinterval=state.metadata.realtime_interval*1000;
   } else {
     autotick=0;
@@ -3215,7 +3217,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			}
 			processOutputCommands(level.commandQueue);
     		addUndoState(bak);
-    		DoUndo(true,false);
+    		DoUndo(true,false, true, false);
     		tryPlayCancelSound();
     		return false;
 	    } 
