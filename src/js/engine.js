@@ -399,9 +399,13 @@ function generateLevelSelectScreen() {
   */
 
 	titleImage = [
-		"ESC: Back             Level Select",
-		"                                  "
+		" [ ESC: Back ]                    ",
+		"           Level Select           "
 	];
+
+	if (hoverSelection == 0) {
+		titleImage[0] =	"[  ESC: Back  ]                   ";
+	}
 
 	amountOfLevelsOnScreen = 9;
 
@@ -425,7 +429,11 @@ function generateLevelSelectScreen() {
 	}
 
 	if (levelSelectScrollPos != 0) {
-		titleImage.push("            [ PREV ]              ");
+		if (hoverSelection == 2) {
+			titleImage.push("                        [  PREV  ]");
+		} else {
+			titleImage.push("                         [ PREV ] ");
+		}
 	} else {
 		titleImage.push("                                  ");
 	}
@@ -491,7 +499,7 @@ function generateLevelSelectScreen() {
 
 		var hover_symbol = " ";
 		if (selected) {hover_symbol = "#"}
-		if (hoverSelection - 3 == i) {hover_symbol = ">"}
+		if (hoverSelection - 3 + levelSelectScrollPos == i) {hover_symbol = ">"}
 		
 		line += hover_symbol + " " + name;
 		for(var j = name.length; j < 25; j++) {
@@ -507,7 +515,11 @@ function generateLevelSelectScreen() {
 	}
 
 	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen && titleSelectOptions - amountOfLevelsOnScreen > 0) {
-		titleImage.push("            [ NEXT ]              ")
+		if (hoverSelection == 12) {
+			titleImage.push("                        [  NEXT  ]")
+		} else {
+			titleImage.push("                         [ NEXT ] ")
+		}
 	} else {
 		titleImage.push("                                  ");
 	}
