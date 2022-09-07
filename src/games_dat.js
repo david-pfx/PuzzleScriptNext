@@ -4,7 +4,7 @@ var games_gallery = [
     "thumb": "plus_gridblocked.png",
     "title": "Gridblocked",
     "author": "Auroriax",
-    "homepage": "https://auroriax.itch.io/gridblocked"
+    "homepage": "https://auroriax.itch.io/"
   },
   {
     "url": "https://minotalen.itch.io/bodenhorizont",
@@ -58,7 +58,7 @@ var games_gallery = [
   {
     "url": "https://stingby12.itch.io/simple-parallel-universe-game",
     "thumb": "plus_spug.png",
-    "title": "Simple Parrallel Universe Game",
+    "title": "Simple Parallel Universe Game",
     "author": "Stingby12",
     "homepage": "https://stingby12.itch.io/"
   },
@@ -95,7 +95,7 @@ var games_gallery = [
     "thumb": "plus_adinfinitum.png",
     "title": "Ad Infinitum",
     "author": "Auroriax",
-    "homepage": "https://jackkutilek.itch.io/"
+    "homepage": "https://auroriax.itch.io/"
   },
   {
     "url": "https://rh9.itch.io/block-switch",
@@ -110,5 +110,33 @@ var games_gallery = [
     "title": "BoxUp",
     "author": "Andrea Gilbert (clickmazes)",
     "homepage": "http://www.clickmazes.com/index.htm"
+  },
+  {
+    "url": "https://auroriax.itch.io/magiciban",
+    "thumb": "plus_magiciban.png",
+    "title": "Magiciban",
+    "author": "Auroriax",
+    "homepage": "https://auroriax.itch.io/"
+  },
+  {
+    "url": "https://jackkutilek.itch.io/magicians-cat",
+    "thumb": "plus_magicianscat.png",
+    "title": "Magician's Cat",
+    "author": "Jack Kutilek",
+    "homepage": "https://jackkutilek.itch.io/"
+  },
+  {
+    "url": "https://competor.itch.io/magicians-hat-witchs-hat",
+    "thumb": "plus_magicianwitchhat.png",
+    "title": "Magician's hat Witch's hat",
+    "author": "competor",
+    "homepage": "https://competor.itch.io/"
+  },
+  {
+    "url": "https://competor.itch.io/cube",
+    "thumb": "plus_competorcube.png",
+    "title": "Cube",
+    "author": "competor",
+    "homepage": "https://competor.itch.io/"
   },
 ]
