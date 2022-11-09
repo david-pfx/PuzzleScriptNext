@@ -536,16 +536,8 @@ function redraw() {
             }
             tween = Math.floor(tween * tween_snap) / tween_snap;
 
-            var objectArray = [];
-
-            for (var n in state.objects) {
-                objectArray.push(state.objects[n]);
-            }
-
-            objectArray = objectArray.sort((a, b) => a.id > b.id ? 1 : -1)
-
-            for (var k = 0; k < state.objectCount; k++) {
-                var object = objectArray[k];
+            for (var k = 0; k < state.idDict.length; k++) {
+                var object = state.objects[state.idDict[k]];
                 var layerID = object.layer;
 
                 for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
