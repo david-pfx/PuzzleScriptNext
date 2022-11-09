@@ -139,4 +139,32 @@ var games_gallery = [
     "author": "competor",
     "homepage": "https://competor.itch.io/"
   },
+  {
+    "url": "https://mariomak967.itch.io/stars-align",
+    "thumb": "plus_starsalign.png",
+    "title": "Stars Align",
+    "author": "MarioMak967",
+    "homepage": "https://mariomak967.itch.io/"
+  },
+  {
+    "url": "https://auroriax.github.io/PuzzleScript/play.html?p=e1d2c64c57911816acb115766a3ec090",
+    "thumb": "plus_puzzlesquad.png",
+    "title": "PuzzleSquad",
+    "author": "AlexB",
+    "homepage": ""
+  },
+  {
+    "url": "https://competor.itch.io/copernicus",
+    "thumb": "plus_copernicus.png",
+    "title": "Copernicus",
+    "author": "competor",
+    "homepage": "https://competor.itch.io"
+  },
+  {
+    "url": "https://au-voleur.itch.io/microban-1",
+    "thumb": "plus_skinnermicroban1.png",
+    "title": "Microban I",
+    "author": "au voleur (levels by David W. Skinner)",
+    "homepage": "https://au-voleur.itch.io"
+  },
 ]
