@@ -2952,17 +2952,6 @@ function loadFile(str) {
 	generateSoundData(state);
 
     formatHomePage(state);
-    
-    //Puzzlescript Plus errors
-    if (IDE) {
-        if (state.metadata.tween_length && state.lateRules.length >= 1) {
-            logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, false);
-        }
-
-		if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
-            logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, false);
-        }
-    }
 
 	delete state.commentLevel;
 	delete state.names;
@@ -3062,6 +3051,17 @@ function compile(command, text, randomseed) {
             }
         }
     }
+
+        //Puzzlescript Plus errors
+        if (IDE && state !== undefined) {
+            if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
+                logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
+            }
+    
+            if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
+                logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
+            }
+        }
 
     if (state!==null){//otherwise error
         setGameState(state, command, randomseed);
