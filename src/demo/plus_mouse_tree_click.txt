@@ -1,0 +1,51 @@
+title PS+ Tree Example
+
+mouse_left TREE
+
+========
+OBJECTS
+========
+
+background .
+lightgreen
+
+player
+green
+
+TREE
+green brown
+..0..
+.000.
+00000
+..1..
+..1..
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+background
+player
+TREE
+
+======
+RULES
+======
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+.....
+.....
+.....

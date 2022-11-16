@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>PuzzleScript Documentation</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+              <li><a href="../editor.html">Make A Game</a></li>
+              
+              <li class="active"><a href="documentation.html">Documentation</a></li>
+          </ul>          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
+            <li><a href="https://github.com/increpare/puzzlescript">GitHub</a></li>
+            <li><a href="https://github.com/sponsors/increpare">Sponsor</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+<p>
+<ol class="breadcrumb">
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Mouse Input</li>
+</ol>
+<p>
+
+<h1>Moue input <img src="../images/psplus_mascot_32.png"></h1>
+<br>
+The mouse system was considered for the original PuzzleScript, but didn't end up being implemented. PuzzleScript Plus uses a slightly upgraded version of PuzzleClick by ThatScar that implements mouse controls. It's handy, but it takes a bit of getting used to, as you'll need to account for some edge cases. Let's get clickin'!
+
+<h1>Simple example</h1>
+
+You don't use direction words like LEFT or ACTION with the mouse system. Instead, before the turn begins, the game creates the assigned object on the tile you clicked or dragged into. Let's say you have an object called TREE that you want to create on a clicked tile. In the prelude, add:
+
+<pre><code><a href="../editor.html?demo=plus_mouse_tree_click" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_left TREE</code></pre>
+<p>Where "TREE" is the name of the object you want to spawn upon mouse click. Now start a level, click a tile, and a tree pops up! This works even in games that don't have any rules.</p>
+
+<p>Once you add any of the mouse prelude flags, then menus will also automatically support mouse input. Even the level select will work!</p>
+
+<h1>Complex example</h1>
+
+Directly creating objects like this usually only suffices for very simple games. Usually, you want to create a temporary object that you handle separately before your main gameplay code.
+
+Let's say that clicking on a tree should remove it. Create an extra object called CLICK, add it on a new layer, and change the line in the prelude to:
+
+<pre><code>mouse_left CLICK</code></pre>
+
+Then add the following rules:
+<pre><code><a href="../editor.html?demo=plus_mouse_tree_toggle" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[Click no Tree] -> [Tree]
+[Click Tree] -> []</code></pre>
+
+Now you can click to plant a tree, and then click it again to remove it.
+
+<p>
+Do note objects created by mouse input are just normal objects! They need to be assigned to a layer, and they won't be cleared automatically after the turn ends. So make sure you add a rule to remove these temporary objects, if you don't need them any more. For example, in this program we could add <b>[Click] -> []</b> as the last rule.
+</p>
+
+<h1>Dragging</h1>
+
+<p>
+If you click and hold your mouse button down and move across the screen, you can follow it with <b>mouse_drag</b> (or <b>mouse_rdrag</b> for the right mouse button).</p>
+
+<p>
+Consider the following scenario. On one frame, I press the mouse button into this position. Then next frame, because of a lag spike or a super sensitive mouse, the cursor instantly jumps three tiles to the right. At first glance, you might expect that the only detected inputs would be the press on the original tile, and a drag on the current tile.</p>
+
+<p>But in these cases, PuzzleClick will attempt to fire a drag event for each cell that has been dragged through. In other words, a drag object will always appear orthogonally adjacent to the last previous drag object (or pressed in case of the first drag event). However, it will fire a lot of turns quickly, which might clutter the undo stack (there's a solution, see below), or impact performance in complex games.</p>
+
+<p>
+  For example, here's a way to create a CURSOR object that appears on the tile of the previous drag, then moves towards the tile of the current drag:
+  <pre><code><a href="../editor.html?demo=plus_mouseblocks" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>(Whenever mouse is clicked, create cursor at that position)
+[MouseClick] [Cursor] -> [MouseClick] []
+[MouseClick] [DragTarget] -> [MouseClick] []
+[MouseClick] -> [Cursor DragTarget]
+
+(When mouse is dragged, actually add movement to cursor in this direction)
+[Cursor] [DragTarget | MouseDrag] -> [> Cursor ] [ | DragTarget]</code></pre>
+</p>
+
+<p>
+<h1>Undo and NOSAVE</h1>
+By default PuzzleScript logs every turn into the undo system. However especially with dragging, you'll end up generating a lot of undo states, to the point where it could be a hassle to undo all of those. If you're running a turn where nothing interesting is happening, then you can trigger the command NOSAVE to exclude that turn from the undo stack.
+</p>
+
+<h1>Event order</h1>
+In the rare case where multiple events are fired with a single input, they resolve in this order. (Click on "Edit" for an input test with verbose logging.)
+<pre><code><a href="../editor.html?demo=plus_mouse_input_test" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_up
+mouse_rup
+mouse_left
+mouse_right
+mouse_drag
+mouse_rdrag
+</code></pre>
+
+<h1>Mobile support</h1>
+Mobile support
+Games with the input system will also work on mobile, with a couple of limitations:
+<ul>
+<li>The swipe controls to control player movement are disabled. (You can still control the player with a keyboard.)</li>
+<li>You can't use the right mouse button on mobile.</li>
+</ul>
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

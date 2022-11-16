@@ -1,0 +1,68 @@
+title PS+ Tree Toggle Example
+
+mouse_left CLICK
+
+verbose_logging
+
+========
+OBJECTS
+========
+
+background .
+lightgreen
+
+player
+green
+
+CLICK
+pink
+.....
+.....
+.....
+...0.
+....0
+(This item is never shown to the player, but might still be useful to show using the visual debugger. For example, hover over the "Turn starts with input of mouse" text and you should see this sprite appear in the game view.)
+
+TREE
+green brown
+..0..
+.000.
+00000
+..1..
+..1..
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+background
+player
+TREE
+CLICK
+
+======
+RULES
+======
+
+[Click no Tree] -> [Tree]
+[Click Tree] -> []
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+message Click to place trees!
+
+.....
+.....
+.....
