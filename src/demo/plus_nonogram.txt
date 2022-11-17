@@ -198,7 +198,14 @@ COLLISIONLAYERS
 
 Background
 Fill, Erase
-Click, Drag, MouseUp
+
+Click_L
+Click_R
+Drag_L
+Drag_R
+MouseUp_L
+MouseUp_R
+
 Cell
 Border_R
 Border_D

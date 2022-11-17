@@ -73,7 +73,7 @@ function logWarning(str, lineNumber,urgent) {
     }
 }
 
-function logWarningNoLine(str,urgent) {
+function logWarningNoLine(str,urgent, increaseErrorCount = true) {
     if (compiling||urgent) {
         var errorString = '<span class="warningText">' + str + '</span>';
          if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
@@ -82,7 +82,9 @@ function logWarningNoLine(str,urgent) {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
         }
-        errorCount++;
+        if (increaseErrorCount) {
+            errorCount++;
+        }
     }
 }
 

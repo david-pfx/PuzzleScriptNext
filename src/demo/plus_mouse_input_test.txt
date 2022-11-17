@@ -73,18 +73,9 @@ red
 ...0.
 .....
 
-mouse_hover
-blue
-.....
-.....
-..0..
-.....
-.....
-
 =======
 LEGEND
 =======
-mouse = mouse_left or mouse_drag or mouse_up or mouse_right or mouse_rdrag or mouse_rup or mouse_hover
 
 =======
 SOUNDS
@@ -95,7 +86,13 @@ COLLISIONLAYERS
 ================
 background
 player
-mouse
+
+mouse_left
+mouse_drag
+mouse_up
+mouse_right
+mouse_rdrag
+mouse_rup
 
 ======
 RULES

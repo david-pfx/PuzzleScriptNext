@@ -433,20 +433,31 @@ function generateExtraMembersPart2(state) {
 	function assignMouseObject(preludeTerm, defaultName) {
 		if (preludeTerm in state.metadata) {
 			var name = state.metadata[preludeTerm] || defaultName;
-			var id = null;
+            var id = null;
+            var object = null;
 			if (state.objects[name]) {
-				id = state.objects[name].id;
+                id = state.objects[name].id;
+                object = state.objects[name];
 			} else {
 				if (name in state.synonymsDict) {
 					var n = state.synonymsDict[name];
 					var o = state.objects[n];
-					id = o.id;
+                    id = o.id;
+                    object = o;
 				} else {
 					var o=state.objects[state.idDict[1]];
 					id=o.id;
 					logError(name + " object/alias has to be defined");
 				}
-			}
+            }
+            
+            if (object != null && object.layer !== undefined) {
+                var layerID = object.layer;
+                if (state.collisionLayers[layerID].length != 1) {
+                    logWarningNoLine("[PS+] Mouse object '"+name+"' (for input '"+ preludeTerm +"') could overlap with other objects on the same layer. Consider moving the object to its own layer.", true, false);
+                }
+            }
+
 			return id;
 		}
 	}

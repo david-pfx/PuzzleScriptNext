@@ -84,7 +84,8 @@ SOUNDS
 COLLISIONLAYERS
 ================
 background
-MouseClick, MouseDrag
+MouseClick
+MouseDrag
 BlockA, BlockB, BlockC, Wall
 player
 GoalA
