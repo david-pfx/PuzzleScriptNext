@@ -64,11 +64,15 @@ The mouse system was considered for the original PuzzleScript, but didn't end up
 
 <h1>Simple example</h1>
 
-You don't use direction words like LEFT or ACTION with the mouse system. Instead, before the turn begins, the game creates the assigned object on the tile you clicked or dragged into. Let's say you have an object called TREE that you want to create on a clicked tile. In the prelude, add:
+<p>You don't use direction words like LEFT or ACTION with the mouse system. Instead, before the turn begins, the game creates the assigned object on the tile you clicked or dragged into. You can define these objects in the prelude, see <a src="http://127.0.0.1:5501/src/Documentation/prelude.html#psplus">the full list of flags here</a>.</p>
+
+Let's say you have an object called TREE that you want to create on a clicked tile. In the prelude, add:
 
 <pre><code><a href="../editor.html?demo=plus_mouse_tree_click" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_left TREE</code></pre>
 <p>Where "TREE" is the name of the object you want to spawn upon mouse click. Now start a level, click a tile, and a tree pops up! This works even in games that don't have any rules.</p>
 
+<img src="./images/plus_treeplanting.gif" width="300px">
+<br>
 <p>Once you add any of the mouse prelude flags, then menus will also automatically support mouse input. Even the level select will work!</p>
 
 <h1>Complex example</h1>
@@ -83,8 +87,10 @@ Then add the following rules:
 <pre><code><a href="../editor.html?demo=plus_mouse_tree_toggle" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[Click no Tree] -> [Tree]
 [Click Tree] -> []</code></pre>
 
-Now you can click to plant a tree, and then click it again to remove it.
+<p>Now you can click to plant a tree, and then click it again to remove it.</p>
 
+<img src="./images/plus_tree_remove.gif" width="300px">
+<br>
 <p>
 Do note objects created by mouse input are just normal objects! They need to be assigned to a layer, and they won't be cleared automatically after the turn ends. So make sure you add a rule to remove these temporary objects, if you don't need them any more. For example, in this program we could add <b>[Click] -> []</b> as the last rule.
 </p>
@@ -110,13 +116,16 @@ Consider the following scenario. On one frame, I press the mouse button into thi
 [Cursor] [DragTarget | MouseDrag] -> [> Cursor ] [ | DragTarget]</code></pre>
 </p>
 
-<p>
+<img src="./images/plus_blockdrag.gif" width="300px">
+
 <h1>Undo and NOSAVE</h1>
-By default PuzzleScript logs every turn into the undo system. However especially with dragging, you'll end up generating a lot of undo states, to the point where it could be a hassle to undo all of those. If you're running a turn where nothing interesting is happening, then you can trigger the command NOSAVE to exclude that turn from the undo stack.
+<p>By default PuzzleScript logs every turn into the undo system. However especially with dragging, you'll end up generating a lot of undo states, to the point where it could be a hassle to undo all of those. If you're running a turn where nothing interesting is happening, then you can trigger the command NOSAVE to exclude that turn from the undo stack.
 </p>
 
+<p>See the <a href="./rules.html#psplus">commands list</a> for more info.</p>
+
 <h1>Event order</h1>
-In the rare case where multiple events are fired with a single input, they resolve in this order. (Click on "Edit" for an input test with verbose logging.)
+If there's a case where multiple events are fired with a single input, they resolve in this order. (Click on "Edit" for an input test with verbose logging.)
 <pre><code><a href="../editor.html?demo=plus_mouse_input_test" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_up
 mouse_rup
 mouse_left
@@ -126,7 +135,7 @@ mouse_rdrag
 </code></pre>
 
 <h1>Mobile support</h1>
-Mobile support
+
 Games with the input system will also work on mobile, with a couple of limitations:
 <ul>
 <li>The swipe controls to control player movement are disabled. (You can still control the player with a keyboard.)</li>
