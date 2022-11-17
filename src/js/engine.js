@@ -3233,7 +3233,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 		
 		if (level.commandQueue.indexOf('quit')>=0 && !solving) {
 			if (verbose_logging) { 
-				var r = level.commandQueueSourceRules[level.commandQueue.indexOf('restart')];
+				var r = level.commandQueueSourceRules[level.commandQueue.indexOf('quit')];
 				consolePrintFromRule('QUIT command executed, exiting level.',r);
 				consoleCacheDump();
 			}
