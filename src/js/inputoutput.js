@@ -568,7 +568,7 @@ function mouseAction(event,click,id) {
 					}
 				}
 			}
-		} else if (messageselected===false && state.levels[curlevel].message) {
+		} else if (messageselected===false && (state.levels[curlevel].message !== undefined || messagetext != "")) {
 			messageselected=true;
 			timer=0;
 			quittingMessageScreen=true;
