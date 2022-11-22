@@ -130,8 +130,18 @@ var title_options = [[
 	".............new game.............",
 	"...........#.new game.#...........",
 	"############.new game.############",
-	"...........>.new game.<...........", //QQQ
-]];
+	"...........>.new game.<...........",
+],];
+
+var MENUITEM_CONTINUE = 0;
+var MENUITEM_LEVELSELECT = 1;
+var MENUITEM_SETTINGS = 2;
+var MENUITEM_NEWGAME = 3;
+
+var MENUITEMVERSION_IDLE = 0;
+var MENUITEMVERSION_HIGHLIGHTED = 1;
+var MENUITEMVERSION_SELECTED = 2;
+var MENUITEMVERSION_HOVERED = 3;
 
 var titleImage=[];
 var titleWidth=titletemplate_empty[0].length;
@@ -141,11 +151,28 @@ var titleScreen=true;
 var titleMode=0;//1 means title screen with options, 2 means level select
 var titleSelection=0;
 var titleSelectOptions=2;
+var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
 
 function showContinueOptionOnTitleScreen(){
+	if (state.metadata.level_select !== undefined) {
+		return true;
+	} else {
+		return hasStartedTheGame();
+	}
+}
+
+function hasStartedTheGame() {
 	return (curlevel>0||curlevelTarget!==null)&&(curlevel in state.levels);
+}
+
+function hasSolvedAtLeastOneSection() {
+	if (state.metadata.level_select !== undefined) {
+		return solvedSections.length >= 1;
+	} else {
+		return false;
+	}
 }
 
 function unloadGame() {
@@ -163,11 +190,16 @@ function isContinueOptionSelected() {
 		return false;
 	}
 
-	return titleSelection == 0; // continue option is always 1st
+	return titleAvailableOptions[titleSelection] == MENUITEM_CONTINUE;
 }
 
 function isNewGameOptionSelected() {
-	return titleSelection == titleSelectOptions-1; // new game option is always on bottom
+	if (titleMode == 0 || titleSelectOptions == 1 || titleAvailableOptions.length == 0) {
+		//If there's only one option, assume it's the new game button
+		return true;	
+	}
+
+	return titleAvailableOptions[titleSelection] == MENUITEM_NEWGAME;
 }
 
 function isLevelSelectOptionSelected() {
@@ -176,10 +208,13 @@ function isLevelSelectOptionSelected() {
 	}
 	
 	if(state.metadata["continue_is_level_select"] !== undefined) {
-		return titleSelection == 0; // continue option is always 1st
+		//Act as if the "continue" button is the "level select" button
+		if (titleAvailableOptions[titleSelection] == MENUITEM_CONTINUE) {
+			return true;
+		}
 	}
 
-	return titleSelection == 1; // level select option is always 2nd if it exists
+	return titleAvailableOptions[titleSelection] == MENUITEM_LEVELSELECT;
 }
 
 function generateTitleScreen()
@@ -212,29 +247,37 @@ function generateTitleScreen()
 		}
 	} else {
 
-		var availableOptions = [0];
-		
-		titleSelectOptions = 2;
+		var playedGameBefore = hasStartedTheGame() || hasSolvedAtLeastOneSection()
 
-		if(state.metadata["level_select"] !== undefined && state.metadata["continue_is_level_select"] === undefined) {
-			titleSelectOptions++;
-			
-			availableOptions.push(1);
+		titleAvailableOptions = [];
+
+		if (playedGameBefore) {
+			titleAvailableOptions.push(MENUITEM_CONTINUE);
+		} else {
+			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
-		if(state.metadata["settings"] !== undefined) {
-			titleSelectOptions++;
-			
-			availableOptions.push(2);
+		if(state.metadata["level_select"] !== undefined && (state.metadata["continue_is_level_select"] === undefined || !playedGameBefore)) {			
+			titleAvailableOptions.push(MENUITEM_LEVELSELECT);
 		}
 
-		availableOptions.push(3);
+		/*if(state.metadata["settings"] !== undefined) {
+			titleAvailableOptions.push(2);
+		}*/
+
+		if (playedGameBefore) {
+			titleAvailableOptions.push(MENUITEM_NEWGAME);
+		}
 
 		titleImage = deepClone(titletemplate_empty);
 
+		titleSelectOptions = titleAvailableOptions.length;
+
+		//Convert array to menu
 		for(var i = 0; i < titleSelectOptions; i++) {
-			var version = 0;
+			var version = MENUITEMVERSION_IDLE;
 			
+			//If there are two items, add a gap of spacing between them
 			var j = 0;
 			if(titleSelectOptions == 2 && i == 1) {
 				j = 1;
@@ -243,17 +286,17 @@ function generateTitleScreen()
 
 			if(titleSelection == i) {
 				if(titleSelected) {
-					version = 2;
+					version = MENUITEMVERSION_SELECTED;
 				} else {
-					version = 1;
+					version = MENUITEMVERSION_HIGHLIGHTED;
 				}
 			}
 
 			if (hoverSelection == lineInTitle && !titleSelected && hoverSelection >= 0) {
-				version = 3;
+				version = MENUITEMVERSION_HOVERED;
 			}
 
-			titleImage[lineInTitle] = deepClone(title_options[availableOptions[i]][version]);
+			titleImage[lineInTitle] = deepClone(title_options[titleAvailableOptions[i]][version]);
 		}
 	}
 
