@@ -492,14 +492,19 @@ function mouseAction(event,click,id) {
 			}
 			return;
 		}
+
+		if (event.type != "mousedown" && event.type != "touchstart") {
+			return;
+		}
+
 		if (titleScreen) {
 			if (quittingTitleScreen || titleSelected) {
 				return;
 			}
 
-			if (titleMode===0) {
+			if (titleMode===0) { //Title no save data
 				titleButtonSelected();
-			} else if (titleMode===1) {
+			} else if (titleMode===1) {//Title with save data
 				if (mouseCoordY===5 && titleSelectOptions >= 1) {
 					titleSelection=0;
 					titleButtonSelected();
@@ -519,7 +524,7 @@ function mouseAction(event,click,id) {
 					titleSelection=3;
 					titleButtonSelected();
 				}
-			} else if (titleMode===2) {
+			} else if (titleMode===2) { //Level select
 				if (quittingTitleScreen || titleSelected) {
 					return;
 				}
