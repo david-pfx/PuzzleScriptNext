@@ -292,7 +292,7 @@ function generateTitleScreen()
 				}
 			}
 
-			if (hoverSelection == lineInTitle && !titleSelected && hoverSelection >= 0) {
+			if (IsMouseGameInputEnabled() && hoverSelection == lineInTitle && !titleSelected && hoverSelection >= 0) {
 				version = MENUITEMVERSION_HOVERED;
 			}
 
@@ -539,7 +539,7 @@ function generateLevelSelectScreen() {
 
 		var hover_symbol = " ";
 		if (selected) {hover_symbol = "#"}
-		if (hoverSelection - 3 + levelSelectScrollPos == i) {hover_symbol = ">"}
+		if (IsMouseGameInputEnabled() && hoverSelection - 3 + levelSelectScrollPos == i) {hover_symbol = ">"}
 		
 		line += hover_symbol + " " + name;
 		for(var j = name.length; j < 25; j++) {
