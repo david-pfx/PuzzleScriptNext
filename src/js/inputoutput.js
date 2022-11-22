@@ -706,12 +706,11 @@ function onMouseDown(event, wasFiredByTouch = false) {
 		}
     } else if (event.button===1) {
 		//undo
-		if (textMode===false) {
-			if (levelEditorOpened) {
-				pushInput("undo");
-				DoUndo(false,true);
-				canvasResize(); // calls redraw
-			}
+		if (textMode===false && (IsMouseGameInputEnabled() || levelEditorOpened)) {
+			pushInput("undo");
+			DoUndo(false,true);
+			canvasResize(); // calls redraw
+			return prevent(event);
 		}
 	}
 	event.handled=true;
