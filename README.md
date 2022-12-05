@@ -1,6 +1,10 @@
-Puzzlescript Plus is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games, while also extending the editor a bit and adding a couple of new game features. **DO NOTE that combining functionality from multiple forks is still experimental, and you could run into issues.** [Access the editor](https://auroriax.github.io/PuzzleScript/editor.html), or see the [updated documentation on the new features](https://auroriax.github.io/PuzzleScript/Documentation/documentation.html).
+Puzzlescript Plus is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games, while extending the editor adding new features. **NOTE that it is still in active development, and things might be buggy.** 
 
-This repo takes Puzzlescript v1.7 and adds features like mouse controls, sprites larger than 5x5, level select, an experimental solver, and a whole lot more! This is the full list of merged forks and their authors:
+[Access the editor here](https://auroriax.github.io/PuzzleScript/editor.html), or see the [updated documentation on the new features](https://auroriax.github.io/PuzzleScript/Documentation/documentation.html). See the [releases](https://github.com/Auroriax/PuzzleScriptPlus/releases) for a changelog.
+
+This repo takes Puzzlescript v1.7 and mouse controls, custom sprite size, level select, a level solver, and a whole lot more! You should be able to import any game from vanilla PuzzleScript, or any of the forks below, and it should work out of the box (otherwise, please file a bug report)! 
+
+Here is the full list of merged forks and their authors:
 
 ## [PuzzleClick by ThatScar](https://github.com/ThatScar/PuzzleScript)
 Allows you to create objects on tiles the mouse interacts with. [See README here](https://github.com/ThatScar/PuzzleScript/blob/master/README.md).
