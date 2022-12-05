@@ -2419,7 +2419,7 @@ function processWinConditions(state) {
             return;
         }
         var num = 0;
-        switch (wincondition[0]) {
+        switch (wincondition[0].toLowerCase()) {
             case 'no':
                 { num = -1; break; }
             case 'all':

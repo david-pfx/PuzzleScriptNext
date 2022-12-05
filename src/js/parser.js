@@ -1165,7 +1165,7 @@ var codeMirrorFn = function() {
                                 }
                             }
                             else if (state.tokenIndex === 2) {
-                                if (candword != 'on') {
+                                if (candword.toLowerCase() != 'on') {
                                     logError('Expecting the word "ON" but got "'+candword.toUpperCase()+"'.", state.lineNumber);
                                     return 'ERROR';
                                 } else {
