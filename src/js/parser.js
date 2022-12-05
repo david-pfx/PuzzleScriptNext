@@ -1301,6 +1301,10 @@ var codeMirrorFn = function() {
 		                    		} else if (preamble_keywords.indexOf(token)>=0) {
                                         if(token == 'case_sensitive') {
                                             state.case_sensitive = true;
+                                            
+                                            if (Object.keys(state.metadata).length > 0) {
+                                                logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
+                                            }
                                         }
 
                                         state.metadata.push(token);
