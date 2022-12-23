@@ -1220,27 +1220,34 @@ var codeMirrorFn = function() {
                                 }
                                 return 'GOTO_VERB';
                             } else {
-                                var line = stream.match(reg_notcommentstart, false)[0].trim();
-                                state.tokenIndex = 2;
-                                var lastlevel = state.levels[state.levels.length - 1];
-                                if (lastlevel[0] == '\n') {
-                                    state.levels.push([state.lineNumber, state.currentSection, line]);
+                                var matches = stream.match(reg_notcommentstart, false);
+                                if (matches===null || matches.length===0){
+                                    logError("Detected a comment where I was expecting a level. Oh gosh; if this is to do with you using '(' as a character in the legend, please don't do that ^^",state.lineNumber);
+                                    state.commentLevel++;
+                                    stream.skipToEnd();
+                                    return 'comment';
                                 } else {
-                                    if (lastlevel.length==0)
-                                    {
-                                        lastlevel.push(state.lineNumber);
-                                        lastlevel.push(state.currentSection);
+                                    var line = matches[0].trim();
+                                    state.tokenIndex = 2;
+                                    var lastlevel = state.levels[state.levels.length - 1];
+                                    if (lastlevel[0] == '\n') {
+                                        state.levels.push([state.lineNumber, state.currentSection, line]);
+                                    } else {
+                                        if (lastlevel.length==0)
+                                        {
+                                            lastlevel.push(state.lineNumber);
+                                            lastlevel.push(state.currentSection);
                                     }
-                                    lastlevel.push(line);
+                                        lastlevel.push(line);
 
-                                    if (lastlevel.length>2)
-                                    {
-                                        if (line.length!=lastlevel[2].length) {
-                                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber);
+                                        if (lastlevel.length>2)
+                                        {
+                                            if (line.length!=lastlevel[2].length) {
+                                                logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber);
+                                            }
                                         }
                                     }
                                 }
-                                
                             }
                         } else {
                             if (state.tokenIndex == 1) {

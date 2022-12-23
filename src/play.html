@@ -312,7 +312,7 @@ function getData(){
 			var homepageLink = document.getElementById("homepagelink");
 			homepageLink.innerHTML=strip_http(homepage);
  			if (!homepage.match(/^https?:\/\//)) {
- 				homepage = "http://" + homepage;
+ 				homepage = "https://" + homepage;
  			}
  			homepageLink.href = homepage;
 		}
