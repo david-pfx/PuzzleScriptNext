@@ -6510,6 +6510,44 @@ function RebuildLevelArrays() {
 var messagetext=""; 
 var currentMovedEntities = {}; 
 var newMovedEntities = {}; 
+ 
+function applyDiff(diff, level_objects) { 
+ 
+ var index=0; 
+  
+ while (index<diff.dat.length){ 
+  var start_index = diff.dat[index]; 
+  var copy_length = diff.dat[index+1]; 
+  if (copy_length===0){ 
+   break;//tail of buffer is all 0s 
+  } 
+  for (j=0;j<copy_length;j++){ 
+   level_objects[start_index+j]=diff.dat[index+2+j]; 
+  } 
+  index += 2 + copy_length; 
+ } 
+} 
+ 
+function unconsolidateDiff(before,after) { 
+ 
+ // If before is not a diff, return it, otherwise generate a complete 'before'  
+ // state from the 'after' state and the 'diff' (remember, the diffs are all  
+ // backwards...). 
+ if (!before.hasOwnProperty("diff")) { 
+  return before; 
+ } 
+ 
+ var after_objects = new Int32Array(after.dat); 
+ applyDiff(before, after_objects); 
+ 
+ return { 
+  dat: after_objects, 
+  width: before.width, 
+  height: before.height, 
+  oldflickscreendat: before.oldflickscreendat 
+ } 
+} 
+ 
 function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) { 
  var diffing = lev.hasOwnProperty("diff"); 
  
@@ -6521,18 +6559,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
  } 
  
  if (diffing){ 
-  var index=0; 
-  while (index<lev.dat.length){ 
-   var start_index = lev.dat[index]; 
-   var copy_length = lev.dat[index+1]; 
-   if (copy_length===0){ 
-    break;//tail of buffer is all 0s 
-   } 
-   for (j=0;j<copy_length;j++){ 
-    level.objects[start_index+j]=lev.dat[index+2+j]; 
-   } 
-   index += 2 + copy_length; 
-  } 
+  applyDiff(lev, level.objects); 
  } else {  
   level.objects = new Int32Array(lev.dat); 
  } 
@@ -6712,7 +6739,7 @@ function backupDiffers(){
  } 
 } 
  
-function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true) { 
+function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true, forceSFX = false) { 
   if ((!levelEditorOpened)&&('noundo' in state.metadata && force!==true)) { 
     return; 
   } 
@@ -6730,7 +6757,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true)
     var torestore = backups[backups.length-1]; 
     restoreLevel(torestore, null, resetTween, resetAutoTick); 
     backups = backups.splice(0,backups.length-1); 
-    if (! force) { 
+    if (! force || forceSFX) { 
       tryPlayUndoSound(); 
     } 
   } 
@@ -8438,7 +8465,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
     consolePrint('UNDO command executed, undoing turn.',true); 
    } 
    messagetext = ""; 
-   DoUndo(true,false); 
+   DoUndo(true,false, true, true, true); 
    return true; 
   } 
  
@@ -8458,7 +8485,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
         consoleCacheDump(); 
     } 
           addUndoState(bak); 
-          DoUndo(true,false); 
+          DoUndo(true,false, false); 
           return false; 
          } 
          //play player cantmove sounds here 
@@ -8474,7 +8501,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
    } 
    processOutputCommands(level.commandQueue); 
       addUndoState(bak); 
-      DoUndo(true,false, true, false); 
+      DoUndo(true,false, false, false); 
       tryPlayCancelSound(); 
       return false; 
      }  
@@ -8532,7 +8559,13 @@ playerPositionsAtTurnStart = getPlayerPositions();
      return true; 
     } else { 
      if (dir!==-1 && save_backup) { 
-         addUndoState(bak); 
+      addUndoState(bak); 
+     } else if (backups.length > 0) { 
+      // This is for the case that diffs break the undo buffer for real-time games  
+      // ( c f https://github.com/increpare/PuzzleScript/pull/796 ), 
+      // because realtime ticks are ignored when the user presses undo and the backup 
+      // array reflects this structure.   
+      backups[backups.length - 1] = unconsolidateDiff(backups[backups.length - 1], bak);      
         } 
         modified=true; 
         updateCameraPositionTarget(); 
@@ -10260,27 +10293,34 @@ var codeMirrorFn = function() {
                                 } 
                                 return 'GOTO_VERB'; 
                             } else { 
-                                var line = stream.match(reg_notcommentstart, false)[0].trim(); 
-                                state.tokenIndex = 2; 
-                                var lastlevel = state.levels[state.levels.length - 1]; 
-                                if (lastlevel[0] == '\n') { 
-                                    state.levels.push([state.lineNumber, state.currentSection, line]); 
+                                var matches = stream.match(reg_notcommentstart, false); 
+                                if (matches===null || matches.length===0){ 
+                                    logError("Detected a comment where I was expecting a level. Oh gosh; if this is to do with you using '(' as a character in the legend, please don't do that ^^",state.lineNumber); 
+                                    state.commentLevel++; 
+                                    stream.skipToEnd(); 
+                                    return 'comment'; 
                                 } else { 
-                                    if (lastlevel.length==0) 
-                                    { 
-                                        lastlevel.push(state.lineNumber); 
-                                        lastlevel.push(state.currentSection); 
+                                    var line = matches[0].trim(); 
+                                    state.tokenIndex = 2; 
+                                    var lastlevel = state.levels[state.levels.length - 1]; 
+                                    if (lastlevel[0] == '\n') { 
+                                        state.levels.push([state.lineNumber, state.currentSection, line]); 
+                                    } else { 
+                                        if (lastlevel.length==0) 
+                                        { 
+                                            lastlevel.push(state.lineNumber); 
+                                            lastlevel.push(state.currentSection); 
                                     } 
-                                    lastlevel.push(line); 
+                                        lastlevel.push(line); 
  
-                                    if (lastlevel.length>2) 
-                                    { 
-                                        if (line.length!=lastlevel[2].length) { 
-                                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber); 
+                                        if (lastlevel.length>2) 
+                                        { 
+                                            if (line.length!=lastlevel[2].length) { 
+                                                logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber); 
+                                            } 
                                         } 
                                     } 
                                 } 
-                                 
                             } 
                         } else { 
                             if (state.tokenIndex == 1) { 
@@ -12299,7 +12339,7 @@ function rulesToMask(state) {
                     if ( (i>0 && state.rules[i-1].lineNumber===ln) || ( (i+1<state.rules.length) && state.rules[i+1].lineNumber===ln)){ 
                         //all good 
                     } else { 
-                        logError('This rule has some content of the form "X no X" which can never match and so the rule is getting removed during compilation.', rule.lineNumber); 
+                        logWarning('This rule has some content of the form "X no X" (either directly or maybe indirectly - check closely how the terms are defined if nothing stands out) which can never match and so the rule is getting removed during compilation.', rule.lineNumber); 
                     } 
                     state.rules.splice(i,1); 
                     i--; 
@@ -14256,7 +14296,7 @@ function onMouseDown(event, wasFiredByTouch = false) {
         } 
         dragging=false; 
         rightdragging=false;  
-    } else if (event.button===2 || (event.button===0 && (event.ctrlKey||event.metaKey)) ) { 
+    } else if (rmb) { 
      if (event.target.id==="gameCanvas") { 
    setMouseCoord(event); 
       dragging=false; 
@@ -14299,7 +14339,14 @@ function onMouseUp(event, wasFiredByTouch = false) {
  
  dragging=false; 
     rightdragging=false; 
- if (event.button===0) { 
+ 
+ var lmb = event.button===0; 
+ var rmb = event.button===2; 
+ if (event.type=="touchend"){ 
+  lmb=true; 
+ } 
+ 
+ if (lmb) { 
         if (event.target===canvas) { 
          setMouseCoord(event); 
          if ("mouse_up" in state.metadata) { 
@@ -14309,7 +14356,7 @@ function onMouseUp(event, wasFiredByTouch = false) {
     return mouseAction(event,true,state.lmbupID); 
    } 
         } 
-    } else if (event.button===2) { 
+    } else if (rmb) { 
      if (event.target.id==="gameCanvas") { 
          setMouseCoord(event); 
          if ("mouse_rup" in state.metadata) { 
@@ -14407,13 +14454,15 @@ function relMouseCoords(event){
     } 
     while(currentElement = currentElement.offsetParent) 
  
- if (event.touches==null){ 
-     canvasX = event.pageX - totalOffsetX; 
-  canvasY = event.pageY - totalOffsetY; 
- } else { 
-     canvasX = event.touches[0].pageX - totalOffsetX; 
+ if (event.touches!=null && event.touches.length >= 1){ 
+  canvasX = event.touches[0].pageX - totalOffsetX; 
   canvasY = event.touches[0].pageY - totalOffsetY; 
- 
+ } else if (event.changedTouches != null && event.changedTouches.length >= 1) { 
+  canvasX = event.changedTouches[0].pageX - totalOffsetX; 
+  canvasY = event.changedTouches[0].pageY - totalOffsetY; 
+ } else { 
+  canvasX = event.pageX - totalOffsetX; 
+  canvasY = event.pageY - totalOffsetY; 
  } 
  
     return {x:canvasX, y:canvasY} 
@@ -15791,7 +15840,8 @@ Mobile.debugDot = function (event) {
             height: "100%", 
             overflow: "hidden", 
             position: "fixed", 
-            width: "100%" 
+            width: "100%", 
+            margin: 0 
         } 
          
         var styleString = ""; 
