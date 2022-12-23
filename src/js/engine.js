@@ -1495,7 +1495,7 @@ function backupDiffers(){
 	}
 }
 
-function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true) {
+function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true, forceSFX = false) {
   if ((!levelEditorOpened)&&('noundo' in state.metadata && force!==true)) {
     return;
   }
@@ -1513,7 +1513,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true)
     var torestore = backups[backups.length-1];
     restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
-    if (! force) {
+    if (! force || forceSFX) {
       tryPlayUndoSound();
     }
   }
@@ -3221,7 +3221,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
-			DoUndo(true,false);
+			DoUndo(true,false, true, true, true);
 			return true;
 		}
 
