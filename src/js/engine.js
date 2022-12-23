@@ -3241,7 +3241,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	    			consoleCacheDump();
 				}
         		addUndoState(bak);
-        		DoUndo(true,false);
+        		DoUndo(true,false, false);
         		return false;
         	}
         	//play player cantmove sounds here
@@ -3257,7 +3257,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 			}
 			processOutputCommands(level.commandQueue);
     		addUndoState(bak);
-    		DoUndo(true,false, true, false);
+    		DoUndo(true,false, false, false);
     		tryPlayCancelSound();
     		return false;
 	    } 
