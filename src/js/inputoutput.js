@@ -690,7 +690,7 @@ function onMouseDown(event, wasFiredByTouch = false) {
         }
         dragging=false;
         rightdragging=false; 
-    } else if (event.button===2 || (event.button===0 && (event.ctrlKey||event.metaKey)) ) {
+    } else if (rmb) {
     	if (event.target.id==="gameCanvas") {
 			setMouseCoord(event);
 		    dragging=false;
@@ -733,7 +733,14 @@ function onMouseUp(event, wasFiredByTouch = false) {
 
 	dragging=false;
     rightdragging=false;
-	if (event.button===0) {
+
+	var lmb = event.button===0;
+	var rmb = event.button===2;
+	if (event.type=="touchend"){
+		lmb=true;
+	}
+
+	if (lmb) {
         if (event.target===canvas) {
         	setMouseCoord(event);
         	if ("mouse_up" in state.metadata) {
@@ -743,7 +750,7 @@ function onMouseUp(event, wasFiredByTouch = false) {
 				return mouseAction(event,true,state.lmbupID);
 			}
         }
-    } else if (event.button===2) {
+    } else if (rmb) {
     	if (event.target.id==="gameCanvas") {
         	setMouseCoord(event);
         	if ("mouse_rup" in state.metadata) {
@@ -841,13 +848,15 @@ function relMouseCoords(event){
     }
     while(currentElement = currentElement.offsetParent)
 
-	if (event.touches==null){
-    	canvasX = event.pageX - totalOffsetX;
-		canvasY = event.pageY - totalOffsetY;
-	} else {
-    	canvasX = event.touches[0].pageX - totalOffsetX;
+	if (event.touches!=null && event.touches.length >= 1){
+		canvasX = event.touches[0].pageX - totalOffsetX;
 		canvasY = event.touches[0].pageY - totalOffsetY;
-
+	} else if (event.changedTouches != null && event.changedTouches.length >= 1) {
+		canvasX = event.changedTouches[0].pageX - totalOffsetX;
+		canvasY = event.changedTouches[0].pageY - totalOffsetY;
+	} else {
+		canvasX = event.pageX - totalOffsetX;
+		canvasY = event.pageY - totalOffsetY;
 	}
 
     return {x:canvasX, y:canvasY}
