@@ -3072,6 +3072,14 @@ function compile(command, text, randomseed) {
             if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
                 logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
             }
+
+            if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
+                logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
+            }
+
+            if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
+                logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
+            }
         }
 
     if (state!==null){//otherwise error
