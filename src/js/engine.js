@@ -493,14 +493,14 @@ function generateLevelSelectScreen() {
 			}
 		}
 
-		if(state.metadata.level_select_unlocked_ahead === undefined) {
-			unlockedUntil += 1;
+		if(state.metadata.level_select_unlocked_ahead !== undefined) {
+			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
 		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
 			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
 		}
 		else {
-			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
-		}	
+			unlockedUntil += 1;
+		}
 
 		//console.log("total: " + state.sections.length + "unsolved: " + unsolvedSections + " until:" + unlockedUntil)
 	}
