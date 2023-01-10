@@ -976,6 +976,7 @@ if (tokens.indexOf('->') == -1) {
                         var messageIndex = findIndexAfterToken(origLine,tokens,i);
                         var messageStr = origLine.substring(messageIndex).trim();
                         if (messageStr===""){
+                            logError('[PS+] You included a twiddleable property, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
                             messageStr=" ";
                             //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
                         }
