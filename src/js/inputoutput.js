@@ -1343,7 +1343,7 @@ function checkKey(e,justPressed) {
     }
     if (textMode) {
 		if(!throttle_movement) { //If movement isn't throttled, then throttle it anyway
-			if (titleMode == 1 && lastinput==inputdir && input_throttle_timer < repeatinterval) { //Don't throttle on level select
+			if (!titleScreen && lastinput==inputdir && input_throttle_timer < repeatinterval) { //Don't throttle on level select
 				return;
 			} else {
 				lastinput=inputdir;
