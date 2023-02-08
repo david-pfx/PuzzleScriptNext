@@ -1242,7 +1242,7 @@ function checkKey(e,justPressed) {
         		break;
         	}
         	if (titleScreen===false || titleMode > 1) {
-				if ((timer/1000>0.5 || titleMode > 1) && !quittingTitleScreen) {
+				if ((timer/1000>0.5 || titleMode > 1) && !quittingTitleScreen && justPressed) {
 
 					titleSelection = 0;
 					
