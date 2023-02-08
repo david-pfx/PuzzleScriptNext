@@ -1515,10 +1515,13 @@ function update() {
 	}
 }
 
-var looping=false;
+var prevTimestamp;
 // Lights, camera…function!
-var loop = function(){
-	looping=true;
+var loop = function(timestamp){
+	if (prevTimestamp !== undefined) {
+		deltatime = timestamp - prevTimestamp
+	}
+	prevTimestamp = timestamp
 	try {
 		update();
 	}
@@ -1526,19 +1529,10 @@ var loop = function(){
 		//Something went wrong, but it's more important that the loop doesn't crash during errors
 		console.error(e);
 	}
-	if (document.visibilityState==='hidden'){
-		looping=false;
-		return;
-	};
-	setTimeout(loop,deltatime);
+	// requestAnimationFrame will call loop() at the 
+	// browser's refresh rate (generally 60fps)
+	// and will auto pause/unpause when the window is minimized
+	window.requestAnimationFrame(loop);
 }
 
-document.addEventListener('visibilitychange', function logData() {
-	if (document.visibilityState === 'visible') {
-		if (looping===false){
-			loop();
-		}
-	}
-  });
-
-loop();
+window.requestAnimationFrame(loop);
