@@ -56,17 +56,50 @@
 
 <h1>About</h1>
 <p>
-PuzzleScript was developed by me (with the assistance/feedback of <a href="credits.html">many other people + tools</a>), <a href="http://www.increpare.com">increpare</a> (<a href="http://www.twitter.com/increpare">@increpare</a>). Programming puzzle games isn't all that hard in the grand scheme of things, but the barrier to entry is way higher than it needs to be.  
+  Welcome to <b>PuzzleScript Plus</b> (or <b>PS+</b> for short)! This is a fork of PuzzleScript by Increpare (or "vanilla PuzzleScript") that aims to merge functionality from existing forks together into one place, and adds a couple of new features of its own.
+  <h1>What should I know before I start?</h1>
 <p>
-It's not a general purpose game making tool, it's not even a general purpose puzzle game making tool.  Or even a avatar-based turn-based puzzle game making tool - games like <a href="http://forum.caravelgames.com/viewsitepage.php?id=90294">DROD</a> don't work, or games with very nuanced behaviours, like <a href="http://www.increpare.com/2012/06/puzzles/">Puzzles</a> proved impossible.  But it is a tool, and I think it might prove handy/enabling for a number of people, if one is accepting of its limitations.
+  Consider making a game in vanilla PuzzleScript first! PS+ expects you to have an intermediate understanding of the workings of PuzzleScript.
+  <h1>What's new?</h1>
 <p>
-I've worked on a lot of puzzle games, and decided on a particular group of those that could be handily modelled with a scripting language.  I've seen someone do a similar pattern-matching system before (I can't remember who, though), but it was a lot less flexible - the movement system in this engine is what gives it its real power.
+  Here's just a taster of what you can expect:
+  <ul>
+  <li>Editor polish, such as a verbose mode toggle and more save slots</li>
+  <li>More features to control the look and feel of your game, such as bigger sprite sizes and animations</li>
+  <li>Improved performance, both automatically, as well as special features for finetuning</li>
+  <li>Allow for non-linear games with the level select and the goto command.</li>
+</ul>
+  See the <a href="documentation.html">landing page of the documentation</a> for more info.
+  
+  There are some limitations though. Please consider having a look at the <a href="https://github.com/Auroriax/PuzzleScriptPlus/issues">open issues on GitHub</a> to see the known problems.
+  <h1>Porting vanilla PuzzleScript games</h1>
 <p>
-Getting the engine out the door, so to speek, took several weeks of full-time, unreumerated work, and no doubt there's plenty more to come. I am not a wealthy man, I'm an impoverished, self-employed independent game developer whose involvement with such projects amounts to happy indiscretions.  If you appreciate this piece of software, please consider <a href="https://www.patreon.com/increpare">supporting me on patreon</a> :)
+
+  Games from vanilla PS (and some forks) should work out of the box in PS+, and behave the same. If this is not the case, please report a bug!
+
+  By default the game will have the same behavior as in vanilla PS. To unleash the power of PS+, a good place to start is by adding some prelude flags!
+  <h1>Editor Changes</h1>
 <p>
-I've you've made something cool with the engine, please let me know ( <a href="mailto:analytic@gmail.com">analytic@gmail.com</a> or <a href="http://www.twitter.com/increpare">@increpare</a> ) - I'd love to highlight (and maybe even host as examples) wonderful things that people've made with this.
+  <ul>
+  <li>You can save up to 50 projects, instead of 20. In most browsers we can store around 5MB. Which means you shouldn't go over it, unless you're working on REALLY big projects.</li>
+<li>The bird button will toggle verbose_logging at runtime.</li>
+<li>In the level editor, scroll the mouse wheel to switch between objects.</li>
+<li>Game title is displayed in console when you save the editor.</li>
+<li>Share works, but with a different GitHub authentication method. Click the SHARE button in the editor to learn more.</li>
+<li>There are some new examples, see the "Load Example" dropdown in the editor.</li>
+</ul>
 <p>
-<a href="credits.html"><h2>Credits</h2></a>
+I'd like to add a few extra tricks that are available in the vanilla Puzzlescript editor, but there are a few that are extra useful in PS+. For example, <b>Ctrl + Click</b> a level to load it immediately, even levels printed in the console. And use <b>Alt + Drag</b> to select text in a grid, great for editing large levels or sprites.
+</p>
+<p>
+Finally,
+There's an alternate way of sharing the game if the SHARE option in the engine is not working for you: Log into Github Gists, make a gist with a file called script.txt with your Puzzlescript source code.  Save the project to get an URL like <b>gist.github.com/Auroriax/deda0618eb725a5d71ed60ec6fbbc0aa</b>. Now, append the hash from that url to <b>auroriax.github.io/PuzzleScript/play.html?p=</b>. So in this example, you'd get <b>auroriax.github.io/PuzzleScript/play.html?p=65c0e7ab38cfc25806e11a6dcacfb3ad</b>.
+</p>
+<p>
+<h2>Credits</h2>
+<p>
+  Please see the <a href="https://github.com/Auroriax/PuzzleScriptPlus#readme">GitHub readme</a> for credits and attribution.
+</p>
 </ul>
     </div><!-- /.container -->
 
