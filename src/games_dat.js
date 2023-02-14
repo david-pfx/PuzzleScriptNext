@@ -167,4 +167,39 @@ var games_gallery = [
     "author": "au voleur (levels by David W. Skinner)",
     "homepage": "https://au-voleur.itch.io"
   },
+  {
+    "url": "https://auroriax.github.io/PuzzleScript/play.html?p=baf7a55d6879cf15362da9f4878f0890",
+    "thumb": "plus_23_lilypads.png",
+    "title": "23 Lily Pads",
+    "author": "Karoo",
+    "homepage": "https://karoo13.itch.io"
+  },
+  {
+    "url": "https://competor.itch.io/cookies-overlap-delicious",
+    "thumb": "plus_cookiesoverlapdelicious.png",
+    "title": "Cookies, Overlap, Delicious!",
+    "author": "competor",
+    "homepage": "https://competor.itch.io/"
+  },
+  {
+    "url": "https://thinkycollective.itch.io/lab-rational-thinkings",
+    "thumb": "plus_labrat.png",
+    "title": "Lab Rat-ional Thinking",
+    "author": "Thinky Collective",
+    "homepage": "https://thinkycollective.itch.io/"
+  },
+  {
+    "url": "https://thinkycollective.itch.io/flying-crowbar-factory-simulator-2022",
+    "thumb": "plus_crowbar.png",
+    "title": "Flying Crowbar Factory Simulator 2022",
+    "author": "Thinky Collective",
+    "homepage": "https://thinkycollective.itch.io/"
+  },
+  {
+    "url": "https://karoo13.itch.io/sleight-of-hat",
+    "thumb": "plus_sleightofhat.png",
+    "title": "Sleight of Hat",
+    "author": "Karoo",
+    "homepage": "https://karoo13.itch.io"
+  },
 ]
