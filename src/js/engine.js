@@ -335,9 +335,13 @@ function generateTitleScreen()
 		}
 
 		if (IsMouseGameInputEnabled()) {
-			titleImage[10]="..................................";
-			titleImage[11]=".MOUSE to interact................";
-			titleImage[12]=".MMB to undo, R to restart........";
+			if (state.metadata.mouse_drag !== undefined || state.metadata.mouse_rdrag !== undefined) {
+				titleImage[10]=".Click, Tap, or Drag to interact..";
+			} else {
+				titleImage[10]=".Click or Tap to interact.........";
+			}
+			titleImage[11]=".Z or Middle Mouse Button to undo.";
+			titleImage[12]=".R to restart.....................";
 		}
 		for (var i=0;i<titleImage.length;i++)
 		{
