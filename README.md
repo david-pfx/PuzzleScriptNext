@@ -51,6 +51,13 @@ If you are not sure about the scope, suggest it anyway! I might not pick up big 
 
 PRs are a bit of a double edged sword for me— they are super fun to receive, but they always require a lot of work from me to QA before merging it in. So you are expected to adhere to the feature request rules for PRs too. Consider adding a feature request to the tracker, stating that you want to start working on a PR to implement it, so I can give you feedback & a green light before you start working on it. Otherwise, your PR might get closed without merging.
 
+**Help, I already have a fork of vanilla PS!**
+
+To make a PR when you already have a fork of vanilla PS:
+- Locally, add PuzzleScript Plus as an origin in your PuzzleScript repository.
+- Fetch and check out a branch from PuzzleScript Plus (likely `develop` unless instructed otherwise).
+- Now you can commit there, push it, and use that branch for PRs!
+
 -------
 
 The original Puzzlescript project, and the code that I added on top of it, are both available under the MIT license. See the license text below. For features from other forks, please check their individual project page links in the list above to see their licensing information.
