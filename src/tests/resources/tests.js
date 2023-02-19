@@ -22,7 +22,7 @@ for (var i=0;i<testdata.length;i++) {
 					}
 					input += inputVals[testinput[j]];
 				}
-				var errormessage =  testcode+"\n\n\ninput : "+input;
+				var errormessage = "Output did not match. Input: [" + input +"], level ID: "+ td[1][3]+"\nExpected result:\n"+testresult+"\n\n\nCode : "+testcode;
 				ok(runTest(td[1]),errormessage);
 			};
 		}(i)
