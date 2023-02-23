@@ -7,7 +7,7 @@ function isColor(str) {
 		return true;
 	if (/^#([0-9A-F]{2}){3,4}$/i.test(str))
 		return true;
-	if (/^#([0-9A-F]{3})$/i.test(str))
+	if (/^#([0-9A-F]{3,4})$/i.test(str))
 		return true;
 	if (str === "transparent")
 		return true;
