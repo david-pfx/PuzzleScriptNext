@@ -2,7 +2,6 @@ solving = false;
 var canSetHTMLColors=true;
 var canDump=false;
 var canOpenEditor=false;
-var canYoutube=true;
 var IDE=false;
 const diffToVisualize=null;
 
@@ -46,12 +45,6 @@ function logErrorNoLine(str){
 	var errorText = document.getElementById("errormessage");
 	str=stripTags(str);
 	errorText.innerHTML+=str+"<br>";
-}
-
-function logBetaMessage(str){
-	var errorText = document.getElementById("errormessage");
-	str=stripTags(str);
-	errorText.innerHTML+=str+"<br>";	
 }
 
 function clearInputHistory() {}

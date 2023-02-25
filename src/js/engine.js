@@ -432,7 +432,7 @@ function generateLevelSelectScreen() {
 	/*
 	"...........select level...........",
 	"..................................",
-	"[✓].#.Testy section maxxx long.#.O",
+	"[?].#.Testy section maxxx long.#.O",
 	".................................|",
 	"[ ]...Unselected section.........|",
 	".................................|",
@@ -535,7 +535,7 @@ function generateLevelSelectScreen() {
 			}
 		}
 		
-		var solved_symbol = "✓";
+		var solved_symbol = "?";
 		if(state.metadata.level_select_solve_symbol !== undefined) {
 			solved_symbol = state.metadata.level_select_solve_symbol;
 		}
@@ -1018,35 +1018,6 @@ function level4Serialization() {
 }
 
 
-function tryDeactivateYoutube(){
-  var youtubeFrame = document.getElementById("youtubeFrame");
-  if (youtubeFrame){
-    document.body.removeChild(youtubeFrame);
-  }
-}
-
-function tryActivateYoutube(){
-  var youtubeFrame = document.getElementById("youtubeFrame");
-  if (youtubeFrame){
-    return;
-  }
-  if (canYoutube) {
-    if ('youtube' in state.metadata) {
-      var youtubeid=state.metadata['youtube'];
-      var url = "https://www.youtube.com/embed/"+youtubeid+"?autoplay=1&loop=1&playlist="+youtubeid;
-      ifrm = document.createElement("IFRAME");
-      ifrm.setAttribute("src",url);
-      ifrm.setAttribute("id","youtubeFrame");
-      ifrm.style.visibility="hidden";
-      ifrm.style.width="500px";
-      ifrm.style.height="500px";
-      ifrm.style.position="absolute";
-      ifrm.style.top="-1000px";
-      ifrm.style.left="-1000px";
-      document.body.appendChild(ifrm);
-    }
-  }
-}
 
 function setGameState(_state, command, randomseed) {
   oldflickscreendat=[];
@@ -1234,7 +1205,7 @@ function setGameState(_state, command, randomseed) {
 	}
 	canvasResize();
 
-	if (state.sounds.length==0&&state.metadata.youtube==null){
+	if (state.sounds.length==0){
 		killAudioButton();
 	} else {
 		showAudioButton();
@@ -1308,7 +1279,7 @@ function applyDiff(diff, level_objects) {
 		if (copy_length===0){
 			break;//tail of buffer is all 0s
 		}
-		for (j=0;j<copy_length;j++){
+		for (var j=0;j<copy_length;j++){
 			level_objects[start_index+j]=diff.dat[index+2+j];
 		}
 		index += 2 + copy_length;
@@ -1553,7 +1524,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
 function getPlayerPositions() {
     var result=[];
     var playerMask = state.playerMask;
-    for (i=0;i<level.n_tiles;i++) {
+    for (var i=0;i<level.n_tiles;i++) {
         level.getCellInto(i,_o11);
         if (playerMask.anyBitsInCommon(_o11)) {
             result.push(i);
@@ -2026,15 +1997,6 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
 }
 
 
-Rule.prototype.toJSON = function() {
-	/* match construction order for easy deserialization */
-	return [
-		this.direction, this.patterns, this.hasReplacements, this.lineNumber, this.isEllipsis,
-		this.groupNumber, this.isRigid, this.commands, this.isRandom, this.cellRowMasks,
-		this.cellRowMasks_Movements
-	];
-};
-
 var STRIDE_OBJ = 1;
 var STRIDE_MOV = 1;
 
@@ -2120,14 +2082,6 @@ CellPattern.prototype.generateMatchFunction = function() {
 	//console.log(fn.replace(/\s+/g, ' '));
 	return matchCache[fn] = new Function("i", "objects", "movements", fn);
 }
-
-CellPattern.prototype.toJSON = function() {
-  return [
-    this.movementMask, this.cellMask, this.nonExistenceMask,
-    this.moveNonExistenceMask, this.moveStationaryMask, this.randomDirOrEntityMask,
-    this.movementsToRemove
-  ];
-};
 
 var _o1,_o2,_o2_5,_o3,_o4,_o5,_o6,_o7,_o8,_o9,_o10,_o11,_o12;
 var _m1,_m2,_m3;
@@ -3151,7 +3105,8 @@ playerPositionsAtTurnStart = getPlayerPositions();
 		}
 
 		
-        bannedGroup = [];
+        var bannedGroup = [];
+
         level.commandQueue=[];
         level.commandQueueSourceRules=[];
         var startRuleGroupIndex=0;
@@ -3182,8 +3137,7 @@ playerPositionsAtTurnStart = getPlayerPositions();
 
 
 			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
-			
-        	var shouldUndo = resolveMovements(level,bannedGroup);
+        	var shouldUndo = resolveMovements(level, bannedGroup);
 
         	if (shouldUndo) {
         		rigidloop=true;

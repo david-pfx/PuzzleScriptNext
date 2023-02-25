@@ -206,8 +206,10 @@ function generateExtraMembers(state) {
             glyphDict[n] = mask;
         }
     }
+    
     var added = true;
-    while (added) {
+    while (added) 
+    {
         added = false;
 
         //then, synonyms
@@ -218,8 +220,8 @@ function generateExtraMembers(state) {
             if ((!(key in glyphDict) || (glyphDict[key] === undefined)) && (glyphDict[val] !== undefined)) {
                 added = true;
                 glyphDict[key] = glyphDict[val];
+            } 
             }
-        }
 
         //then, aggregates
         for (var i = 0; i < state.legend_aggregates.length; i++) {
@@ -251,21 +253,22 @@ function generateExtraMembers(state) {
                         } else {
                             var n1 = n.toUpperCase();
                             var n2 = state.idDict[mask[o.layer]].toUpperCase();
-                            if (n1 !== n2) {
+                            // if (n1 !== n2) {
                                 logError(
-                                    'Trying to create an aggregate object (defined in the legend) with both "' +
+                                    'Trying to create an aggregate object (something defined in the LEGEND section using AND) with both "' +
                                     n1 + '" and "' + n2 + '", which are on the same layer and therefore can\'t coexist.',
                                     dat.lineNumber
                                 );
+                            // }
                             }
                         }
                     }
-                }
                 added = true;
                 glyphDict[dat[0]] = mask;
             }
         }
     }
+    
     state.glyphDict = glyphDict;
 
     var aggregatesDict = {};
@@ -521,7 +524,7 @@ function levelFromString(state,level) {
 				} else {
 					logError('Error, symbol "' + ch + '" is defined using \'or\', and therefore ambiguous - it cannot be used in a map. Did you mean to define it in terms of \'and\'?', level[0]+j);							
 				}
-
+                return o;
 			}
 
 			var maskint = new BitVec(STRIDE_OBJ);
@@ -1127,7 +1130,7 @@ function rulesToArray(state) {
 
     }
 
-    for (i=0;i<rules4.length;i++){
+    for (var i=0;i<rules4.length;i++){
         makeSpawnedObjectsStationary(state,rules4[i],rule.lineNumber);
     }
     state.rules = rules4;
@@ -1816,7 +1819,7 @@ function rulesToMask(state) {
                     } else {
                         var existingname = layersUsed_l[layerIndex];
                         if (existingname !== null) {
-                            rule.discard = [object_name.toUpperCase(), existingname.toUpperCase()];
+                            rule.discard=[object_name.toUpperCase(), existingname.toUpperCase()];
                         }
 
                         layersUsed_l[layerIndex] = object_name;
@@ -2093,19 +2096,62 @@ function collapseRules(groups) {
 function ruleGroupDiscardOverlappingTest(ruleGroup) {
     if (ruleGroup.length === 0)
         return;
+    
+    var discards=[];
 
     for (var i = 0; i < ruleGroup.length; i++) {
         var rule = ruleGroup[i];
         if (rule.hasOwnProperty('discard')) {
+            
+            var beforesame = i===0 ? false : ruleGroup[i-1].lineNumber === rule.lineNumber;
+            var aftersame = i===(ruleGroup.length-1) ? false : ruleGroup[i+1].lineNumber === rule.lineNumber;
+
             ruleGroup.splice(i, 1);
+            
+            var found=false;
+            for(var j=0;j<discards.length;j++){
+                var discard=discards[j];
+                if (discard[0]===rule.discard[0] && discard[1]===rule.discard[1]){
+                    found=true;
+                    break;
+                }
+            }
+            if(!found){
+                discards.push(rule.discard)
+            }
 
             //if rule before isn't of same linenumber, and rule after isn't of same linenumber, 
             //then a rule has been totally erased and you should throw an error!
-            if ( (i===0 || ruleGroup[i-1].lineNumber !==  rule.lineNumber ) 
-                && (i<ruleGroup.length-1 && ruleGroup[i+1].lineNumber !==  rule.lineNumber) || ruleGroup.length===0) {
-                var example = rule['discard'];
+            if ( !(beforesame||aftersame) || ruleGroup.length===0) {
                 
-                logError(example[0] + ' and ' + example[1] + ' can never overlap, but this rule requires that to happen.', rule.lineNumber);
+                const example = discards[0];
+                
+                var parenthetical = "";
+                if (discards.length>1){
+                    parenthetical = " (ditto for ";
+                    for (var j=1;j<discards.length;j++){
+                        if (j>1){
+                            parenthetical+=", "
+                            
+                            if (j===discards.length-1){
+                                parenthetical += "and ";
+            }
+                        }
+
+                        const thisdiscard = discards[j];
+                        const p1 = thisdiscard[0];
+                        const p2 = thisdiscard[1];
+                        parenthetical += `${p1}/${p2}`;
+
+                        if (j===3 && discards.length>4){
+                            parenthetical+=" etc.";
+                            break;
+                        }
+                    }
+                    parenthetical += ")";
+                }
+
+                logError(`${example[0]} and ${example[1]} can never overlap${parenthetical}, but this rule requires that to happen, so it's being culled.`, rule.lineNumber);
             }
             i--;
         }
@@ -2543,6 +2589,12 @@ function printRules(state) {
         if (rule.hasOwnProperty('discard')) {
             discardcount++;
         } else {
+            var sameGroupAsPrevious = i>0 && state.rules[i-1].groupNumber === rule.groupNumber;
+            if (sameGroupAsPrevious){
+                output += '+ ';
+            } else {
+                output += '&nbsp;&nbsp;';
+            }
             output += rule.stringRep + "<br>";
         }
     }
@@ -2665,15 +2717,9 @@ function generateLoopPoints(state) {
     state.lateLoopPoint = loopPoint;
 }
 
-var soundEvents = ["titlescreen", "startgame", "cancel", "endgame", "startlevel", "undo", "restart", "endlevel", "showmessage", "closemessage", "sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10"];
-var soundMaskedEvents = ["create", "destroy", "move", "cantmove", "action"];
-var soundVerbs = soundEvents.concat(soundMaskedEvents);
-
-
 function validSeed(seed) {
     return /^\s*\d+\s*$/.exec(seed) !== null;
 }
-
 
 var soundDirectionIndicatorMasks = {
     'up': parseInt('00001', 2),
@@ -2708,7 +2754,19 @@ function generateSoundData(state) {
             continue;
         }
 
-        if (soundEvents.indexOf(sound[0]) >= 0) {
+        const v0=sound[0][0].trim();
+        const t0=sound[0][1].trim();
+        const v1=sound[1][0].trim();
+        const t1=sound[1][1].trim();
+        
+        var seed = sound[sound.length - 2][0];
+        var seed_t = sound[sound.length - 2][1];
+        if (seed_t !== 'SOUND') {
+            logError("Expecting sfx data, instead found \"" + seed + "\".", lineNumber);
+        }
+
+        if (t0 === "SOUNDEVENT") {
+
             if (sound.length > 4) {
                 logError("too much stuff to define a sound event.", lineNumber);
             } else {
@@ -2717,21 +2775,26 @@ function generateSoundData(state) {
                     logWarning("too much stuff to define a sound event.", lineNumber);
                 }
             }
-            var seed = sound[1];
-            if (validSeed(seed)) {
-                if (sfx_Events[sound[0]] !== undefined) {
-                    logWarning(sound[0].toUpperCase() + " already declared.", lineNumber);
+
+            if (sfx_Events[v0] !== undefined) {
+                logWarning(v0.toUpperCase() + " already declared.", lineNumber);
                 }
-                sfx_Events[sound[0]] = sound[1];
+            sfx_Events[v0] = seed;
+
             } else {
-                logError("Expecting sfx data, instead found \"" + sound[1] + "\".", lineNumber);
+            var target = v0;
+            var verb = v1;
+            var directions = [];
+            for (var j=2;j<sound.length-2;j++){//avoid last sound declaration as well as the linenumber element at the end
+                if (sound[j][1] === 'DIRECTION') {
+                    directions.push(sound[j][0]);      
+                } else {
+                    //Don't know how if I can get here, but just in case
+                    logError(`Expected a direction here, but found instead "$(sound[j][0])".`, lineNumber);
             }
-        } else {
-            var target = sound[0].trim();
-            var verb = sound[1].trim();
-            var directions = sound.slice(2, sound.length - 2);
+            }
             if (directions.length > 0 && (verb !== 'move' && verb !== 'cantmove')) {
-                logError('incorrect sound declaration.', lineNumber);
+                logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', lineNumber);
             }
 
             if (verb === 'action') {
@@ -2742,7 +2805,7 @@ function generateSoundData(state) {
             if (directions.length == 0) {
                 directions = ["orthogonal"];
             }
-            var seed = sound[sound.length - 2];
+            
 
             if (target in state.aggregatesDict) {
                 logError('cannot assign sound events to aggregate objects (declared with "and"), only to regular objects, or properties, things defined in terms of "or" ("' + target + '").', lineNumber);
@@ -2787,7 +2850,8 @@ function generateSoundData(state) {
                     }
                 }
             }
-
+            
+            //if verb in soundverbs_directional
             if (verb === 'move' || verb === 'cantmove') {
                 for (var j = 0; j < targets.length; j++) {
                     var targetName = targets[j];
@@ -2811,9 +2875,6 @@ function generateSoundData(state) {
             }
 
 
-            if (!validSeed(seed)) {
-                logError("Expecting sfx data, instead found \"" + seed + "\".", lineNumber);
-            }
 
             var targetArray;
             switch (verb) {
@@ -2970,7 +3031,11 @@ function loadFile(str) {
 
     formatHomePage(state);
 
+    //delete intermediate representations
 	delete state.commentLevel;
+    delete state.line_should_end;
+    delete state.line_should_end_because;
+    delete state.sol_after_comment;
 	delete state.names;
 	delete state.abbrevNames;
 	delete state.objects_candname;
@@ -2979,6 +3044,7 @@ function loadFile(str) {
 	delete state.section;
 	delete state.subsection;
 	delete state.tokenIndex;
+    delete state.current_line_wip_array;
 	delete state.visitedSections;
 	delete state.loops;
 	/*

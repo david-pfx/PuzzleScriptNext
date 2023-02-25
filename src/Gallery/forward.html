@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>PuzzleScript Gallery</title>
+    <title>Forward to external site - PuzzleScript Gallery</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../Documentation/css/bootstrap.css" rel="stylesheet">
@@ -56,7 +56,13 @@
       <script src="../../assets/js/respond.min.js"></script>
     <![endif]-->
   </head>
+<script>
 
+    function checkdate(evt){
+        console.log("hi");
+
+    }
+</script>
   <body>
 
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -67,78 +73,42 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript</a>
         </div>
 
       </div>
     </div>
 
-    <center><h1>Gallery</h1></center>
-    <div class="container" id="gallerycontainer">
-    </div><!-- /.container -->
-
 
 <script type="text/javascript" src="../games_dat.js"></script>
 
 
-<script>
 
-function escapeHtml(unsafe) {
-  console.log(unsafe);
-  return unsafe
-  .replace(/&/g, "&amp;")
-  .replace(/</g, "&lt;")
-  .replace(/>/g, "&gt;")
-  .replace(/"/g, "&quot;")
-  .replace(/'/g, "&#039;");
-}
+    <div class="container">
+      <h1>Warning</h1>
+    <p>
+    This game has mature content that is not suitable for children.  
+    <p>
+    If you are a child, please <a href="index.html">go back to the gallery</a> and go play something else.
+    <p>              
+ 
+    <a class="btn  btn-danger" id="forwardlink"  href="">I confirm that I am an adult and wish to play the game.</a>
+    <p></p>
+    <a class="btn  btn-primary" href="index.html">Take me back to the Puzzlescript Gallery.</a></li>
 
-
-function replaceContent() {
-  var columns = document.getElementById('gallerycontainer');
-
-  var rowStart = '<div class="row">';
-  var rowEnd = '</div>'
-  var gamesPerRow = 3;
-
-  games_gallery.reverse();
-  var data = [];
-  data.push(rowStart);
-  for (var i=0;i<games_gallery.length;i++) {
-    var startNewRow = i && !(i % gamesPerRow);
-    if(startNewRow) data.push(rowEnd, rowStart);
-    
-    dat=games_gallery[i];
-    dat.imgurl = "./gifs/"+dat.thumb;
-    dat.gameurl = dat.url;
-    if (dat.hasOwnProperty("homepage")===false){
-      dat.homepage=dat.url;
-    }
-    if (dat.homepage.startsWith("http")===false){
-      dat.homepage="https://"+dat.homepage
-    }
-    var suffix="";
-    if (dat.NSFW===true){      
-      //set dat.url to be a link to forward.html that has dat.url in it ars
-      dat.url = "forward.html?url="+escapeHtml(btoa(dat.url));
-      suffix = " [Adults Only]"
-    }
-    var str ='<div class="panel panel-default"><div class="panel-body"><a href="'+dat.url+'"><img src="'+dat.imgurl+'">​</a></div><div class="panel-footer"><a class="gamelinktitle" href="'+dat.url+'">'+escapeHtml(dat.title)+'</a> by <a href="'+dat.homepage+'">'+escapeHtml(dat.author)+'</a>'+suffix+'</div></div>';
-
-
-    data.push('<div class="col-xs-4">'+str+'</div>');
-  }
-  data.push(rowEnd);
-  columns.innerHTML = data.join('');
-}
-
-replaceContent();
- </script>
+</div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="../Documentation/js/jquery.js"></script>
     <script src="../Documentation/js/bootstrap.min.js"></script>
+
+    <script>      
+        var params = new URLSearchParams(document.location.search);
+        var targeturl = params.get("url"); // is the string "Jonathan"
+        //set target url of forwardlink to targeturl
+        document.getElementById("forwardlink").href = atob(targeturl);
+    </script>
   </body>
 </html>
