@@ -618,7 +618,11 @@ var codeMirrorFn = function() {
                 state.sol_after_comment = false;
             }
 
+            function registerOriginalCaseName(candname) {
 
+                function escapeRegExp(str) {
+                    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+                }
 
                 var nameFinder;
                 if(state.case_sensitive) {
