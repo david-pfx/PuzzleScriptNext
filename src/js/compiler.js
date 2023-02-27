@@ -565,7 +565,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
-		if (level[0] == 'message') {
+		if (level[0] == 'message') { // PS+
 			o = {
 				message: level[1],
 				section: level[3]

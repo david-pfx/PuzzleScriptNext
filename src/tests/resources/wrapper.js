@@ -30,4 +30,3 @@ var editor = {
 }
 
 function addToDebugTimeline(level, lineNumber){}
-function addToDebugTimeline(level, lineNumber){}
