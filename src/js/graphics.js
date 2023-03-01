@@ -168,7 +168,7 @@ function generateGlyphImages() {
 	glyphImages=[];
 	
     seenobjects = {};
-	for (var n in state.glyphDict) {
+	for (var n of state.glyphOrder) {
 		if (n.length==1 && state.glyphDict.hasOwnProperty(n)) {            
 			var g=state.glyphDict[n];
 
@@ -325,13 +325,7 @@ x = 0;
 y = 0;
 
 function glyphCount(){
-    var count=0;
-    for (var n in state.glyphDict) {
-        if (n.length==1 && state.glyphDict.hasOwnProperty(n)) {
-            count++;
-        }
-    }    
-    return count;
+    return state.glyphOrder.length;
 }
 
 function redraw() {
@@ -849,9 +843,9 @@ function canvasResize() {
 
     if (textMode) {
         w=5 + 1;
-        h=font['X'].length/(w) + 1;
+        var xchar = font['X'].split('\n').map(a=>a.trim());
+        h = xchar.length;        
     }
-
 
     cellwidth =w * Math.max( ~~(cellwidth / w),1);
     cellheight = h * Math.max(~~(cellheight / h),1);

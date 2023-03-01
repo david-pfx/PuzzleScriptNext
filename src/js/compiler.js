@@ -195,7 +195,7 @@ function generateExtraMembers(state) {
         }
     }
 
-
+    var glyphOrder = [];
     //calculate glyph dictionary
     var glyphDict = {};
     for (var n in state.objects) {
@@ -204,6 +204,7 @@ function generateExtraMembers(state) {
             var mask = blankMask.concat([]);
             mask[o.layer] = o.id;
             glyphDict[n] = mask;
+            glyphOrder.push([o.lineNumber,n]);
         }
     }
     
@@ -220,6 +221,7 @@ function generateExtraMembers(state) {
             if ((!(key in glyphDict) || (glyphDict[key] === undefined)) && (glyphDict[val] !== undefined)) {
                 added = true;
                 glyphDict[key] = glyphDict[val];
+                glyphOrder.push([dat.lineNumber,key]);
             } 
             }
 
@@ -265,11 +267,17 @@ function generateExtraMembers(state) {
                     }
                 added = true;
                 glyphDict[dat[0]] = mask;
+                glyphOrder.push([dat.lineNumber,key]);
             }
         }
     }
     
+    //sort glyphs line number
+    glyphOrder.sort((a,b)=>a[0] - b[0]);
+    glyphOrder = glyphOrder.map(a=>a[1]);
+
     state.glyphDict = glyphDict;
+    state.glyphOrder = glyphOrder;
 
     var aggregatesDict = {};
     for (var i = 0; i < state.legend_aggregates.length; i++) {
