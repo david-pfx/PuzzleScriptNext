@@ -564,7 +564,7 @@ var codeMirrorFn = function() {
               objects_spritematrix: state.objects_spritematrix.concat([]),
 
               tokenIndex: state.tokenIndex,
-              // PS+
+              // PS+ SECTION command argument if any
               currentSection: state.currentSection,
               current_line_wip_array: state.current_line_wip_array.concat([]),
 
@@ -723,7 +723,7 @@ var codeMirrorFn = function() {
                     if (sectionIndex == 0) {
                         state.objects_section = 0;
                         if (state.visitedSections.length > 1) {
-                        // PS+ to fix x3
+                        // PS+ to fix for case_sensitive
                             logError('section "' + state.section.toUpperCase() + '" must be the first section', state.lineNumber);
                         }
                     } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
@@ -817,26 +817,26 @@ var codeMirrorFn = function() {
                             if (match_name == null) {
                                 stream.match(reg_notcommentstart, true);
                                 if (stream.pos>0){   
-                                    // PS+ to fix                             
+                                    // PS+ to fix for sprite size
                                     logWarning('Unknown junk in object section (possibly: sprites have to be 5 pixels wide and 5 pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).',state.lineNumber);
                                 }
                                 return 'ERROR';
                             } else {
                                 var candname = match_name[0].trim();
                                 if (state.objects[candname] !== undefined) {
-                                    // PS+ to fix                             
+                                    // PS+ to fix for case_sensitive
                                     logError('Object "' + candname.toUpperCase() + '" defined multiple times.', state.lineNumber);
                                     return 'ERROR';
                                 }
                                 for (var i=0;i<state.legend_synonyms.length;i++) {
                                 	var entry = state.legend_synonyms[i];
                                 	if (entry[0]==candname) {
-                                    // PS+ to fix                             
+                                    // PS+ to fix for case_sensitive
                                         logError('Name "' + candname.toUpperCase() + '" already in use.', state.lineNumber);
                                 	}
                                 }
                                 if (keyword_array.indexOf(candname)>=0) {
-                                    // PS+ to fix                             
+                                    // PS+ to fix for case_sensitive
                                     logWarning('You named an object "' + candname.toUpperCase() + '", but this is a keyword. Don\'t do that!', state.lineNumber);
                                 }
 
@@ -956,9 +956,8 @@ var codeMirrorFn = function() {
                                 var o = state.objects[state.objects_candname];
 
                                 spritematrix[spritematrix.length - 1] += ch;
-                                // PS+ to fix                             
+                                // PS+ to fix for sprite size
                                 if (spritematrix[spritematrix.length-1].length>state.sprite_size){
-				    // PS+
                                     logWarning('Sprites must be 5 wide and 5 high.', state.lineNumber);
                                     //logError('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
                                     stream.match(reg_notcommentstart, true);
@@ -1333,7 +1332,8 @@ var codeMirrorFn = function() {
                             		}
                             	}
                                 // PS+ to fix
-                            	logError('Cannot add "' + candname + '" to a collision layer; it has not been declared.', state.lineNumber);                                
+                                logError('Cannot add "' + candname.toUpperCase() + '" to a collision layer; it has not been declared.', state.lineNumber);                                
+                            	//logError('Cannot add "' + candname + '" to a collision layer; it has not been declared.', state.lineNumber);                                
                             	return [];
                             };
                             if (candname.toLowerCase()==='background' ) {
@@ -1365,7 +1365,7 @@ var codeMirrorFn = function() {
                                 }
                             }
                             if (foundOthers.length>0){
-                                // PS+ to fix
+                                // PS+ to fix for case_sensitive
                                 var warningStr = 'Object "'+candname.toUpperCase()+'" included in multiple collision layers ( layers ';
                                 for (var i=0;i<foundOthers.length;i++){
                                     warningStr+="#"+(foundOthers[i]+1)+", ";
