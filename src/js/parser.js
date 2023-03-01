@@ -72,7 +72,7 @@ function logError(str, lineNumber,urgent) {
     }
 }
 
-function logWarning(str, lineNumber,urgent) {
+function logWarning(str, lineNumber, urgent) {
     if (compiling||urgent) {
         if (lineNumber === undefined) {
             return logWarningNoLine(str,urgent);
@@ -90,7 +90,7 @@ function logWarning(str, lineNumber,urgent) {
     }
 }
 
-function logWarningNoLine(str,urgent) {
+function logWarningNoLine(str, urgent, increaseErrorCount = true) {
     if (compiling||urgent) {
         var errorString = '<span class="warningText">' + str + '</span>';
          if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
@@ -979,7 +979,9 @@ var codeMirrorFn = function() {
                                 spritematrix[spritematrix.length - 1] += ch;
                                 // PS+ to fix                             
                                 if (spritematrix[spritematrix.length-1].length>state.sprite_size){
-                                    logError('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
+				    // PS+
+                                    logWarning('Sprites must be 5 wide and 5 high.', state.lineNumber);
+                                    //logError('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
                                     stream.match(reg_notcommentstart, true);
                                     return null;
                                 }
@@ -1257,7 +1259,7 @@ var codeMirrorFn = function() {
                                         } else {
                                             match=errorFallbackMatchToken(stream);
                                             //depending on whether the verb is directional or not, we log different errors
-                                            logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+                                            logError(`Ah I were expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
                                             tokentype = 'ERROR';
                                             state.current_line_wip_array.push("ERROR");
                                         }
@@ -1272,7 +1274,7 @@ var codeMirrorFn = function() {
                                     } else {
                                         match=errorFallbackMatchToken(stream);
                                         //depending on whether the verb is directional or not, we log different errors
-                                        logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+                                        logError(`Ah I were expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
                                         tokentype = 'ERROR';
                                         state.current_line_wip_array.push("ERROR");
                                     }
@@ -1372,16 +1374,13 @@ var codeMirrorFn = function() {
                             }
                             
                             var foundOthers=[];
-                        var foundSelves=[];
                             for (var i=0;i<ar.length;i++){
-                            var tcandname = ar[i];
+                            var candname = ar[i];
                                 for (var j=0;j<=state.collisionLayers.length-1;j++){
                                     var clj = state.collisionLayers[j];
-                                if (clj.indexOf(tcandname)>=0){
-                                    if (j!==state.collisionLayers.length-1){
+                                if (clj.indexOf(candname)>=0){
+                                    if (j!=state.collisionLayers.length-1){
                                             foundOthers.push(j);
-                                    } else {
-                                        foundSelves.push(j);
                                         }
                                     }
                                 }
@@ -1521,7 +1520,7 @@ var codeMirrorFn = function() {
                             else if (state.tokenIndex === 1 || state.tokenIndex === 3) {
                                 if (state.names.indexOf(candword)===-1) {
                                     // PS+ to fix
-                                    logError('Error in win condition: "' + candword + '" is not a valid object name.', state.lineNumber);
+                                    logError('Error in win condition: "' + candword.toUpperCase() + '" is not a valid object name.', state.lineNumber);
                                     return 'ERROR';
                                 } else {
                                     return 'NAME';
@@ -1583,7 +1582,8 @@ var codeMirrorFn = function() {
                                     var line = matches[0].trim();
                                     state.tokenIndex = 2;
                                     var lastlevel = state.levels[state.levels.length - 1];
-                                    if (lastlevel[0] == '\n') {
+                                    // PS+ this change still on borrowed time
+                                    if (lastlevel[0] == 'message') {
                                         state.levels.push([state.lineNumber, state.currentSection, line]);
                                     } else {
                                         if (lastlevel.length==0)
