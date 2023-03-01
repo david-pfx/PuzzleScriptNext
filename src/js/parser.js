@@ -125,19 +125,6 @@ function logErrorNoLine(str,urgent) {
     }
 }
 
-// PS+
-function logBetaMessage(str,urgent){
-    if (compiling||urgent) {
-        var errorString = '<span class="betaText">' + str + '</span>';
-         if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
-            //do nothing, duplicate error
-         } else {
-            consoleError(errorString);
-            errorStrings.push(errorString);
-        }
-    }  
-}
-
 function blankLineHandle(state) {
     if (state.section === 'levels') {
             if (state.levels[state.levels.length - 1].length > 0)
@@ -233,14 +220,6 @@ var codeMirrorFn = function() {
 
         logError(`You're talking about ${candname.toUpperCase()} but it's not defined anywhere.`, state.lineNumber);
     }
-
-    // PS+ not used
-    // function searchStringInArray(str, strArray) {
-    //     for (var j = 0; j < strArray.length; j++) {
-    //         if (strArray[j] === str) { return j; }
-    //     }
-    //     return -1;
-    // }
 
     function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
 
