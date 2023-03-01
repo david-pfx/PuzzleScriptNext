@@ -1,3 +1,5 @@
+*** This is an interim merge of Increpare 4d9d5 from 23-feb-22 ***
+
 Puzzlescript Plus is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games, while extending the editor adding new features. **NOTE that it is still in active development, and things might be buggy.** 
 
 [Access the editor here](https://auroriax.github.io/PuzzleScript/editor.html), or see the [updated documentation on the new features](https://auroriax.github.io/PuzzleScript/Documentation/documentation.html). See the [releases](https://github.com/Auroriax/PuzzleScriptPlus/releases) for a changelog.
