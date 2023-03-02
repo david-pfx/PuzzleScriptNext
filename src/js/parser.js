@@ -20,6 +20,7 @@ for post-launch credits, check out activty on github.com/increpare/PuzzleScript
 
 */
 
+// PS+ with a6e18
 
 const MAX_ERRORS_FOR_REAL=100;
 
@@ -93,16 +94,17 @@ function logWarning(str, lineNumber, urgent) {
 function logWarningNoLine(str, urgent, increaseErrorCount = true) {
     if (compiling||urgent) {
         var errorString = '<span class="warningText">' + str + '</span>';
-         if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
+        if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
             //do nothing, duplicate error
-         } else {
+        } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
+            if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
+                TooManyErrors();
+            }
+        }
         if (increaseErrorCount) {
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
-                TooManyErrors();
-			}
         }
     }
 }
@@ -244,7 +246,10 @@ var codeMirrorFn = function() {
     const relativedirs = ['^', 'v', '<', '>', 'moving','stationary','parallel','perpendicular', 'no'];
     const logicWords = ['all', 'no', 'on', 'some'];
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
-	const commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again"];
+	const commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again" //];
+        // PS+
+        , "undo", "nosave", "quit", "zoomscreen", "flickscreen", "smoothscreen", "again_interval", "realtime_interval"
+        , "key_repeat_interval", 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align' ];
     const reg_commands = /[\p{Z}\s]*(sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again)[\p{Z}\s]*/u;
     const reg_name = /[\p{L}\p{N}_]+[\p{Z}\s]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
     const reg_number = /[\d]+/;
@@ -1517,7 +1522,7 @@ var codeMirrorFn = function() {
                             if (stream.match(/[\p{Z}\s]*message\b[\p{Z}\s]*/ui, true)) {
                                 // PS+ -4/2/3/4 = message/level/section/goto ???
                                 state.tokenIndex = -4;//-4/2 = message/level
-                                var newdat = ['message', mixedCase.slice(stream.pos).trim(),state.lineNumber];
+                                var newdat = ['\n', mixedCase.slice(stream.pos).trim(),state.lineNumber];
                                 if (state.levels[state.levels.length - 1].length == 0) {
                                     state.levels.splice(state.levels.length - 1, 0, newdat);
                                 } else {
@@ -1528,7 +1533,7 @@ var codeMirrorFn = function() {
                                 logWarning("You probably meant to put a space after 'message' innit.  That's ok, I'll still interpret it as a message, but you probably want to put a space there.",state.lineNumber);
                                 // PS+ //1/2/3/4 = message/level/section/goto???
                                 state.tokenIndex = -4;//-4/2 = message/level
-                                var newdat = ['message', mixedCase.slice(stream.pos).trim(),state.lineNumber];
+                                var newdat = ['\n', mixedCase.slice(stream.pos).trim(),state.lineNumber];
                                 if (state.levels[state.levels.length - 1].length == 0) {
                                     state.levels.splice(state.levels.length - 1, 0, newdat);
                                 } else {
@@ -1561,7 +1566,7 @@ var codeMirrorFn = function() {
                                     state.tokenIndex = 2;
                                     var lastlevel = state.levels[state.levels.length - 1];
                                     // PS+ this change still on borrowed time
-                                    if (lastlevel[0] == 'message') {
+                                    if (lastlevel[0] == '\n') {
                                         state.levels.push([state.lineNumber, state.currentSection, line]);
                                     } else {
                                         if (lastlevel.length==0)
@@ -1665,15 +1670,6 @@ var codeMirrorFn = function() {
                                         state.metadata.push(token);
 		                    			state.metadata.push("true");
 		                    			state.tokenIndex=-1;
-
-
-                                    var m2 = stream.match(reg_notcommentstart, false);
-                                    
-                                    if(m2!==null) {
-                                        var extra = m2[0].trim();      
-                                        logWarning('MetaData '+token.toUpperCase()+' doesn\'t take any parameters, but you went and gave it "'+extra+'".',state.lineNumber);                                      
-                                    } 
-
 		                    			return 'METADATA';
 		                    		} else  {
 		                    			logError('Unrecognised stuff in the prelude.', state.lineNumber);
@@ -1688,23 +1684,31 @@ var codeMirrorFn = function() {
 		               	} else {
 		               		stream.match(reg_notcommentstart, true);
 
-                        var key = state.metadata[state.metadata.length-2];
-                        var val = state.metadata[state.metadata.length-1];
+                        // PS+ should this code be here or not?
+                        // state.tokenIndex++;
 
-						if (key === "background_color" || key === "text_color"){
-							var candcol = val.trim().toLowerCase();
-                            if (candcol in colorPalettes.arnecolors) {
-                                return 'COLOR COLOR-' + candcol.toUpperCase();
-                            } else if (candcol==="transparent") {
-                                return 'COLOR FADECOLOR';
-                            } else if ( (candcol.length===4) || (candcol.length===7)) {
-                                var color = candcol.match(/#[0-9a-fA-F]+/);
-                                if (color!==null){                
-                                    return 'MULTICOLOR'+color[0];
-                                }
-                            }
+                        // var key = state [state.metadata.length-3];
+                        // var val = state.metadata[state.metadata.length-2];
+                        // var oldLineNum = state.metadata[state.metadata.length-1];
+
+                        // if( state.tokenIndex>2){
+                        //     logWarning("Error: you can't embed comments in metadata values. Anything after the comment will be ignored.",state.lineNumber);
+                        //     return 'ERROR';
+                        // }
+						// if (key === "background_color" || key === "text_color"){
+						// 	var candcol = val.trim().toLowerCase();
+                        //     if (candcol in colorPalettes.arnecolors) {
+                        //         return 'COLOR COLOR-' + candcol.toUpperCase();
+                        //     } else if (candcol==="transparent") {
+                        //         return 'COLOR FADECOLOR';
+                        //     } else if ( (candcol.length===4) || (candcol.length===7)) {
+                        //         var color = candcol.match(/#[0-9a-fA-F]+/);
+                        //         if (color!==null){                
+                        //             return 'MULTICOLOR'+color[0];
+                        //         }
+                        //     }
                                                        
-						}                        
+						// }                        
                         return "METADATATEXT";
                     }
                     break;

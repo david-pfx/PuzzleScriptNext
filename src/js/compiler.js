@@ -573,7 +573,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
-		if (level[0] == 'message') { // PS+
+		if (level[0] == '\n') { // PS+
 			o = {
 				message: level[1],
 				section: level[3]
