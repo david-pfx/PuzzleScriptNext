@@ -6,7 +6,7 @@ creates a highly compressed release build in bin of the contents of src
 
 packages used:
 
-npm i rimraf compress-images web-resource-inliner ncp gifsicle concat ycssmin terser gzipper html-minifier-terser glob   
+npm i rimraf compress-images web-resource-inliner ncp gifsicle@5.3.0 concat ycssmin terser gzipper html-minifier-terser glob   
 */
 
 const fs = require("fs");
@@ -25,6 +25,7 @@ const { Compress } = require('gzipper');
 const htmlminify = require('html-minifier-terser').minify;
 const glob = require("glob")
 
+//print all paths to all modules above
 var lines = fs.readFileSync(".build/buildnumber.txt", encoding = 'utf-8');
 var buildnum = parseInt(lines);
 buildnum++;
@@ -38,8 +39,7 @@ var start = new Date()
 
 console.log("removing bin")
 
-fs.rmdirSync("./bin", { recursive: true });
-
+rimraf.sync("./bin");
 fs.mkdirSync('./bin');
 
 console.log("Copying files")
@@ -94,12 +94,13 @@ ncp("./src", "./bin/", function (err) {
 
             console.log('Images optimized');
 
-            fs.rmdirSync("./bin/js", { recursive: true });
+            //remove ".bin/js dir if it exists"
+            rimraf.sync('./bin/js');
+            rimraf.sync('./bin/css');
+            rimraf.sync('./bin/tests');
+            
             fs.mkdirSync('./bin/js');
-            fs.rmdirSync("./bin/css", { recursive: true });
             fs.mkdirSync('./bin/css');
-            fs.rmdirSync("./bin/tests", { recursive: true });
-            fs.rmdirSync("./bin/Levels", { recursive: true });
 
             console.log('compressing css');
 
@@ -301,8 +302,11 @@ ncp("./src", "./bin/", function (err) {
                 files = files.concat(glob.sync("./bin/**/*.css"));
                 files = files.concat(glob.sync("./bin/**/*.txt"));
 
-                        var compressionTasks = files.map(fn => new Compress(fn));
-                        var compressed = await Promise.all(compressionTasks.map(gzip => gzip.run()));
+                        for (var i=0;i<files.length;i++) {
+                            var file = files[i];
+                            var comp = new Compress(file);
+                            await comp.run();
+                        }
 
                 console.log("Files compressed. All good!");
 

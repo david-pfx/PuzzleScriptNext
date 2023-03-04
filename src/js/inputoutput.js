@@ -1355,10 +1355,12 @@ function checkKey(e,justPressed) {
     		//do nothing
     	} else if (titleScreen) {
 			if (isSitelocked()) {return;}
+			if (quittingTitleScreen===false){
     		if (titleMode===0) {
     			if (inputdir===4&&justPressed) {
     				titleButtonSelected();
-    			}
+							clearInputHistory();
+						}
     		} else {
     			if (inputdir==4&&justPressed) {
     				if (titleSelected===false) {    				
@@ -1402,6 +1404,7 @@ function checkKey(e,justPressed) {
     				redraw();
     			}
     		}
+			}
     	} else {
     		if (inputdir==4&&justPressed) {    				
 				if (unitTesting) {
