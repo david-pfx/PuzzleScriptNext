@@ -1,4 +1,4 @@
-*** This is an interim merge of Increpare 4d9d5 from 23-feb-22 ***
+*** This is an interim merge of Increpare latest to 20-feb-23 ***
 
 Puzzlescript Plus is a fork of [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript) that attempts to gather a number of forks I often use for my own games, while extending the editor adding new features. **NOTE that it is still in active development, and things might be buggy.** 
 
@@ -24,7 +24,8 @@ This adds a single feature that is especially useful for worlds that take place 
 
 Many more people have directly & indirectly contributed to PS+, so here's a list of everyone deserving special thanks:
 - TilmannR for contributing the `goto` command
-- minotalen for reporting bugs & helping write documentation
+- minotalen for reporti
+ng bugs & helping write documentation
 - Cel-iki/BoredMatt for helping me make code examples
 - jsmiller11 for writing [psUtil](https://github.com/jcmiller11/psUtil) (that I adapted for the PS+ sprite upscaler tool)
 - ClementSparrow who is making [their own cool Puzzlescript fork](https://github.com/ClementSparrow/Pattern-Script), from which I used the alternate Github authentication method!
