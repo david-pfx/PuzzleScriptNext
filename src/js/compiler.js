@@ -3091,7 +3091,7 @@ function loadFile(str) {
 			processor.token(ss, state);
 
 			if (errorCount>MAX_ERRORS) {
-				consolePrint("too many errors, aborting compilation");
+				consolePrint("too many errors, aborting compilation", true);
 				return;
 			}
 		}		
@@ -3199,6 +3199,7 @@ function compile(command, text, randomseed) {
     compiling = true;
     errorStrings = [];
     consolePrint('=================================');
+    // todo: temporary console output to help with debugging
     try {
         console.log(`Begin compile: '${text.split('\n')[0]}'`);
         var state = loadFile(text);

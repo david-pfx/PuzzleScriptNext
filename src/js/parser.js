@@ -20,7 +20,7 @@ for post-launch credits, check out activty on github.com/increpare/PuzzleScript
 
 */
 
-// PS+ with a6e18
+// PS+ merge as at 23c05
 
 const MAX_ERRORS_FOR_REAL=100;
 
@@ -140,7 +140,9 @@ function blankLineHandle(state) {
 //returns null if not delcared, otherwise declaration
 //note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
 function wordAlreadyDeclared(state,n) {
-    n = n.toLowerCase();
+    if (!state.case_sensitive) {
+        n = n.toLowerCase();
+    }
     if (n in state.objects) {
         return state.objects[n];
     } 
@@ -164,7 +166,6 @@ function wordAlreadyDeclared(state,n) {
     }
     return null;
 }
-
 
 //for IE support
 if (typeof Object.assign != 'function') {
@@ -228,7 +229,6 @@ var codeMirrorFn = function() {
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
         }
 
-        // PS+
         var nameFinder;
         if (state.case_sensitive) {
             nameFinder = new RegExp("\\b" + escapeRegExp(candname) + "\\b");
@@ -247,7 +247,7 @@ var codeMirrorFn = function() {
     const logicWords = ['all', 'no', 'on', 'some'];
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
 	const commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again" //];
-        // PS+
+        // PS+ additional commands
         , "undo", "nosave", "quit", "zoomscreen", "flickscreen", "smoothscreen", "again_interval", "realtime_interval"
         , "key_repeat_interval", 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align' ];
     const reg_commands = /[\p{Z}\s]*(sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again)[\p{Z}\s]*/u;
@@ -255,7 +255,7 @@ var codeMirrorFn = function() {
     const reg_number = /[\d]+/;
     const reg_soundseed = /\d+\b/u;
     const reg_spriterow = /[\.0-9]{5}[\p{Z}\s]*/u;
-    const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
+    const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_notcommentstart = /[^\(]+/;
     const reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
@@ -273,7 +273,7 @@ var codeMirrorFn = function() {
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
     const reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|move|action|create|destroy|cantmove|sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)/;
     const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','message', "move", "action", "create", "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "undo", "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", "showmessage", "closemessage"];
-    // PS+
+    // PS+ 
     const preamble_params = ['title', 'author', 'homepage', 'background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'color_palette', 'youtube',
         'sprite_size', 'level_select_unlocked_ahead', 'level_select_solve_symbol', 'custom_font', 'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 'local_radius', 'font_size', 'tween_length', "tween_easing", "tween_snap", "message_text_align", "text_controls", "text_message_continue", "level_select_unlocked_rollover", "sitelock_origin_whitelist", "sitelock_hostname_whitelist"];
     const preamble_keywords = ['run_rules_on_level_start', 'norepeat_action', 'require_player_movement', 'debug', 'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'scanline',
@@ -356,7 +356,9 @@ var codeMirrorFn = function() {
             } else if (splits[3]==='and'){
                 //AGGREGATE
                 var substitutor = function(n) {
-                    n = n.toLowerCase();
+                    if (!state.case_sensitive) {
+                        n = n.toLowerCase();
+                    }
                     if (n in state.objects) {
                         return [n];
                     }
@@ -397,7 +399,9 @@ var codeMirrorFn = function() {
 
                 var substitutor = function(n) {
 
-                    n = n.toLowerCase();
+                    if (!state.case_sensitive) {
+                        n = n.toLowerCase();
+                    }
                     if (n in state.objects) {
                         return [n];
                     }
@@ -442,7 +446,7 @@ var codeMirrorFn = function() {
                 if (malformed) {
                     var newlegend = [splits[0]].concat(substitutor(splits[2])).concat(substitutor(splits[4]));
                     for (var i = 6; i < splits.length; i += 2) {
-                        newlegend.push(splits[i].toLowerCase());
+                        newlegend.push(state.case_sensitive ? splits[i] : splits[i].toLowerCase());
                     }
                     newlegend.lineNumber = state.lineNumber;
 
@@ -619,7 +623,7 @@ var codeMirrorFn = function() {
                 
                 state.current_line_wip_array = [];
 
-                // PS+
+                // PS+ leaves original text unchanged, which means a lot of checking in other places
                 if(!state.case_sensitive) {
                     stream.string = stream.string.toLowerCase();
                 }
@@ -716,25 +720,26 @@ var codeMirrorFn = function() {
             var sectionNameMatches = stream.match(reg_sectionNames, true);
             if (sol && sectionNameMatches ) {
 
-                state.section = sectionNameMatches[0].trim();
-                    if (state.visitedSections.indexOf(state.section) >= 0) {
+                state.section = sectionNameMatches[0].trim().toLowerCase();
+                if (state.visitedSections.indexOf(state.section) >= 0) {
                     logError('cannot duplicate sections (you tried to duplicate \"' + state.section.toUpperCase() + '").', state.lineNumber);
-                    }
+                }
                 state.line_should_end = true;
                 state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
                 state.visitedSections.push(state.section);
                 var sectionIndex = sectionNames.indexOf(state.section);
+                // PS+
+                var name_plus = state.case_sensitive ? state.section : state.section.toUpperCase()
                 if (sectionIndex == 0) {
                     state.objects_section = 0;
                     if (state.visitedSections.length > 1) {
-                    // PS+ to fix for case_sensitive
-                        logError('section "' + state.section.toUpperCase() + '" must be the first section', state.lineNumber);
+                        logError('section "' + name_plus + '" must be the first section', state.lineNumber);
                     }
                 } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
                     if (sectionIndex===-1) {
-                    logError('no such section as "' + state.section.toUpperCase() + '".', state.lineNumber);
+                        logError('no such section as "' + name_plus + '".', state.lineNumber);
                     } else {
-                    logError('section "' + state.section.toUpperCase() + '" is out of order, must follow  "' + sectionNames[sectionIndex - 1].toUpperCase() + '" (or it could be that the section "'+sectionNames[sectionIndex - 1].toUpperCase()+`"is just missing totally.  You have to include all section headings, even if the section itself is empty).`, state.lineNumber);                            
+                        logError('section "' + name_plus + '" is out of order, must follow  "' + sectionNames[sectionIndex - 1].toUpperCase() + '" (or it could be that the section "'+sectionNames[sectionIndex - 1].toUpperCase()+`"is just missing totally.  You have to include all section headings, even if the section itself is empty).`, state.lineNumber);                            
                     }
                 }
 
@@ -821,27 +826,24 @@ var codeMirrorFn = function() {
                         if (match_name == null) {
                             stream.match(reg_notcommentstart, true);
                             if (stream.pos>0){   
-                                // PS+ to fix for sprite size
-                                logWarning('Unknown junk in object section (possibly: sprites have to be 5 pixels wide and 5 pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).',state.lineNumber);
+                                logWarning(`Unknown junk in object section (possibly: sprites have to be ${state.sprite_size} pixels wide and $(state.sprite_size) pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).`,state.lineNumber);
                             }
                             return 'ERROR';
                         } else {
                             var candname = match_name[0].trim();
                             if (state.objects[candname] !== undefined) {
                                 // PS+ to fix for case_sensitive
-                                logError('Object "' + candname.toUpperCase() + '" defined multiple times.', state.lineNumber);
+                                logError('Object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" defined multiple times.', state.lineNumber);
                                 return 'ERROR';
                             }
                             for (var i=0;i<state.legend_synonyms.length;i++) {
                                 var entry = state.legend_synonyms[i];
                                 if (entry[0]==candname) {
-                                // PS+ to fix for case_sensitive
-                                    logError('Name "' + candname.toUpperCase() + '" already in use.', state.lineNumber);
+                                    logError('Name "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" already in use.', state.lineNumber);
                                 }
                             }
                             if (keyword_array.indexOf(candname)>=0) {
-                                // PS+ to fix for case_sensitive
-                                logWarning('You named an object "' + candname.toUpperCase() + '", but this is a keyword. Don\'t do that!', state.lineNumber);
+                                logWarning('You named an object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '", but this is a keyword. Don\'t do that!', state.lineNumber);
                             }
 
                             if (sol) {
@@ -919,7 +921,9 @@ var codeMirrorFn = function() {
                             if (match_color == null) {
                                 var str = stream.match(reg_name, true) || stream.match(reg_notcommentstart, true);
                                 // PS+ to fix                             
-                                logError('Was looking for color for object ' + state.objects_candname.toUpperCase() + ', got "' + str + '" instead.', state.lineNumber);
+                                logError('Was looking for color for object '
+                                    + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
+                                    + ', got "' + str + '" instead.', state.lineNumber);
                                 return null;
                             } else {
                                 if (state.objects[state.objects_candname].colors === undefined) {
@@ -948,7 +952,9 @@ var codeMirrorFn = function() {
                                     return tryParseName();
                                 }
                                 // PS+ to fix                             
-                                logError('Unknown junk in spritematrix for object ' + state.objects_candname.toUpperCase() + '.', state.lineNumber);
+                                logError('Unknown junk in spritematrix for object ' 
+                                    + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
+                                    + '.', state.lineNumber);
                                 stream.match(reg_notcommentstart, true);
                                 return null;
                             }
@@ -962,8 +968,7 @@ var codeMirrorFn = function() {
                             spritematrix[spritematrix.length - 1] += ch;
                             // PS+ to fix for sprite size
                             if (spritematrix[spritematrix.length-1].length>state.sprite_size){
-                                logWarning('Sprites must be 5 wide and 5 high.', state.lineNumber);
-                                //logError('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
+                                logWarning('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
                                 stream.match(reg_notcommentstart, true);
                                 return null;
                             }
@@ -1298,7 +1303,7 @@ var codeMirrorFn = function() {
                         var candname = match_name[0].trim();
 
                         var substitutor = function(n) {
-                            if(!state.case_sensitive) {
+                            if (!state.case_sensitive) {
                                 n = n.toLowerCase();
                             }
                             if (n in state.objects) {
@@ -1525,7 +1530,7 @@ var codeMirrorFn = function() {
                         if (stream.match(/[\p{Z}\s]*message\b[\p{Z}\s]*/ui, true)) {
                             // PS+ -4/2/3/4 = message/level/section/goto ???
                             state.tokenIndex = -4;//-4/2 = message/level
-                            var newdat = ['\n', mixedCase.slice(stream.pos).trim(),state.lineNumber];
+                            var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
                             if (state.levels[state.levels.length - 1].length == 0) {
                                 state.levels.splice(state.levels.length - 1, 0, newdat);
                             } else {
@@ -1536,7 +1541,7 @@ var codeMirrorFn = function() {
                             logWarning("You probably meant to put a space after 'message' innit.  That's ok, I'll still interpret it as a message, but you probably want to put a space there.",state.lineNumber);
                             // PS+ //1/2/3/4 = message/level/section/goto???
                             state.tokenIndex = -4;//-4/2 = message/level
-                            var newdat = ['\n', mixedCase.slice(stream.pos).trim(),state.lineNumber];
+                            var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
                             if (state.levels[state.levels.length - 1].length == 0) {
                                 state.levels.splice(state.levels.length - 1, 0, newdat);
                             } else {
@@ -1591,7 +1596,7 @@ var codeMirrorFn = function() {
                             }
                         }
                     } else {
-                    if (state.tokenIndex == -4) {
+                        if (state.tokenIndex == -4) {
                             stream.skipToEnd();
                             return 'MESSAGE';
                         // PS+
