@@ -903,10 +903,9 @@ var mousePixelY=0;
 
 function setMouseCoord(e){
 	var coords = canvas.relMouseCoords(e);
-	if (isNaN(coords.x) || isNaN(coords.y)) {
-		console.warn("[SetMouseCoord] Did not recieve valid mouse coords from event. Ignoring it (since I'm assuming this is a faked keypress that was generated on mobile).")
-		return
-	}
+
+	//Fake mobile presses can generate mouse clicks resulting into this function. This is required, otherwise the state of the game seems to get weird, somehow. The following values are allowed to be NaN and should be checked as such. This is a little hacky though, apoligies. See PS+ issue #88
+
     mousePixelX=coords.x-xoffset;
 	mousePixelY=coords.y-yoffset;
 	mouseCoordX=Math.floor(mousePixelX/cellwidth);
