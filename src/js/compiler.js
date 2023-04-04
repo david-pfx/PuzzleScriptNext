@@ -7,7 +7,7 @@ function isColor(str) {
 		return true;
 	if (/^#([0-9A-F]{2}){3,4}$/i.test(str))
 		return true;
-	if (/^#([0-9A-F]{3})$/i.test(str))
+	if (/^#([0-9A-F]{3,4})$/i.test(str))
 		return true;
 	if (str === "transparent")
 		return true;
@@ -583,7 +583,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
-		if (level[0] == '\n') { // PS+
+		if (level[0] == '\n') {
 			o = {
 				message: level[1],
 				section: level[3]
@@ -2445,7 +2445,7 @@ function twiddleMetaData(state, update = false) {
         return result;
     }
     const getCoords = function(str,lineNumber){
-        var coords = val.split('x');
+		var coords = val.split('x');
         if (coords.length!==2){
             logWarning("Dimensions must be of the form AxB.",lineNumber);
             return null;
@@ -2457,7 +2457,7 @@ function twiddleMetaData(state, update = false) {
             } else {
                 if (intcoords[0]<=0 || intcoords[1]<=0){
                     logWarning(`The dimensions given to me (you gave "${val}") are baad - they should be > 0.`,lineNumber);
-                }
+	}
                 return intcoords;
             }
         }
@@ -2474,7 +2474,7 @@ function twiddleMetaData(state, update = false) {
         newmetadata.zoomscreen = getCoords(val, state.metadata_lines.zoomscreen);
         if (newmetadata.zoomscreen === null) {
             delete newmetadata.zoomscreen;
-        }
+	}
 	}
 	if (newmetadata.smoothscreen!==undefined) {
 		var val = newmetadata.smoothscreen;

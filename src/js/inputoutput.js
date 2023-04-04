@@ -327,7 +327,17 @@ function levelEditorRightClick(event,click) {
 }
 
 function getTilesTraversingPoints(x1, y1, x2, y2) {
-	
+	// these branches should never be hit, but we want to be defensive to avoid infinite loops:
+	if (isNaN(x2)) {
+		console.warn("getTilesTraversingPoints() got NaN (second coord)")
+		x2 = -100
+		y2 = -100
+	}
+	if (isNaN(x1)) {
+		console.warn("getTilesTraversingPoints() got NaN (first coord)")
+		x1 = x2
+		y1 = y2
+	}
 	
 	if (cellwidth !== cellheight) {
 		throw "Error: Cell is not square.";
@@ -893,9 +903,9 @@ var mousePixelY=0;
 
 function setMouseCoord(e){
 	var coords = canvas.relMouseCoords(e);
-	if (isNaN(coords.x) || isNaN(coords.y)) {
-		console.warn("[SetMouseCoord] Did not recieve valid mouse coords from event. Ignoring it (since I'm assuming this is a faked keypress that was generated on mobile).")
-	}
+
+	//Fake mobile presses can generate mouse clicks resulting into this function. This is required, otherwise the state of the game seems to get weird, somehow. The following values are allowed to be NaN and should be checked as such. This is a little hacky though, apoligies. See PS+ issue #88
+
     mousePixelX=coords.x-xoffset;
 	mousePixelY=coords.y-yoffset;
 	mouseCoordX=Math.floor(mousePixelX/cellwidth);

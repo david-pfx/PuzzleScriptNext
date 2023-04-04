@@ -29,7 +29,7 @@ for (var i = testfirst; i < testfirst + testhowmany && i < testdata.length; i++)
 					}
 					input += inputVals[testinput[j]];
 				}
-				var errormessage =  testcode+"\n\n\ninput : "+input;
+				var errormessage = "Output did not match. Input: [" + input +"], level ID: "+ td[1][3]+"\nExpected result:\n"+testresult+"\n\n\nCode : "+testcode;
 				errormessage += "\ntargetlevel : "+targetlevel;
 				if (randomseed!==undefined) {
 					errormessage += "\nrandomseed : "+randomseed;

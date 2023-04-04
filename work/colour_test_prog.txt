@@ -1,0 +1,157 @@
+title Colour Test
+author Davidus Rex
+homepage www.polyomino.com
+
+( 
+	Test program to cover all possible names and hex values for colours.
+    Written to test fix for PS+ Issue #65 'Allow 4-character hex colors enhancement'
+)
+
+========
+OBJECTS
+========
+
+Background
+green
+
+Target
+darkblue
+
+Wall
+brown
+
+Player
+blue
+
+Crate
+orange
+
+A
+black white darkgray lightgray gray 
+01234
+12340
+23401
+34012
+40123
+
+B
+grey darkgrey lightgrey red darkred 
+01234
+12340
+23401
+34012
+40123
+
+C
+lightred brown darkbrown lightbrown orange 
+01234
+12340
+23401
+34012
+40123
+
+D 
+yellow green darkgreen lightgreen blue 
+01234
+12340
+23401
+34012
+40123
+
+E
+lightblue darkblue purple pink transparent
+01234
+12340
+23401
+34012
+40123
+
+F
+#FffFFf #FF0000 #00FF00 #0000FF #000000
+01234
+12340
+23401
+34012
+40123
+
+G
+#FffFFf80 #FF000080 #00FF0080 #0000FF80 #00000080
+01234
+12340
+23401
+34012
+40123
+
+H
+#Fff #F00 #0F0 #00F #000
+01234
+12340
+23401
+34012
+40123
+
+I
+#Fff8 #F008 #0F08 #00F8 #0008
+01234
+12340
+23401
+34012
+40123
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+Player, Wall, Crate
+A,B,C,D,E,F,G,H,I
+
+======
+RULES
+======
+
+[ > Player | Crate ] -> [ > Player | > Crate ]
+
+==============
+WINCONDITIONS
+==============
+
+all Target on Crate
+
+=======
+LEVELS
+=======
+
+#########
+#.......#
+#.A.B.C.#
+#.......#
+#.D.E.F.#
+#.......#
+#.G.H.I.#
+#.......#
+#########
+
+#########
+#.......#
+#.....@.#
+#.P.*.O.#
+#.......#
+#.......#
+#########
