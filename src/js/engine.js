@@ -1676,7 +1676,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 	
     level.colCellContents[colIndex].ior(movingEntities);
     level.rowCellContents[rowIndex].ior(movingEntities);
-    //level.mapCellContents.ior(movingEntities);
+    level.mapCellContents.ior(movingEntities);
 	//corresponding movement stuff in setmovements
     return true;
 }
