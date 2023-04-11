@@ -1,4 +1,9 @@
 function makeGIF() {
+	if (state !== undefined && state.metadata.smoothscreen != null) {
+		consolePrint('<span class="errorText">GIF recorder does not work with smoothscreen, sorry. :( You could try an external GIF recording application instead.</span>');
+		return;
+	}
+
 	var randomseed = RandomGen.seed;
 	levelEditorOpened=false;
 	var targetlevel=curlevel;
@@ -26,11 +31,6 @@ function makeGIF() {
 	compile(["loadLevel",curlevel],levelString,randomseed);
 	canvasResize();
 	redraw();
-
-	if (state !== undefined && state.metadata.smoothscreen != null) {
-		consolePrint('<span class="errorText">GIF recorder does not work with smoothscreen, sorry. :( You could try an external GIF recording application instead.</span>');
-		return;
-	}
 
 	gifctx.drawImage(canvas,-xoffset,-yoffset);
   	encoder.addFrame(gifctx);
