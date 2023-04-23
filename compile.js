@@ -9,7 +9,7 @@ Before running, install node using the following command:
 >npm install
 
 Packages used:
-npm i rimraf@3 compress-images web-resource-inliner ncp gifsicle@5.3.0 concat ycssmin terser gzipper html-minifier-terser glob   
+npm i rimraf@3 compress-images web-resource-inliner ncp gifsicle@5.3.0 concat ycssmin terser gzipper html-minifier-terser glob@8
 
 */
 
@@ -50,7 +50,7 @@ console.log("Copying files")
 ncp.limit = 16;
 ncp("./src", "./bin/", function (err) {
     if (err) {
-      return console.error(err);
+        return console.error(err);
     }
     console.log("echo optimizing pngs");
 
@@ -81,12 +81,12 @@ ncp("./src", "./bin/", function (err) {
         const galGifDir = "./bin/Gallery/gifs";
 
         fs.readdirSync(galGifDir).forEach(file => {
-          if (fs.lstatSync(path.resolve(galGifDir, file)).isDirectory()) {
-          } else {
+            if (fs.lstatSync(path.resolve(galGifDir, file)).isDirectory()) {
+            } else {
                 if (path.extname(file).toLowerCase() === ".gif") {
                     execFileSync(gifsicle, ['--batch', '-O2', galGifDir + "/" + file])
+                }
             }
-          }
         });
 
         console.log('Optimizing documentation gifs');
@@ -133,44 +133,45 @@ ncp("./src", "./bin/", function (err) {
             console.log("running js minification");
 
             var files = [
-                    "./src/js/Blob.js",
-                    "./src/js/FileSaver.js",
-                    "./src/js/jsgif/LZWEncoder.js",
-                    "./src/js/jsgif/NeuQuant.js",
-                    "./src/js/jsgif/GIFEncoder.js",
-                    "./src/js/storagewrapper.js",
-                    "./src/js/debug.js",
-                    "./src/js/globalVariables.js",
-                    "./src/js/font.js",
-                    "./src/js/rng.js",
-                    "./src/js/riffwave.js",
-                    "./src/js/sfxr.js",
-                    "./src/js/codemirror/codemirror.js",
-                    "./src/js/codemirror/active-line.js",
-                    "./src/js/codemirror/dialog.js",
-                    "./src/js/codemirror/search.js",
-                    "./src/js/codemirror/searchcursor.js",
-                    "./src/js/codemirror/match-highlighter.js",
-                    "./src/js/codemirror/show-hint.js",
-                    "./src/js/codemirror/anyword-hint.js",
-                    "./src/js/codemirror/comment.js",
-                    "./src/js/colors.js",
-                    "./src/js/graphics.js",
-                    "./src/js/inputoutput.js",
-                    "./src/js/mobile.js",
-                    "./src/js/buildStandalone.js",
-                    "./src/js/engine.js",
-                    "./src/js/parser.js",
-                    "./src/js/editor.js",
-                    "./src/js/compiler.js",
-                    "./src/js/console.js",
-                    "./src/js/soundbar.js",
-                    "./src/js/toolbar.js",
-                    "./src/js/layout.js",
-                    "./src/js/addlisteners.js",
-                    "./src/js/addlisteners_editor.js",
-                    "./src/js/solver.js",
-                    "./src/js/FastPriorityQueue.js"];
+                "./src/js/Blob.js",
+                "./src/js/FileSaver.js",
+                "./src/js/jsgif/LZWEncoder.js",
+                "./src/js/jsgif/NeuQuant.js",
+                "./src/js/jsgif/GIFEncoder.js",
+                "./src/js/storagewrapper.js",
+                "./src/js/debug.js",
+                "./src/js/globalVariables.js",
+                "./src/js/font.js",
+                "./src/js/rng.js",
+                "./src/js/riffwave.js",
+                "./src/js/sfxr.js",
+                "./src/js/codemirror/codemirror.js",
+                "./src/js/codemirror/active-line.js",
+                "./src/js/codemirror/dialog.js",
+                "./src/js/codemirror/search.js",
+                "./src/js/codemirror/searchcursor.js",
+                "./src/js/codemirror/match-highlighter.js",
+                "./src/js/codemirror/show-hint.js",
+                "./src/js/codemirror/anyword-hint.js",
+                "./src/js/codemirror/comment.js",
+                "./src/js/colors.js",
+                "./src/js/graphics.js",
+                "./src/js/inputoutput.js",
+                "./src/js/mobile.js",
+                "./src/js/buildStandalone.js",
+                "./src/js/engine.js",
+                "./src/js/parser.js",
+                "./src/js/editor.js",
+                "./src/js/compiler.js",
+                "./src/js/console.js",
+                "./src/js/soundbar.js",
+                "./src/js/toolbar.js",
+                "./src/js/layout.js",
+                "./src/js/addlisteners.js",
+                "./src/js/addlisteners_editor.js",
+                "./src/js/makegif.js",
+                "./src/js/solver.js",
+                "./src/js/FastPriorityQueue.js"];
 
             var corpus = {};
             for (var i = 0; i < files.length; i++) {
@@ -181,8 +182,8 @@ ncp("./src", "./bin/", function (err) {
                 corpus,
                 {
                     sourceMap: {
-                    filename: "scripts_compiled.js",
-                    url: "scripts_compiled.js.map"
+                        filename: "scripts_compiled.js",
+                        url: "scripts_compiled.js.map"
                     }
                 });
             fs.writeFileSync('./bin/js/scripts_compiled.js', result.code);
@@ -215,8 +216,8 @@ ncp("./src", "./bin/", function (err) {
                 corpus,
                 {
                     sourceMap: {
-                    filename: "scripts_play_compiled.js",
-                    url: "scripts_play_compiled.js.map"
+                        filename: "scripts_play_compiled.js",
+                        url: "scripts_play_compiled.js.map"
                     }
                 });
             fs.writeFileSync('./bin/js/scripts_play_compiled.js', result.code);
@@ -224,7 +225,7 @@ ncp("./src", "./bin/", function (err) {
 
             await ncp("./src/js", "./bin/js/source", function (err) {
                 if (err) {
-                return console.error(err);
+                    return console.error(err);
                 }
             });
 
@@ -289,22 +290,22 @@ ncp("./src", "./bin/", function (err) {
                     //delete ./bin/standalone.html
                     fs.unlinkSync("./bin/standalone.html");
 
-            console.log("compressing html");
+                    console.log("compressing html");
 
-            glob("./bin/*.html", {}, async function (er, files) {
+                    glob("./bin/*.html", {}, async function (er, files) {
                         for (filename of files) {
                             var lines = fs.readFileSync(filename, encoding = 'utf8');
-                    var result = await htmlminify(lines);
+                            var result = await htmlminify(lines);
                             fs.writeFileSync(filename, result);
-                }
-            });
+                        }
+                    });
 
-            (async function a() {
+                    (async function a() {
 
-                files = glob.sync("./bin/**/*.js");
-                files = files.concat(glob.sync("./bin/**/*.html"));
-                files = files.concat(glob.sync("./bin/**/*.css"));
-                files = files.concat(glob.sync("./bin/**/*.txt"));
+                        files = glob.sync("./bin/**/*.js");
+                        files = files.concat(glob.sync("./bin/**/*.html"));
+                        files = files.concat(glob.sync("./bin/**/*.css"));
+                        files = files.concat(glob.sync("./bin/**/*.txt"));
 
                         for (var i=0;i<files.length;i++) {
                             var file = files[i];
@@ -312,12 +313,12 @@ ncp("./src", "./bin/", function (err) {
                             await comp.run();
                         }
 
-                console.log("Files compressed. All good!");
+                        console.log("Files compressed. All good!");
 
-            })();
+                    })();
                 });
 
-          });
+        });
 
     })();
 
