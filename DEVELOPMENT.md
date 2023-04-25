@@ -2,13 +2,13 @@
 
 ## Hello
 
-This document is about recompiling puzzlescript from source.  If you're just interested in learning about using the engine, rather than developing it, the documentation is [the documentation is here](https://www.puzzlescript.net/Documentation/documentation.html).
+This document is about recompiling PuzzlescriptNext from source.  If you're just interested in learning about using the engine, rather than developing it, [the documentation is here](https://www.puzzlescript.net/Documentation/documentation.html).
 
 ## Structure
 The structure of PuzzleScript is the following:
 
 * In the `./src/` directory you have the 'raw' version of PuzzleScript, which is itself runnable, just not compressed/optimised.
-* When you run `node ./compile.js` it generates a compressed/optimized version of PuzzleScript, which is what people see on [puzzlescript.net](https://www.puzzlescript.net/).  Running this also updates the `./src/standalone_inlined.txt` file, which is the template that is used for exported standalone PuzzleScript games.
+* When you run `node ./compile.js` it generates a compressed/optimized version of PuzzleScript, which is what people see on [puzzlescript.net](https://www.puzzlescript.net/), or wherever you are hosting this. Running this also updates the `./src/standalone_inlined.txt` file, which is the template that is used for exported standalone PuzzleScript games.
 
 ## Getting compilation working
 
@@ -27,7 +27,8 @@ node compile.js
 
 ## Standalone-exporting
 
-If you load `./src/editor.html` directly, by double-clicking it or whatever, exporting won't work because the browser sandboxing prevents the `XMLHttpRequest` for `standalone_inlined.txt` from working.  To get it to work you need to run a local http server - see for instance [this](http://www.linuxjournal.com/content/tech-tip-really-simple-http-server-python) for an example of how to set one up with python.
+If you load `./src/editor.html` directly, by double-clicking it or whatever, exporting won't work because the browser sandboxing prevents the `XMLHttpRequest` for `standalone_inlined.txt` from working.  To get it to work you need to run a local http server. 
+The Windows batch file `runserver.bat` does this using python.
 
 Also, remember you need to run `./compile.js` to generate the updated `./src/standalone_inlined.txt` template (which is generated from `./src/standalone.html`).
 

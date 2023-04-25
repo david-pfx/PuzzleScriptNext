@@ -3076,7 +3076,7 @@ function formatHomePage(state) {
     }
 }
 
-var MAX_ERRORS = 5;
+//var MAX_ERRORS = 5;
 
 function loadFile(str) {
 	var processor = new codeMirrorFn();
@@ -3090,10 +3090,10 @@ function loadFile(str) {
 		do {
 			processor.token(ss, state);
 
-			if (errorCount>MAX_ERRORS) {
-				consolePrint("too many errors, aborting compilation", true);
-				return;
-			}
+			// if (errorCount>MAX_ERRORS) {
+			// 	consolePrint("too many errors, aborting compilation", true);
+			// 	return;
+			// }
 		}		
 		while (ss.eol() === false);
 	}
@@ -3215,9 +3215,9 @@ function compile(command, text, randomseed) {
         logError('No levels found.  Add some levels!', undefined, true);
     }
 
-    if (errorCount > MAX_ERRORS) {
-        return;
-    }
+    // if (errorCount > MAX_ERRORS) {
+    //     return;
+    // }
     
 
     if (errorCount > 0) {
