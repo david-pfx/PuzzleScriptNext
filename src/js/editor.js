@@ -2,9 +2,13 @@ var code = document.getElementById('code');
 var _editorDirty = false;
 var _editorCleanState = "";
 
-var fileToOpen=getParameterByName("demo");
-if (fileToOpen!==null&&fileToOpen.length>0) {
-	tryLoadFile(fileToOpen);
+var demoFile = getParameterByName("demo");
+var urlFile=getParameterByName("url");
+if (demoFile && demoFile.length>0) {
+	tryLoadFile(`demo/${demoFile}.txt`);
+	code.value = "loading...";
+} else if (urlFile && urlFile.length>0) {
+	tryLoadFile(urlFile);
 	code.value = "loading...";
 } else {
 	var gistToLoad=getParameterByName("hack");
@@ -213,7 +217,7 @@ function tryLoadGist(id) {
 
 function tryLoadFile(fileName) {
 	var fileOpenClient = new XMLHttpRequest();
-	fileOpenClient.open('GET', 'demo/'+fileName+".txt");
+	fileOpenClient.open('GET', fileName);
 	fileOpenClient.onreadystatechange = function() {
 		
   		if(fileOpenClient.readyState!=4) {
@@ -243,7 +247,7 @@ function dropdownChange() {
  		return;
  	}
 
-	tryLoadFile(this.value);
+	tryLoadFile(`demo/@{this.value}.txt`);
 	this.selectedIndex=0;
 }
 
