@@ -3076,8 +3076,7 @@ function formatHomePage(state) {
     }
 }
 
-//var MAX_ERRORS = 5;
-
+// load and compile a new script
 function loadFile(str) {
 	var processor = new codeMirrorFn();
 	var state = processor.startState();
@@ -3089,18 +3088,11 @@ function loadFile(str) {
 		var ss = new CodeMirror.StringStream(line, 4);
 		do {
 			processor.token(ss, state);
-
-			// if (errorCount>MAX_ERRORS) {
-			// 	consolePrint("too many errors, aborting compilation", true);
-			// 	return;
-			// }
 		}		
 		while (ss.eol() === false);
 	}
 
-    // delete state.lineNumber;
-
-	generateExtraMembers(state);
+    generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
 	extractSections(state);
@@ -3148,6 +3140,7 @@ function loadFile(str) {
 
     //delete intermediate representations
 	delete state.commentLevel;
+    delete state.commentStyle;
     delete state.line_should_end;
     delete state.line_should_end_because;
     delete state.sol_after_comment;
@@ -3162,12 +3155,6 @@ function loadFile(str) {
     delete state.current_line_wip_array;
 	delete state.visitedSections;
 	delete state.loops;
-	/*
-	var lines = stripComments(str);
-	window.console.log(lines);
-	var sections = generateSections(lines);
-	window.console.log(sections);
-	var sss = generateSemiStructuredSections(sections);*/
 	return state;
 }
 
@@ -3215,11 +3202,6 @@ function compile(command, text, randomseed) {
         logError('No levels found.  Add some levels!', undefined, true);
     }
 
-    // if (errorCount > MAX_ERRORS) {
-    //     return;
-    // }
-    
-
     if (errorCount > 0) {
         if (IDE===false){
             consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
@@ -3245,7 +3227,7 @@ function compile(command, text, randomseed) {
         
         if (IDE){
             if (state.metadata.title!==undefined) {
-                document.title="PS Plus - " + state.metadata.title;
+                document.title=`${state.metadata.title} - PuzzleScript Next`;
             }
         }
     }

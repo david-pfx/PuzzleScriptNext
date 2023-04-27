@@ -221,13 +221,13 @@ var codeMirrorFn = function() {
         }
 
         logError(`You're talking about ${candname.toUpperCase()} but it's not defined anywhere.`, state.lineNumber);
-        }
+    }
 
     function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
 
         function escapeRegExp(str) {
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-    }
+        }
 
         var nameFinder;
         if (state.case_sensitive) {
@@ -353,7 +353,7 @@ var codeMirrorFn = function() {
                 synonym.lineNumber = state.lineNumber;
                 registerOriginalCaseName(state,splits[0],mixedCase,state.lineNumber);
                 state.legend_synonyms.push(synonym);
-            } else if (splits[3]==='and'){
+            } else if (splits[3]==='and') {
                 //AGGREGATE
                 var substitutor = function(n) {
                     if (!state.case_sensitive) {
@@ -362,33 +362,33 @@ var codeMirrorFn = function() {
                     if (n in state.objects) {
                         return [n];
                     }
-        for (var i=0;i<state.legend_synonyms.length;i++) {
+                    for (var i = 0; i < state.legend_synonyms.length; i++) {
                         var a = state.legend_synonyms[i];
-                        if (a[0]===n) {   
+                        if (a[0] === n) {
                             return substitutor(a[1]);
-            }
-        }
-        for (var i=0;i<state.legend_aggregates.length;i++) {
+                        }
+                    }
+                    for (var i = 0; i < state.legend_aggregates.length; i++) {
                         var a = state.legend_aggregates[i];
-                        if (a[0]===n) {                                			
-                            return [].concat.apply([],a.slice(1).map(substitutor));
-            }
-        }
-        for (var i=0;i<state.legend_properties.length;i++) {
+                        if (a[0] === n) {
+                            return [].concat.apply([], a.slice(1).map(substitutor));
+                        }
+                    }
+                    for (var i = 0; i < state.legend_properties.length; i++) {
                         var a = state.legend_properties[i];
-                        if (a[0]===n) {         
+                        if (a[0] === n) {
                             logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber);
-                            ok=false;
+                            ok = false;
                             return [n];
-            }
-        }
+                        }
+                    }
                     return [n];
                 };
 
                 var newlegend = [splits[0]].concat(substitutor(splits[2])).concat(substitutor(splits[4]));
                 for (var i = 6; i < splits.length; i += 2) {
                     newlegend = newlegend.concat(substitutor(splits[i]));
-    }
+                }
                 newlegend.lineNumber = state.lineNumber;
 
                 registerOriginalCaseName(state,newlegend[0],mixedCase,state.lineNumber);
@@ -491,15 +491,38 @@ var codeMirrorFn = function() {
         }
     }
 
-    //  var keywordRegex = new RegExp("\\b(("+cons.join(")|(")+"))$", 'i');
+    // return true and swallow any kind of comment
+    function matchComment(stream, state) {
+        stream.match(/\s*/);
+        if (stream.eol()) 
+            return state.commentLevel > 0;
+        if (!state.commentStyle && stream.match(/\/\(/), false) 
+            state.commentStyle = (stream.match('//', false) ? '//' : '()');
 
-    var fullSpriteMatrix = [
-        '00000',
-        '00000',
-        '00000',
-        '00000',
-        '00000'
-    ];
+        // handle // comments
+        if (state.commentStyle == '//'){
+            if (!stream.match('//'))
+                return false;
+            stream.match(/.*/);
+            return true;
+        }
+        // handle () comments
+        if (state.commentLevel == 0) {
+            if(!stream.match('('))
+                return false;
+            state.commentLevel = 1;
+        }
+        while (state.commentLevel > 0) {
+            stream.match(/[^\(\)]*/);
+            if (stream.eol())
+                break;
+            if (stream.match('('))
+                state.commentLevel++;
+            else if (stream.match(')'))
+                state.commentLevel--;
+        }
+        return true;
+    }
 
     return {
         copyState: function(state) {
@@ -560,6 +583,7 @@ var codeMirrorFn = function() {
               collisionLayers: collisionLayersCopy,
 
               commentLevel: state.commentLevel,
+              commentStyle: state.commentStyle,
               section: state.section,
               visitedSections: state.visitedSections.concat([]),
 
@@ -618,9 +642,9 @@ var codeMirrorFn = function() {
         },
         token: function(stream, state) {
            	var mixedCase = stream.string;
+            //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
-                
                 state.current_line_wip_array = [];
 
                 // PS+ leaves original text unchanged, which means a lot of checking in other places
@@ -629,70 +653,16 @@ var codeMirrorFn = function() {
                 }
                 state.tokenIndex=0;
                 state.line_should_end = false;
-                /*   if (state.lineNumber==undefined) {
-                        state.lineNumber=1;
-                }
-                else {
-                    state.lineNumber++;
-                }*/
-
             }
             if (state.sol_after_comment){
                 sol = true;
                 state.sol_after_comment = false;
-                }
-
-            stream.eatWhile(/[ \t]/);
-
-            ////////////////////////////////
-            // COMMENT PROCESSING BEGIN
-            ////////////////////////////////
-
-            //NESTED COMMENTS
-            var ch = stream.peek();
-            if (ch === '(' && state.tokenIndex !== -4) { // tokenIndex -4 indicates message command
-                stream.next();
-                state.commentLevel++;
-            } else if (ch === ')') {
-                stream.next();
-                if (state.commentLevel > 0) {
-                    state.commentLevel--;
-                    if (state.commentLevel === 0) {
-                        return 'comment';
-                    }
-                } else {
-                    logWarning("You're trying to close a comment here, but I can't find any opening bracket to match it? [This is highly suspicious; you probably want to fix it.]",state.lineNumber);
-                    return 'ERROR';
-                }
             }
-            if (state.commentLevel > 0) {
-                if (sol) {
-                    state.sol_after_comment = true;
-                }
-                while (true) {
-                    stream.eatWhile(/[^\(\)]+/);
 
-                    if (stream.eol()) {
-                        break;
-                    }
-
-                    ch = stream.peek();
-
-                    if (ch === '(') {
-                        state.commentLevel++;
-                    } else if (ch === ')') {
-                        state.commentLevel--;
-                    }
-                    stream.next();
-
-                    if (state.commentLevel === 0) {
-                        break;
-                    }
-                }
-                
-                if (stream.eol()){
-                    endOfLineProcessing(state,mixedCase);  
-                }
+            if (state.tokenIndex !== -4 && matchComment(stream, state)) {
+                state.sol_after_comment = state.sol_after_comment  || sol;
+                if (stream.eol())
+                    endOfLineProcessing(state, mixedCase);  
                 return 'comment';
             }
 
@@ -703,20 +673,30 @@ var codeMirrorFn = function() {
                 return blankLineHandle(state);
             }
 
+            if (state.commentStyle === '()' && stream.match(')')) {
+                logWarning("You're trying to close a comment here, but I can't find any opening bracket to match it? [This is highly suspicious; you probably want to fix it.]", state.lineNumber);
+                stream.skipToEnd();
+                return 'ERROR';
+            } else if (state.commentStyle === '//' && stream.match(/[\(\)]/)) {
+                logWarning("You're trying to use the wrong type of comment here.[This is highly suspicious; you probably want to fix it.]", state.lineNumber);
+                stream.skipToEnd();
+                return 'ERROR';
+            }
+
             if (state.line_should_end && !stream.eol()) {
                 logError('Only comments should go after ' + state.line_should_end_because + ' on a line.', state.lineNumber);
                 stream.skipToEnd();
                 return 'ERROR';
             }            
 
-                //MATCH '==="s AT START OF LINE
-                if (sol && stream.match(reg_equalsrow, true)) {
+            //MATCH '==="s AT START OF LINE
+            if (sol && stream.match(reg_equalsrow, true)) {
                 state.line_should_end = true;
                 state.line_should_end_because = 'a bunch of equals signs (\'===\')';
                     return 'EQUALSBIT';
-                }
+            }
 
-                //MATCH SECTION NAME
+            //MATCH SECTION NAME
             var sectionNameMatches = stream.match(reg_sectionNames, true);
             if (sol && sectionNameMatches ) {
 
@@ -1416,6 +1396,7 @@ var codeMirrorFn = function() {
                         if (stream.match(/[\p{Z}\s]*->[\p{Z}\s]*/u, true)) {
                             return 'ARROW';
                         }
+                        var ch = stream.peek();
                         if (ch === '[' || ch === '|' || ch === ']' || ch==='+') {
                         	if (ch!=='+') {
                             	state.tokenIndex = 1;
@@ -1750,7 +1731,8 @@ var codeMirrorFn = function() {
                 */
                 lineNumber: 0,
 
-                commentLevel: 0,
+                commentLevel: 0,  // trigger comment style
+                commentStyle: null,
 
                 section: '',
                 visitedSections: [],
