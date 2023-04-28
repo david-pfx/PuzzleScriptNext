@@ -1,0 +1,182 @@
+title Yet Another High-Res Animated Sokoban
+author Polyomino Games
+homepage www.puzzlang.org
+
+comment //
+endline ;
+
+//color_palette amiga
+background_color Blue
+animate_interval 0.3
+
+========
+OBJECTS
+========
+
+Player P; Yellow Green Red Black
+...........
+....222....
+...03030...
+....000....
+.011111110.
+.011111110.
+...11111...
+...22.22...
+...22.22...
+..333.333..
+...........
+
+
+Target T; DarkRed
+0...........0
+.0.........0.
+..0.......0..
+.....000.....
+....0.0.0....
+...0..0..0...
+...0000000...
+...0..0..0...
+....0.0.0....
+.....000.....
+..0.......0..
+.0.........0.
+0...........0
+
+Wall W; Orange DarkBrown
+001000000
+001000000
+111111111
+000001000
+000001000
+111111111
+000000010
+000000010
+111111111
+
+Crate C; Yellow DarkBrown
+...........
+..0000000..
+.001111100.
+.010111010.
+.011010110.
+.011101110.
+.011010110.
+.010111010.
+.001111100.
+..0000000..
+...........
+
+Background .; LightGrey
+Void -; Blue
+Hello H; blue yellow
+text Hello world!
+
+=======
+LEGEND
+=======
+
+@ = Crate and Target
+# = Player and Target
+
+=======
+SOUNDS
+=======
+
+player move afxT
+player cantmove afxB  48306102
+crate move 76861108 afxT
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Void
+Target
+Player, Wall, Crate
+Hello
+
+======
+RULES
+======
+
+[ >  Player | Crate ] -> [  >  Player | > Crate  ]
+
+==============
+WINCONDITIONS
+==============
+
+All Target on Crate
+
+=======
+LEVELS
+=======
+
+-WWWWW
+-W...W
+WW...W
+W.C@WW
+W.P.TW
+WWWWWW
+
+--WWWWW
+WWW...W
+W.C...W
+WTPCTWW
+WWWWWW-
+
+--WWW-
+WWW#WWWW
+W..CC..W
+W...T..W
+WWWWWWWW
+
+--WWW-
+--WTW-
+--W.WWWW
+WWWC.CTW
+WT.CPWWW
+WWWWCW-
+---WTW-
+---WWW-
+
+WWWWWWWWWWW
+W.TTTWTTT.W
+W...CPC...W
+W.CCWWWCC.W
+W...W-W...W
+WWWWW-WWWWW
+
+--WWWWW-
+WWW...W-
+WTPC..W-
+WWW.CTW-
+WTWWC.W-
+W.W.T.WW
+WC.@CCTW
+W...T..W
+WWWWWWWW
+
+--WWWWW-
+-W....W-
+W.T.@.W-
+W.T.C..W
+W.W@@W.W
+W..@P@.W
+-W.CC.W-
+-W....W-
+--WWWW-
+
+----WWWWW-
+----W...W-
+----WC..W-
+--WWW..CWW-
+--W..C.C.W-
+WWW.W.WW.W---WWWWWW
+W...W.WW.WWWWW..TTW
+W.C..C..........TTW
+WWWWW.WWW.WPWW..TTW
+----W.....WWWWWWWWW
+----WWWWWWW-
+
+
