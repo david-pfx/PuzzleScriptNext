@@ -524,6 +524,7 @@ var codeMirrorFn = function() {
         return true;
     }
 
+    // return value is an object containing a specific set of named functions
     return {
         copyState: function(state) {
             var objectsCopy = {};
@@ -640,6 +641,8 @@ var codeMirrorFn = function() {
                     }
             }
         },
+        // function is called to successively find tokens and return a token type in a source code line
+        // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
            	var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
@@ -693,531 +696,525 @@ var codeMirrorFn = function() {
             if (sol && stream.match(reg_equalsrow, true)) {
                 state.line_should_end = true;
                 state.line_should_end_because = 'a bunch of equals signs (\'===\')';
-                    return 'EQUALSBIT';
+                return 'EQUALSBIT';
             }
 
             //MATCH SECTION NAME
             var sectionNameMatches = stream.match(reg_sectionNames, true);
-            if (sol && sectionNameMatches ) {
+            if (sol && sectionNameMatches) {
 
                 state.section = sectionNameMatches[0].trim().toLowerCase();
-                    if (state.visitedSections.indexOf(state.section) >= 0) {
+                if (state.visitedSections.indexOf(state.section) >= 0) {
                     logError('cannot duplicate sections (you tried to duplicate \"' + state.section.toUpperCase() + '").', state.lineNumber);
-                    }
+                }
                 state.line_should_end = true;
                 state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
-                    state.visitedSections.push(state.section);
-                    var sectionIndex = sectionNames.indexOf(state.section);
-                // PS+
+                state.visitedSections.push(state.section);
+                var sectionIndex = sectionNames.indexOf(state.section);
+
                 var name_plus = state.case_sensitive ? state.section : state.section.toUpperCase()
-                    if (sectionIndex == 0) {
-                        state.objects_section = 0;
-                        if (state.visitedSections.length > 1) {
+                if (sectionIndex == 0) {
+                    state.objects_section = 0;
+                    if (state.visitedSections.length > 1) {
                         logError('section "' + name_plus + '" must be the first section', state.lineNumber);
-                        }
-                    } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
-                        if (sectionIndex===-1) {
+                    }
+                } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
+                    if (sectionIndex===-1) {
                         logError('no such section as "' + name_plus + '".', state.lineNumber);
-                        } else {
+                    } else {
                         logError('section "' + name_plus + '" is out of order, must follow  "' + sectionNames[sectionIndex - 1].toUpperCase() + '" (or it could be that the section "'+sectionNames[sectionIndex - 1].toUpperCase()+`"is just missing totally.  You have to include all section headings, even if the section itself is empty).`, state.lineNumber);                            
-                        }
-                    }
-
-                    if (state.section === 'sounds') {
-                        //populate names from rules
-                        for (var n in state.objects) {
-                            if (state.objects.hasOwnProperty(n)) {
-/*                                if (state.names.indexOf(n)!==-1) {
-                                    logError('Object "'+n+'" has been declared to be multiple different things',state.objects[n].lineNumber);
-                                }*/
-                                state.names.push(n);
-                            }
-                        }
-                        //populate names from legends
-                        for (var i = 0; i < state.legend_synonyms.length; i++) {
-                            var n = state.legend_synonyms[i][0];
-                            /*
-                            if (state.names.indexOf(n)!==-1) {
-                                logError('Object "'+n+'" has been declared to be multiple different things',state.legend_synonyms[i].lineNumber);
-                            }
-                            */
-                            state.names.push(n);
-                        }
-                        for (var i = 0; i < state.legend_aggregates.length; i++) {
-                            var n = state.legend_aggregates[i][0];
-                            /*
-                            if (state.names.indexOf(n)!==-1) {
-                                logError('Object "'+n+'" has been declared to be multiple different things',state.legend_aggregates[i].lineNumber);
-                            }
-                            */
-                            state.names.push(n);
-                        }
-                        for (var i = 0; i < state.legend_properties.length; i++) {
-                            var n = state.legend_properties[i][0];
-                            /*
-                            if (state.names.indexOf(n)!==-1) {
-                                logError('Object "'+n+'" has been declared to be multiple different things',state.legend_properties[i].lineNumber);
-                            }                           
-                            */ 
-                            state.names.push(n);
-                        }
-                    }
-                    else if (state.section === 'levels') {
-                        //populate character abbreviations
-                        for (var n in state.objects) {
-                            if (state.objects.hasOwnProperty(n) && n.length == 1) {
-                                state.abbrevNames.push(n);
-                            }
-                        }
-
-                        for (var i = 0; i < state.legend_synonyms.length; i++) {
-                            if (state.legend_synonyms[i][0].length == 1) {
-                                state.abbrevNames.push(state.legend_synonyms[i][0]);
-                            }
-                        }
-                        for (var i = 0; i < state.legend_aggregates.length; i++) {
-                            if (state.legend_aggregates[i][0].length == 1) {
-                                state.abbrevNames.push(state.legend_aggregates[i][0]);
-                            }
-                        }
-                    }
-                    return 'HEADER';
-                } else {
-                    if (state.section === undefined) {
-                        logError('must start with section "OBJECTS"', state.lineNumber);
                     }
                 }
 
-                if (stream.eol()) {
+                if (state.section === 'sounds') {
+                    //populate names from rules
+                    for (var n in state.objects) {
+                        if (state.objects.hasOwnProperty(n)) {
+                            state.names.push(n);
+                        }
+                    }
+                    //populate names from legends
+                    for (var i = 0; i < state.legend_synonyms.length; i++) {
+                        var n = state.legend_synonyms[i][0];
+                        state.names.push(n);
+                    }
+                    for (var i = 0; i < state.legend_aggregates.length; i++) {
+                        var n = state.legend_aggregates[i][0];
+                        state.names.push(n);
+                    }
+                    for (var i = 0; i < state.legend_properties.length; i++) {
+                        var n = state.legend_properties[i][0];
+                        state.names.push(n);
+                    }
+                }
+                else if (state.section === 'levels') {
+                    //populate character abbreviations
+                    for (var n in state.objects) {
+                        if (state.objects.hasOwnProperty(n) && n.length == 1) {
+                            state.abbrevNames.push(n);
+                        }
+                    }
+
+                    for (var i = 0; i < state.legend_synonyms.length; i++) {
+                        if (state.legend_synonyms[i][0].length == 1) {
+                            state.abbrevNames.push(state.legend_synonyms[i][0]);
+                        }
+                    }
+                    for (var i = 0; i < state.legend_aggregates.length; i++) {
+                        if (state.legend_aggregates[i][0].length == 1) {
+                            state.abbrevNames.push(state.legend_aggregates[i][0]);
+                        }
+                    }
+                }
+                return 'HEADER';
+            } else {
+                if (state.section === undefined) {
+                    logError('must start with section "OBJECTS"', state.lineNumber);
+                }
+            }
+
+            if (stream.eol()) {
             
-            endOfLineProcessing(state,mixedCase);  
-                    return null;
-                }
+                endOfLineProcessing(state,mixedCase);  
+                return null;
+            }
 
-                //if color is set, try to set matrix
-                //if can't set matrix, try to parse name
-                //if color is not set, try to parse color
-                switch (state.section) {
-                case 'objects':
-                    {
-						var tryParseName = function() {
-                            //LOOK FOR NAME
-                            var match_name = sol ? stream.match(reg_name, true) : stream.match(/[^\p{Z}\s\()]+[\p{Z}\s]*/u,true);
-                            if (match_name == null) {
-                                stream.match(reg_notcommentstart, true);
-                                if (stream.pos>0){                                
-                                logWarning(`Unknown junk in object section (possibly: sprites have to be ${state.sprite_size} pixels wide and $(state.sprite_size) pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).`,state.lineNumber);
-                                }
-                                return 'ERROR';
-                            } else {
-                                var candname = match_name[0].trim();
-                                if (state.objects[candname] !== undefined) {
+            //if color is set, try to set matrix
+            //if can't set matrix, try to parse name
+            //if color is not set, try to parse color
+            switch (state.section) {
+                case 'objects': {
+                    // parse and store an object name, return token type
+                    var tryParseName = function () {
+                        //LOOK FOR NAME
+                        var match_name = sol ? stream.match(reg_name, true) : stream.match(/[^\p{Z}\s\()]+[\p{Z}\s]*/u, true);
+                        if (match_name == null) {
+                            stream.match(reg_notcommentstart, true);
+                            if (stream.pos > 0) {
+                                logWarning(`Unknown junk in object section (possibly: sprites have to be ${state.sprite_size} pixels wide and $(state.sprite_size) pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).`, state.lineNumber);
+                            }
+                            return 'ERROR';
+                        } else {
+                            var candname = match_name[0].trim();
+                            if (state.objects[candname] !== undefined) {
                                 // PS+ to fix for case_sensitive
                                 logError('Object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" defined multiple times.', state.lineNumber);
+                                return 'ERROR';
+                            }
+                            for (var i = 0; i < state.legend_synonyms.length; i++) {
+                                var entry = state.legend_synonyms[i];
+                                if (entry[0] == candname) {
+                                    logError('Name "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" already in use.', state.lineNumber);
+                                }
+                            }
+                            if (keyword_array.indexOf(candname) >= 0) {
+                                logWarning('You named an object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '", but this is a keyword. Don\'t do that!', state.lineNumber);
+                            }
+
+                            if (sol) {
+                                state.objects_candname = candname;
+                                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+                                state.objects[state.objects_candname] = {
+                                    lineNumber: state.lineNumber,
+                                    colors: [],
+                                    spritematrix: [],
+                                    cloneSprite: "" // PS+
+                                };
+
+                            } else {
+                                // PS+ sprite copy
+                                //console.log(candname +" == "+ state.objects_candname);
+                                if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
+                                    var cloneName = candname.substring(5);
+                                    if (state.objects[state.objects_candname].cloneSprite != "") {
+                                        logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
+                                        return 'ERROR';
+                                    } else if (cloneName == state.objects_candname) {
+                                        logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
+                                        return 'ERROR';
+                                    } else {
+                                        state.objects[state.objects_candname].cloneSprite = cloneName;
+                                        //state.objects_section = 1;
+                                        return "SPRITEPARENT";
+                                    }
+                                }
+                                //set up alias
+                                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+                                var synonym = [candname, state.objects_candname];
+                                synonym.lineNumber = state.lineNumber;
+                                state.legend_synonyms.push(synonym);
+                            }
+                            if (state.case_sensitive) {
+                                if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
+                                    // setup aliases for special objects
+                                    var synonym = [candname.toLowerCase(), state.objects_candname];
+                                    synonym.lineNumber = state.lineNumber;
+                                    state.legend_synonyms.push(synonym);
+                                }
+                            }
+
+                            state.objects_section = 1;
+                            return 'NAME';
+                        }
+                    };
+
+                    if (sol && state.objects_section == 2) {
+                        state.objects_section = 3;
+                    }
+
+                    if (sol && state.objects_section == 1) {
+                        state.objects_section = 2;
+                    }
+
+                    switch (state.objects_section) {
+                    case 0:
+                    case 1:
+                        {
+                            state.objects_spritematrix = [];
+                            return tryParseName();
+                            break;
+                        }
+                    case 2:
+                        {
+                            //LOOK FOR COLOR
+                        // PS+ to fix                             
+                            stream.string = stream.string.toLowerCase();
+                            state.tokenIndex = 0;
+
+                            var match_color = stream.match(reg_color, true);
+                            if (match_color == null) {
+                                var str = stream.match(reg_name, true) || stream.match(reg_notcommentstart, true);
+                            // PS+ to fix                             
+                            logError('Was looking for color for object '
+                                + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
+                                + ', got "' + str + '" instead.', state.lineNumber);
+                                return null;
+                            } else {
+                                if (state.objects[state.objects_candname].colors === undefined) {
+                                    state.objects[state.objects_candname].colors = [match_color[0].trim()];
+                                } else {
+                                    state.objects[state.objects_candname].colors.push(match_color[0].trim());
+                                }
+
+                                var candcol = match_color[0].trim().toLowerCase();
+                                if (candcol in colorPalettes.arnecolors) {
+                                    return 'COLOR COLOR-' + candcol.toUpperCase();
+                                } else if (candcol==="transparent") {
+                                    return 'COLOR FADECOLOR';
+                                } else {
+                                    return 'MULTICOLOR'+match_color[0];
+                                }
+                            }
+                            break;
+                        }
+                    case 3:
+                        {
+                            var ch = stream.eat(/[.\d]/);
+                            var spritematrix = state.objects_spritematrix;
+                            if (ch === undefined) {
+                                if (spritematrix.length === 0) {
+                                    return tryParseName();
+                                }
+
+                            logError('Unknown junk in spritematrix for object ' 
+                                + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
+                                + '.', state.lineNumber);
+                                stream.match(reg_notcommentstart, true);
+                                return null;
+                            }
+
+                            if (sol) {
+                                spritematrix.push('');
+                            }
+
+                            var o = state.objects[state.objects_candname];
+
+                            spritematrix[spritematrix.length - 1] += ch;
+                        // PS+ to fix for sprite size
+                            if (spritematrix[spritematrix.length-1].length>state.sprite_size){
+                            logWarning('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
+                                stream.match(reg_notcommentstart, true);
+                                return null;
+                            }
+                            o.spritematrix = state.objects_spritematrix;
+
+                            if (spritematrix.length === state.sprite_size && spritematrix[spritematrix.length - 1].length == state.sprite_size) {
+                                state.objects_section = 0;
+                            }
+
+                            if (ch!=='.') {
+                                var n = parseInt(ch);
+                                if (n>=o.colors.length) {
+                                // PS+ to fix?
+                                logError("Trying to access color number "+n+" from the color palette of sprite " +state.objects_candname.toUpperCase()+", but there are only "+o.colors.length+" defined in it.",state.lineNumber);
                                     return 'ERROR';
                                 }
-                                for (var i=0;i<state.legend_synonyms.length;i++) {
-                                	var entry = state.legend_synonyms[i];
-                                	if (entry[0]==candname) {
-                                    logError('Name "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" already in use.', state.lineNumber);
-                                	}
+                                if (isNaN(n)) {
+                                // PS+ to fix?
+                                logError('Invalid character "' + ch + '" in sprite for ' + state.objects_candname.toUpperCase(), state.lineNumber);
+                                    return 'ERROR';
                                 }
-                                if (keyword_array.indexOf(candname)>=0) {
-                                logWarning('You named an object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '", but this is a keyword. Don\'t do that!', state.lineNumber);
-                                }
-
-                                if (sol) {
-                                	state.objects_candname = candname;
-                            registerOriginalCaseName(state,candname,mixedCase,state.lineNumber);
-                                	state.objects[state.objects_candname] = {
-										                                	lineNumber: state.lineNumber,
-										                                	colors: [],
-                                                                            spritematrix: [],
-                                                                        cloneSprite: "" // PS+
-										                                };
-
-								} else {
-                                // PS+ sprite copy
-                                    //console.log(candname +" == "+ state.objects_candname);
-                                    if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
-                                        var cloneName = candname.substring(5);
-                                        if (state.objects[state.objects_candname].cloneSprite != "") {
-                                            logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
-                                            return 'ERROR';
-                                        } else if (cloneName == state.objects_candname) {
-                                            logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
-                                            return 'ERROR';
-                                        } else {
-                                            state.objects[state.objects_candname].cloneSprite = cloneName;
-                                            //state.objects_section = 1;
-                                            return "SPRITEPARENT";
-                                        }
-                                    }
-									//set up alias
-                            registerOriginalCaseName(state,candname,mixedCase,state.lineNumber);
-									var synonym = [candname,state.objects_candname];
-									synonym.lineNumber = state.lineNumber;
-									state.legend_synonyms.push(synonym);
-                                }
-                            // PS+
-                                if(state.case_sensitive) {
-                                    if((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
-                                        // setup aliases for special objects
-                                        var synonym = [candname.toLowerCase(),state.objects_candname];
-                                        synonym.lineNumber = state.lineNumber;
-                                        state.legend_synonyms.push(synonym);
-                                    }
-                                }
-
-                                state.objects_section = 1;
-                                return 'NAME';
+                                return 'COLOR BOLDCOLOR COLOR-' + o.colors[n].toUpperCase();
                             }
-                        };
-
-                        if (sol && state.objects_section == 2) {
-                            state.objects_section = 3;
+                            return 'COLOR FADECOLOR';
                         }
-
-                        if (sol && state.objects_section == 1) {
-                            state.objects_section = 2;
-                        }
-
-                        switch (state.objects_section) {
-                        case 0:
-                        case 1:
-                            {
-                                state.objects_spritematrix = [];
-                                return tryParseName();
-                                break;
-                            }
-                        case 2:
-                            {
-                                //LOOK FOR COLOR
-                            // PS+ to fix                             
-                                stream.string = stream.string.toLowerCase();
-                                state.tokenIndex = 0;
-
-                                var match_color = stream.match(reg_color, true);
-                                if (match_color == null) {
-                                    var str = stream.match(reg_name, true) || stream.match(reg_notcommentstart, true);
-                                // PS+ to fix                             
-                                logError('Was looking for color for object '
-                                    + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
-                                    + ', got "' + str + '" instead.', state.lineNumber);
-                                    return null;
-                                } else {
-                                    if (state.objects[state.objects_candname].colors === undefined) {
-                                        state.objects[state.objects_candname].colors = [match_color[0].trim()];
-                                    } else {
-                                        state.objects[state.objects_candname].colors.push(match_color[0].trim());
-                                    }
-
-                                    var candcol = match_color[0].trim().toLowerCase();
-                                    if (candcol in colorPalettes.arnecolors) {
-                                        return 'COLOR COLOR-' + candcol.toUpperCase();
-                                    } else if (candcol==="transparent") {
-                                        return 'COLOR FADECOLOR';
-                                    } else {
-                                        return 'MULTICOLOR'+match_color[0];
-                                    }
-                                }
-                                break;
-                            }
-                        case 3:
-                            {
-                                var ch = stream.eat(/[.\d]/);
-                                var spritematrix = state.objects_spritematrix;
-                                if (ch === undefined) {
-                                    if (spritematrix.length === 0) {
-                                        return tryParseName();
-                                    }
-                                // PS+ to fix                             
-                                logError('Unknown junk in spritematrix for object ' 
-                                    + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
-                                    + '.', state.lineNumber);
-                                    stream.match(reg_notcommentstart, true);
-                                    return null;
-                                }
-
-                                if (sol) {
-                                    spritematrix.push('');
-                                }
-
-                                var o = state.objects[state.objects_candname];
-
-                                spritematrix[spritematrix.length - 1] += ch;
-                            // PS+ to fix for sprite size
-                                if (spritematrix[spritematrix.length-1].length>state.sprite_size){
-                                logWarning('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
-                                    stream.match(reg_notcommentstart, true);
-                                    return null;
-                                }
-                                o.spritematrix = state.objects_spritematrix;
-                            // PS+ to fix                             
-                                if (spritematrix.length === state.sprite_size && spritematrix[spritematrix.length - 1].length == state.sprite_size) {
-                                    state.objects_section = 0;
-                                }
-
-                                if (ch!=='.') {
-                                    var n = parseInt(ch);
-                                    if (n>=o.colors.length) {
-                                    // PS+ to fix?
-                                    logError("Trying to access color number "+n+" from the color palette of sprite " +state.objects_candname.toUpperCase()+", but there are only "+o.colors.length+" defined in it.",state.lineNumber);
-                                        return 'ERROR';
-                                    }
-                                    if (isNaN(n)) {
-                                    // PS+ to fix?
-                                    logError('Invalid character "' + ch + '" in sprite for ' + state.objects_candname.toUpperCase(), state.lineNumber);
-                                        return 'ERROR';
-                                    }
-                                    return 'COLOR BOLDCOLOR COLOR-' + o.colors[n].toUpperCase();
-                                }
-                                return 'COLOR FADECOLOR';
-                            }
-                        default:
-                        	{
-                        	window.console.logError("EEK shouldn't get here.");
-                        	}
-                        }
-                        break;
-                    }
-                case 'legend':
-                    {
-                var resultToken="";
-                var match_name=null;
-                if (state.tokenIndex === 0) {
-                    match_name=stream.match(/[^=\p{Z}\s\(]*(\p{Z}\s)*/u, true);
-                    var new_name=match_name[0].trim();
-                    
-                    if (wordAlreadyDeclared(state,new_name))
-                    {
-                        resultToken =  'ERROR';
-                    } else {
-                        resultToken =  'NAME';    
-                        }
-
-                    //if name already declared, we have a problem                            
-                    state.tokenIndex++;
-                } else if (state.tokenIndex === 1) {
-                    match_name = stream.match(/=/u,true);                              
-                    if (match_name===null||match_name[0].trim()!=="="){
-                        logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
-                        stream.match(reg_notcommentstart, true);
-                        resultToken = 'ERROR';
-                        match_name=["ERROR"];//just to reduce the chance of crashes
-                        }
-                    stream.match(/[\p{Z}\s]*/u, true);
-                    state.tokenIndex++;
-                    resultToken = 'ASSSIGNMENT';
-                } else if (state.tokenIndex >= 3 && ((state.tokenIndex % 2) === 1)) {
-                    //matches AND/OR
-                    match_name = stream.match(reg_name, true);
-                    if (match_name === null) {
-                        logError("Something bad's happening in the LEGEND", state.lineNumber);
-                        match=stream.match(reg_notcommentstart, true);
-                        resultToken = 'ERROR';
-                    } else {
-                        var candname = match_name[0].trim();
-                        if (candname === "and" || candname === "or"){                                             
-                            resultToken =  'LOGICWORD';
-                            if (state.tokenIndex>=5){
-                                if (candname !== state.current_line_wip_array[3]){
-                                    logError("Hey! You can't go mixing ANDs and ORs in a single legend entry.", state.lineNumber);
-                                    resultToken = 'ERROR';
-                        }
-                            }
-                        } else {
-                            logError(`Expected and 'AND' or an 'OR' here, but got ${candname.toUpperCase()} instead. In the legend, define new items using the equals symbol - declarations must look like 'A = B' or 'A = B and C' or 'A = B or C'.`, state.lineNumber);
-                            resultToken = 'ERROR';
-                            // match_name=["and"];//just to reduce the chance of crashes
-                        }
-                    }
-                    state.tokenIndex++;
-                }
-                else {
-                    match_name = stream.match(reg_name, true);
-                    if (match_name === null) {
-                        logError("Something bad's happening in the LEGEND", state.lineNumber);
-                        match=stream.match(reg_notcommentstart, true);
-                        resultToken = 'ERROR';
-                    } else {
-                        var candname = match_name[0].trim();
-                        if (wordAlreadyDeclared(state,candname))
+                    default:
                         {
-                            resultToken =  'NAME';    
-                        } else {
+                        window.console.logError("EEK shouldn't get here.");
+                        }
+                    }
+                    break;
+                }
+
+                case 'legend': {
+                    var resultToken="";
+                    var match_name=null;
+                    if (state.tokenIndex === 0) {
+                        match_name=stream.match(/[^=\p{Z}\s\(]*(\p{Z}\s)*/u, true);
+                        var new_name=match_name[0].trim();
+                        
+                        if (wordAlreadyDeclared(state,new_name))
+                        {
                             resultToken =  'ERROR';
-                        }
-                            state.tokenIndex++;
-
-                    }
-                }
-
-                if (match_name!==null){
-                    state.current_line_wip_array.push(match_name[0].trim());
-                }
-                
-                if (stream.eol()){
-                    processLegendLine(state,mixedCase);
-                        } 
-
-                return resultToken;
-                break;
-                       		}
-                case 'sounds':
-            {
-                /*
-                SOUND DEFINITION:
-                    SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
-                    OBJECT_NAME
-                        NONDIRECTIONAL_VERB ~ INT
-                        DIRECTIONAL_VERB
-                            INT
-                            DIR+ ~ INT
-                */
-                var tokentype="";
-
-                if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
-                    // match=stream.match(reg_notcommentstart, true);
-                    //if there was an error earlier on the line just try to do greedy matching here
-                    var match = null;
-
-                    //events
-                    if (match === null) { 
-                        match = stream.match(reg_soundevents, true);
-                        if (match !== null) { 
-                            tokentype = 'SOUNDEVENT';
-                        }
-                    }
-
-                    //verbs
-                    if (match === null) { 
-                        match = stream.match(reg_soundverbs, true);
-                        if (match !== null) {
-                            tokentype = 'SOUNDVERB';
-                        }
-                    }
-                    //directions
-                    if (match === null) { 
-                        match = stream.match(reg_sounddirectionindicators, true);
-                        if (match !== null) {
-                            tokentype = 'DIRECTION';
-                        }
-                    }
-
-                    //sound seeds
-                    if (match === null) {                                           
-                        var match = stream.match(reg_soundseed, true);
-                        if (match !== null)
-                        {
-                            tokentype = 'SOUND';
-                        }
-                    }
-
-                    //objects
-                    if (match === null) { 
-                        match = stream.match(reg_name, true);
-                        if (match !== null) {
-                            if (wordAlreadyDeclared(state, match[0])){
-                                tokentype = 'NAME';
-                       	} else {
-                                tokentype = 'ERROR';                   
-                        }
-                        }                          
-                    }
-
-                    //error
-                    if (match === null) { 
-                        match = errorFallbackMatchToken(stream);
-                        tokentype = 'ERROR';                            
-                    }
-
-
-                } else if (state.current_line_wip_array.length===0){
-                    //can be OBJECT_NAME or SOUNDEVENT
-                    var match = stream.match(reg_soundevents, true);
-                    if (match == null){
-                        match = stream.match(reg_name, true);
-                        if (match == null ){
-                            tokentype = 'ERROR';
-                            match=errorFallbackMatchToken(stream);
-                            state.current_line_wip_array.push("ERROR");
-                            logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
                         } else {
-                            var matched_name = match[0].trim();
-                            if (!wordAlreadyDeclared(state, matched_name)){                 
+                            resultToken =  'NAME';    
+                            }
+
+                        //if name already declared, we have a problem                            
+                        state.tokenIndex++;
+                    } else if (state.tokenIndex === 1) {
+                        match_name = stream.match(/=/u,true);                              
+                        if (match_name===null||match_name[0].trim()!=="="){
+                            logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
+                            stream.match(reg_notcommentstart, true);
+                            resultToken = 'ERROR';
+                            match_name=["ERROR"];//just to reduce the chance of crashes
+                            }
+                        stream.match(/[\p{Z}\s]*/u, true);
+                        state.tokenIndex++;
+                        resultToken = 'ASSSIGNMENT';
+                    } else if (state.tokenIndex >= 3 && ((state.tokenIndex % 2) === 1)) {
+                        //matches AND/OR
+                        match_name = stream.match(reg_name, true);
+                        if (match_name === null) {
+                            logError("Something bad's happening in the LEGEND", state.lineNumber);
+                            match=stream.match(reg_notcommentstart, true);
+                            resultToken = 'ERROR';
+                        } else {
+                            var candname = match_name[0].trim();
+                            if (candname === "and" || candname === "or"){                                             
+                                resultToken =  'LOGICWORD';
+                                if (state.tokenIndex>=5){
+                                    if (candname !== state.current_line_wip_array[3]){
+                                        logError("Hey! You can't go mixing ANDs and ORs in a single legend entry.", state.lineNumber);
+                                        resultToken = 'ERROR';
+                            }
+                                }
+                            } else {
+                                logError(`Expected and 'AND' or an 'OR' here, but got ${candname.toUpperCase()} instead. In the legend, define new items using the equals symbol - declarations must look like 'A = B' or 'A = B and C' or 'A = B or C'.`, state.lineNumber);
+                                resultToken = 'ERROR';
+                                // match_name=["and"];//just to reduce the chance of crashes
+                            }
+                        }
+                        state.tokenIndex++;
+                    } else {
+                        match_name = stream.match(reg_name, true);
+                        if (match_name === null) {
+                            logError("Something bad's happening in the LEGEND", state.lineNumber);
+                            match=stream.match(reg_notcommentstart, true);
+                            resultToken = 'ERROR';
+                        } else {
+                            var candname = match_name[0].trim();
+                            if (wordAlreadyDeclared(state,candname))
+                            {
+                                resultToken =  'NAME';    
+                            } else {
+                                resultToken =  'ERROR';
+                            }
+                                state.tokenIndex++;
+
+                        }
+                    }
+
+                    if (match_name!==null) {
+                        state.current_line_wip_array.push(match_name[0].trim());
+                    }
+                    
+                    if (stream.eol()) {
+                        processLegendLine(state,mixedCase);
+                    } 
+
+                    return resultToken;
+                    break;
+                }
+
+                case 'sounds': {
+                    /*
+                    SOUND DEFINITION:
+                        SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
+                        OBJECT_NAME
+                            NONDIRECTIONAL_VERB ~ INT
+                            DIRECTIONAL_VERB
+                                INT
+                                DIR+ ~ INT
+                    */
+                    var tokentype="";
+
+                    if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
+                        // match=stream.match(reg_notcommentstart, true);
+                        //if there was an error earlier on the line just try to do greedy matching here
+                        var match = null;
+
+                        //events
+                        if (match === null) { 
+                            match = stream.match(reg_soundevents, true);
+                            if (match !== null) { 
+                                tokentype = 'SOUNDEVENT';
+                            }
+                        }
+
+                        //verbs
+                        if (match === null) { 
+                            match = stream.match(reg_soundverbs, true);
+                            if (match !== null) {
+                                tokentype = 'SOUNDVERB';
+                            }
+                        }
+                        //directions
+                        if (match === null) { 
+                            match = stream.match(reg_sounddirectionindicators, true);
+                            if (match !== null) {
+                                tokentype = 'DIRECTION';
+                            }
+                        }
+
+                        //sound seeds
+                        if (match === null) {                                           
+                            var match = stream.match(reg_soundseed, true);
+                            if (match !== null)
+                            {
+                                tokentype = 'SOUND';
+                            }
+                        }
+
+                        //objects
+                        if (match === null) { 
+                            match = stream.match(reg_name, true);
+                            if (match !== null) {
+                                if (wordAlreadyDeclared(state, match[0])){
+                                    tokentype = 'NAME';
+                            } else {
+                                    tokentype = 'ERROR';                   
+                            }
+                            }                          
+                        }
+
+                        //error
+                        if (match === null) { 
+                            match = errorFallbackMatchToken(stream);
+                            tokentype = 'ERROR';                            
+                        }
+
+                    } else if (state.current_line_wip_array.length===0){
+                        //can be OBJECT_NAME or SOUNDEVENT
+                        var match = stream.match(reg_soundevents, true);
+                        if (match == null){
+                            match = stream.match(reg_name, true);
+                            if (match == null ){
+                                tokentype = 'ERROR';
+                                match=errorFallbackMatchToken(stream);
+                                state.current_line_wip_array.push("ERROR");
+                                logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+                            } else {
+                                var matched_name = match[0].trim();
+                                if (!wordAlreadyDeclared(state, matched_name)){                 
+                                    tokentype = 'ERROR';
+                                    state.current_line_wip_array.push("ERROR");
+                                    logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
+                                } else {                                    
+                                    tokentype = 'NAME';
+                                    state.current_line_wip_array.push([matched_name,tokentype]);    
+                                    state.tokenIndex++;
+                                }
+                            }
+                        } else {
+                            tokentype = 'SOUNDEVENT';
+                            state.current_line_wip_array.push([match[0].trim(),tokentype]);  
+                            state.tokenIndex++;  
+                        }
+
+                    } else if (state.current_line_wip_array.length===1) {
+                        var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
+
+                        if (is_soundevent){                            
+                            var match = stream.match(reg_soundseed, true);
+                            if (match !== null)
+                            {
+                                tokentype = 'SOUND';
+                                state.current_line_wip_array.push([match[0].trim(),tokentype]);
+                                state.tokenIndex++;
+                            } else {
+                                match=errorFallbackMatchToken(stream);
+                                logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
                                 tokentype = 'ERROR';
                                 state.current_line_wip_array.push("ERROR");
-                                logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
-                            } else {                                    
-                                tokentype = 'NAME';
-                                state.current_line_wip_array.push([matched_name,tokentype]);    
-                                state.tokenIndex++;
                             }
+                        } else {
+                            //[0] is object name
+                            //it's a sound verb
+                            var match = stream.match(reg_soundverbs, true);
+                            if (match !== null){
+                                tokentype = 'SOUNDVERB';
+                                state.current_line_wip_array.push([match[0].trim(),tokentype]);
+                                state.tokenIndex++;
+                            } else {
+                                match=errorFallbackMatchToken(stream);
+                                logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+                                tokentype = 'ERROR';
+                                state.current_line_wip_array.push("ERROR");
+                            }
+                            
                         }
                     } else {
-                        tokentype = 'SOUNDEVENT';
-                        state.current_line_wip_array.push([match[0].trim(),tokentype]);  
-                        state.tokenIndex++;  
-                    }
-
-                } else if (state.current_line_wip_array.length===1) {
-                    var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-
-                    if (is_soundevent){                            
-                        var match = stream.match(reg_soundseed, true);
-                        if (match !== null)
-                        {
-                            tokentype = 'SOUND';
-                            state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                            state.tokenIndex++;
-                        } else {
-                            match=errorFallbackMatchToken(stream);
-                            logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                            tokentype = 'ERROR';
-                            state.current_line_wip_array.push("ERROR");
-                        }
-                    } else {
-                        //[0] is object name
-                        //it's a sound verb
-                        var match = stream.match(reg_soundverbs, true);
-                        if (match !== null){
-                            tokentype = 'SOUNDVERB';
-                            state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                            state.tokenIndex++;
-                        } else {
-                            match=errorFallbackMatchToken(stream);
-                            logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                            tokentype = 'ERROR';
-                            state.current_line_wip_array.push("ERROR");
-                        }
-                        
-                    }
-                } else {
-                    var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-                    if (is_soundevent){
-                        match=errorFallbackMatchToken(stream);
-                        logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                        tokentype = 'ERROR';
-                        state.current_line_wip_array.push("ERROR");
-                    } else {                            
-                        //if there's a seed on the right, any additional content is superfluous
-                        var is_seedonright = state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND';
-                        if (is_seedonright){
+                        var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
+                        if (is_soundevent){
                             match=errorFallbackMatchToken(stream);
                             logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
                             tokentype = 'ERROR';
                             state.current_line_wip_array.push("ERROR");
-                        } else {
-                            var directional_verb = soundverbs_directional.indexOf(state.current_line_wip_array[1][0])>=0;    
-                            if (directional_verb){  
-                                //match seed or direction                          
-                                var is_direction = stream.match(reg_sounddirectionindicators, true);
-                                if (is_direction !== null){
-                                    tokentype = 'DIRECTION';
-                                    state.current_line_wip_array.push([is_direction[0].trim(),tokentype]);
-                                    state.tokenIndex++;
+                        } else {                            
+                            //if there's a seed on the right, any additional content is superfluous
+                            var is_seedonright = state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND';
+                            if (is_seedonright){
+                                match=errorFallbackMatchToken(stream);
+                                logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
+                                tokentype = 'ERROR';
+                                state.current_line_wip_array.push("ERROR");
+                            } else {
+                                var directional_verb = soundverbs_directional.indexOf(state.current_line_wip_array[1][0])>=0;    
+                                if (directional_verb){  
+                                    //match seed or direction                          
+                                    var is_direction = stream.match(reg_sounddirectionindicators, true);
+                                    if (is_direction !== null){
+                                        tokentype = 'DIRECTION';
+                                        state.current_line_wip_array.push([is_direction[0].trim(),tokentype]);
+                                        state.tokenIndex++;
+                                    } else {
+                                        var is_seed = stream.match(reg_soundseed, true);
+                                        if (is_seed !== null){
+                                            tokentype = 'SOUND';
+                                            state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
+                                            state.tokenIndex++;
+                                        } else {
+                                            match=errorFallbackMatchToken(stream);
+                                            //depending on whether the verb is directional or not, we log different errors
+                                            logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+                                            tokentype = 'ERROR';
+                                            state.current_line_wip_array.push("ERROR");
+                                        }
+                                    }
                                 } else {
+                                    //only match seed
                                     var is_seed = stream.match(reg_soundseed, true);
                                     if (is_seed !== null){
                                         tokentype = 'SOUND';
@@ -1226,163 +1223,146 @@ var codeMirrorFn = function() {
                                     } else {
                                         match=errorFallbackMatchToken(stream);
                                         //depending on whether the verb is directional or not, we log different errors
-                                        logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+                                        logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
                                         tokentype = 'ERROR';
                                         state.current_line_wip_array.push("ERROR");
                                     }
                                 }
-                            } else {
-                                //only match seed
-                                var is_seed = stream.match(reg_soundseed, true);
-                                if (is_seed !== null){
-                                    tokentype = 'SOUND';
-                                    state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                                    state.tokenIndex++;
-                                } else {
-                                    match=errorFallbackMatchToken(stream);
-                                    //depending on whether the verb is directional or not, we log different errors
-                                    logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                                    tokentype = 'ERROR';
-                                    state.current_line_wip_array.push("ERROR");
-                                }
                             }
                         }
                     }
-                }
 
-                if (stream.eol()){
-                    processSoundsLine(state);
-                }     
+                    if (stream.eol()){
+                        processSoundsLine(state);
+                    }     
 
-                return tokentype;
+                        return tokentype;
 
-                        break;
                     }
-                case 'collisionlayers':
-                    {
-                        if (sol) {
-                            //create new collision layer
-                            state.collisionLayers.push([]);
-                    //empty current_line_wip_array
-                    state.current_line_wip_array = [];
-                            state.tokenIndex=0;
+
+                case 'collisionlayers': {
+                    if (sol) {
+                        //create new collision layer
+                        state.collisionLayers.push([]);
+                        //empty current_line_wip_array
+                        state.current_line_wip_array = [];
+                        state.tokenIndex=0;
+                    }
+
+                    var match_name = stream.match(reg_name, true);
+                    if (match_name === null) {
+                        //then strip spaces and commas
+                        var prepos=stream.pos;
+                        stream.match(reg_csv_separators, true);
+                        if (stream.pos==prepos) {
+                            logError("error detected - unexpected character " + stream.peek(),state.lineNumber);
+                            stream.next();
                         }
+                        return null;
+                    } else {
+                        //have a name: let's see if it's valid
+                        var candname = match_name[0].trim();
 
-                        var match_name = stream.match(reg_name, true);
-                        if (match_name === null) {
-                            //then strip spaces and commas
-                            var prepos=stream.pos;
-                            stream.match(reg_csv_separators, true);
-                            if (stream.pos==prepos) {
-                                logError("error detected - unexpected character " + stream.peek(),state.lineNumber);
-                                stream.next();
+                        var substitutor = function(n) {
+                        if (!state.case_sensitive) {
+                                n = n.toLowerCase();
                             }
-                            return null;
-                        } else {
-                            //have a name: let's see if it's valid
-                            var candname = match_name[0].trim();
+                            if (n in state.objects) {
+                                return [n];
+                            } 
 
-                            var substitutor = function(n) {
-                            if (!state.case_sensitive) {
-                                    n = n.toLowerCase();
+
+                            for (var i=0;i<state.legend_synonyms.length;i++) {
+                                var a = state.legend_synonyms[i];
+                                if (a[0]===n) {           
+                                    return substitutor(a[1]);
                                 }
-                            	if (n in state.objects) {
-                            		return [n];
-                            	} 
+                            }
 
-
-                                for (var i=0;i<state.legend_synonyms.length;i++) {
-                                    var a = state.legend_synonyms[i];
-                                    if (a[0]===n) {           
-                                        return substitutor(a[1]);
-                                    }
+                            for (var i=0;i<state.legend_aggregates.length;i++) {
+                                var a = state.legend_aggregates[i];
+                                if (a[0]===n) {           
+                                    logError('"'+n+'" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.', state.lineNumber);
+                                    return [];         
                                 }
-
-                            	for (var i=0;i<state.legend_aggregates.length;i++) {
-                            		var a = state.legend_aggregates[i];
-                            		if (a[0]===n) {           
-                            			logError('"'+n+'" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.', state.lineNumber);
-                            			return [];         
-                            		}
-                            	}
-                            	for (var i=0;i<state.legend_properties.length;i++) {
-                            		var a = state.legend_properties[i];
-                            		if (a[0]===n) {  
-                                        var result = [];
-                                        for (var j=1;j<a.length;j++){
-                                            if (a[j]===n){
-                                                //error here superfluous, also detected elsewhere (cf 'You can't define object' / #789)
-                                                //logError('Error, recursive definition found for '+n+'.', state.lineNumber);                                
-                                            } else {
-                                                result = result.concat(substitutor(a[j]));
-                                            }
+                            }
+                            for (var i=0;i<state.legend_properties.length;i++) {
+                                var a = state.legend_properties[i];
+                                if (a[0]===n) {  
+                                    var result = [];
+                                    for (var j=1;j<a.length;j++){
+                                        if (a[j]===n){
+                                            //error here superfluous, also detected elsewhere (cf 'You can't define object' / #789)
+                                            //logError('Error, recursive definition found for '+n+'.', state.lineNumber);                                
+                                        } else {
+                                            result = result.concat(substitutor(a[j]));
                                         }
-                            			return result;
-                            		}
-                            	}
-                            // PS+ to fix
-                            logError('Cannot add "' + candname.toUpperCase() + '" to a collision layer; it has not been declared.', state.lineNumber);                                
-                            //logError('Cannot add "' + candname + '" to a collision layer; it has not been declared.', state.lineNumber);                                
-                            	return [];
-                            };
-                            if (candname.toLowerCase()==='background' ) {
-                                if (state.collisionLayers.length>0&&state.collisionLayers[state.collisionLayers.length-1].length>0) {
-                                    logError("Background must be in a layer by itself.",state.lineNumber);
+                                    }
+                                    return result;
                                 }
-                                state.tokenIndex=1;
-                            } else if (state.tokenIndex!==0) {
+                            }
+                        // PS+ to fix
+                        logError('Cannot add "' + candname.toUpperCase() + '" to a collision layer; it has not been declared.', state.lineNumber);                                
+                        //logError('Cannot add "' + candname + '" to a collision layer; it has not been declared.', state.lineNumber);                                
+                            return [];
+                        };
+                        if (candname.toLowerCase()==='background' ) {
+                            if (state.collisionLayers.length>0&&state.collisionLayers[state.collisionLayers.length-1].length>0) {
                                 logError("Background must be in a layer by itself.",state.lineNumber);
                             }
+                            state.tokenIndex=1;
+                        } else if (state.tokenIndex!==0) {
+                            logError("Background must be in a layer by itself.",state.lineNumber);
+                        }
 
-                            var ar = substitutor(candname);
+                        var ar = substitutor(candname);
 
-                            if (state.collisionLayers.length===0) {
-                                logError("no layers found.",state.lineNumber);
-                                return 'ERROR';
-                            }
-                            
-                            var foundOthers=[];
-                        var foundSelves=[];
-                            for (var i=0;i<ar.length;i++){
-                            var tcandname = ar[i];
-                                for (var j=0;j<=state.collisionLayers.length-1;j++){
-                                    var clj = state.collisionLayers[j];
-                                if (clj.indexOf(tcandname)>=0){
-                                    if (j!==state.collisionLayers.length-1){
-                                            foundOthers.push(j);
-                                    } else {
-                                        foundSelves.push(j);
-                                        }
+                        if (state.collisionLayers.length===0) {
+                            logError("no layers found.",state.lineNumber);
+                            return 'ERROR';
+                        }
+                        
+                        var foundOthers=[];
+                    var foundSelves=[];
+                        for (var i=0;i<ar.length;i++){
+                        var tcandname = ar[i];
+                            for (var j=0;j<=state.collisionLayers.length-1;j++){
+                                var clj = state.collisionLayers[j];
+                            if (clj.indexOf(tcandname)>=0){
+                                if (j!==state.collisionLayers.length-1){
+                                        foundOthers.push(j);
+                                } else {
+                                    foundSelves.push(j);
                                     }
                                 }
                             }
-                            if (foundOthers.length>0){
-                            // PS+ to fix for case_sensitive
-                            var warningStr = 'Object "'+candname.toUpperCase()+'" included in multiple collision layers ( layers ';
-                                for (var i=0;i<foundOthers.length;i++){
-                                    warningStr+="#"+(foundOthers[i]+1)+", ";
-                                }
-                                warningStr+="#"+state.collisionLayers.length;
-                                logWarning(warningStr +' ). You should fix this!',state.lineNumber);                                        
-                            }
-
-                    if (state.current_line_wip_array.indexOf(candname)>=0){
-                        var warningStr = 'Object "'+candname.toUpperCase()+'" included explicitly multiple times in the same layer. Don\'t do that innit.';
-                        logWarning(warningStr,state.lineNumber);         
-                    }
-                    state.current_line_wip_array.push(candname);
-
-                            state.collisionLayers[state.collisionLayers.length - 1] = state.collisionLayers[state.collisionLayers.length - 1].concat(ar);
-                            if (ar.length>0) {
-                            	return 'NAME';                            
-                            } else {
-                            	return 'ERROR';
-                            }
                         }
-                        break;
+                        if (foundOthers.length>0){
+                        // PS+ to fix for case_sensitive
+                        var warningStr = 'Object "'+candname.toUpperCase()+'" included in multiple collision layers ( layers ';
+                            for (var i=0;i<foundOthers.length;i++){
+                                warningStr+="#"+(foundOthers[i]+1)+", ";
+                            }
+                            warningStr+="#"+state.collisionLayers.length;
+                            logWarning(warningStr +' ). You should fix this!',state.lineNumber);                                        
+                        }
+
+                if (state.current_line_wip_array.indexOf(candname)>=0){
+                    var warningStr = 'Object "'+candname.toUpperCase()+'" included explicitly multiple times in the same layer. Don\'t do that innit.';
+                    logWarning(warningStr,state.lineNumber);         
+                }
+                state.current_line_wip_array.push(candname);
+
+                        state.collisionLayers[state.collisionLayers.length - 1] = state.collisionLayers[state.collisionLayers.length - 1].concat(ar);
+                        if (ar.length>0) {
+                            return 'NAME';                            
+                        } else {
+                            return 'ERROR';
+                        }
                     }
-                case 'rules':
-                    {                    	
+                    break;
+                }
+                case 'rules': {                    	
                         if (sol) {
                             var rule = reg_notcommentstart.exec(stream.string)[0];
                             state.rules.push([rule, state.lineNumber, mixedCase]);
@@ -1390,16 +1370,16 @@ var codeMirrorFn = function() {
                         }
 
                         if (state.tokenIndex===-4) {
-                        	stream.skipToEnd();
-                        	return 'MESSAGE';
+                            stream.skipToEnd();
+                            return 'MESSAGE';
                         }
                         if (stream.match(/[\p{Z}\s]*->[\p{Z}\s]*/u, true)) {
                             return 'ARROW';
                         }
                         var ch = stream.peek();
                         if (ch === '[' || ch === '|' || ch === ']' || ch==='+') {
-                        	if (ch!=='+') {
-                            	state.tokenIndex = 1;
+                            if (ch!=='+') {
+                                state.tokenIndex = 1;
                             }
                             stream.next();
                             stream.match(/[\p{Z}\s]*/u, true);
@@ -1408,7 +1388,7 @@ var codeMirrorFn = function() {
                             var m = stream.match(/[^\[\|\]\p{Z}\s]*/u, true)[0].trim();
 
                             if (state.tokenIndex===0&&reg_loopmarker.exec(m)) {
-                            	return 'BRACKET';
+                                return 'BRACKET';
                             } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
@@ -1437,10 +1417,10 @@ var codeMirrorFn = function() {
                                 } else if (m==='global') {
                                     return 'DIRECTION';
                                 }else if (commandwords.indexOf(m)>=0) {
-									if (m==='message' || m==='goto' || twiddleable_params.includes(m)) {
-										state.tokenIndex=-4;
-									}                                	
-                                	return 'COMMAND';
+                                    if (m==='message' || m==='goto' || twiddleable_params.includes(m)) {
+                                        state.tokenIndex=-4;
+                                    }                                	
+                                    return 'COMMAND';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
                                     return 'ERROR';
@@ -1450,215 +1430,206 @@ var codeMirrorFn = function() {
 
                         break;
                     }
-                case 'winconditions':
-                    {
-                        if (sol) {
-                        	var tokenized = reg_notcommentstart.exec(stream.string);
-                        	var splitted = tokenized[0].split(/[\p{Z}\s]/u);
-                        	var filtered = splitted.filter(function(v) {return v !== ''});
-                            filtered.push(state.lineNumber);
-                            
-                            state.winconditions.push(filtered);
-                            state.tokenIndex = -1;
-                        }
-                        state.tokenIndex++;
+                case 'winconditions': {
+                    if (sol) {
+                        var tokenized = reg_notcommentstart.exec(stream.string);
+                        var splitted = tokenized[0].split(/[\p{Z}\s]/u);
+                        var filtered = splitted.filter(function(v) {return v !== ''});
+                        filtered.push(state.lineNumber);
+                        
+                        state.winconditions.push(filtered);
+                        state.tokenIndex = -1;
+                    }
+                    state.tokenIndex++;
 
-                        var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);
-                        if (match === null) {
-                                logError('incorrect format of win condition.', state.lineNumber);
-                                stream.match(reg_notcommentstart, true);
+                    var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);
+                    if (match === null) {
+                        logError('incorrect format of win condition.', state.lineNumber);
+                        stream.match(reg_notcommentstart, true);
+                        return 'ERROR';
+                    } else {
+                        var candword = match[0].trim();
+                        if (state.tokenIndex === 0) {
+                            if (reg_winconditionquantifiers.exec(candword)) {
+                                return 'LOGICWORD';
+                            } else {
+                                logError('Expecting the start of a win condition ("ALL","SOME","NO") but got "' + candword.toUpperCase() + "'.", state.lineNumber);
                                 return 'ERROR';
-
-                        } else {
-                            var candword = match[0].trim();
-                            if (state.tokenIndex === 0) {
-                                if (reg_winconditionquantifiers.exec(candword)) {
-                                    return 'LOGICWORD';
-                                }
-                                else {
-                            logError('Expecting the start of a win condition ("ALL","SOME","NO") but got "'+candword.toUpperCase()+"'.", state.lineNumber);
-                                    return 'ERROR';
-                                }
                             }
-                            else if (state.tokenIndex === 2) {
+                        } else if (state.tokenIndex === 2) {
                             // PS+ to fix 
                             if (candword != 'on') {
-                            logError('Expecting the word "ON" but got "'+candword.toUpperCase()+"\".", state.lineNumber);
-                                    return 'ERROR';
-                                } else {
-                                    return 'LOGICWORD';
-                                }
+                                logError('Expecting the word "ON" but got "' + candword.toUpperCase() + "\".", state.lineNumber);
+                                return 'ERROR';
+                            } else {
+                                return 'LOGICWORD';
                             }
-                            else if (state.tokenIndex === 1 || state.tokenIndex === 3) {
-                                if (state.names.indexOf(candword)===-1) {
+                        } else if (state.tokenIndex === 1 || state.tokenIndex === 3) {
+                            if (state.names.indexOf(candword) === -1) {
                                 // PS+ to fix
                                 logError('Error in win condition: "' + candword.toUpperCase() + '" is not a valid object name.', state.lineNumber);
-                                    return 'ERROR';
-                                } else {
-                                    return 'NAME';
-                                }
-                    } else {
-                        logError("Error in win condition: I don't know what to do with "+candword.toUpperCase()+".", state.lineNumber);
-                        return 'ERROR';
-                            }
-                        }
-                        break;
-                    }
-                case 'levels':
-                    {
-                        if (sol)
-                        {
-                            if (stream.match(/[\p{Z}\s]*message\b[\p{Z}\s]*/ui, true)) {
-                            // PS+ -4/2/3/4 = message/level/section/goto ???
-                            state.tokenIndex = -4;//-4/2 = message/level
-                            var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
-                                if (state.levels[state.levels.length - 1].length == 0) {
-                                    state.levels.splice(state.levels.length - 1, 0, newdat);
-                                } else {
-                                    state.levels.push(newdat);
-                                }
-                                return 'MESSAGE_VERB';//a duplicate of the previous section as a legacy thing for #589 
-                            } else if (stream.match(/[\p{Z}\s]*message[\p{Z}\s]*/ui, true)) {//duplicating previous section because of #589
-                                logWarning("You probably meant to put a space after 'message' innit.  That's ok, I'll still interpret it as a message, but you probably want to put a space there.",state.lineNumber);
-                            // PS+ //1/2/3/4 = message/level/section/goto???
-                            state.tokenIndex = -4;//-4/2 = message/level
-                            var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
-                                if (state.levels[state.levels.length - 1].length == 0) {
-                                    state.levels.splice(state.levels.length - 1, 0, newdat);
-                                } else {
-                                    state.levels.push(newdat);
-                                }
-                                return 'MESSAGE_VERB';
-                        // PS+
-                            } else if (stream.match(/\s*section\s*/i, true)) {
-                                state.tokenIndex = 3;//1/2/3/4 = message/level/section/goto
-                                state.currentSection = mixedCase.slice(stream.pos).trim();
-                                return 'SECTION_VERB';
-                            } else if (stream.match(/\s*goto\s*/i, true)) {
-                                state.tokenIndex = 4;//1/2/3/4 = message/level/section/goto
-                                var newdat = ['goto', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
-                                if (state.levels[state.levels.length - 1].length == 0) {
-                                    state.levels.splice(state.levels.length - 1, 0, newdat);
-                                } else {
-                                    state.levels.push(newdat);
-                                }
-                                return 'GOTO_VERB';
+                                return 'ERROR';
                             } else {
-                                var matches = stream.match(reg_notcommentstart, false);
-                                if (matches===null || matches.length===0){
-                                    logError("Detected a comment where I was expecting a level. Oh gosh; if this is to do with you using '(' as a character in the legend, please don't do that ^^",state.lineNumber);
-                                    state.commentLevel++;
-                                    stream.skipToEnd();
-                                    return 'comment';
-                                } else {
-                                    var line = matches[0].trim();
-                                    state.tokenIndex = 2;
-                                    var lastlevel = state.levels[state.levels.length - 1];
-                                // PS+ this change still on borrowed time
-                                    if (lastlevel[0] == '\n') {
-                                        state.levels.push([state.lineNumber, state.currentSection, line]);
-                                    } else {
-                                        if (lastlevel.length==0)
-                                        {
-                                            lastlevel.push(state.lineNumber);
-                                        // PS+
-                                            lastlevel.push(state.currentSection);
-                                    }
-                                        lastlevel.push(line);
-
-                                    // PS+
-                                    if (lastlevel.length>2) 
-                                        {
-                                            if (line.length!=lastlevel[2].length) {
-                                                logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber);
-                                            }
-                                        }
-                                    }
-                                }
+                                return 'NAME';
                             }
                         } else {
+                            logError("Error in win condition: I don't know what to do with "+candword.toUpperCase()+".", state.lineNumber);
+                            return 'ERROR';
+                        }
+                    }
+                    break;
+                }
+                case 'levels': {
+                    if (sol) {
+                        if (stream.match(/[\p{Z}\s]*message\b[\p{Z}\s]*/ui, true)) {
+                        // PS+ -4/2/3/4 = message/level/section/goto ???
+                        state.tokenIndex = -4;//-4/2 = message/level
+                        var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
+                            if (state.levels[state.levels.length - 1].length == 0) {
+                                state.levels.splice(state.levels.length - 1, 0, newdat);
+                            } else {
+                                state.levels.push(newdat);
+                            }
+                            return 'MESSAGE_VERB';//a duplicate of the previous section as a legacy thing for #589 
+                        } else if (stream.match(/[\p{Z}\s]*message[\p{Z}\s]*/ui, true)) {//duplicating previous section because of #589
+                            logWarning("You probably meant to put a space after 'message' innit.  That's ok, I'll still interpret it as a message, but you probably want to put a space there.",state.lineNumber);
+                        // PS+ //1/2/3/4 = message/level/section/goto???
+                        state.tokenIndex = -4;//-4/2 = message/level
+                        var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
+                            if (state.levels[state.levels.length - 1].length == 0) {
+                                state.levels.splice(state.levels.length - 1, 0, newdat);
+                            } else {
+                                state.levels.push(newdat);
+                            }
+                            return 'MESSAGE_VERB';
+                    // PS+
+                        } else if (stream.match(/\s*section\s*/i, true)) {
+                            state.tokenIndex = 3;//1/2/3/4 = message/level/section/goto
+                            state.currentSection = mixedCase.slice(stream.pos).trim();
+                            return 'SECTION_VERB';
+                        } else if (stream.match(/\s*goto\s*/i, true)) {
+                            state.tokenIndex = 4;//1/2/3/4 = message/level/section/goto
+                            var newdat = ['goto', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
+                            if (state.levels[state.levels.length - 1].length == 0) {
+                                state.levels.splice(state.levels.length - 1, 0, newdat);
+                            } else {
+                                state.levels.push(newdat);
+                            }
+                            return 'GOTO_VERB';
+                        } else {
+                            var matches = stream.match(reg_notcommentstart, false);
+                            if (matches===null || matches.length===0){
+                                logError("Detected a comment where I was expecting a level. Oh gosh; if this is to do with you using '(' as a character in the legend, please don't do that ^^",state.lineNumber);
+                                state.commentLevel++;
+                                stream.skipToEnd();
+                                return 'comment';
+                            } else {
+                                var line = matches[0].trim();
+                                state.tokenIndex = 2;
+                                var lastlevel = state.levels[state.levels.length - 1];
+                            // PS+ this change still on borrowed time
+                                if (lastlevel[0] == '\n') {
+                                    state.levels.push([state.lineNumber, state.currentSection, line]);
+                                } else {
+                                    if (lastlevel.length==0)
+                                    {
+                                        lastlevel.push(state.lineNumber);
+                                    // PS+
+                                        lastlevel.push(state.currentSection);
+                                }
+                                    lastlevel.push(line);
+
+                                // PS+
+                                if (lastlevel.length>2) 
+                                    {
+                                        if (line.length!=lastlevel[2].length) {
+                                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
                         if (state.tokenIndex == -4) {
                                 stream.skipToEnd();
-                               	return 'MESSAGE';
-                        // PS+
-                            } else if (state.tokenIndex == 3) {
-                                stream.skipToEnd();
-                                return 'SECTION';
-                            } else if (state.tokenIndex == 4) {
-                                stream.skipToEnd();
-                                return 'GOTO';
-                            }
+                                return 'MESSAGE';
+                        } else if (state.tokenIndex == 3) {
+                            stream.skipToEnd();
+                            return 'SECTION';
+                        } else if (state.tokenIndex == 4) {
+                            stream.skipToEnd();
+                            return 'GOTO';
                         }
-
-                        if (state.tokenIndex === 2 && !stream.eol()) {
-                            var ch = stream.peek();
-                            stream.next();
-                            if (state.abbrevNames.indexOf(ch) >= 0) {
-                                return 'LEVEL';
-                            } else {
-                            // PS+ case
-                            logError('Key "' + ch.toUpperCase() + '" not found. Do you need to add it to the legend, or define a new object?', state.lineNumber);
-                                return 'ERROR';
-                            }
-                        }
-                        break;
                     }
-	                
-	                default://if you're in the preamble
-	                {
-	            		if (sol) {
-	            			state.tokenIndex=0;
-	            		}
-	            		if (state.tokenIndex==0) {
-		                    var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);	                    
-		                    if (match!==null) {
-		                    	var token = match[0].trim();
-		                    	if (sol) {
-                                // PS+
-		                    		if (preamble_params.indexOf(token)>=0) {
-		                    			
+
+                    if (state.tokenIndex === 2 && !stream.eol()) {
+                        var ch = stream.peek();
+                        stream.next();
+                        if (state.abbrevNames.indexOf(ch) >= 0) {
+                            return 'LEVEL';
+                        } else {
+                        // PS+ case
+                        logError('Key "' + ch.toUpperCase() + '" not found. Do you need to add it to the legend, or define a new object?', state.lineNumber);
+                            return 'ERROR';
+                        }
+                    }
+                    break;
+                }
+                        
+                default: { //if you're in the preamble
+                    if (sol) {
+                        state.tokenIndex=0;
+                    }
+                    if (state.tokenIndex==0) {
+                        var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);	                    
+                        if (match!==null) {
+                            var token = match[0].trim();
+                            if (sol) {
+                            // PS+
+                                if (preamble_params.indexOf(token)>=0) {
+                                    
                                     // PS+
                                     if (token==='author' || token==='homepage' || token==='title' || token==='custom_font' || token==='text_controls' || token==='text_message_continue') {
-                                            stream.string=mixedCase;
-                                        }
+                                        stream.string=mixedCase;
+                                    }
                                         
                                     if (token==="youtube") {
                                         logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                                     }
-                                
-                                        var m2 = stream.match(reg_notcommentstart, false);
-                                        
+                            
+                                    var m2 = stream.match(reg_notcommentstart, false);
+                                    
                                     if(m2!==null) {
-                                        // PS+
-                                            if(token=='sprite_size') {
-                                                state.sprite_size = parseInt(m2[0].trim(), 10);
-                                            } else {
-                                                state.metadata.push(token);
-                                                state.metadata.push(m2[0].trim());
-                                            if (token in state.metadata_lines){
-                                                var otherline = state.metadata_lines[token];
-                                                logWarning(`You've already defined a ${token.toUpperCase()} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`,state.lineNumber);
-                                            }
-                                            state.metadata_lines[token]=state.lineNumber;
+                                    // PS+
+                                        if(token=='sprite_size') {
+                                            state.sprite_size = parseInt(m2[0].trim(), 10);
+                                        } else {
+                                            state.metadata.push(token);
+                                            state.metadata.push(m2[0].trim());
+                                        if (token in state.metadata_lines){
+                                            var otherline = state.metadata_lines[token];
+                                            logWarning(`You've already defined a ${token.toUpperCase()} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`,state.lineNumber);
                                         }
-		                    			} else {
-		                    				logError('MetaData "'+token+'" needs a value.',state.lineNumber);
-		                    			}
-		                    			state.tokenIndex=1;
-		                    			return 'METADATA';
+                                        state.metadata_lines[token]=state.lineNumber;
+                                    }
+                                    } else {
+                                        logError('MetaData "'+token+'" needs a value.',state.lineNumber);
+                                    }
+                                    state.tokenIndex=1;
+                                    return 'METADATA';
                                 // PS+
-		                    		} else if (preamble_keywords.indexOf(token)>=0) {
-                                        if(token == 'case_sensitive') {
-                                            state.case_sensitive = true;
-                                            
-                                            if (Object.keys(state.metadata).length > 0) {
-                                                logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
-                                            }
+                                } else if (preamble_keywords.indexOf(token)>=0) {
+                                    if(token == 'case_sensitive') {
+                                        state.case_sensitive = true;
+                                        
+                                        if (Object.keys(state.metadata).length > 0) {
+                                            logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
                                         }
+                                    }
 
-                                        state.metadata.push(token);
-		                    			state.metadata.push("true");
-		                    			state.tokenIndex=-1;
+                                    state.metadata.push(token);
+                                    state.metadata.push("true");
+                                    state.tokenIndex=-1;
 
 
                                     var m2 = stream.match(reg_notcommentstart, false);
@@ -1667,19 +1638,19 @@ var codeMirrorFn = function() {
                                         logWarning('MetaData '+token.toUpperCase()+' doesn\'t take any parameters, but you went and gave it "'+extra+'".',state.lineNumber);                                      
                                     } 
 
-		                    			return 'METADATA';
-		                    		} else  {
-		                    			logError('Unrecognised stuff in the prelude.', state.lineNumber);
-		                    			return 'ERROR';
-		                    		}
-		                    	} else if (state.tokenIndex==-1) {
-	                   				logError('MetaData "'+token+'" has no parameters.',state.lineNumber);
-		                    		return 'ERROR';
-		                    	}
-		                    	return 'METADATA';
-		                    }       
-		               	} else {
-		               		stream.match(reg_notcommentstart, true);
+                                    return 'METADATA';
+                                } else  {
+                                    logError('Unrecognised stuff in the prelude.', state.lineNumber);
+                                    return 'ERROR';
+                                }
+                            } else if (state.tokenIndex==-1) {
+                                logError('MetaData "'+token+'" has no parameters.',state.lineNumber);
+                                return 'ERROR';
+                            }
+                            return 'METADATA';
+                        }       
+                    } else {
+                        stream.match(reg_notcommentstart, true);
                         state.tokenIndex++;
 
                         var key = state.metadata[state.metadata.length-2];
@@ -1701,14 +1672,14 @@ var codeMirrorFn = function() {
                                     return 'MULTICOLOR'+color[0];
                                 }
                             }
-                                                       
+                                                        
                         }                    
-		               		return "METADATATEXT";
+                        return "METADATATEXT";
                     }                        
-	                	break;
-	                }
-	            }
-        
+                    break;
+                }
+	        }
+            // end of switch
 
             if (stream.eol()) {
                 return null;
