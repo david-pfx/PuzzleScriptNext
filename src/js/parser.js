@@ -273,11 +273,25 @@ var codeMirrorFn = function() {
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
     const reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|move|action|create|destroy|cantmove|sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)/;
     const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','message', "move", "action", "create", "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "undo", "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", "showmessage", "closemessage"];
-    // PS+ 
-    const preamble_params = ['title', 'author', 'homepage', 'background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'color_palette', 'youtube',
-        'sprite_size', 'level_select_unlocked_ahead', 'level_select_solve_symbol', 'custom_font', 'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 'local_radius', 'font_size', 'tween_length', "tween_easing", "tween_snap", "message_text_align", "text_controls", "text_message_continue", "level_select_unlocked_rollover", "sitelock_origin_whitelist", "sitelock_hostname_whitelist"];
-    const preamble_keywords = ['run_rules_on_level_start', 'norepeat_action', 'require_player_movement', 'debug', 'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'scanline',
-        'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
+    
+    const preamble_keywords = ['run_rules_on_level_start', 'norepeat_action', 'require_player_movement', 'debug', 
+        'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'scanline',
+        'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
+        'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
+        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
+    const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls'];
+    const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
+        'tween_length', 'local_radius', "tween_snap", 'local_radius', 'font_size', 'sprite_size', 
+        'level_select_unlocked_ahead', "level_select_unlocked_rollover"];
+    const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
+        'flickscreen', 'zoomscreen', 'level_select_solve_symbol', 
+        'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
+        "tween_easing", "message_text_align", 
+        "text_message_continue", "sitelock_origin_whitelist", 
+        "sitelock_hostname_whitelist"];
+    const preamble_param_multi = ['smoothscreen'];
+    const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
+        preamble_param_single, preamble_param_multi];
 
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
@@ -491,6 +505,7 @@ var codeMirrorFn = function() {
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////
     // return true and swallow any kind of comment
     function matchComment(stream, state) {
         stream.match(/\s*/);
@@ -524,6 +539,127 @@ var codeMirrorFn = function() {
         return true;
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // parse prelude metadata lines
+    // push key,value pair onto state.metadata array (gets converted to object later)
+    // can get called 3 times: tokenIndex 0=option name, 1=args, 2=trailing junk (not comment)
+    function parsePrelude(stream, mixedCase, state) {
+        // return true if no trailing junk on line, else error
+        function checkEol() {
+            var junk = stream.match(/[^\(]+/);
+            if (junk)
+                logError(`End of line expected, instead found ${junk[0].trim()}.`, state.lineNumber);
+            return !junk;
+        }
+
+        // parse keyword line given option name
+        function parseKeyword(token) {
+            if (preamble_keywords.includes(token)) {
+                if (token == 'case_sensitive') {
+                    state.case_sensitive = true;
+                    // if (Object.keys(state.metadata).length > 0) {
+                    //     logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
+                    // }
+                }
+                state.metadata.push(token, true);
+                return true;
+            }
+        }
+
+        // first entry, parse option name
+        if (state.tokenIndex++ == 0) {
+            const match = stream.match(/\s*(\w+)\s*/);
+            if (!match) {
+                logError('Unrecognised stuff in the prelude.', state.lineNumber);
+            } else {
+                let token = match[1];
+                if (token in state.metadata_lines) {
+                    var otherline = state.metadata_lines[token];
+                    logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
+                } else {
+                    // keep mixed case, or it gets lost next time
+                    state.current_line_wip_array.push(token, mixedCase);
+                    if (parseKeyword(token)) {
+                        return checkEol() ? 'METADATA' : 'ERROR';
+                    }
+                    for (const table of preamble_tables) {
+                        if (table.includes(token))
+                            return 'METADATA';
+                    }
+                    logError(`Unknown option '${token}' in the prelude.`, state.lineNumber);
+                }
+            }
+            stream.match(reg_notcommentstart);
+            return 'ERROR';
+        } 
+
+        // Second entry, parse option arguments
+        if (state.tokenIndex != 2) throw 'oops!';
+        let token = state.current_line_wip_array[0];
+
+        // these options use the rest of the line in mixed case as the argument
+        if (preamble_param_text.includes(token)) {
+            // retrieve mixedCase value as argument to eol           
+            const arg = state.current_line_wip_array[1].substring(stream.pos).trim();
+            stream.skipToEnd();
+            if (!arg) {
+                logError(`Metadata ${token} needs a value.`, state.lineNumber);
+                return 'ERROR';
+            }
+            state.metadata.push(token, arg);
+            return 'METADATATEXT';
+        }
+        
+        // these options have arguments which are a sequence of one or more tokens separated by whitespace
+        let args = []
+        do {
+            const match = stream.match(/([-.+#\w]+)\s*/);  
+            if (match) args.push(match[1]);
+            else break;
+        } while (true);
+        if (!checkEol()) return 'ERROR';
+
+        if (preamble_param_single.includes(token)) {
+            if (args && args.length != 1) {
+                logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+            } else {
+                state.metadata.push(token, args[0]);
+                if (token.match(/color/)) {
+                    const candcol = args[0].toLowerCase();
+                    if (candcol in colorPalettes.arnecolors) {
+                        return 'COLOR COLOR-' + candcol.toUpperCase();
+                    } else if (candcol === "transparent") {
+                        return 'COLOR FADECOLOR';
+                    } else {
+                        const color = candcol.match(/#[0-9a-fA-F]+/);
+                        if (color) return 'MULTICOLOR' + color[0];
+                    }
+                }
+                return 'METADATA';
+            }
+        } else if (preamble_param_number.includes(token)) {
+            const value = (args && args.length == 1) ? parseFloat(args[0]) : NaN;
+            if (value == NaN)
+                logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
+            else {
+                state.metadata.push(token, value);
+                if (token == 'sprite_size')
+                    state.sprite_size = Math.round(value);
+                return 'METADATA';
+            }
+        } else if (preamble_param_multi.includes(token)) {
+            if (args && args.length < 1) {
+                logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
+            } else {
+                state.metadata.push(token, args.join(' '));
+                return 'METADATA';
+            }
+        }
+        stream.match(reg_notcommentstart);
+        return 'ERROR';
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // return value is an object containing a specific set of named functions
     return {
         copyState: function(state) {
@@ -783,6 +919,9 @@ var codeMirrorFn = function() {
             //if can't set matrix, try to parse name
             //if color is not set, try to parse color
             switch (state.section) {
+                case '': {
+                    return parsePrelude(stream, mixedCase, state);
+                }
                 case 'objects': {
                     // parse and store an object name, return token type
                     var tryParseName = function () {
@@ -1576,107 +1715,8 @@ var codeMirrorFn = function() {
                     break;
                 }
                         
-                default: { //if you're in the preamble
-                    if (sol) {
-                        state.tokenIndex=0;
-                    }
-                    if (state.tokenIndex==0) {
-                        var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);	                    
-                        if (match!==null) {
-                            var token = match[0].trim();
-                            if (sol) {
-                            // PS+
-                                if (preamble_params.indexOf(token)>=0) {
-                                    
-                                    // PS+
-                                    if (token==='author' || token==='homepage' || token==='title' || token==='custom_font' || token==='text_controls' || token==='text_message_continue') {
-                                        stream.string=mixedCase;
-                                    }
-                                        
-                                    if (token==="youtube") {
-                                        logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
-                                    }
-                            
-                                    var m2 = stream.match(reg_notcommentstart, false);
-                                    
-                                    if(m2!==null) {
-                                    // PS+
-                                        if(token=='sprite_size') {
-                                            state.sprite_size = parseInt(m2[0].trim(), 10);
-                                        } else {
-                                            state.metadata.push(token);
-                                            state.metadata.push(m2[0].trim());
-                                        if (token in state.metadata_lines){
-                                            var otherline = state.metadata_lines[token];
-                                            logWarning(`You've already defined a ${token.toUpperCase()} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`,state.lineNumber);
-                                        }
-                                        state.metadata_lines[token]=state.lineNumber;
-                                    }
-                                    } else {
-                                        logError('MetaData "'+token+'" needs a value.',state.lineNumber);
-                                    }
-                                    state.tokenIndex=1;
-                                    return 'METADATA';
-                                // PS+
-                                } else if (preamble_keywords.indexOf(token)>=0) {
-                                    if(token == 'case_sensitive') {
-                                        state.case_sensitive = true;
-                                        
-                                        if (Object.keys(state.metadata).length > 0) {
-                                            logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
-                                        }
-                                    }
-
-                                    state.metadata.push(token);
-                                    state.metadata.push("true");
-                                    state.tokenIndex=-1;
-
-
-                                    var m2 = stream.match(reg_notcommentstart, false);
-                                    if(m2!==null) {
-                                        var extra = m2[0].trim();      
-                                        logWarning('MetaData '+token.toUpperCase()+' doesn\'t take any parameters, but you went and gave it "'+extra+'".',state.lineNumber);                                      
-                                    } 
-
-                                    return 'METADATA';
-                                } else  {
-                                    logError('Unrecognised stuff in the prelude.', state.lineNumber);
-                                    return 'ERROR';
-                                }
-                            } else if (state.tokenIndex==-1) {
-                                logError('MetaData "'+token+'" has no parameters.',state.lineNumber);
-                                return 'ERROR';
-                            }
-                            return 'METADATA';
-                        }       
-                    } else {
-                        stream.match(reg_notcommentstart, true);
-                        state.tokenIndex++;
-
-                        var key = state.metadata[state.metadata.length-2];
-                        var val = state.metadata[state.metadata.length-1];
-
-                        if( state.tokenIndex>2){
-                            logWarning("Error: you can't embed comments in metadata values. Anything after the comment will be ignored.",state.lineNumber);
-                            return 'ERROR';
-                        }
-                        if (key === "background_color" || key === "text_color"){
-                            var candcol = val.trim().toLowerCase();
-                            if (candcol in colorPalettes.arnecolors) {
-                                return 'COLOR COLOR-' + candcol.toUpperCase();
-                            } else if (candcol==="transparent") {
-                                return 'COLOR FADECOLOR';
-                            } else if ( (candcol.length===4) || (candcol.length===7)) {
-                                var color = candcol.match(/#[0-9a-fA-F]+/);
-                                if (color!==null){                
-                                    return 'MULTICOLOR'+color[0];
-                                }
-                            }
-                                                        
-                        }                    
-                        return "METADATATEXT";
-                    }                        
-                    break;
+                default: { 
+                    throw 'oops!';
                 }
 	        }
             // end of switch
@@ -1705,7 +1745,7 @@ var codeMirrorFn = function() {
                 commentLevel: 0,  // trigger comment style
                 commentStyle: null,
 
-                section: '',
+                section: '',  // prelude
                 visitedSections: [],
 
                 line_should_end: false,
