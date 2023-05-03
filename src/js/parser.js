@@ -257,8 +257,6 @@ var codeMirrorFn = function() {
     const reg_spriterow = /[\.0-9]{5}[\p{Z}\s]*/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
-    const reg_notcommentstart = /[^\(]+/;
-    const reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
     const reg_csv_separators = /[ \,]*/;
     const reg_soundverbs = /(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;
     const soundverbs_directional = ['move','cantmove'];
@@ -273,9 +271,8 @@ var codeMirrorFn = function() {
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
     const reg_keywords = /(checkpoint|objects|collisionlayers|legend|sounds|rules|winconditions|\.\.\.|levels|up|down|left|right|^|\||\[|\]|v|\>|\<|no|horizontal|orthogonal|vertical|any|all|no|some|moving|stationary|parallel|perpendicular|action|move|action|create|destroy|cantmove|sfx0|sfx1|sfx2|sfx3|Sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10|cancel|checkpoint|restart|win|message|again|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)/;
     const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','message', "move", "action", "create", "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "undo", "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", "showmessage", "closemessage"];
-    
-    const preamble_keywords = ['run_rules_on_level_start', 'norepeat_action', 'require_player_movement', 'debug', 
-        'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'scanline',
+    const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
+        'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
@@ -289,9 +286,16 @@ var codeMirrorFn = function() {
         "tween_easing", "message_text_align", 
         "text_message_continue", "sitelock_origin_whitelist", 
         "sitelock_hostname_whitelist"];
-    const preamble_param_multi = ['smoothscreen'];
+    const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
+    const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
+        'red', 'darkred', 'lightred', 'brown', 'darkbrown', 'lightbrown', 'orange', 'yellow', 'green', 'darkgreen',
+        'lightgreen', 'blue', 'lightblue', 'darkblue', 'purple', 'pink', 'transparent'];
+
+    let reg_notcommentstart = /[^\(]+/;
+    let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
+    
 
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
@@ -511,9 +515,17 @@ var codeMirrorFn = function() {
         stream.match(/\s*/);
         if (stream.eol()) 
             return state.commentLevel > 0;
-        if (!state.commentStyle && stream.match(/\/\(/), false) 
-            state.commentStyle = (stream.match('//', false) ? '//' : '()');
+        if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
+            if (stream.match(/\//, false)) {
+                state.commentStyle = '//';
+                reg_notcommentstart = /(.(?!\/\/))+/;
+                //reg_notcommentstart = /.+(?=\/\/)?/;
 
+            } else {
+                state.commentStyle = '()';
+                reg_notcommentstart = /[^\(]+/;
+            }
+        }
         // handle // comments
         if (state.commentStyle == '//'){
             if (!stream.match('//'))
@@ -660,6 +672,99 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse and store an object name, return token type
+    function parseObjectName(stream, mixedCase, state) {
+        var match_name = (state.objects_section == 0) ? stream.match(reg_name, true) 
+            : stream.match(/[^\p{Z}\s\()]+[\p{Z}\s]*/u, true);  // bug:comment
+        if (match_name == null) {
+            stream.match(reg_notcommentstart, true);
+            if (stream.pos > 0) {
+                logWarning(`Unknown junk in object section (possibly: sprites have to be ${state.sprite_size} pixels wide and $(state.sprite_size) pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).`, state.lineNumber);
+            }
+            return 'ERROR';
+        } else {
+            var candname = match_name[0].trim();
+            if (state.objects[candname] !== undefined) {
+                // PS+ to fix for case_sensitive
+                logError(`Object "${candname}" defined multiple times.`, state.lineNumber);
+                return 'ERROR';
+            }
+            for (var i = 0; i < state.legend_synonyms.length; i++) {
+                var entry = state.legend_synonyms[i];
+                if (entry[0] == candname) {
+                    logError(`Name "${candname}" already in use.`, state.lineNumber);
+                }
+            }
+            if (keyword_array.indexOf(candname) >= 0) {
+                logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
+            }
+
+            if (state.objects_section == 0) {
+                state.objects_candname = candname;
+                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+                state.objects[state.objects_candname] = {
+                    lineNumber: state.lineNumber,
+                    colors: [],
+                    spritematrix: [],
+                    cloneSprite: "" // PS+
+                };
+
+            } else {
+                // PS+ sprite copy
+                //console.log(candname +" == "+ state.objects_candname);
+                if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
+                    var cloneName = candname.substring(5);
+                    if (state.objects[state.objects_candname].cloneSprite != "") {
+                        logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
+                        return 'ERROR';
+                    } else if (cloneName == state.objects_candname) {
+                        logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
+                        return 'ERROR';
+                    } else {
+                        state.objects[state.objects_candname].cloneSprite = cloneName;
+                        //state.objects_section = 1;
+                        return "SPRITEPARENT";
+                    }
+                }
+                //set up alias
+                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+                var synonym = [candname, state.objects_candname];
+                synonym.lineNumber = state.lineNumber;
+                state.legend_synonyms.push(synonym);
+            }
+            if (state.case_sensitive) {
+                if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
+                    // setup aliases for special objects
+                    var synonym = [candname.toLowerCase(), state.objects_candname];
+                    synonym.lineNumber = state.lineNumber;
+                    state.legend_synonyms.push(synonym);
+                }
+            }
+            state.objects_section = 1;  // repeat this section to get next name
+            return 'NAME';
+        }
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    function parseObjectColor(stream, state) {
+        // let version = state.metadata['puzzlescript'];
+        // if (version && version.startsWith('next') && stream.match(/;/)) {
+
+        const match_color = stream.match(/([#\w]+)\s*/, true);
+        const candcol = match_color ? match_color[1].toLowerCase() : null;
+        if (!(candcol && (color_names.includes(candcol) || candcol.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)))) {
+            const tail = stream.match(reg_notcommentstart, true);
+            logError(`Was looking for color for object ${state.objects_candname}, got "${candcol || tail}" instead.`, state.lineNumber);
+            return 'ERROR';
+        } 
+        state.objects[state.objects_candname].colors.push(candcol);
+        return (candcol in colorPalettes.arnecolors) ? `COLOR COLOR-${candcol.toUpperCase()}`
+            : (candcol === "transparent") ? 'COLOR FADECOLOR'
+            : `MULTICOLOR${candcol}`;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // called as per CodeMirror API
     // return value is an object containing a specific set of named functions
     return {
         copyState: function(state) {
@@ -923,80 +1028,6 @@ var codeMirrorFn = function() {
                     return parsePrelude(stream, mixedCase, state);
                 }
                 case 'objects': {
-                    // parse and store an object name, return token type
-                    var tryParseName = function () {
-                        //LOOK FOR NAME
-                        var match_name = sol ? stream.match(reg_name, true) : stream.match(/[^\p{Z}\s\()]+[\p{Z}\s]*/u, true);
-                        if (match_name == null) {
-                            stream.match(reg_notcommentstart, true);
-                            if (stream.pos > 0) {
-                                logWarning(`Unknown junk in object section (possibly: sprites have to be ${state.sprite_size} pixels wide and $(state.sprite_size) pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).`, state.lineNumber);
-                            }
-                            return 'ERROR';
-                        } else {
-                            var candname = match_name[0].trim();
-                            if (state.objects[candname] !== undefined) {
-                                // PS+ to fix for case_sensitive
-                                logError('Object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" defined multiple times.', state.lineNumber);
-                                return 'ERROR';
-                            }
-                            for (var i = 0; i < state.legend_synonyms.length; i++) {
-                                var entry = state.legend_synonyms[i];
-                                if (entry[0] == candname) {
-                                    logError('Name "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '" already in use.', state.lineNumber);
-                                }
-                            }
-                            if (keyword_array.indexOf(candname) >= 0) {
-                                logWarning('You named an object "' + (state.case_sensitive ? candname : candname.toUpperCase()) + '", but this is a keyword. Don\'t do that!', state.lineNumber);
-                            }
-
-                            if (sol) {
-                                state.objects_candname = candname;
-                                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-                                state.objects[state.objects_candname] = {
-                                    lineNumber: state.lineNumber,
-                                    colors: [],
-                                    spritematrix: [],
-                                    cloneSprite: "" // PS+
-                                };
-
-                            } else {
-                                // PS+ sprite copy
-                                //console.log(candname +" == "+ state.objects_candname);
-                                if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
-                                    var cloneName = candname.substring(5);
-                                    if (state.objects[state.objects_candname].cloneSprite != "") {
-                                        logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
-                                        return 'ERROR';
-                                    } else if (cloneName == state.objects_candname) {
-                                        logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
-                                        return 'ERROR';
-                                    } else {
-                                        state.objects[state.objects_candname].cloneSprite = cloneName;
-                                        //state.objects_section = 1;
-                                        return "SPRITEPARENT";
-                                    }
-                                }
-                                //set up alias
-                                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-                                var synonym = [candname, state.objects_candname];
-                                synonym.lineNumber = state.lineNumber;
-                                state.legend_synonyms.push(synonym);
-                            }
-                            if (state.case_sensitive) {
-                                if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
-                                    // setup aliases for special objects
-                                    var synonym = [candname.toLowerCase(), state.objects_candname];
-                                    synonym.lineNumber = state.lineNumber;
-                                    state.legend_synonyms.push(synonym);
-                                }
-                            }
-
-                            state.objects_section = 1;
-                            return 'NAME';
-                        }
-                    };
-
                     if (sol && state.objects_section == 2) {
                         state.objects_section = 3;
                     }
@@ -1007,52 +1038,21 @@ var codeMirrorFn = function() {
 
                     switch (state.objects_section) {
                     case 0:
-                    case 1:
-                        {
+                    case 1: { //LOOK FOR NAME(s)
                             state.objects_spritematrix = [];
-                            return tryParseName();
+                            return parseObjectName(stream, mixedCase, state);
                             break;
                         }
-                    case 2:
-                        {
-                            //LOOK FOR COLOR
-                        // PS+ to fix                             
-                            stream.string = stream.string.toLowerCase();
-                            state.tokenIndex = 0;
-
-                            var match_color = stream.match(reg_color, true);
-                            if (match_color == null) {
-                                var str = stream.match(reg_name, true) || stream.match(reg_notcommentstart, true);
-                            // PS+ to fix                             
-                            logError('Was looking for color for object '
-                                + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
-                                + ', got "' + str + '" instead.', state.lineNumber);
-                                return null;
-                            } else {
-                                if (state.objects[state.objects_candname].colors === undefined) {
-                                    state.objects[state.objects_candname].colors = [match_color[0].trim()];
-                                } else {
-                                    state.objects[state.objects_candname].colors.push(match_color[0].trim());
-                                }
-
-                                var candcol = match_color[0].trim().toLowerCase();
-                                if (candcol in colorPalettes.arnecolors) {
-                                    return 'COLOR COLOR-' + candcol.toUpperCase();
-                                } else if (candcol==="transparent") {
-                                    return 'COLOR FADECOLOR';
-                                } else {
-                                    return 'MULTICOLOR'+match_color[0];
-                                }
-                            }
-                            break;
+                    case 2: { //LOOK FOR COLOR(s)
+                            if (sol) state.objects[state.objects_candname].colors = [];
+                            return parseObjectColor(stream, state);
                         }
-                    case 3:
-                        {
+                    case 3: {
                             var ch = stream.eat(/[.\d]/);
                             var spritematrix = state.objects_spritematrix;
                             if (ch === undefined) {
                                 if (spritematrix.length === 0) {
-                                    return tryParseName();
+                                    return parseObjectName(stream, mixedCase, state);
                                 }
 
                             logError('Unknown junk in spritematrix for object ' 
