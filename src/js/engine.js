@@ -2774,11 +2774,9 @@ Rule.prototype.queueCommands = function() {
       twiddleMetadataExtras()
 
       if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
-        var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
-        if (value != command[1]) {
-          log += " ("+command[1]+")"
-        }
-        consolePrintFromRule(log,this,true);
+		var inspect_ID =  addToDebugTimeline(level,this.lineNumber);
+		var logString = `<font color="green"> Rule <a onclick="jumpToLine(${this.lineNumber});" href="javascript:void(0);">${this.lineNumber}</a> ${dirMaskName[this.direction]}: Twiddled '${command[0]}' to '${value}'.</font>`;
+		consolePrint(logString,false,this.lineNumber,inspect_ID);
       }
     }   
   }
