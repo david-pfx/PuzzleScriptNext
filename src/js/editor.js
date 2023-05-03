@@ -5,7 +5,7 @@ var _editorCleanState = "";
 var demoFile = getParameterByName("demo");
 var urlFile=getParameterByName("url");
 if (demoFile && demoFile.length>0) {
-	tryLoadFile(`demo/${demoFile}.txt`);
+	setTimeout(() => { tryLoadFile(`demo/${demoFile}.txt`); }, 500);
 	code.value = "loading...";
 } else if (urlFile && urlFile.length>0) {
 	tryLoadFile(urlFile);
