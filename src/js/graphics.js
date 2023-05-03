@@ -842,9 +842,9 @@ function canvasResize() {
     var w = 5;
     var h = 5;
 
-    if (state.metadata.sprite_size !== undefined) {
-        var w = state.metadata.sprite_size;
-        var h = state.metadata.sprite_size;//sprites[1].dat[0].length;
+    if (state.sprite_size !== undefined) {
+        var w = state.sprite_size;
+        var h = state.sprite_size;//sprites[1].dat[0].length;
     }
 
     if (textMode) {
