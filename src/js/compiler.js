@@ -3072,7 +3072,7 @@ function compile(command, text, randomseed) {
         //Puzzlescript Plus errors
         if (IDE && state !== undefined) {
             if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
-                logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
+                logWarning("[PS+] Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true);
             }
     
             if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
@@ -3085,6 +3085,14 @@ function compile(command, text, randomseed) {
 
             if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
                 logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
+            }
+
+            if(state.metadata.verbose_logging === undefined && state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+                logWarning("[PS+] Enable verbose logging to see RUNTIME_METADATA_TWIDDLING_DEBUG output!", undefined, true);
+            }
+
+            if(state.metadata.runtime_metadata_twiddling_debug !== undefined && state.metadata.runtime_metadata_twiddling === undefined) {
+                logWarning("[PS+] Erm, why are you using RUNTIME_METADATA_TWIDDLING_DEBUG when you don't have twidding enabled? Try that first!", undefined, true);
             }
         }
 

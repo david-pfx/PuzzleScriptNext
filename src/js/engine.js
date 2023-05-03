@@ -2773,9 +2773,9 @@ Rule.prototype.queueCommands = function() {
 
       twiddleMetadataExtras()
 
-      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+      if (verbose_logging && state.metadata.runtime_metadata_twiddling_debug !== undefined) {
 		var inspect_ID =  addToDebugTimeline(level,this.lineNumber);
-		var logString = `<font color="green"> Rule <a onclick="jumpToLine(${this.lineNumber});" href="javascript:void(0);">${this.lineNumber}</a> ${dirMaskName[this.direction]}: Twiddled '${command[0]}' to '${value}'.</font>`;
+		var logString = `-> Set ${command[0]} to ${value}.`;
 		consolePrint(logString,false,this.lineNumber,inspect_ID);
       }
     }   
