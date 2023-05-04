@@ -674,82 +674,76 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token type
     function parseObjectName(stream, mixedCase, state) {
-        var match_name = (state.objects_section == 0) ? stream.match(reg_name, true) 
-            : stream.match(/[^\p{Z}\s\()]+[\p{Z}\s]*/u, true);  // bug:comment
-        if (match_name == null) {
-            stream.match(reg_notcommentstart, true);
-            if (stream.pos > 0) {
-                logWarning(`Unknown junk in object section (possibly: sprites have to be ${state.sprite_size} pixels wide and $(state.sprite_size) pixels high exactly. Or maybe: the main names for objects have to be words containing only the letters a-z0.9 - if you want to call them something like ",", do it in the legend section).`, state.lineNumber);
-            }
+        let match_name = stream.match(/(\w+)\s*/);
+        if (!match_name && state.objects_section > 0) match_name = stream.match(/([^\s])\s*/);
+        if (!match_name) {
+            const junk = stream.match(reg_notcommentstart, true);
+            if (stream.pos > 0)
+                logWarning(`Unknown junk in object section: ${junk}.`, state.lineNumber);
             return 'ERROR';
+        } 
+        var candname = match_name[1];
+        if (state.objects[candname]) {
+            logError(`Object "${candname}" defined multiple times.`, state.lineNumber);
+            return 'ERROR';
+        }
+        for (var i = 0; i < state.legend_synonyms.length; i++) {
+            var entry = state.legend_synonyms[i];
+            if (entry[0] == candname) {
+                logError(`Name "${candname}" already in use.`, state.lineNumber);
+            }
+        }
+        if (keyword_array.indexOf(candname) >= 0) {
+            logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
+        }
+
+        if (state.objects_section == 0) {
+            state.objects_candname = candname;
+            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            state.objects[state.objects_candname] = {
+                lineNumber: state.lineNumber,
+                colors: [],
+                spritematrix: [],
+                cloneSprite: "" // PS+
+            };
+
         } else {
-            var candname = match_name[0].trim();
-            if (state.objects[candname] !== undefined) {
-                // PS+ to fix for case_sensitive
-                logError(`Object "${candname}" defined multiple times.`, state.lineNumber);
-                return 'ERROR';
-            }
-            for (var i = 0; i < state.legend_synonyms.length; i++) {
-                var entry = state.legend_synonyms[i];
-                if (entry[0] == candname) {
-                    logError(`Name "${candname}" already in use.`, state.lineNumber);
+            // PS+ sprite copy
+            //console.log(candname +" == "+ state.objects_candname);
+            if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
+                var cloneName = candname.substring(5);
+                if (state.objects[state.objects_candname].cloneSprite != "") {
+                    logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
+                    return 'ERROR';
+                } else if (cloneName == state.objects_candname) {
+                    logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
+                    return 'ERROR';
+                } else {
+                    state.objects[state.objects_candname].cloneSprite = cloneName;
+                    //state.objects_section = 1;
+                    return "SPRITEPARENT";
                 }
             }
-            if (keyword_array.indexOf(candname) >= 0) {
-                logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
-            }
-
-            if (state.objects_section == 0) {
-                state.objects_candname = candname;
-                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-                state.objects[state.objects_candname] = {
-                    lineNumber: state.lineNumber,
-                    colors: [],
-                    spritematrix: [],
-                    cloneSprite: "" // PS+
-                };
-
-            } else {
-                // PS+ sprite copy
-                //console.log(candname +" == "+ state.objects_candname);
-                if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
-                    var cloneName = candname.substring(5);
-                    if (state.objects[state.objects_candname].cloneSprite != "") {
-                        logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
-                        return 'ERROR';
-                    } else if (cloneName == state.objects_candname) {
-                        logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
-                        return 'ERROR';
-                    } else {
-                        state.objects[state.objects_candname].cloneSprite = cloneName;
-                        //state.objects_section = 1;
-                        return "SPRITEPARENT";
-                    }
-                }
-                //set up alias
-                registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-                var synonym = [candname, state.objects_candname];
+            //set up alias
+            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            var synonym = [candname, state.objects_candname];
+            synonym.lineNumber = state.lineNumber;
+            state.legend_synonyms.push(synonym);
+        }
+        if (state.case_sensitive) {
+            if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
+                // setup aliases for special objects
+                var synonym = [candname.toLowerCase(), state.objects_candname];
                 synonym.lineNumber = state.lineNumber;
                 state.legend_synonyms.push(synonym);
             }
-            if (state.case_sensitive) {
-                if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
-                    // setup aliases for special objects
-                    var synonym = [candname.toLowerCase(), state.objects_candname];
-                    synonym.lineNumber = state.lineNumber;
-                    state.legend_synonyms.push(synonym);
-                }
-            }
-            state.objects_section = 1;  // repeat this section to get next name
-            return 'NAME';
         }
+        state.objects_section = 1;  // repeat this section to get next name
+        return 'NAME';
     };
 
     ////////////////////////////////////////////////////////////////////////////
     function parseObjectColor(stream, state) {
-        // let version = state.metadata['puzzlescript'];
-        // if (version && version.startsWith('next') && stream.match(/;/)) {
-
         const match_color = stream.match(/([#\w]+)\s*/, true);
         const candcol = match_color ? match_color[1].toLowerCase() : null;
         if (!(candcol && (color_names.includes(candcol) || candcol.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)))) {
@@ -757,6 +751,7 @@ var codeMirrorFn = function() {
             logError(`Was looking for color for object ${state.objects_candname}, got "${candcol || tail}" instead.`, state.lineNumber);
             return 'ERROR';
         } 
+
         state.objects[state.objects_candname].colors.push(candcol);
         return (candcol in colorPalettes.arnecolors) ? `COLOR COLOR-${candcol.toUpperCase()}`
             : (candcol === "transparent") ? 'COLOR FADECOLOR'
@@ -1040,24 +1035,27 @@ var codeMirrorFn = function() {
                     case 0:
                     case 1: { //LOOK FOR NAME(s)
                             state.objects_spritematrix = [];
-                            return parseObjectName(stream, mixedCase, state);
-                            break;
+                            const ret = parseObjectName(stream, mixedCase, state);
+                            
+                            // look for ';' as end of object line todo:not default
+                            if (stream.match(/;\s*/))
+                                state.objects_section = 2;
+                            return ret;
                         }
                     case 2: { //LOOK FOR COLOR(s)
                             if (sol) state.objects[state.objects_candname].colors = [];
                             return parseObjectColor(stream, state);
                         }
                     case 3: {
-                            var ch = stream.eat(/[.\d]/);
                             var spritematrix = state.objects_spritematrix;
-                            if (ch === undefined) {
+                            // dodgy. If first line does not start with . or digit assume next object
+                            var ch = stream.eat(/[.\d]/);
+                            if (!ch) {
                                 if (spritematrix.length === 0) {
+                                    state.objects_section = 0;
                                     return parseObjectName(stream, mixedCase, state);
                                 }
-
-                            logError('Unknown junk in spritematrix for object ' 
-                                + (state.case_sensitive ? state.objects_candname : state.objects_candname.toUpperCase())
-                                + '.', state.lineNumber);
+                                logError(`Unknown junk in spritematrix for object ${state.objects_candname}.`, state.lineNumber);
                                 stream.match(reg_notcommentstart, true);
                                 return null;
                             }

@@ -2,17 +2,20 @@ title Yet Another High-Res Animated Sokoban
 author Polyomino Games
 homepage www.puzzlang.org
 
-comment //
-endline ;
+puzzlescript next v1
 
 //color_palette amiga
 background_color Blue
-animate_interval 0.3
+tween_length 0.25
+sprite_size 11
 
+debug
+verbose_logging
 ========
 OBJECTS
 ========
 
+// note: original has objects of different sizes
 Player P; Yellow Green Red Black
 ...........
 ....222....
@@ -26,32 +29,31 @@ Player P; Yellow Green Red Black
 ..333.333..
 ...........
 
-
 Target T; DarkRed
-0...........0
-.0.........0.
-..0.......0..
-.....000.....
-....0.0.0....
-...0..0..0...
-...0000000...
-...0..0..0...
-....0.0.0....
-.....000.....
-..0.......0..
-.0.........0.
-0...........0
+0.........0
+.0.......0.
+....000....
+...0.0.0...
+..0..0..0..
+..0000000..
+..0..0..0..
+...0.0.0...
+....000....
+.0.......0.
+0.........0
 
 Wall W; Orange DarkBrown
-001000000
-001000000
-111111111
-000001000
-000001000
-111111111
-000000010
-000000010
-111111111
+00100000000
+00100000000
+11111111111
+00000100000
+00000100000
+11111111111
+00000001000
+00000001000
+11111111111
+00000000001
+11111111111
 
 Crate C; Yellow DarkBrown
 ...........
@@ -69,7 +71,7 @@ Crate C; Yellow DarkBrown
 Background .; LightGrey
 Void -; Blue
 Hello H; blue yellow
-text Hello world!
+//text Hello world!
 
 =======
 LEGEND
@@ -82,9 +84,9 @@ LEGEND
 SOUNDS
 =======
 
-player move afxT
-player cantmove afxB  48306102
-crate move 76861108 afxT
+//player move afxT
+player cantmove 48306102 //afxB 
+crate move 76861108 //afxT
 
 ================
 COLLISIONLAYERS
@@ -125,20 +127,21 @@ W.C...W
 WTPCTWW
 WWWWWW-
 
---WWW-
+// in the original, some lines were shorter
+--WWW-..
 WWW#WWWW
 W..CC..W
 W...T..W
 WWWWWWWW
 
---WWW-
---WTW-
+--WWW-..
+--WTW-..
 --W.WWWW
 WWWC.CTW
 WT.CPWWW
-WWWWCW-
----WTW-
----WWW-
+WWWWCW-.
+---WTW-.
+---WWW-.
 
 WWWWWWWWWWW
 W.TTTWTTT.W
@@ -165,18 +168,18 @@ W.W@@W.W
 W..@P@.W
 -W.CC.W-
 -W....W-
---WWWW-
+--WWWW-.
 
-----WWWWW-
-----W...W-
-----WC..W-
---WWW..CWW-
---W..C.C.W-
+----WWWWW-.........
+----W...W-.........
+----WC..W-.........
+--WWW..CWW-........
+--W..C.C.W-........
 WWW.W.WW.W---WWWWWW
 W...W.WW.WWWWW..TTW
 W.C..C..........TTW
 WWWWW.WWW.WPWW..TTW
 ----W.....WWWWWWWWW
-----WWWWWWW-
+----WWWWWWW-.......
 
 
