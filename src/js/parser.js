@@ -674,20 +674,47 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token type
     function parseObjectName(stream, mixedCase, state) {
+        function parseCopySprite() {
+            const match = state.objects_section > 0 ? stream.match(/(\w+)\s*/) : null;
+            if (!match) {
+                const junk = stream.match(reg_notcommentstart, true);
+                logWarning(`Invalid sprite copy: ${junk}.`, state.lineNumber);
+                return 'ERROR'
+            }
+            let cloneName = match[0];
+            if (state.objects[state.objects_candname].cloneSprite != "") {
+                logError(`You already assigned a sprite parent for ${cloneName}, you can't have more than one!`, state.lineNumber);
+                return 'ERROR';
+            } else if (cloneName == state.objects_candname) {
+                logError(`You attempted to set the sprite parent for ${cloneName} to itself! Please don't."`, state.lineNumber)
+                return 'ERROR';
+            } else {
+                state.objects[state.objects_candname].cloneSprite = cloneName;
+                //state.objects_section = 1;
+                return "SPRITEPARENT";
+            }
+        }
+
+        // look for an object name, alias/glyph or copy:
+        if (stream.match(/copy:/)) 
+            return parseCopySprite();
+
         let match_name = stream.match(/(\w+)\s*/);
-        if (!match_name && state.objects_section > 0) match_name = stream.match(/([^\s])\s*/);
+        if (!match_name && state.objects_section > 0)
+            match_name = stream.match(/([^\s])\s*/);  // glyph
         if (!match_name) {
             const junk = stream.match(reg_notcommentstart, true);
             if (stream.pos > 0)
-                logWarning(`Unknown junk in object section: ${junk}.`, state.lineNumber);
+                logWarning(`Invalid object name in object section: ${junk}.`, state.lineNumber);
             return 'ERROR';
         } 
-        var candname = match_name[1];
+
+        const candname = match_name[1];
         if (state.objects[candname]) {
             logError(`Object "${candname}" defined multiple times.`, state.lineNumber);
             return 'ERROR';
         }
-        for (var i = 0; i < state.legend_synonyms.length; i++) {
+        for (let i = 0; i < state.legend_synonyms.length; i++) {
             var entry = state.legend_synonyms[i];
             if (entry[0] == candname) {
                 logError(`Name "${candname}" already in use.`, state.lineNumber);
@@ -696,7 +723,7 @@ var codeMirrorFn = function() {
         if (keyword_array.indexOf(candname) >= 0) {
             logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
         }
-
+        // create base object
         if (state.objects_section == 0) {
             state.objects_candname = candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
@@ -704,26 +731,9 @@ var codeMirrorFn = function() {
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
-                cloneSprite: "" // PS+
+                cloneSprite: ""
             };
-
         } else {
-            // PS+ sprite copy
-            //console.log(candname +" == "+ state.objects_candname);
-            if (candname.substring(0, 5) == "copy:" && candname.length > 5) {
-                var cloneName = candname.substring(5);
-                if (state.objects[state.objects_candname].cloneSprite != "") {
-                    logError("You already assigned a sprite parent for " + cloneName + ", you can't have more than one!", state.lineNumber);
-                    return 'ERROR';
-                } else if (cloneName == state.objects_candname) {
-                    logError("You attempted to set the sprite parent for " + cloneName + " to " + cloneName + "! Please don't, and keep the recursion in check.", state.lineNumber)
-                    return 'ERROR';
-                } else {
-                    state.objects[state.objects_candname].cloneSprite = cloneName;
-                    //state.objects_section = 1;
-                    return "SPRITEPARENT";
-                }
-            }
             //set up alias
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
             var synonym = [candname, state.objects_candname];

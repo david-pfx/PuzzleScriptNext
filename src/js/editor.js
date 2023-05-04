@@ -247,7 +247,7 @@ function dropdownChange() {
  		return;
  	}
 
-	tryLoadFile(`demo/@{this.value}.txt`);
+	tryLoadFile(`demo/${this.value}.txt`);
 	this.selectedIndex=0;
 }
 
