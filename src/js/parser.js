@@ -27,8 +27,9 @@ const MAX_ERRORS_FOR_REAL=100;
 var compiling = false;
 var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
-// PS+
-var twiddleable_params = ['background_color','text_color','key_repeat_interval','realtime_interval','again_interval','flickscreen','zoomscreen','smoothscreen','noundo','norestart','message_text_align']; //Please note that you have to add these twiddleable properties in more locations that just here!
+
+// globally accessed elsewhere
+var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align']; //Please note that you have to add these twiddleable properties in more locations that just here!
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -1033,24 +1034,17 @@ var codeMirrorFn = function() {
                     return parsePrelude(stream, mixedCase, state);
                 }
                 case 'objects': {
-                    if (sol && state.objects_section == 2) {
-                        state.objects_section = 3;
-                    }
 
-                    if (sol && state.objects_section == 1) {
-                        state.objects_section = 2;
+                    if (state.objects_section == 1 || state.objects_section == 2) {
+                        if (sol || stream.match(/;\s*/))        // todo: settable
+                            state.objects_section++;
                     }
 
                     switch (state.objects_section) {
                     case 0:
                     case 1: { //LOOK FOR NAME(s)
                             state.objects_spritematrix = [];
-                            const ret = parseObjectName(stream, mixedCase, state);
-                            
-                            // look for ';' as end of object line todo:not default
-                            if (stream.match(/;\s*/))
-                                state.objects_section = 2;
-                            return ret;
+                            return parseObjectName(stream, mixedCase, state);
                         }
                     case 2: { //LOOK FOR COLOR(s)
                             if (sol) state.objects[state.objects_candname].colors = [];
@@ -1070,11 +1064,10 @@ var codeMirrorFn = function() {
                                 return null;
                             }
 
-                            if (sol) {
+                            if (sol)
                                 spritematrix.push('');
-                            }
 
-                            var o = state.objects[state.objects_candname];
+                            let o = state.objects[state.objects_candname];
 
                             spritematrix[spritematrix.length - 1] += ch;
                         // PS+ to fix for sprite size
@@ -1090,7 +1083,7 @@ var codeMirrorFn = function() {
                             }
 
                             if (ch!=='.') {
-                                var n = parseInt(ch);
+                                let n = parseInt(ch);
                                 if (n>=o.colors.length) {
                                 // PS+ to fix?
                                 logError("Trying to access color number "+n+" from the color palette of sprite " +state.objects_candname.toUpperCase()+", but there are only "+o.colors.length+" defined in it.",state.lineNumber);
