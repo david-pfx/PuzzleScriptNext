@@ -3145,6 +3145,9 @@ function calculateRowColMasks() {
 var playerPositions;
 var playerPositionsAtTurnStart;
 
+// acceptable input directions, used here and in inputoutput
+var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'reaction', 'lclick', 'rclick', 'mclick'];
+
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak,coord) {
 	if (!dontModify) {

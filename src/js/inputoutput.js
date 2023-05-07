@@ -7,9 +7,6 @@ var dragging=false;
 var rightdragging=false;
 var columnAdded=false;
 
-// acceptable input directions, used here and elsewhere
-var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'reaction', 'lclick', 'rclick', 'mclick'];
-
 function selectText(containerid,e) {
 	e = e || window.event;
 	var myspan = document.getElementById(containerid);

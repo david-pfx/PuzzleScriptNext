@@ -28,6 +28,13 @@ var compiling = false;
 var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
+// used here and in compiler
+var commandwords = ["sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again" //];
+    , "undo", "nosave", "quit", "zoomscreen", "flickscreen", "smoothscreen", "again_interval", "realtime_interval"
+    , "key_repeat_interval", 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align'];
+var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval',
+    'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
     throw new Error("Too many errors/warnings; aborting compilation.");
@@ -241,7 +248,7 @@ var codeMirrorFn = function() {
     }
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
-    const reg_name = /[\p{L}\p{N}_]+[\p{Z}\s]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
+    const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
     const reg_soundseed = /\d+\b/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
@@ -586,8 +593,13 @@ var codeMirrorFn = function() {
                         return checkEol() ? 'METADATA' : 'ERROR';
                     }
                     for (const table of preamble_tables) {
-                        if (table.includes(token))
+                        if (table.includes(token)) {
+                            if (!stream.match(reg_notcommentstart, false)) {
+                                logError(`MetaData "${token}" needs a value.`, state.lineNumber);
+                                return 'ERROR';
+                            }
                             return 'METADATA';
+                        }
                     }
                     logError(`Unknown option '${token}' in the prelude.`, state.lineNumber);
                 }
@@ -605,10 +617,6 @@ var codeMirrorFn = function() {
             // retrieve mixedCase value as argument to eol           
             const arg = state.current_line_wip_array[1].substring(stream.pos).trim();
             stream.skipToEnd();
-            if (!arg) {
-                logError(`Metadata ${token} needs a value.`, state.lineNumber);
-                return 'ERROR';
-            }
             state.metadata.push(token, arg);
             return 'METADATATEXT';
         }
@@ -690,7 +698,7 @@ var codeMirrorFn = function() {
         if (stream.match(/copy:/)) 
             return parseCopySprite();
 
-        let match_name = stream.match(/(\w+)\s*/);
+        let match_name = stream.match(reg_name);
         if (!match_name && state.objects_section > 0)
             match_name = stream.match(/([^\s])\s*/);  // glyph
         if (!match_name) {
@@ -963,7 +971,10 @@ var codeMirrorFn = function() {
                     }
                 }
 
-                if (state.section === 'sounds') {
+                if (state.section === 'objects'){
+                    if (!state.commentStyle)
+                        state.commentStyle = '()';
+                } else if (state.section === 'sounds') {
                     //populate names from rules
                     for (var n in state.objects) {
                         if (state.objects.hasOwnProperty(n)) {
@@ -1026,7 +1037,7 @@ var codeMirrorFn = function() {
                 case 'objects': {
 
                     if (state.objects_section == 1 || state.objects_section == 2) {
-                        if (sol || stream.match(/;\s*/))        // todo: settable
+                        if (sol || (state.commentStyle == '//' && stream.match(/;\s*/)))
                             state.objects_section++;
                     }
 

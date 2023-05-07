@@ -6,11 +6,6 @@ var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|action|reaction|lclick|mclick|rclick|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel)$/i;
-var commandwords = ["sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again" //];
-    , "undo", "nosave", "quit", "zoomscreen", "flickscreen", "smoothscreen", "again_interval", "realtime_interval"
-    , "key_repeat_interval", 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align'];
-var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval',
-    'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 
 var dirMaskNames = {
     1: 'up',
