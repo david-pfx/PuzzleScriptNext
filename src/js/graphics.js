@@ -267,7 +267,7 @@ function generateGlyphImages() {
         action:16
         rigid:32
         */
-        const coords = [
+        const coords = [ // todo:?
             //0 up
             [ [3,2],[5,0],[7,2]],
             //1 down

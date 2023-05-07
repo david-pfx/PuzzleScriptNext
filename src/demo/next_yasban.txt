@@ -128,20 +128,20 @@ WTPCTWW
 WWWWWW-
 
 // in the original, some lines were shorter
---WWW-..
+--WWW---
 WWW#WWWW
 W..CC..W
 W...T..W
 WWWWWWWW
 
---WWW-..
---WTW-..
+--WWW---
+--WTW---
 --W.WWWW
 WWWC.CTW
 WT.CPWWW
-WWWWCW-.
----WTW-.
----WWW-.
+WWWWCW--
+---WTW--
+---WWW--
 
 WWWWWWWWWWW
 W.TTTWTTT.W
@@ -168,18 +168,18 @@ W.W@@W.W
 W..@P@.W
 -W.CC.W-
 -W....W-
---WWWW-.
+--WWWW--
 
-----WWWWW-.........
-----W...W-.........
-----WC..W-.........
---WWW..CWW-........
---W..C.C.W-........
+----WWWWW----------
+----W...W----------
+----WC..W----------
+--WWW..CWW---------
+--W..C.C.W---------
 WWW.W.WW.W---WWWWWW
 W...W.WW.WWWWW..TTW
 W.C..C..........TTW
 WWWWW.WWW.WPWW..TTW
 ----W.....WWWWWWWWW
-----WWWWWWW-.......
+----WWWWWWW--------
 
 

@@ -1,0 +1,338 @@
+title Net Game
+author polyomino games
+homepage polyomino.org
+
+debug
+verbose_logging
+
+background_color lightblue
+text_color darkbrown
+
+run_rules_on_level_start
+tween_length 0.25
+sprite_size 9
+nokeyboard 
+
+========
+OBJECTS
+========
+
+edge *
+lightgrey lightblue blue
+012012012
+120120120
+201201201
+012012012
+120120120
+201201201
+012012012
+120120120
+201201201
+
+focus 
+grey
+000000000
+0.......0
+0.......0
+0.......0
+0.......0
+0.......0
+0.......0
+0.......0
+000000000
+
+tileN
+red
+....0....
+....0....
+....0....
+....0....
+....0....
+.........
+.........
+.........
+.........
+
+tileE
+red
+.........
+.........
+.........
+.........
+....00000
+.........
+.........
+.........
+.........
+
+tileS
+red
+.........
+.........
+.........
+.........
+....0....
+....0....
+....0....
+....0....
+....0....
+
+
+tileW
+red
+.........
+.........
+.........
+.........
+00000....
+.........
+.........
+.........
+.........
+
+Background .;green
+init;red
+mix;blue
+test;yellow
+lit;lightbrown
+done;transparent
+start s;transparent
+empty e;transparent
+temp;transparent
+q1;transparent
+q2;transparent
+q3;transparent
+q4;transparent
+tileX;transparent  // extra tile for shifts
+r0;transparent
+r90;transparent
+r180;transparent
+r270;transparent
+c1;transparent
+c2;transparent
+c3;transparent
+
+=======
+LEGEND
+=======
+
+i = init and edge
+m = mix and edge
+t = test and background
+tileNESW = tileN or tileE or tileS or tileW
+active = start or tileNESW
+clickable = tileNESW
+// tile rotation
+tileRL0 = tileN or tileE or tileS or tileW or tileX
+tileRL1 = tileX or tileN or tileE or tileS or tileW
+tileRR0 = tileN or tileW or tileS or tileE or tileX
+tileRR1 = tileX or tileN or tileW or tileS or tileE
+tileRX0 = tileN or tileS or tileW or tileE or tileX
+tileRX1 = tileN or tileS or tileX or tileW or tileE
+//tileRX0 = tileN or tileS or tileX or tileW or tileE or tileX
+//tileRX1 = tileX or tileN or tileS or tileX or tileW or tileE
+queues = temp or q1 or q2 or q3 or q4
+rotation = r0 or r90 or r180 or r270
+rr = r90 or r180 or r270
+tempobj = r0 or init or mix
+
+=======
+SOUNDS
+=======
+
+//clickable lclick 32169907 afxRR
+//clickable rclick 32169907 afxRL
+sfx0 32169907
+sfx1 16334503
+
+================
+COLLISIONLAYERS
+================
+Background
+edge 
+lit init mix test
+start
+empty
+queues
+c1, c2, c3
+rotation
+done
+tileN
+tileE
+tileS
+tileW
+tileX
+focus
+
+======
+RULES
+======
+
+[done] -> cancel // it's already a win
+
+// grow the tree to the edge
+startloop
+  random [ init ][ active no c3 no edge | no active no edge ] -> [ init ][ active temp | temp ]
+// avoid cross tiles
+  [ temp c2 ] -> [ temp c3 ]
+  [ temp c1 ] -> [ temp c2 ]
+  [ temp no c1 no c2 no c3 ] -> [ temp c1 ]
+  right  [ temp | temp ] -> [ tileE | tileW ]
+  up     [ temp | temp ] -> [ tileN | tileS ]
+endloop 
+
+// scramble the tile rotations 
+[ mix ][ tileNESW no rotation ] -> [ mix ][ tileNESW random rotation ]
+startloop
+  [ mix ][ tileNESW ] -> [ mix ] [ action tileNESW ]
+  [ rr action TileN no TileW ] -> [ rr TileW ]
+  [ rr action TileE no TileN ] -> [ rr TileN ]
+  [ rr action TileS no TileE ] -> [ rr TileE ]
+  [ rr action TileW no TileS ] -> [ rr TileS ]
+  [ rr action TileN no TileW ] -> [ rr TileW ]
+  [ rr action TileE no TileN ] -> [ rr TileN ]
+  [ r90 ] -> [ r0 ]
+  [ r180 ] -> [ r90 ]
+  [ r270 ] -> [ r180 ]
+endloop
+//[ r0 ] -> []
+//[ init ] -> []
+//[ mix ] -> []
+[ tempobj ] -> []
+
+//[ test clickable ] -> [ lclick clickable ]
+
+//[ focus ] -> []
+//[ hover clickable ] -> [ clickable focus ]
+
+//[ init ][ tileE | tileE | tileE ] -> [ init ][ lclick tileE | tileE | tileE ]
+// accept a user input
+
+// PuzzleFab way
+//  [ lclick tileRL0 ] -> [ lclick tileRL1 ] 
+//+ [ lclick tileRL0 ] -> [ tileRL0 ]
+//  [ rclick tileRR0 ] -> [ rclick tileRR1 ] 
+//+ [ rclick tileRR0 ] -> [ tileRR0 ]
+
+  [ lclick TileN ] -> [ lclick TileX ]
++ [ lclick TileE ] -> [ lclick TileN ]
++ [ lclick TileS ] -> [ lclick TileE ]
++ [ lclick TileW ] -> [ lclick TileS ]
++ [ lclick TileX ] -> [ lclick TileW ]
++ [ lclick TileNESW ] -> [ TileNESW ]
+  [ rclick TileN ] -> [ rclick TileX ]
++ [ rclick TileW ] -> [ rclick TileN ]
++ [ rclick TileS ] -> [ rclick TileW ]
++ [ rclick TileE ] -> [ rclick TileS ]
++ [ rclick TileX ] -> [ rclick TileE ]
++ [ rclick TileNESW ] -> [ TileNESW ]
+
+[ lit ] -> []
+[ start ] -> [ start lit ]
+startloop
+  right [ tileE lit | tileW no lit ] -> [ tileE lit | tileW lit ]
+  down  [ tileS lit | tileN no lit ] -> [ tileS lit | tileN lit ]
+  up    [ tileN lit | tileS no lit ] -> [ tileN lit | tileS lit ]
+  left  [ tileW lit | tileE no lit ] -> [ tileW lit | tileE lit ]
+endloop
+
+[ start ] -> [ start done ]
+[ done ][ clickable no lit ] -> [][ clickable ]
+[ done ] -> sfx1
+//[ done ] -> status You win! Press R to play again, or Esc to change level.
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+message The aim is to light up the whole board
+
+//level Single start 9x9
+i*********m
+*.........*
+*.........*
+*.........*
+*.........*
+*....s....*
+*.........*
+*.........*
+*.........*
+*.........*
+***********
+
+//level Single start 13x11
+i*************m
+*.............*
+*.............*
+*.............*
+*.............*
+*.............*
+*......s......*
+*.............*
+*.............*
+*.............*
+*.............*
+*.............*
+***************
+
+// test levels
+
+//level Single start 13x11 no mix
+i**************
+*t............*
+*.............*
+*.............*
+*.............*
+*.............*
+*......s......*
+*.............*
+*.............*
+*.............*
+*.............*
+*.............*
+***************
+
+//level Single start 1x1
+i*m
+*s*
+*.*
+***
+
+//level Single start 3x3 no mix
+i****
+*...*
+*.s.*
+*...*
+*****
+
+//level Single start 3x3
+i***m
+*...*
+*.s.*
+*...*
+*****
+
+//level Single start 5x5
+i*****m
+*.....*
+*.....*
+*..s..*
+*.....*
+*.....*
+*******
+
+//level Single start 8x8 no mix
+i*********
+*........*
+*........*
+*....s...*
+*........*
+*........*
+*........*
+*........*
+**********
+

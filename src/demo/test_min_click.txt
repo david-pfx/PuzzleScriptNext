@@ -1,0 +1,72 @@
+title test min
+author polymino
+homepage www.polyomino.com
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+[ k ] -> [ r ]
+[ lclick r ] -> [ k ]
+[ rclick r ] -> [ right r ]
+[ rclick r ][ y ] -> [ left r ][ y ]
+
+[ action p | g ] -> [ p | ^ g ] 
+[ reaction p | g ] -> [ p | v g ] 
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b......
+
+message second level
+
+..........
+....pry...
+..........
+

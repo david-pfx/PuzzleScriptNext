@@ -1,6 +1,49 @@
 
 'use strict';
 
+// static data used here and elsewhere
+var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
+var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
+var simpleRelativeDirections = ['^', 'v', '<', '>'];
+var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|action|reaction|lclick|mclick|rclick|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel)$/i;
+var commandwords = ["sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again" //];
+    , "undo", "nosave", "quit", "zoomscreen", "flickscreen", "smoothscreen", "again_interval", "realtime_interval"
+    , "key_repeat_interval", 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align'];
+var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval',
+    'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+
+var dirMaskNames = {
+    1: 'up',
+    2: 'down',
+    3: 'no',
+    4: 'left',
+    8: 'right',
+    15: '?',
+    16: 'action',
+    17: 'reaction',
+    18: 'random',
+    19: 'lclick',
+    20: 'mclick',
+    21: 'rclick',
+};
+
+var dirMasks = {
+    'up': 1,
+    'down': 2,
+    'no': 3,
+    'left': 4,
+    'randomdir': 5,
+    'right': 8,
+    'moving': 15,
+    'action': 16,
+    'reaction': 17,
+    'random': 18,
+    'lclick': 19,
+    'mclick': 20,
+    'rclick': 21,
+    '': 0
+};
+
 function isColor(str) {
 	str = str.trim();
 	if (str in colorPalettes.arnecolors)
@@ -695,19 +738,12 @@ var directionaggregates = {
     'vertical': ['up', 'down'],
     'vertical_par': ['up', 'down'],
     'vertical_perp': ['up', 'down'],
-    'moving': ['up', 'down', 'left', 'right', 'action'],
+    'moving': ['up', 'down', 'left', 'right', 'action', 'reaction'],
     'orthogonal': ['up', 'down', 'left', 'right'],
     'perpendicular': ['^', 'v'],
     'parallel': ['<', '>']
 };
 
-var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
-var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
-var simpleRelativeDirections = ['^', 'v', '<', '>'];
-var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
-//redeclaring here, i don't know why
-var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
-  "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color','goto','message_text_align'];
 function directionalRule(rule) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cellRow = rule.lhs[i];
@@ -1766,27 +1802,6 @@ function absolutifyRuleCell(forward, cell) {
         }
     }
 }
-/*
-	direction mask
-	UP parseInt('%1', 2);
-	DOWN parseInt('0', 2);
-	LEFT parseInt('0', 2);
-	RIGHT parseInt('0', 2);
-	?  parseInt('', 2);
-*/
-
-var dirMasks = {
-    'up': parseInt('00001', 2),
-    'down': parseInt('00010', 2),
-    'left': parseInt('00100', 2),
-    'right': parseInt('01000', 2),
-    'moving': parseInt('01111', 2),
-    'no': parseInt('00011', 2),
-    'randomdir': parseInt('00101', 2),
-    'random': parseInt('10010', 2),
-    'action': parseInt('10000', 2),
-    '': parseInt('00000', 2)
-};
 
 function rulesToMask(state) {
     /*
