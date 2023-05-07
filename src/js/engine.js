@@ -1573,24 +1573,19 @@ function startMovement(dir) {
     return playerPositions;
 }
 
+// X and Y increments for each move (in mask form)
 var dirMasksDelta = {
-     1:[0,-1],//up
-     2:[0,1],//'down'  : 
-     4:[-1,0],//'left'  : 
-     8:[1,0],//'right' : 
-     15:[0,0],//'?' : 
-     16:[0,0],//'action' : 
-     3:[0,0]//'no'
-};
-
-var dirMaskName = {
-     1:'up',
-     2:'down'  ,
-     4:'left'  , 
-     8:'right',  
-     15:'?' ,
-     16:'action',
-     3:'no'
+	 1: [0, -1],
+	 2: [0, 1],	
+	 3: [0, 0],	
+	 4: [-1, 0],
+	 8: [1, 0],	
+	15: [0, 0],	
+	16: [0, 0],	
+	18: [0, 0],
+	19: [0, 0],
+	20: [0, 0],
+	21: [0, 0]
 };
 
 var seedsToPlay_CanMove=[];
@@ -1990,7 +1985,7 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 				} else {
 					ellipsis_index_2=cellIndex;
 					break;
-	}
+				}
 			}
 		}
 
@@ -2221,11 +2216,11 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
 
   //check if it's changed
   if (!oldCellMask.equals(curCellMask) || !oldMovementMask.equals(curMovementMask) || rigidchange) { 
-    result=true;
-    if (rigidchange) {
-      level.rigidGroupIndexMask[currentIndex] = curRigidGroupIndexMask;
-      level.rigidMovementAppliedMask[currentIndex] = curRigidMovementAppliedMask;
-    }
+		result=true;
+		if (rigidchange) {
+		level.rigidGroupIndexMask[currentIndex] = curRigidGroupIndexMask;
+		level.rigidMovementAppliedMask[currentIndex] = curRigidMovementAppliedMask;
+		}
 
 		var created = curCellMask.cloneInto(_o4);
 		created.iclear(oldCellMask);
@@ -2245,7 +2240,7 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
 
 	}
 
-  return result;
+  	return result;
 }
 
 
@@ -3150,13 +3145,16 @@ function calculateRowColMasks() {
 var playerPositions;
 var playerPositionsAtTurnStart;
 
+// acceptable input directions, used here and in inputoutput
+var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'reaction', 'lclick', 'rclick', 'mclick'];
+
 /* returns a bool indicating if anything changed */
-function processInput(dir,dontDoWin,dontModify,bak) {
+function processInput(dir,dontDoWin,dontModify,bak,coord) {
 	if (!dontModify) {
 		newMovedEntities = {};
 	}
 
-var startDir = dir;
+	var startDir = dir;
 
 	againing = false;
 
@@ -3164,47 +3162,24 @@ var startDir = dir;
 		bak = backupLevel();
 	}
   
-  playerPositions= [];
-playerPositionsAtTurnStart = getPlayerPositions();
+  	playerPositions= [];
+	playerPositionsAtTurnStart = getPlayerPositions();
 
-    if (dir<=5) {
+	if (dir < dirNames.length) {
 
-      if (verbose_logging) { 
-        debugger_turnIndex++;
-        addToDebugTimeline(level,-2);//pre-movement-applied debug state
-      }
-
-    	if (dir>=0 && dir<=4) {
-	        switch(dir){
-	            case 0://up
-	            {
-	                dir=parseInt('00001', 2);;
-	                break;
-	            }
-	            case 1://left
-	            {
-	                dir=parseInt('00100', 2);;
-	                break;
-	            }
-	            case 2://down
-	            {
-	                dir=parseInt('00010', 2);;
-	                break;
-	            }
-	            case 3://right
-	            {
-	                dir=parseInt('01000', 2);;
-	                break;
-	            }
-	            case 4://action
-	            {
-	                dir=parseInt('10000', 2);;
-	                break;
-				      }
-	        }
-	        playerPositions = startMovement(dir);
+		if (verbose_logging) { 
+			debugger_turnIndex++;
+			addToDebugTimeline(level,-2);//pre-movement-applied debug state
 		}
-			
+
+		const dirName = dirNames[dir];
+
+		if ([ 0,1,2,3,4,6 ].includes(dir)) {		// arrows plus action plus reaction go to player
+			playerPositions = startMovement(dirMasks[dirName]);
+		} else if ([ 7,8,9 ].includes(dir)) {			// clicks
+			const mask = state.levels[curlevel].getCell(coord);
+			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
+		}
 		
 		if (verbose_logging) { 
 			consolePrint('Applying rules');
@@ -3215,10 +3190,9 @@ playerPositionsAtTurnStart = getPlayerPositions();
 				 consolePrint(`Turn starts with no input.`,false,null,inspect_ID)
 			 } else {
 				//  consolePrint('=======================');
-				consolePrint(`Turn starts with input of ${['up','left','down','right','action','mouse'][startDir]}.`,false,null,inspect_ID);
+				 consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
 			 }
 		}
-
 		
         var bannedGroup = [];
 
@@ -3237,10 +3211,10 @@ playerPositionsAtTurnStart = getPlayerPositions();
 	    sfxCreateMask.setZero();
 	    sfxDestroyMask.setZero();
 
-    seedsToPlay_CanMove=[];
-    seedsToPlay_CantMove=[];
+		seedsToPlay_CanMove=[];
+		seedsToPlay_CantMove=[];
 
-    calculateRowColMasks();
+		calculateRowColMasks();
 
 		var alreadyResolved=[];
 

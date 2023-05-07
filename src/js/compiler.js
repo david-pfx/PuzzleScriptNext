@@ -1,6 +1,44 @@
 
 'use strict';
 
+// static data used here and elsewhere
+var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
+var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
+var simpleRelativeDirections = ['^', 'v', '<', '>'];
+var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|action|reaction|lclick|mclick|rclick|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel)$/i;
+
+var dirMaskNames = {
+    1: 'up',
+    2: 'down',
+    3: 'no',
+    4: 'left',
+    8: 'right',
+    15: '?',
+    16: 'action',
+    17: 'reaction',
+    18: 'random',
+    19: 'lclick',
+    20: 'mclick',
+    21: 'rclick',
+};
+
+var dirMasks = {
+    'up': 1,
+    'down': 2,
+    'no': 3,
+    'left': 4,
+    'randomdir': 5,
+    'right': 8,
+    'moving': 15,
+    'action': 16,
+    'reaction': 17,
+    'random': 18,
+    'lclick': 19,
+    'mclick': 20,
+    'rclick': 21,
+    '': 0
+};
+
 function isColor(str) {
 	str = str.trim();
 	if (str in colorPalettes.arnecolors)
@@ -697,19 +735,12 @@ var directionaggregates = {
     'vertical': ['up', 'down'],
     'vertical_par': ['up', 'down'],
     'vertical_perp': ['up', 'down'],
-    'moving': ['up', 'down', 'left', 'right', 'action'],
+    'moving': ['up', 'down', 'left', 'right', 'action', 'reaction'],
     'orthogonal': ['up', 'down', 'left', 'right'],
     'perpendicular': ['^', 'v'],
     'parallel': ['<', '>']
 };
 
-var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
-var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
-var simpleRelativeDirections = ['^', 'v', '<', '>'];
-var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel|action)$/i;
-//redeclaring here, i don't know why
-var commandwords = ["sfx0","sfx1","sfx2","sfx3","sfx4","sfx5","sfx6","sfx7","sfx8","sfx9","sfx10","cancel","checkpoint","restart","win","message","again","undo",
-  "nosave","quit","zoomscreen","flickscreen","smoothscreen","again_interval","realtime_interval","key_repeat_interval",'noundo','norestart','background_color','text_color','goto','message_text_align'];
 function directionalRule(rule) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cellRow = rule.lhs[i];
@@ -1768,27 +1799,6 @@ function absolutifyRuleCell(forward, cell) {
         }
     }
 }
-/*
-	direction mask
-	UP parseInt('%1', 2);
-	DOWN parseInt('0', 2);
-	LEFT parseInt('0', 2);
-	RIGHT parseInt('0', 2);
-	?  parseInt('', 2);
-*/
-
-var dirMasks = {
-    'up': parseInt('00001', 2),
-    'down': parseInt('00010', 2),
-    'left': parseInt('00100', 2),
-    'right': parseInt('01000', 2),
-    'moving': parseInt('01111', 2),
-    'no': parseInt('00011', 2),
-    'randomdir': parseInt('00101', 2),
-    'random': parseInt('10010', 2),
-    'action': parseInt('10000', 2),
-    '': parseInt('00000', 2)
-};
 
 function rulesToMask(state) {
     /*
@@ -3078,8 +3088,7 @@ function formatHomePage(state) {
     }
 }
 
-//var MAX_ERRORS = 5;
-
+// load and compile a new script
 function loadFile(str) {
 	var processor = new codeMirrorFn();
 	var state = processor.startState();
@@ -3091,18 +3100,11 @@ function loadFile(str) {
 		var ss = new CodeMirror.StringStream(line, 4);
 		do {
 			processor.token(ss, state);
-
-			// if (errorCount>MAX_ERRORS) {
-			// 	consolePrint("too many errors, aborting compilation", true);
-			// 	return;
-			// }
 		}		
 		while (ss.eol() === false);
 	}
 
-    // delete state.lineNumber;
-
-	generateExtraMembers(state);
+    generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
 	extractSections(state);
@@ -3150,6 +3152,7 @@ function loadFile(str) {
 
     //delete intermediate representations
 	delete state.commentLevel;
+    delete state.commentStyle;
     delete state.line_should_end;
     delete state.line_should_end_because;
     delete state.sol_after_comment;
@@ -3164,12 +3167,6 @@ function loadFile(str) {
     delete state.current_line_wip_array;
 	delete state.visitedSections;
 	delete state.loops;
-	/*
-	var lines = stripComments(str);
-	window.console.log(lines);
-	var sections = generateSections(lines);
-	window.console.log(sections);
-	var sss = generateSemiStructuredSections(sections);*/
 	return state;
 }
 
@@ -3217,11 +3214,6 @@ function compile(command, text, randomseed) {
         logError('No levels found.  Add some levels!', undefined, true);
     }
 
-    // if (errorCount > MAX_ERRORS) {
-    //     return;
-    // }
-    
-
     if (errorCount > 0) {
         if (IDE===false){
             consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
@@ -3247,7 +3239,7 @@ function compile(command, text, randomseed) {
         
         if (IDE){
             if (state.metadata.title!==undefined) {
-                document.title="PS Plus - " + state.metadata.title;
+                document.title=`${state.metadata.title} - PuzzleScript Next`;
             }
         }
     }

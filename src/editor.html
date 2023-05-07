@@ -25,25 +25,27 @@
 
 <div id="leftpanel">
 <form id="form1" name="form1"  action="javascript:void(0);"><textarea id="code" class="codeform" name="code" rows="20" cols="20" style="display:none;">
-(
-Welcome to PuzzleScript Next, the home of advanced PuzzleScript features!
-
-This is a special starting point showing some of the many new features added to the original PuzzleScript.
-
-To work on a game, consider using the "Basic" or "Blank Project" example, or cut and paste in your own PuzzleScript program.
-
-For more information, don't forget to check out the NEW EXAMPLES and the DOCS. Enjoy!
-)
-
-title My PuzzleScript Next Game
-author My Name Here
+title PuzzleScriptNext Starter
+author davidus
 homepage www.polyomino.com
+
+// Welcome to PuzzleScript Next, the home of the most advanced PuzzleScript features!
+
+// This is the starting point for advanced users who love PuzzleScript and want more!
+// It shows a few of the many new features added to the original PuzzleScript, building 
+// on the work of PuzzleScriptPlus and others.
+
+// See how you can use // comments instead of () if you prefer, but you can't mix them.
+
+// For more information, don't forget to check out the NEW EXAMPLES. PuzzleScriptPlus
+// features are in the DOCS link, PuzzleScriptNext are in the readme for now.
+
 
 tween_length 0.03
 smoothscreen 5x5
 level_select
 runtime_metadata_twiddling
-text_controls Don't forget to try\nthe Action key\nand Level Select!
+text_controls Don't forget to try\nthe Action key\nand Escape for Level Select!
 
 ========
 OBJECTS
@@ -60,14 +62,9 @@ LIGHTGRAY GRAY
 Wall copy:Background
 DARKGRAY BLACK
 
-Target 
-#00000080
-
-Player
-blue
-
-Crate
-orange
+Target; #0f0
+Player; #00f8
+Crate; orange
 
 =======
 LEGEND
@@ -89,15 +86,15 @@ COLLISIONLAYERS
 ================
 
 Background
-Player, Wall, Crate
 Target
+Player, Wall, Crate
 
 ======
 RULES
 ======
 
 [ >  Player | Crate ] -> [  >  Player | > Crate  ]
-[action Player] -> background_color #222222
+[action Player] -> background_color #ff4400ff
 
 ==============
 WINCONDITIONS

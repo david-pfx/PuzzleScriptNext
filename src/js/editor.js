@@ -2,30 +2,36 @@ var code = document.getElementById('code');
 var _editorDirty = false;
 var _editorCleanState = "";
 
-var fileToOpen=getParameterByName("demo");
-if (fileToOpen!==null&&fileToOpen.length>0) {
-	tryLoadFile(fileToOpen);
-	code.value = "loading...";
-} else {
-	var gistToLoad=getParameterByName("hack");
-	if (gistToLoad!==null&&gistToLoad.length>0) {
-		var id = gistToLoad.replace(/[\\\/]/,"");
-		tryLoadGist(id);
+window.addEventListener('load', function () {
+	let demoFile = getParameterByName("demo");
+	let urlFile=getParameterByName("url");
+	if (demoFile && demoFile.length>0) {
+		tryLoadFile(`demo/${demoFile}.txt`);
+		code.value = "loading...";
+	} else if (urlFile && urlFile.length>0) {
+		tryLoadFile(urlFile);
 		code.value = "loading...";
 	} else {
-		try {
-			if (storage_has('saves')) {
-					var curSaveArray = JSON.parse(storage_get('saves'));
-					var sd = curSaveArray[curSaveArray.length-1];
+		let gistToLoad=getParameterByName("hack");
+		if (gistToLoad!==null&&gistToLoad.length>0) {
+			let id = gistToLoad.replace(/[\\\/]/,"");
+			tryLoadGist(id);
+			code.value = "loading...";
+		} else {
+			try {
+				if (storage_has('saves')) {
+					let curSaveArray = JSON.parse(storage_get('saves'));
+					let sd = curSaveArray[curSaveArray.length-1];
 					code.value = sd.text;
-					var loadDropdown = document.getElementById('loadDropDown');
+					let loadDropdown = document.getElementById('loadDropDown');
 					loadDropdown.selectedIndex=0;
+				}
+			} catch(ex) {
+				
 			}
-		} catch(ex) {
-			
 		}
 	}
-}
+})
 
 CodeMirror.commands.swapLineUp = function(cm) {
     var ranges = cm.listSelections(), linesToMove = [], at = cm.firstLine() - 1, newSels = [];
@@ -213,7 +219,7 @@ function tryLoadGist(id) {
 
 function tryLoadFile(fileName) {
 	var fileOpenClient = new XMLHttpRequest();
-	fileOpenClient.open('GET', 'demo/'+fileName+".txt");
+	fileOpenClient.open('GET', fileName);
 	fileOpenClient.onreadystatechange = function() {
 		
   		if(fileOpenClient.readyState!=4) {
@@ -243,7 +249,7 @@ function dropdownChange() {
  		return;
  	}
 
-	tryLoadFile(this.value);
+	tryLoadFile(`demo/${this.value}.txt`);
 	this.selectedIndex=0;
 }
 

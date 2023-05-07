@@ -641,7 +641,7 @@ function mouseAction(event,click,id) {
 			lastCoord = coordIndex;
 			if (againing) {
 				//consolePrint("no mouse, againing",false);
-			} else {
+			} else if (id >= 0) {
 				try {
 					var bak = backupLevel();
 					var cell = level.getCell(coordIndex);
@@ -655,6 +655,13 @@ function mouseAction(event,click,id) {
 				} catch(e) {
 					console.log(e);
 					consolePrint(e,true);
+				}
+			} else {
+				// don't drop an object, feed in a movement instead
+				const inputdir = (id == -1) ? 7 : 8;
+				pushInput(inputdir);
+				if (processInput(inputdir, false, false, bak, lastCoord)) {
+					redraw();
 				}
 			}
 		}
@@ -696,7 +703,9 @@ function onMouseDown(event, wasFiredByTouch = false) {
 					prevent(event)
 				}
 				return mouseAction(event,true,state.lmbID);		// must break to not execute dragging=false;
-			}
+			} else
+				return mouseAction(event, true, -1);
+
         }
         dragging=false;
         rightdragging=false; 
@@ -709,7 +718,8 @@ function onMouseDown(event, wasFiredByTouch = false) {
         		return levelEditorRightClick(event,true);
         	} else if ("mouse_right" in state.metadata) {
 				return mouseAction(event,true,state.rmbID);
-			}
+			} else 
+				return mouseAction(event, true, -2);
         } else {
 			dragging=false;
 			rightdragging=false;
@@ -1172,29 +1182,25 @@ function checkKey(e,justPressed) {
         case 65://a
         case 37: //left
         {
-//           window.console.log("LEFT");
-            inputdir=1;
+			inputdir = dirNames.indexOf('left');
         break;
         }
         case 38: //up
         case 87: //w
         {
-//            window.console.log("UP");
-            inputdir=0;
+			inputdir = dirNames.indexOf('up');
         break;
         }
         case 68://d
         case 39: //right
         {
-//            window.console.log("RIGHT");
-            inputdir=3;
+			inputdir = dirNames.indexOf('right');
         break;
         }
         case 83://s
         case 40: //down
         {
-//            window.console.log("DOWN");
-            inputdir=2;
+			inputdir = dirNames.indexOf('down');
         break;
         }
         case 80://p
@@ -1215,7 +1221,7 @@ function checkKey(e,justPressed) {
 				return;
 			}
 			if (norepeat_action===false || justPressed) {
-            	inputdir=4;
+				inputdir = dirNames.indexOf((e.keyCode == 88) ? 'action' : 'reaction');
             } else {
             	return;
             }
