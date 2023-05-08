@@ -5105,9 +5105,9 @@ function canvasResize() {
     var w = 5; 
     var h = 5; 
  
-    if (sprites.length >= 2) { 
-        var w = sprites[1].dat.length; 
-        var h = sprites[1].dat.length;//sprites[1].dat[0].length; 
+    if (state.sprite_size !== undefined) { 
+        var w = state.sprite_size; 
+        var h = state.sprite_size;//sprites[1].dat[0].length; 
     } 
  
     if (textMode) { 
@@ -7938,7 +7938,14 @@ Rule.prototype.queueCommands = function() {
   var command=commands[i]; 
   var already=false; 
   if (level.commandQueue.indexOf(command[0])>=0) { 
-   continue; 
+   if (state.metadata.runtime_metadata_twiddling !== undefined) 
+   { 
+    if (!twiddleable_params.includes(command[0])) { 
+     continue; 
+    } //Otherwise, allow multiple changes for twiddleable params per turn 
+   } else { 
+    continue; 
+   } 
   } 
   level.commandQueue.push(command[0]); 
   level.commandQueueSourceRules.push(this); 
@@ -7990,12 +7997,10 @@ Rule.prototype.queueCommands = function() {
  
       twiddleMetadataExtras() 
  
-      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) { 
-        var log = "Metadata twiddled: Flag "+command[0] + " set to " + value; 
-        if (value != command[1]) { 
-          log += " ("+command[1]+")" 
-        } 
-        consolePrintFromRule(log,this,true); 
+      if (verbose_logging) { 
+  var inspect_ID =  addToDebugTimeline(level,this.lineNumber); 
+  var logString = `-> Set ${command[0]} to ${value}.`; 
+  consolePrint(logString,false,this.lineNumber,inspect_ID); 
       } 
     }    
   } 
@@ -11147,6 +11152,8 @@ function convertSectionNamesToIndices(state) {
   for (var c = 0; c < rule.commands.length; c++) { 
    var command = rule.commands[c]; 
    if (command[0] != 'goto') continue; 
+             
+            if ( typeof command[1] == "number") {continue;} //Variant rule was previously converted into an index PS+#105 
    var sectionName = command[1].toLowerCase(); 
    var sectionIndex = sectionMap[sectionName]; 
    if (sectionIndex === undefined){ 
@@ -13582,7 +13589,7 @@ function compile(command, text, randomseed) {
         //Puzzlescript Plus errors 
         if (IDE && state !== undefined) { 
             if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) { 
-                logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true); 
+                logWarning("[PS+] Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true); 
             } 
      
             if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) { 
@@ -13595,6 +13602,14 @@ function compile(command, text, randomseed) {
  
             if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) { 
                 logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true); 
+            } 
+ 
+            if(state.metadata.runtime_metadata_twiddling_debug !== undefined) { 
+                logWarning("[PS+] RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true); 
+            } 
+ 
+            if(state.metadata.level_select !== undefined && state.sections.length == 0) { 
+                logWarning("[PS+] To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true); 
             } 
         } 
  
