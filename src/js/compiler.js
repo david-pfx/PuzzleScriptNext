@@ -3094,6 +3094,10 @@ function compile(command, text, randomseed) {
             if(state.metadata.runtime_metadata_twiddling_debug !== undefined && state.metadata.runtime_metadata_twiddling === undefined) {
                 logWarning("[PS+] Erm, why are you using RUNTIME_METADATA_TWIDDLING_DEBUG when you don't have twidding enabled? Try that first!", undefined, true);
             }
+
+            if(state.metadata.level_select !== undefined && state.sections.length == 0) {
+                logWarning("[PS+] To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true);
+            }
         }
 
     if (state!==null){//otherwise error
