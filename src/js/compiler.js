@@ -637,6 +637,8 @@ function convertSectionNamesToIndices(state) {
 		for (var c = 0; c < rule.commands.length; c++) {
 			var command = rule.commands[c];
 			if (command[0] != 'goto') continue;
+            
+            if ( typeof command[1] == "number") {continue;} //Variant rule was previously converted into an index PS+#105
 			var sectionName = command[1].toLowerCase();
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
