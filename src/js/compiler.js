@@ -3087,12 +3087,8 @@ function compile(command, text, randomseed) {
                 logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
             }
 
-            if(state.metadata.verbose_logging === undefined && state.metadata.runtime_metadata_twiddling_debug !== undefined) {
-                logWarning("[PS+] Enable verbose logging to see RUNTIME_METADATA_TWIDDLING_DEBUG output!", undefined, true);
-            }
-
-            if(state.metadata.runtime_metadata_twiddling_debug !== undefined && state.metadata.runtime_metadata_twiddling === undefined) {
-                logWarning("[PS+] Erm, why are you using RUNTIME_METADATA_TWIDDLING_DEBUG when you don't have twidding enabled? Try that first!", undefined, true);
+            if(state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+                logWarning("[PS+] RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true);
             }
 
             if(state.metadata.level_select !== undefined && state.sections.length == 0) {

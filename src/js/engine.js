@@ -2773,7 +2773,7 @@ Rule.prototype.queueCommands = function() {
 
       twiddleMetadataExtras()
 
-      if (verbose_logging && state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+      if (verbose_logging) {
 		var inspect_ID =  addToDebugTimeline(level,this.lineNumber);
 		var logString = `-> Set ${command[0]} to ${value}.`;
 		consolePrint(logString,false,this.lineNumber,inspect_ID);
