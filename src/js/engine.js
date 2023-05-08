@@ -2721,7 +2721,14 @@ Rule.prototype.queueCommands = function() {
 		var command=commands[i];
 		var already=false;
 		if (level.commandQueue.indexOf(command[0])>=0) {
-			continue;
+			if (state.metadata.runtime_metadata_twiddling !== undefined)
+			{
+				if (!twiddleable_params.includes(command[0])) {
+					continue;
+				} //Otherwise, allow multiple changes for twiddleable params per turn
+			} else {
+				continue;
+			}
 		}
 		level.commandQueue.push(command[0]);
 		level.commandQueueSourceRules.push(this);
