@@ -5,39 +5,8 @@
 var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
-var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|action|reaction|lclick|mclick|rclick|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel)$/i;
-
-var dirMaskNames = {
-    1: 'up',
-    2: 'down',
-    3: 'no',
-    4: 'left',
-    8: 'right',
-    15: '?',
-    16: 'action',
-    17: 'reaction',
-    18: 'random',
-    19: 'lclick',
-    20: 'mclick',
-    21: 'rclick',
-};
-
-var dirMasks = {
-    'up': 1,
-    'down': 2,
-    'no': 3,
-    'left': 4,
-    'randomdir': 5,
-    'right': 8,
-    'moving': 15,
-    'action': 16,
-    'reaction': 17,
-    'random': 18,
-    'lclick': 19,
-    'mclick': 20,
-    'rclick': 21,
-    '': 0
-};
+// todo: reaction, mclick
+var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|action|lclick|rclick|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel)$/i;
 
 function isColor(str) {
 	str = str.trim();
@@ -733,7 +702,7 @@ var directionaggregates = {
     'vertical': ['up', 'down'],
     'vertical_par': ['up', 'down'],
     'vertical_perp': ['up', 'down'],
-    'moving': ['up', 'down', 'left', 'right', 'action', 'reaction'],
+    'moving': ['up', 'down', 'left', 'right', 'action'], // todo: reaction
     'orthogonal': ['up', 'down', 'left', 'right'],
     'perpendicular': ['^', 'v'],
     'parallel': ['<', '>']

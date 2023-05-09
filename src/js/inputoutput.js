@@ -658,11 +658,12 @@ function mouseAction(event,click,id) {
 				}
 			} else {
 				// don't drop an object, feed in a movement instead
-				const inputdir = (id == -1) ? 7 : 8;
+				const inputdir = (id == -1) ? 6 : 7;  // todo: mclick
 				pushInput(inputdir);
 				if (processInput(inputdir, false, false, bak, lastCoord)) {
 					redraw();
 				}
+				event.handled = true;
 			}
 		}
 	}
@@ -671,7 +672,7 @@ function mouseAction(event,click,id) {
 var anyEditsSinceMouseDown = false;
 
 function onMouseDown(event, wasFiredByTouch = false) {
-
+	//console.log("mouse down");
 	if (event.handled){
 		return;
 	}
@@ -704,7 +705,7 @@ function onMouseDown(event, wasFiredByTouch = false) {
 				}
 				return mouseAction(event,true,state.lmbID);		// must break to not execute dragging=false;
 			} else
-				return mouseAction(event, true, -1);
+				return mouseAction(event, true, -1); // trigger lclick
 
         }
         dragging=false;
@@ -718,8 +719,10 @@ function onMouseDown(event, wasFiredByTouch = false) {
         		return levelEditorRightClick(event,true);
         	} else if ("mouse_right" in state.metadata) {
 				return mouseAction(event,true,state.rmbID);
-			} else 
-				return mouseAction(event, true, -2);
+			} else {
+				// prevent(event); does not work
+				return mouseAction(event, true, -2); // trigger rclick
+			}
         } else {
 			dragging=false;
 			rightdragging=false;
@@ -738,7 +741,9 @@ function onMouseDown(event, wasFiredByTouch = false) {
 }
 
 function rightClickCanvas(event) {
-    if ("mouse_right" in state.metadata) {
+	//console.log("rightClickCanvas");
+	// cannot setMouseCoord() here -- crashes -- but assume it's been set
+	if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
 		return prevent(event);
 	}
 	if (levelEditorOpened) {
@@ -868,6 +873,7 @@ function relMouseCoords(event){
     }
     while(currentElement = currentElement.offsetParent)
 
+	// bug? could be undefined and not null
 	if (event.touches!=null && event.touches.length >= 1){
 		canvasX = event.touches[0].pageX - totalOffsetX;
 		canvasY = event.touches[0].pageY - totalOffsetY;
@@ -1221,7 +1227,7 @@ function checkKey(e,justPressed) {
 				return;
 			}
 			if (norepeat_action===false || justPressed) {
-				inputdir = dirNames.indexOf((e.keyCode == 88) ? 'action' : 'reaction');
+				inputdir = dirNames.indexOf('action');		// todo: reaction
             } else {
             	return;
             }
