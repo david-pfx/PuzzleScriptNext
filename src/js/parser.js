@@ -253,11 +253,12 @@ var codeMirrorFn = function() {
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /(reaction|move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;
+    const reg_soundverbs = /(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const soundverbs_directional = ['move','cantmove'];
     const reg_soundevents = /(undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage|sfx0|sfx1|sfx2|sfx3|sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10)\b[\p{Z}\s]*/u;
 
-    const reg_directions = /^(lclick|mclick|rclick|reaction|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
+    // todo: reaction, mclick
+    const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
     const reg_sounddirectionindicators = /[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
@@ -268,7 +269,7 @@ var codeMirrorFn = function() {
         'message', "move", "create", "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", 
         "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "undo", 
         "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", "showmessage", "closemessage",
-        'reaction', 'lclick', 'mclick', 'rclick'];
+        'lclick', 'rclick']; // todo: reaction, mclick
     const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 

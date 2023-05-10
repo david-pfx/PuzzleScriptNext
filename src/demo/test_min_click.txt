@@ -2,6 +2,9 @@ title test min
 author polymino
 homepage www.polyomino.com
 
+// test program to show mouse click movements
+// left click red goes purple, right click objects destroyed
+
 verbose_logging
 debug
 ========
@@ -43,16 +46,12 @@ RULES
 
 [ k ] -> [ r ]
 [ lclick r ] -> [ k ]
-[ rclick r ] -> [ right r ]
-[ rclick r ][ y ] -> [ left r ][ y ]
-
-[ action p | g ] -> [ p | ^ g ] 
-[ reaction p | g ] -> [ p | v g ] 
+[ rclick rgb ] -> [ ]
 
 ==============
 WINCONDITIONS
 ==============
-all r on y
+all p on y
 
 =======
 LEVELS
@@ -61,8 +60,8 @@ LEVELS
 //message first level
 
 ...g......
-....p.r.y.
-...b......
+....p.r...
+...b..y...
 
 message second level
 

@@ -1520,6 +1520,56 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
   }
 }
 
+// static data used here and elsewhere
+
+// maps between mask values and movement names
+var dirMaskName = {
+	1: 'up',
+	2: 'down',
+	3: 'no',
+	4: 'left',
+	8: 'right',
+	15: '?',
+	16: 'action',
+	18: 'random',
+	19: 'lclick',
+	20: 'rclick',
+	// todo: 21: 'mclick',
+	// todo: 22: 'reaction',
+};
+
+var dirMasks = {
+	'up': 1,
+	'down': 2,
+	'no': 3,
+	'left': 4,
+	'randomdir': 5,
+	'right': 8,
+	'moving': 15,
+	'action': 16,
+	'random': 18,
+	'lclick': 19,
+	'rclick': 20,
+	// todo: 'mclick': 21,
+	// todo: 'reaction': 22,
+	'': 0
+};
+
+// X and Y increments for each move (in mask form)
+var dirMasksDelta = {
+	1: [0, -1],
+	2: [0, 1],
+	3: [0, 0],
+	4: [-1, 0],
+	8: [1, 0],
+	15: [0, 0],
+	16: [0, 0],
+	18: [0, 0],
+	19: [0, 0],
+	20: [0, 0],
+	21: [0, 0]
+};
+
 function getPlayerPositions() {
     var result=[];
     var playerMask = state.playerMask;
@@ -1572,21 +1622,6 @@ function startMovement(dir) {
     }
     return playerPositions;
 }
-
-// X and Y increments for each move (in mask form)
-var dirMasksDelta = {
-	 1: [0, -1],
-	 2: [0, 1],	
-	 3: [0, 0],	
-	 4: [-1, 0],
-	 8: [1, 0],	
-	15: [0, 0],	
-	16: [0, 0],	
-	18: [0, 0],
-	19: [0, 0],
-	20: [0, 0],
-	21: [0, 0]
-};
 
 var seedsToPlay_CanMove=[];
 var seedsToPlay_CantMove=[];
@@ -2784,7 +2819,7 @@ Rule.prototype.queueCommands = function() {
 
 		if (verbose_logging){
 			var lineNumber = this.lineNumber;
-			var ruleDirection = dirMaskName[this.direction];
+			//var ruleDirection = dirMaskName[this.direction];
 			var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
 			consolePrint(logString,false,lineNumber,null);
 		}
@@ -3146,7 +3181,7 @@ var playerPositions;
 var playerPositionsAtTurnStart;
 
 // acceptable input directions, used here and in inputoutput
-var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'reaction', 'lclick', 'rclick', 'mclick'];
+var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'lclick', 'rclick'];  // todo: reaction, mclick
 
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak,coord) {
@@ -3174,9 +3209,10 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 
 		const dirName = dirNames[dir];
 
-		if ([ 0,1,2,3,4,6 ].includes(dir)) {		// arrows plus action plus reaction go to player
+		// todo: reaction
+		if ([ 0,1,2,3,4 ].includes(dir)) {		// arrows plus action go to player 
 			playerPositions = startMovement(dirMasks[dirName]);
-		} else if ([ 7,8,9 ].includes(dir)) {			// clicks
+		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
 			const mask = state.levels[curlevel].getCell(coord);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
