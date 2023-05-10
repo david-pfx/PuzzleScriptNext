@@ -259,13 +259,15 @@ function generateGlyphImages() {
 
         //make movement glyphs
 
-        /* 
+        /*
         up:1
         down:2
         left:4
         right:8
         action:16
         rigid:32
+        lclick:19
+        rclick:20
         */
         const coords = [ // todo:?
             //0 up
@@ -280,6 +282,10 @@ function generateGlyphImages() {
             [ [3,5],[5,7],[7,5],[5,3]],
             //5 rigid
             [ [3,3],[5,3],[5,4],[4,4],[4,5],[3,5]],
+            //6 lclick
+            [ [4,4],[1,4],[1,7]],
+            //7 rclick
+            [ [6,4],[9,4],[9,7]],
         ];
 
         for (var i=0;i<coords.length;i++){
@@ -610,10 +616,9 @@ function redraw() {
                     var movementbitvec = curlevel.getMovements(posIndex);
                     for (var layer=0;layer<curlevel.layerCount;layer++) {
                         var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
-                        for (var k = 0; k < 5; k++) {
-                            if ((layerMovement&Math.pow(2,k))!==0){
-                                ctx.drawImage(editorGlyphMovements[k], xoffset + (i-mini) * cellwidth, yoffset + (j-minj) * cellheight);
-                            }
+                        const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
+                        if (k >= 0) {
+                            ctx.drawImage(editorGlyphMovements[k], xoffset + (i - mini) * cellwidth, yoffset + (j - minj) * cellheight);
                         }
                     }                             
                 }
