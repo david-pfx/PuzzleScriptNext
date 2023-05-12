@@ -11,6 +11,7 @@ function createSprite(name,spritegrid, colors, padding) {
     return sprite;
 }
 
+// draw the pixels of the sprite grid data into the context
 function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
     if (colors === undefined) {
         colors = ['#00000000', state.fgcolor];
@@ -40,6 +41,32 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
                 spritectx.fillRect(offsetX + cx, offsetY + cy, cw, pixh);
             }
         }
+    }
+}
+
+// draw font characters from the text sheet into the sprite sheet.
+// fix: these are bitmaps, low res, white. :-(
+function renderText(spritectx, text, colors, padding, x, y) {
+    colors = colors || ['#00000000', state.fgcolor];
+
+    var ch = text.charAt(0);
+    if (ch in font) {
+        var index = fontIndex[ch];
+        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+        var textX = (index % textsheetSize) | 0;
+        var textY = (index / textsheetSize) | 0;
+        spritectx.imageSmoothingEnabled = false;
+        spritectx.fillStyle = colors[0];  // does nothing :-(
+        spritectx.drawImage(
+            textsheetCanvas,
+            textX * textcellwidth,
+            textY * textcellheight,
+            textcellwidth, textcellheight,
+            x * cellwidth,
+            y * cellheight,
+            cellwidth, cellheight
+        );
+        spritectx.imageSmoothingEnabled = true;
     }
 }
 
@@ -115,18 +142,22 @@ function regenSpriteImages() {
 
     var spritesheetContext = spritesheetCanvas.getContext('2d')
 
-    for (var i = 0; i < sprites.length; i++) {
+    for (let i = 0; i < sprites.length; i++) {
+        const obj = state.objects[state.idDict[i]];
+        const spriteX = (i % spritesheetSize) | 0;
+        const spriteY = (i / spritesheetSize) | 0;
+
         if (sprites[i] == undefined) {
             continue;
         }
-
         if (canOpenEditor) {
             spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
+        }            
+        if (obj.spriteText) {
+            renderText(spritesheetContext, obj.spriteText, sprites[i].colors, 0, spriteX, spriteY);
+        } else {
+            renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY);
         }
-        
-        var spriteX = (i % spritesheetSize)|0;
-        var spriteY = (i / spritesheetSize)|0;
-        renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY);
     }
 
     if (canOpenEditor) {
@@ -493,7 +524,7 @@ function redraw() {
                     var posIndex = j + i * curlevel.height;
                     var posMask = curlevel.getCellInto(posIndex,_o12);    
                     for (var k = 0; k < state.objectCount; k++) {            
-                
+
                         if (posMask.get(k) != 0) {                  
                             var spriteX = (k % spritesheetSize)|0;
                             var spriteY = (k / spritesheetSize)|0;

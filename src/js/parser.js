@@ -731,7 +731,8 @@ var codeMirrorFn = function() {
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
-                cloneSprite: ""
+                cloneSprite: "",
+                spriteText: null
             };
         } else {
             //set up alias
@@ -769,6 +770,58 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse sprite grid, one cell at a time (to show them coloured)
+    function parseObjectSprite(stream, state) {
+        let ch = stream.eat(/[.\d]/);
+        if (!ch) {
+            logError(`Unknown junk in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
+            stream.match(reg_notcommentstart, true);
+            return 'ERROR';
+        }
+        
+        let spritematrix = state.objects_spritematrix;
+        let obj = state.objects[state.objects_candname];
+        spritematrix[spritematrix.length - 1] += ch;
+        
+        if (spritematrix[spritematrix.length - 1].length > state.sprite_size) {
+            logWarning('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
+            stream.match(reg_notcommentstart, true);
+            return null;
+        }
+        obj.spritematrix = state.objects_spritematrix;
+
+        if (spritematrix.length === state.sprite_size && spritematrix[spritematrix.length - 1].length == state.sprite_size) {
+            state.objects_section = 0;
+        }
+
+        if (ch !== '.') {
+            let n = parseInt(ch);
+            if (n >= obj.colors.length) {
+                logError(`Trying to access color number ${n} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
+                return 'ERROR';
+            }
+            if (isNaN(n)) {
+                // PS+ to fix?
+                logError(`Invalid character "${ch} " in sprite for ${state.objects_candname}`, state.lineNumber);
+                return 'ERROR';
+            }
+            return 'COLOR BOLDCOLOR COLOR-' + obj.colors[n].toUpperCase();
+        }
+        return 'COLOR FADECOLOR';
+    }
+
+    function parseObjectText(stream, state, mixedCase) {
+        const pos = stream.pos;
+        const arg = stream.match(reg_notcommentstart, true);
+        if (!arg || arg[0].trim() == '') {
+            logError(`Object text needs a value.`, state.lineNumber);
+            return 'ERROR';
+        }
+        state.objects[state.objects_candname].spriteText = mixedCase.substring(pos, stream.pos).trim();
+        return 'TEXT';
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // called as per CodeMirror API
     // return value is an object containing a specific set of named functions
     return {
@@ -780,7 +833,9 @@ var codeMirrorFn = function() {
                 objectsCopy[i] = {
                   colors: o.colors.concat([]),
                   lineNumber : o.lineNumber,
-                  spritematrix: o.spritematrix.concat([])
+                  spritematrix: o.spritematrix.concat([]),
+                  spriteText: o.spriteText
+                  // bug: why no copy of cloneSprite?
                 }
               }
             }
@@ -1053,56 +1108,15 @@ var codeMirrorFn = function() {
                             return parseObjectColor(stream, state);
                         }
                     case 3: {
-                            var spritematrix = state.objects_spritematrix;
-                            // dodgy. If first line does not start with . or digit assume next object
-                            var ch = stream.eat(/[.\d]/);
-                            if (!ch) {
-                                if (spritematrix.length === 0) {
-                                    state.objects_section = 0;
-                                    return parseObjectName(stream, mixedCase, state);
-                                }
-                                logError(`Unknown junk in spritematrix for object ${state.objects_candname}.`, state.lineNumber);
-                                stream.match(reg_notcommentstart, true);
-                                return null;
-                            }
-
-                            if (sol)
-                                spritematrix.push('');
-
-                            let o = state.objects[state.objects_candname];
-
-                            spritematrix[spritematrix.length - 1] += ch;
-                        // PS+ to fix for sprite size
-                            if (spritematrix[spritematrix.length-1].length>state.sprite_size){
-                            logWarning('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
-                                stream.match(reg_notcommentstart, true);
-                                return null;
-                            }
-                            o.spritematrix = state.objects_spritematrix;
-
-                            if (spritematrix.length === state.sprite_size && spritematrix[spritematrix.length - 1].length == state.sprite_size) {
+                            if (stream.match(/text/u, true))
+                                return parseObjectText(stream, state, mixedCase);
+                            if (state.objects_spritematrix.length === 0 && !stream.match(/.\d/, false)) {
                                 state.objects_section = 0;
+                                return parseObjectName(stream, mixedCase, state);
                             }
-
-                            if (ch!=='.') {
-                                let n = parseInt(ch);
-                                if (n>=o.colors.length) {
-                                // PS+ to fix?
-                                logError("Trying to access color number "+n+" from the color palette of sprite " +state.objects_candname.toUpperCase()+", but there are only "+o.colors.length+" defined in it.",state.lineNumber);
-                                    return 'ERROR';
-                                }
-                                if (isNaN(n)) {
-                                // PS+ to fix?
-                                logError('Invalid character "' + ch + '" in sprite for ' + state.objects_candname.toUpperCase(), state.lineNumber);
-                                    return 'ERROR';
-                                }
-                                return 'COLOR BOLDCOLOR COLOR-' + o.colors[n].toUpperCase();
-                            }
-                            return 'COLOR FADECOLOR';
-                        }
-                    default:
-                        {
-                        window.console.logError("EEK shouldn't get here.");
+                            if (sol)
+                                state.objects_spritematrix.push('');
+                            return parseObjectSprite(stream, state);
                         }
                     }
                     break;
