@@ -11,7 +11,7 @@ function createSprite(name,spritegrid, colors, padding) {
     return sprite;
 }
 
-// draw the pixels of the sprite grid data into the context
+// draw the pixels of the sprite grid data into the context at a cell position
 function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
     if (colors === undefined) {
         colors = ['#00000000', state.fgcolor];
@@ -45,8 +45,8 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
 }
 
 // draw font characters from the text sheet into the sprite sheet.
-// fix: these are bitmaps, low res, white. :-(
-function renderText(spritectx, text, colors, padding, x, y) {
+// fix: these are bitmaps, low res. :-(
+function renderTextBad(spritectx, text, colors, padding, x, y) {
     colors = colors || ['#00000000', state.fgcolor];
 
     var ch = text.charAt(0);
@@ -69,6 +69,55 @@ function renderText(spritectx, text, colors, padding, x, y) {
         spritectx.imageSmoothingEnabled = true;
     }
 }
+
+// draw a string of text into a cell, scaling and centring as needed
+function renderText(spritectx, text, colors, cellx, celly) {
+    const scale = [ 0.8, 1 ];
+    // location of first character, centred vertically
+    const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
+                   w: cellwidth / text.length, h: cellheight / text.length };
+    function resize(rc, x, y) {
+        return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
+    };
+    function rescale(rc, s) { 
+        return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
+    };
+    function translate(rc, x, y) {
+        return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
+    };
+    for (let i = 0; i < text.length; i++) {
+        const ch = text.charAt(i);
+        if (ch in font) {
+            const fontstr = font[ch]
+                .split('\n')
+                .map(a => a.trim().split('').map(t => parseInt(t)));
+            fontstr.shift();
+            const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
+            renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
+        }
+    }
+}
+
+// draw grid into a defined rectangle with a colour
+function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
+    ctx.clearRect(rectx, recty, rectw, recth);
+
+    const gridw = grid[0].length;
+    const dw = rectw / gridw;
+    const gridh = grid.length;
+    const dh = recth / gridh;
+    ctx.fillStyle = colors[1];
+    for (let y = 0; y < gridh; y++) {
+        for (let x = 0; x < gridw; x++) {
+            const val = grid[y][x];
+            if (val >= 0) {
+                ctx.fillStyle = colors[val];
+                ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
+            }
+        }
+    }
+}
+
 
 function drawTextWithCustomFont(txt, ctx, x, y) {
     ctx.fillStyle = state.fgcolor;
@@ -154,7 +203,7 @@ function regenSpriteImages() {
             spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
         }            
         if (obj.spriteText) {
-            renderText(spritesheetContext, obj.spriteText, sprites[i].colors, 0, spriteX, spriteY);
+            renderText(spritesheetContext, obj.spriteText, sprites[i].colors, spriteX, spriteY);
         } else {
             renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY);
         }

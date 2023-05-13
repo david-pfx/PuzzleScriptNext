@@ -611,12 +611,12 @@ var codeMirrorFn = function() {
 
         // Second entry, parse option arguments
         if (state.tokenIndex != 2) throw 'oops!';
-        let token = state.current_line_wip_array[0];
+        let token = mixedCase;
 
         // these options use the rest of the line in mixed case as the argument
         if (preamble_param_text.includes(token)) {
             // retrieve mixedCase value as argument to eol           
-            const arg = state.current_line_wip_array[1].substring(stream.pos).trim();
+            const arg = mixedCase.substring(stream.pos).trim();
             stream.skipToEnd();
             state.metadata.push(token, arg);
             return 'METADATATEXT';
@@ -1088,9 +1088,15 @@ var codeMirrorFn = function() {
             //if color is not set, try to parse color
             switch (state.section) {
                 case '': {
+                    if (sol)
+                        state.current_line_wip_array = [mixedCase];
+                    else mixedCase = state.current_line_wip_array[0];
                     return parsePrelude(stream, mixedCase, state);
                 }
                 case 'objects': {
+                    if (sol)
+                        state.current_line_wip_array = [mixedCase];
+                    else mixedCase = state.current_line_wip_array[0];
 
                     if (state.objects_section == 1 || state.objects_section == 2) {
                         if (sol || (state.commentStyle == '//' && stream.match(/;\s*/)))

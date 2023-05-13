@@ -16,8 +16,10 @@ B;BLUE
 g;green
 y;yellow
 k;pink
-t;orange;text T
+
 s;purple;text S
+t;orange;text t
+u;pink;text Ab3
 
 =======
 LEGEND
@@ -39,8 +41,9 @@ Background
 y
 Player, R, B, G
 k
-t
 s
+t
+u
 ======
 RULES
 ======
@@ -58,7 +61,7 @@ LEVELS
 
 //message first level
 
-...g....st
+...g..stu.
 ....p.r.y.
 ...b......
 
