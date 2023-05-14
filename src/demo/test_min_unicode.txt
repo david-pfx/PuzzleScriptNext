@@ -2,7 +2,7 @@ title test min
 author polymino
 homepage www.polyomino.com
 
-// minimal program as base for tests
+// throwaway test program for Unicode object name
 
 verbose_logging
 debug
@@ -16,6 +16,8 @@ B;BLUE
 g;green
 y;yellow
 k;pink
+大
+red
 
 =======
 LEGEND
@@ -37,6 +39,7 @@ Background
 y
 Player, R, B, G
 k
+大
 ======
 RULES
 ======
@@ -54,7 +57,7 @@ LEVELS
 
 //message first level
 
-...g......
+...g....大.
 ....p.r.y.
 ...b......
 

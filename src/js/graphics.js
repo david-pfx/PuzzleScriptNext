@@ -12,28 +12,36 @@ function createSprite(name,spritegrid, colors, padding) {
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position
-function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
+function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
     if (colors === undefined) {
         colors = ['#00000000', state.fgcolor];
     }
 
-    var offsetX = x * cellwidth;
-    var offsetY = y * cellheight;
+    let offsetX = x * cellwidth;
+    let offsetY = y * cellheight;
 
     spritectx.clearRect(offsetX, offsetY, cellwidth, cellheight);
 
-	var w = spritegrid[0].length;
-	var h = spritegrid.length;
-	var cw = ~~(cellwidth / (w + (padding|0)));
-    var ch = ~~(cellheight / (h + (padding|0)));
+    const w = spritegrid[0].length;
+    const h = spritegrid.length;
+    let cw = ~~(cellwidth / (w + (padding | 0)));
+    let ch = ~~(cellheight / (h + (padding | 0)));
+    if (align) {
+        const maxwh = Math.max(w, h);
+        cw = cellwidth / maxwh;
+        ch = cellheight / maxwh;
+        if (w > h)
+            offsetY += (w - h) * ch / 2;
+        else offsetX += (h - w) * cw / 2;
+    }
     var pixh=ch;
     if ("scanline" in state.metadata) {
         pixh=Math.ceil(ch/2);
     }
     spritectx.fillStyle = state.fgcolor;
-    for (var j = 0; j < h; j++) {
-        for (var k = 0; k < w; k++) {
-            var val = spritegrid[j][k];
+    for (let j = 0; j < h; j++) {
+        for (let k = 0; k < w; k++) {
+            let val = spritegrid[j][k];
             if (val >= 0) {
                 var cy = (j * ch)|0;
                 var cx = (k * cw)|0;
@@ -205,7 +213,7 @@ function regenSpriteImages() {
         if (obj.spriteText) {
             renderText(spritesheetContext, obj.spriteText, sprites[i].colors, spriteX, spriteY);
         } else {
-            renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY);
+            renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
         }
     }
 

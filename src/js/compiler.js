@@ -36,7 +36,7 @@ function generateSpriteMatrix(dat) {
     var result = [];
     for (var i = 0; i < dat.length; i++) {
         var row = [];
-        for (var j = 0; j < dat.length; j++) {
+        for (var j = 0; j < dat[i].length; j++) {
             var ch = dat[i].charAt(j);
             if (ch == '.') {
                 row.push(-1);
@@ -165,19 +165,7 @@ function generateExtraMembers(state) {
               } else {
                   logError(n +" attempted to clone the sprite matrix of "+o.cloneSprite+", but that object doesn't exist?!",o.lineNumber);
               }
-           } 
-            /*else /*if (o.colors[o.colors.length-1][0] !== "#") {
-                var objectToClone = o.colors[o.colors.length-1];
-                if (state.objects.hasOwnProperty(objectToClone)) {
-                  o.spritematrix = objectToClone.spritematrix;
-                  o.spritematrix = generateSpriteMatrix(o.spritematrix);
-                  logWarning("Cloned "+objectToClone, o.lineNumber);
-                  continue;
-              } else {
-                  logError("Attempted to clone the sprite matrix of "+objectToClone+", but that object doesn't exist?!")
-              }
-          }*/
-          else if (o.spritematrix.length===0) {
+           } else if (o.spritematrix.length===0) {
               o.spritematrix = new Array(state.sprite_size);
               var zeros = new Array(state.sprite_size);
               for(var i = 0; i < state.sprite_size; i++) {
@@ -187,16 +175,7 @@ function generateExtraMembers(state) {
                   o.spritematrix[i] = zeros;
               }
           } else {
-              if ( o.spritematrix.length!==state.sprite_size) {
-                  logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
-              } else {
-                  for(var i = 0; i < state.sprite_size; i++) {
-                      if(o.spritematrix[i].length!==state.sprite_size) {
-                          logWarning("Sprite graphics must be " + state.sprite_size + " wide and " + state.sprite_size + " high exactly.",o.lineNumber);
-                          break;
-                      }
-                  }
-              }
+            // we now allow sprites of any length and width
               o.spritematrix = generateSpriteMatrix(o.spritematrix);
           }
         }

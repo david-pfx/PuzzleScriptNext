@@ -588,8 +588,7 @@ var codeMirrorFn = function() {
                     var otherline = state.metadata_lines[token];
                     logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
                 } else {
-                    // keep mixed case, or it gets lost next time
-                    state.current_line_wip_array.push(token, mixedCase);
+                    state.current_line_wip_array[1] = token;
                     if (parseKeyword(token)) {
                         return checkEol() ? 'METADATA' : 'ERROR';
                     }
@@ -611,7 +610,7 @@ var codeMirrorFn = function() {
 
         // Second entry, parse option arguments
         if (state.tokenIndex != 2) throw 'oops!';
-        let token = mixedCase;
+        let token = state.current_line_wip_array[1];
 
         // these options use the rest of the line in mixed case as the argument
         if (preamble_param_text.includes(token)) {
@@ -675,7 +674,7 @@ var codeMirrorFn = function() {
     // parse and store an object name, return token type
     function parseObjectName(stream, mixedCase, state) {
         function parseCopySprite() {
-            const match = state.objects_section > 0 ? stream.match(/(\w+)\s*/) : null;
+            const match = state.objects_section > 0 ? stream.match(reg_name) : null;
             if (!match) {
                 const junk = stream.match(reg_notcommentstart, true);
                 logWarning(`Invalid sprite copy: ${junk}.`, state.lineNumber);
@@ -723,7 +722,7 @@ var codeMirrorFn = function() {
         if (keyword_array.indexOf(candname) >= 0) {
             logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
         }
-        // create base object
+        // create base object and array for colours
         if (state.objects_section == 0) {
             state.objects_candname = candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
@@ -734,6 +733,7 @@ var codeMirrorFn = function() {
                 cloneSprite: "",
                 spriteText: null
             };
+            state.objects[candname].colors = [];
         } else {
             //set up alias
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
@@ -772,27 +772,17 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse sprite grid, one cell at a time (to show them coloured)
     function parseObjectSprite(stream, state) {
-        let ch = stream.eat(/[.\d]/);
-        if (!ch) {
-            logError(`Unknown junk in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
+        let ch = stream.next();
+        if (ch.match(/.\d/)) {
+            logError(`Unknown character "${ch}" in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
             stream.match(reg_notcommentstart, true);
             return 'ERROR';
         }
-        
-        let spritematrix = state.objects_spritematrix;
-        let obj = state.objects[state.objects_candname];
-        spritematrix[spritematrix.length - 1] += ch;
-        
-        if (spritematrix[spritematrix.length - 1].length > state.sprite_size) {
-            logWarning('Sprites must be ' + state.sprite_size + ' wide and ' + state.sprite_size + ' high.', state.lineNumber);
-            stream.match(reg_notcommentstart, true);
-            return null;
-        }
-        obj.spritematrix = state.objects_spritematrix;
 
-        if (spritematrix.length === state.sprite_size && spritematrix[spritematrix.length - 1].length == state.sprite_size) {
-            state.objects_section = 0;
-        }
+        let obj = state.objects[state.objects_candname];
+        let spritematrix = state.objects_spritematrix;
+        spritematrix[spritematrix.length - 1] += ch;
+        obj.spritematrix = spritematrix;
 
         if (ch !== '.') {
             let n = parseInt(ch);
@@ -801,7 +791,6 @@ var codeMirrorFn = function() {
                 return 'ERROR';
             }
             if (isNaN(n)) {
-                // PS+ to fix?
                 logError(`Invalid character "${ch} " in sprite for ${state.objects_candname}`, state.lineNumber);
                 return 'ERROR';
             }
@@ -817,8 +806,9 @@ var codeMirrorFn = function() {
             logError(`Object text needs a value.`, state.lineNumber);
             return 'ERROR';
         }
-        state.objects[state.objects_candname].spriteText = mixedCase.substring(pos, stream.pos).trim();
-        return 'TEXT';
+        const obj = state.objects[state.objects_candname];
+        obj.spriteText = mixedCase.substring(pos, stream.pos).trim();
+        return 'COLOR BOLDCOLOR COLOR-' + obj.colors[0].toUpperCase();
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1078,7 +1068,6 @@ var codeMirrorFn = function() {
             }
 
             if (stream.eol()) {
-            
                 endOfLineProcessing(state,mixedCase);  
                 return null;
             }
@@ -1103,6 +1092,7 @@ var codeMirrorFn = function() {
                             state.objects_section++;
                     }
 
+                    //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
                     case 0:
                     case 1: { //LOOK FOR NAME(s)
@@ -1110,13 +1100,13 @@ var codeMirrorFn = function() {
                             return parseObjectName(stream, mixedCase, state);
                         }
                     case 2: { //LOOK FOR COLOR(s)
-                            if (sol) state.objects[state.objects_candname].colors = [];
                             return parseObjectColor(stream, state);
                         }
                     case 3: {
                             if (stream.match(/text/u, true))
                                 return parseObjectText(stream, state, mixedCase);
-                            if (state.objects_spritematrix.length === 0 && !stream.match(/.\d/, false)) {
+                            // if not a grid char assume missing blank line and go to next object
+                            if (sol && !stream.match(/^[.\d]/, false)) {
                                 state.objects_section = 0;
                                 return parseObjectName(stream, mixedCase, state);
                             }
