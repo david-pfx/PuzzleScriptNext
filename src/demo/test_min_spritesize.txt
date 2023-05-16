@@ -1,0 +1,160 @@
+title test min
+author polymino
+homepage www.polyomino.com
+
+// demo program showing that sprites can be any length or width
+// non-square sprites are centred
+
+verbose_logging
+debug
+
+// allowed but ignored
+sprite_size 7
+
+========
+OBJECTS
+========
+Background;grey
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+s;black red
+01
+10
+
+t;black red blue
+012
+201
+120
+
+u;black red blue green
+0123
+3012
+2301
+1230
+
+w;black red blue green yellow 
+01234
+40123
+34012
+23401
+12340
+
+x;black red blue green yellow white
+012345
+501234
+450123
+345012
+234501
+123450
+
+q;black red blue green yellow white orange
+0123456
+6012345
+5601234
+4560123
+3456012
+2345601
+1234560
+
+z;black red blue green yellow white orange purple
+01234567
+70123456
+67012345
+56701234
+45670123
+34567012
+23456701
+
+m;black red blue green yellow 
+01234
+40123
+34012
+23401
+
+n;black red blue green yellow
+01234
+40123
+34012
+
+l;black red blue green yellow
+01234
+40123
+
+c;black red blue green yellow 
+0123
+4012
+3401
+2340
+
+d;black red blue green yellow 
+012
+401
+340
+234
+
+e;black red blue green yellow 
+01
+40
+34
+23
+
+=======
+LEGEND
+=======
+. = Background
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+s,t,u,w,x,q,z,m,n,l,c,d,e
+
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+.............
+.rbgykprbgyk.
+.............
+.s.u.x.z.n.r.
+..t.w.q.m.l..
+...c.d.e.b.g.
+.............
+
+message second level
+
+..........
+....pry...
+..........
+

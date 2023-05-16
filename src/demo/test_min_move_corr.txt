@@ -2,7 +2,11 @@ title test min
 author polymino
 homepage www.polyomino.com
 
-// minimal program as base for tests
+// Test program for move corresponding (property objects act as map)
+
+// keep bumping the player against RGB objects to see them change colour
+
+// how can you win the level?
 
 verbose_logging
 debug
@@ -41,7 +45,7 @@ k
 RULES
 ======
 
-[ > p | r ] -> [ > p | > r ]
+[ > p | rgb ] -> [ p | gbr ]
 
 ==============
 WINCONDITIONS
@@ -57,10 +61,4 @@ LEVELS
 ...g......
 ....p.r.y.
 ...b......
-
-message second level
-
-..........
-....pry...
-..........
 

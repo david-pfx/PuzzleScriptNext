@@ -11,28 +11,37 @@ function createSprite(name,spritegrid, colors, padding) {
     return sprite;
 }
 
-function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
+// draw the pixels of the sprite grid data into the context at a cell position
+function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
     if (colors === undefined) {
         colors = ['#00000000', state.fgcolor];
     }
 
-    var offsetX = x * cellwidth;
-    var offsetY = y * cellheight;
+    let offsetX = x * cellwidth;
+    let offsetY = y * cellheight;
 
     spritectx.clearRect(offsetX, offsetY, cellwidth, cellheight);
 
-	var w = spritegrid[0].length;
-	var h = spritegrid.length;
-	var cw = ~~(cellwidth / (w + (padding|0)));
-    var ch = ~~(cellheight / (h + (padding|0)));
+    const w = spritegrid[0].length;
+    const h = spritegrid.length;
+    let cw = ~~(cellwidth / (w + (padding | 0)));
+    let ch = ~~(cellheight / (h + (padding | 0)));
+    if (align) {
+        const maxwh = Math.max(w, h);
+        cw = cellwidth / maxwh;
+        ch = cellheight / maxwh;
+        if (w > h)
+            offsetY += (w - h) * ch / 2;
+        else offsetX += (h - w) * cw / 2;
+    }
     var pixh=ch;
     if ("scanline" in state.metadata) {
         pixh=Math.ceil(ch/2);
     }
     spritectx.fillStyle = state.fgcolor;
-    for (var j = 0; j < h; j++) {
-        for (var k = 0; k < w; k++) {
-            var val = spritegrid[j][k];
+    for (let j = 0; j < h; j++) {
+        for (let k = 0; k < w; k++) {
+            let val = spritegrid[j][k];
             if (val >= 0) {
                 var cy = (j * ch)|0;
                 var cx = (k * cw)|0;
@@ -42,6 +51,81 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y) {
         }
     }
 }
+
+// draw font characters from the text sheet into the sprite sheet.
+// fix: these are bitmaps, low res. :-(
+function renderTextBad(spritectx, text, colors, padding, x, y) {
+    colors = colors || ['#00000000', state.fgcolor];
+
+    var ch = text.charAt(0);
+    if (ch in font) {
+        var index = fontIndex[ch];
+        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+        var textX = (index % textsheetSize) | 0;
+        var textY = (index / textsheetSize) | 0;
+        spritectx.imageSmoothingEnabled = false;
+        spritectx.fillStyle = colors[0];  // does nothing :-(
+        spritectx.drawImage(
+            textsheetCanvas,
+            textX * textcellwidth,
+            textY * textcellheight,
+            textcellwidth, textcellheight,
+            x * cellwidth,
+            y * cellheight,
+            cellwidth, cellheight
+        );
+        spritectx.imageSmoothingEnabled = true;
+    }
+}
+
+// draw a string of text into a cell, scaling and centring as needed
+function renderText(spritectx, text, colors, cellx, celly) {
+    const scale = [ 0.8, 1 ];
+    // location of first character, centred vertically
+    const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
+                   w: cellwidth / text.length, h: cellheight / text.length };
+    function resize(rc, x, y) {
+        return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
+    };
+    function rescale(rc, s) { 
+        return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
+    };
+    function translate(rc, x, y) {
+        return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
+    };
+    for (let i = 0; i < text.length; i++) {
+        const ch = text.charAt(i);
+        if (ch in font) {
+            const fontstr = font[ch]
+                .split('\n')
+                .map(a => a.trim().split('').map(t => parseInt(t)));
+            fontstr.shift();
+            const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
+            renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
+        }
+    }
+}
+
+// draw grid into a defined rectangle with a colour
+function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
+    ctx.clearRect(rectx, recty, rectw, recth);
+
+    const gridw = grid[0].length;
+    const dw = rectw / gridw;
+    const gridh = grid.length;
+    const dh = recth / gridh;
+    ctx.fillStyle = colors[1];
+    for (let y = 0; y < gridh; y++) {
+        for (let x = 0; x < gridw; x++) {
+            const val = grid[y][x];
+            if (val >= 0) {
+                ctx.fillStyle = colors[val];
+                ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
+            }
+        }
+    }
+}
+
 
 function drawTextWithCustomFont(txt, ctx, x, y) {
     ctx.fillStyle = state.fgcolor;
@@ -115,18 +199,22 @@ function regenSpriteImages() {
 
     var spritesheetContext = spritesheetCanvas.getContext('2d')
 
-    for (var i = 0; i < sprites.length; i++) {
+    for (let i = 0; i < sprites.length; i++) {
+        const obj = state.objects[state.idDict[i]];
+        const spriteX = (i % spritesheetSize) | 0;
+        const spriteY = (i / spritesheetSize) | 0;
+
         if (sprites[i] == undefined) {
             continue;
         }
-
         if (canOpenEditor) {
             spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
+        }            
+        if (obj.spriteText) {
+            renderText(spritesheetContext, obj.spriteText, sprites[i].colors, spriteX, spriteY);
+        } else {
+            renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
         }
-        
-        var spriteX = (i % spritesheetSize)|0;
-        var spriteY = (i / spritesheetSize)|0;
-        renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY);
     }
 
     if (canOpenEditor) {
@@ -259,13 +347,15 @@ function generateGlyphImages() {
 
         //make movement glyphs
 
-        /* 
+        /*
         up:1
         down:2
         left:4
         right:8
         action:16
         rigid:32
+        lclick:19
+        rclick:20
         */
         const coords = [ // todo:?
             //0 up
@@ -280,6 +370,10 @@ function generateGlyphImages() {
             [ [3,5],[5,7],[7,5],[5,3]],
             //5 rigid
             [ [3,3],[5,3],[5,4],[4,4],[4,5],[3,5]],
+            //6 lclick
+            [ [4,4],[1,4],[1,7]],
+            //7 rclick
+            [ [6,4],[9,4],[9,7]],
         ];
 
         for (var i=0;i<coords.length;i++){
@@ -487,7 +581,7 @@ function redraw() {
                     var posIndex = j + i * curlevel.height;
                     var posMask = curlevel.getCellInto(posIndex,_o12);    
                     for (var k = 0; k < state.objectCount; k++) {            
-                
+
                         if (posMask.get(k) != 0) {                  
                             var spriteX = (k % spritesheetSize)|0;
                             var spriteY = (k / spritesheetSize)|0;
@@ -610,10 +704,9 @@ function redraw() {
                     var movementbitvec = curlevel.getMovements(posIndex);
                     for (var layer=0;layer<curlevel.layerCount;layer++) {
                         var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
-                        for (var k = 0; k < 5; k++) {
-                            if ((layerMovement&Math.pow(2,k))!==0){
-                                ctx.drawImage(editorGlyphMovements[k], xoffset + (i-mini) * cellwidth, yoffset + (j-minj) * cellheight);
-                            }
+                        const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
+                        if (k >= 0) {
+                            ctx.drawImage(editorGlyphMovements[k], xoffset + (i - mini) * cellwidth, yoffset + (j - minj) * cellheight);
                         }
                     }                             
                 }
