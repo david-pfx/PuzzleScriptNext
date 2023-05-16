@@ -1287,25 +1287,64 @@ function concretizePropertyRule(state, rule, lineNumber) {
     // 		doesn't need to be split up (assuming single-layer player/block aggregates)
 
     // we can't manage this if they're being used to disambiguate
-    var ambiguousProperties = {};
 
-    for (var j = 0; j < rule.rhs.length; j++) {
-        var row_l = rule.lhs[j];
-        var row_r = rule.rhs[j];
-        for (var k = 0; k < row_r.length; k++) {
-            var properties_l = getPropertiesFromCell(state, row_l[k]);
-            var properties_r = getPropertiesFromCell(state, row_r[k]);
-            for (var prop_n = 0; prop_n < properties_r.length; prop_n++) {
-                var property = properties_r[prop_n];
-                if (properties_l.indexOf(property) == -1) {
+    const ambiguousProperties = {};
+    const mappingProperties_l = [];
+    const mappingProperties_r = [];
+
+    for (let j = 0; j < rule.rhs.length; j++) {
+        const row_l = rule.lhs[j];
+        const row_r = rule.rhs[j];
+        for (let k = 0; k < row_r.length; k++) {
+            const properties_l = getPropertiesFromCell(state, row_l[k]);
+            const properties_r = getPropertiesFromCell(state, row_r[k]);
+
+            for (let prop_n = 0; prop_n < properties_r.length; prop_n++) {
+                const property = properties_r[prop_n];
+                if (properties_l.includes(property)) {
                     ambiguousProperties[property] = true;
                 }
             }
+            properties_l.forEach(value => mappingProperties_l.push(value));
+            properties_r.forEach(value => mappingProperties_r.push(value));
         }
     }
 
+    // do we have properties on both sides, all of the same length?
+    let result = [rule];
+    if (mappingProperties_l.length > 0 && mappingProperties_r.length > 0) {
+        const proplen = prop => state.propertiesDict[prop].length;
+        const len0 = proplen(mappingProperties_l[0]);
+        if (!mappingProperties_l.some(value => proplen(value) != len0)
+            && !mappingProperties_r.some(value => proplen(value) != len0)) {
+            console.log(`go for mapping rule ${lineNumber}: ${rule}`);
+            result = replaceMappedProperties(rule, len0);
+        }
+    }
+
+    // blindly replace property by n-th member in the n-th new rule (except if random)
+    function replaceMappedProperties(oldRule, numprops) {
+        let newRules = [];
+        while (numprops-- > 0)
+            newRules.push(deepCloneRule(oldRule));
+        //const newRules = (new Array(numprops)).map(v => deepCloneRule(oldRule));
+        newRules.forEach((newRule,rindex) => {
+            [ newRule.lhs, newRule.rhs ].forEach(side => {
+                side.forEach(cellrow => {
+                    cellrow.forEach(cell => {
+                        for (let j = 0; j < cell.length; j += 2) {
+                            if (cell[j] != "random" && cell[j + 1] in state.propertiesDict) {
+                                cell[j + 1] = state.propertiesDict[cell[j+1]][rindex];
+                            }
+                        }
+                    });
+                });
+            });
+        });
+        return newRules;
+    }
+
     var shouldremove;
-    var result = [rule];
     var modified = true;
     while (modified) {
         modified = false;
