@@ -45,7 +45,9 @@ k
 RULES
 ======
 
+[ > ork | Player ] -> [ Player | ork ] 
 [ > p | rgb ] -> [ p | gbr ]
+[ > p | rgb ] -> [ p | > rgb ]
 
 ==============
 WINCONDITIONS

@@ -1303,7 +1303,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
 
             for (let prop_n = 0; prop_n < properties_r.length; prop_n++) {
                 const property = properties_r[prop_n];
-                if (properties_l.includes(property)) {
+                if (!properties_l.includes(property)) {
                     ambiguousProperties[property] = true;
                 }
             }
@@ -1312,13 +1312,14 @@ function concretizePropertyRule(state, rule, lineNumber) {
         }
     }
 
-    // do we have properties on both sides, all of the same length?
+    // do we have properties on both sides, all of the same length, left all different from right?
     let result = [rule];
     if (mappingProperties_l.length > 0 && mappingProperties_r.length > 0) {
         const proplen = prop => state.propertiesDict[prop].length;
         const len0 = proplen(mappingProperties_l[0]);
         if (!mappingProperties_l.some(value => proplen(value) != len0)
-            && !mappingProperties_r.some(value => proplen(value) != len0)) {
+            && !mappingProperties_r.some(value => proplen(value) != len0)
+            && !mappingProperties_l.some(value => mappingProperties_r.includes(value))) {
             console.log(`go for mapping rule ${lineNumber}: ${rule}`);
             result = replaceMappedProperties(rule, len0);
         }
