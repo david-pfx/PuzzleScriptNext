@@ -2,7 +2,7 @@ title test min
 author polymino
 homepage www.polyomino.com
 
-// minimal program as base for tests
+// test program for TEXT sprites
 
 verbose_logging
 debug
