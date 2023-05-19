@@ -2832,7 +2832,7 @@ Rule.prototype.queueCommands = function() {
       gotoLevel(command[1]);
     }
 
-    if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
+    if (state.metadata.runtime_metadata_twiddling && command[0].match(reg_twiddleable_params)) {
 
       value = command[1];
 
