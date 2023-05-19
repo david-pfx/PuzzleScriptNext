@@ -954,7 +954,7 @@ if (tokens.indexOf('->') == -1) {
                      curcell.push(token);
                      curcell.push(token);
                  }
-            } else if (token.match(reg_commandwords)) {
+            } else if (commandwords.indexOf(token.toLowerCase())>=0) {
                 if (rhs===false) {
                     logError("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 } else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
@@ -978,8 +978,7 @@ if (tokens.indexOf('->') == -1) {
                     }
                     commands.push([token.toLowerCase(), messageStr]);
                     i=tokens.length;
-                    
-                } else if (token.match(reg_twiddleable_params)) {
+                } else if (twiddleable_params.includes(token.toLowerCase())) {
                     if (!state.metadata.includes("runtime_metadata_twiddling")) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
@@ -3192,8 +3191,6 @@ function compile(command, text, randomseed) {
     } catch(error){
         consolePrint(error);
         console.log(`Compile error: ${error}`);
-        consoleError('<span class="systemMessage">Threw an error during compilation; aborting!</span>');
-        throw error;
     } finally {
         compiling = false;
     }
