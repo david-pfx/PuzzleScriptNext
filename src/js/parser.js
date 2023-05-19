@@ -812,6 +812,121 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse various parts of a sounds line, return token type
+    function parseSounds(stream, state) {
+        if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
+            // match=stream.match(reg_notcommentstart, true);
+            //if there was an error earlier on the line just try to do greedy matching here
+            if (stream.match(reg_soundevents, true))
+                return 'SOUNDEVENT';
+            if (stream.match(reg_soundverbs, true)) 
+                return 'SOUNDVERB';
+            if (stream.match(reg_sounddirectionindicators, true)) 
+                return 'DIRECTION';
+            if (stream.match(reg_soundseed, true))
+                return 'SOUND';
+            if (stream.match(reg_name, true)) {
+                if (wordAlreadyDeclared(state, match[0]))
+                    return 'NAME';
+                else return 'ERROR';                   
+            }
+            return 'ERROR';                            
+        } 
+        
+        if (state.current_line_wip_array.length===0){
+            //can be OBJECT_NAME or SOUNDEVENT
+            const match = stream.match(reg_soundevents, true);
+            if (!match) {
+                const match = stream.match(reg_name, true);
+                if (!match) {
+                    logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+                    return 'ERROR';
+                } 
+                const matched_name = match[0].trim();
+                if (!wordAlreadyDeclared(state, matched_name)){                 
+                    logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
+                    return 'ERROR';
+                }
+                const tokentype = 'NAME';
+                state.current_line_wip_array.push([matched_name,tokentype]);    
+                state.tokenIndex++;
+                return tokentype;
+            } 
+            const tokentype = 'SOUNDEVENT';
+            state.current_line_wip_array.push([match[0].trim(),tokentype]);  
+            state.tokenIndex++;  
+            return tokentype;
+        } 
+        
+        if (state.current_line_wip_array.length===1) {
+            if (state.current_line_wip_array[0][1] === 'SOUNDEVENT') {                            
+                const match = stream.match(reg_soundseed, true);
+                if (match) {
+                    const tokentype = 'SOUND';
+                    state.current_line_wip_array.push([match[0].trim(),tokentype]);
+                    state.tokenIndex++;
+                    return tokentype;
+                } else {
+                    logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
+                    return 'ERROR';
+                }
+            } 
+            //[0] is object name
+            //it's a sound verb
+            const match = stream.match(reg_soundverbs, true);
+            if (match) {
+                const tokentype = 'SOUNDVERB';
+                state.current_line_wip_array.push([match[0].trim(),tokentype]);
+                state.tokenIndex++;
+                return tokentype;
+            }
+            logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+            return 'ERROR';
+        } 
+
+        if (state.current_line_wip_array[0][1] === 'SOUNDEVENT') {
+            logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
+            return 'ERROR';
+        } 
+        //if there's a seed on the right, any additional content is superfluous
+        if (state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND') {
+            logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
+            return 'ERROR';
+        } 
+        //match seed or direction                          
+        if (soundverbs_directional.indexOf(state.current_line_wip_array[1][0]) >= 0) {
+            const is_direction = stream.match(reg_sounddirectionindicators, true);
+            if (is_direction){
+                const tokentype = 'DIRECTION';
+                state.current_line_wip_array.push([is_direction[0].trim(), tokentype]);
+                state.tokenIndex++;
+                return tokentype;
+            }
+            const is_seed = stream.match(reg_soundseed, true);
+            if (is_seed){
+                const tokentype = 'SOUND';
+                state.current_line_wip_array.push([is_seed[0].trim(), tokentype]);
+                state.tokenIndex++;
+                return tokentype;
+            }
+            //depending on whether the verb is directional or not, we log different errors
+            logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length - 1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+            return 'ERROR';
+        }
+        //only match seed
+        const is_seed = stream.match(reg_soundseed, true);
+        if (is_seed){
+            const tokentype = 'SOUND';
+            state.current_line_wip_array.push([is_seed[0].trim(), tokentype]);
+            state.tokenIndex++;
+            return tokentype;
+        }
+        //depending on whether the verb is directional or not, we log different errors
+        logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length - 1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+        return 'ERROR';
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
     // called as per CodeMirror API
     // return value is an object containing a specific set of named functions
     return {
@@ -1201,6 +1316,16 @@ var codeMirrorFn = function() {
                 }
 
                 case 'sounds': {
+                    const tokentype = parseSounds(stream, state);
+                    if (tokentype == 'ERROR') {
+                        errorFallbackMatchToken(stream);
+                        state.current_line_wip_array.push("ERROR");
+                    }
+
+                    if (stream.eol())
+                        processSoundsLine(state);
+                    return tokentype;
+
                     /*
                     SOUND DEFINITION:
                         SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
@@ -1210,185 +1335,185 @@ var codeMirrorFn = function() {
                                 INT
                                 DIR+ ~ INT
                     */
-                    var tokentype="";
+                    // var tokentype="";
 
-                    if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
-                        // match=stream.match(reg_notcommentstart, true);
-                        //if there was an error earlier on the line just try to do greedy matching here
-                        var match = null;
+                    // if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
+                    //     // match=stream.match(reg_notcommentstart, true);
+                    //     //if there was an error earlier on the line just try to do greedy matching here
+                    //     var match = null;
 
-                        //events
-                        if (match === null) { 
-                            match = stream.match(reg_soundevents, true);
-                            if (match !== null) { 
-                                tokentype = 'SOUNDEVENT';
-                            }
-                        }
+                    //     //events
+                    //     if (match === null) { 
+                    //         match = stream.match(reg_soundevents, true);
+                    //         if (match !== null) { 
+                    //             tokentype = 'SOUNDEVENT';
+                    //         }
+                    //     }
 
-                        //verbs
-                        if (match === null) { 
-                            match = stream.match(reg_soundverbs, true);
-                            if (match !== null) {
-                                tokentype = 'SOUNDVERB';
-                            }
-                        }
-                        //directions
-                        if (match === null) { 
-                            match = stream.match(reg_sounddirectionindicators, true);
-                            if (match !== null) {
-                                tokentype = 'DIRECTION';
-                            }
-                        }
+                    //     //verbs
+                    //     if (match === null) { 
+                    //         match = stream.match(reg_soundverbs, true);
+                    //         if (match !== null) {
+                    //             tokentype = 'SOUNDVERB';
+                    //         }
+                    //     }
+                    //     //directions
+                    //     if (match === null) { 
+                    //         match = stream.match(reg_sounddirectionindicators, true);
+                    //         if (match !== null) {
+                    //             tokentype = 'DIRECTION';
+                    //         }
+                    //     }
 
-                        //sound seeds
-                        if (match === null) {                                           
-                            var match = stream.match(reg_soundseed, true);
-                            if (match !== null)
-                            {
-                                tokentype = 'SOUND';
-                            }
-                        }
+                    //     //sound seeds
+                    //     if (match === null) {                                           
+                    //         var match = stream.match(reg_soundseed, true);
+                    //         if (match !== null)
+                    //         {
+                    //             tokentype = 'SOUND';
+                    //         }
+                    //     }
 
-                        //objects
-                        if (match === null) { 
-                            match = stream.match(reg_name, true);
-                            if (match !== null) {
-                                if (wordAlreadyDeclared(state, match[0])){
-                                    tokentype = 'NAME';
-                            } else {
-                                    tokentype = 'ERROR';                   
-                            }
-                            }                          
-                        }
+                    //     //objects
+                    //     if (match === null) { 
+                    //         match = stream.match(reg_name, true);
+                    //         if (match !== null) {
+                    //             if (wordAlreadyDeclared(state, match[0])){
+                    //                 tokentype = 'NAME';
+                    //         } else {
+                    //                 tokentype = 'ERROR';                   
+                    //         }
+                    //         }                          
+                    //     }
 
-                        //error
-                        if (match === null) { 
-                            match = errorFallbackMatchToken(stream);
-                            tokentype = 'ERROR';                            
-                        }
+                    //     //error
+                    //     if (match === null) { 
+                    //         match = errorFallbackMatchToken(stream);
+                    //         tokentype = 'ERROR';                            
+                    //     }
 
-                    } else if (state.current_line_wip_array.length===0){
-                        //can be OBJECT_NAME or SOUNDEVENT
-                        var match = stream.match(reg_soundevents, true);
-                        if (match == null){
-                            match = stream.match(reg_name, true);
-                            if (match == null ){
-                                tokentype = 'ERROR';
-                                match=errorFallbackMatchToken(stream);
-                                state.current_line_wip_array.push("ERROR");
-                                logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
-                            } else {
-                                var matched_name = match[0].trim();
-                                if (!wordAlreadyDeclared(state, matched_name)){                 
-                                    tokentype = 'ERROR';
-                                    state.current_line_wip_array.push("ERROR");
-                                    logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
-                                } else {                                    
-                                    tokentype = 'NAME';
-                                    state.current_line_wip_array.push([matched_name,tokentype]);    
-                                    state.tokenIndex++;
-                                }
-                            }
-                        } else {
-                            tokentype = 'SOUNDEVENT';
-                            state.current_line_wip_array.push([match[0].trim(),tokentype]);  
-                            state.tokenIndex++;  
-                        }
+                    // } else if (state.current_line_wip_array.length===0){
+                    //     //can be OBJECT_NAME or SOUNDEVENT
+                    //     var match = stream.match(reg_soundevents, true);
+                    //     if (match == null){
+                    //         match = stream.match(reg_name, true);
+                    //         if (match == null ){
+                    //             tokentype = 'ERROR';
+                    //             match=errorFallbackMatchToken(stream);
+                    //             state.current_line_wip_array.push("ERROR");
+                    //             logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+                    //         } else {
+                    //             var matched_name = match[0].trim();
+                    //             if (!wordAlreadyDeclared(state, matched_name)){                 
+                    //                 tokentype = 'ERROR';
+                    //                 state.current_line_wip_array.push("ERROR");
+                    //                 logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
+                    //             } else {                                    
+                    //                 tokentype = 'NAME';
+                    //                 state.current_line_wip_array.push([matched_name,tokentype]);    
+                    //                 state.tokenIndex++;
+                    //             }
+                    //         }
+                    //     } else {
+                    //         tokentype = 'SOUNDEVENT';
+                    //         state.current_line_wip_array.push([match[0].trim(),tokentype]);  
+                    //         state.tokenIndex++;  
+                    //     }
 
-                    } else if (state.current_line_wip_array.length===1) {
-                        var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
+                    // } else if (state.current_line_wip_array.length===1) {
+                    //     var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
 
-                        if (is_soundevent){                            
-                            var match = stream.match(reg_soundseed, true);
-                            if (match !== null)
-                            {
-                                tokentype = 'SOUND';
-                                state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                                state.tokenIndex++;
-                            } else {
-                                match=errorFallbackMatchToken(stream);
-                                logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                                tokentype = 'ERROR';
-                                state.current_line_wip_array.push("ERROR");
-                            }
-                        } else {
-                            //[0] is object name
-                            //it's a sound verb
-                            var match = stream.match(reg_soundverbs, true);
-                            if (match !== null){
-                                tokentype = 'SOUNDVERB';
-                                state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                                state.tokenIndex++;
-                            } else {
-                                match=errorFallbackMatchToken(stream);
-                                logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                                tokentype = 'ERROR';
-                                state.current_line_wip_array.push("ERROR");
-                            }
+                    //     if (is_soundevent){                            
+                    //         var match = stream.match(reg_soundseed, true);
+                    //         if (match !== null)
+                    //         {
+                    //             tokentype = 'SOUND';
+                    //             state.current_line_wip_array.push([match[0].trim(),tokentype]);
+                    //             state.tokenIndex++;
+                    //         } else {
+                    //             match=errorFallbackMatchToken(stream);
+                    //             logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
+                    //             tokentype = 'ERROR';
+                    //             state.current_line_wip_array.push("ERROR");
+                    //         }
+                    //     } else {
+                    //         //[0] is object name
+                    //         //it's a sound verb
+                    //         var match = stream.match(reg_soundverbs, true);
+                    //         if (match !== null){
+                    //             tokentype = 'SOUNDVERB';
+                    //             state.current_line_wip_array.push([match[0].trim(),tokentype]);
+                    //             state.tokenIndex++;
+                    //         } else {
+                    //             match=errorFallbackMatchToken(stream);
+                    //             logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+                    //             tokentype = 'ERROR';
+                    //             state.current_line_wip_array.push("ERROR");
+                    //         }
                             
-                        }
-                    } else {
-                        var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-                        if (is_soundevent){
-                            match=errorFallbackMatchToken(stream);
-                            logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                            tokentype = 'ERROR';
-                            state.current_line_wip_array.push("ERROR");
-                        } else {                            
-                            //if there's a seed on the right, any additional content is superfluous
-                            var is_seedonright = state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND';
-                            if (is_seedonright){
-                                match=errorFallbackMatchToken(stream);
-                                logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                                tokentype = 'ERROR';
-                                state.current_line_wip_array.push("ERROR");
-                            } else {
-                                var directional_verb = soundverbs_directional.indexOf(state.current_line_wip_array[1][0])>=0;    
-                                if (directional_verb){  
-                                    //match seed or direction                          
-                                    var is_direction = stream.match(reg_sounddirectionindicators, true);
-                                    if (is_direction !== null){
-                                        tokentype = 'DIRECTION';
-                                        state.current_line_wip_array.push([is_direction[0].trim(),tokentype]);
-                                        state.tokenIndex++;
-                                    } else {
-                                        var is_seed = stream.match(reg_soundseed, true);
-                                        if (is_seed !== null){
-                                            tokentype = 'SOUND';
-                                            state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                                            state.tokenIndex++;
-                                        } else {
-                                            match=errorFallbackMatchToken(stream);
-                                            //depending on whether the verb is directional or not, we log different errors
-                                            logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                                            tokentype = 'ERROR';
-                                            state.current_line_wip_array.push("ERROR");
-                                        }
-                                    }
-                                } else {
-                                    //only match seed
-                                    var is_seed = stream.match(reg_soundseed, true);
-                                    if (is_seed !== null){
-                                        tokentype = 'SOUND';
-                                        state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                                        state.tokenIndex++;
-                                    } else {
-                                        match=errorFallbackMatchToken(stream);
-                                        //depending on whether the verb is directional or not, we log different errors
-                                        logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                                        tokentype = 'ERROR';
-                                        state.current_line_wip_array.push("ERROR");
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    //     }
+                    // } else {
+                    //     var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
+                    //     if (is_soundevent){
+                    //         match=errorFallbackMatchToken(stream);
+                    //         logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
+                    //         tokentype = 'ERROR';
+                    //         state.current_line_wip_array.push("ERROR");
+                    //     } else {                            
+                    //         //if there's a seed on the right, any additional content is superfluous
+                    //         var is_seedonright = state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND';
+                    //         if (is_seedonright){
+                    //             match=errorFallbackMatchToken(stream);
+                    //             logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
+                    //             tokentype = 'ERROR';
+                    //             state.current_line_wip_array.push("ERROR");
+                    //         } else {
+                    //             var directional_verb = soundverbs_directional.indexOf(state.current_line_wip_array[1][0])>=0;    
+                    //             if (directional_verb){  
+                    //                 //match seed or direction                          
+                    //                 var is_direction = stream.match(reg_sounddirectionindicators, true);
+                    //                 if (is_direction !== null){
+                    //                     tokentype = 'DIRECTION';
+                    //                     state.current_line_wip_array.push([is_direction[0].trim(),tokentype]);
+                    //                     state.tokenIndex++;
+                    //                 } else {
+                    //                     var is_seed = stream.match(reg_soundseed, true);
+                    //                     if (is_seed !== null){
+                    //                         tokentype = 'SOUND';
+                    //                         state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
+                    //                         state.tokenIndex++;
+                    //                     } else {
+                    //                         match=errorFallbackMatchToken(stream);
+                    //                         //depending on whether the verb is directional or not, we log different errors
+                    //                         logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+                    //                         tokentype = 'ERROR';
+                    //                         state.current_line_wip_array.push("ERROR");
+                    //                     }
+                    //                 }
+                    //             } else {
+                    //                 //only match seed
+                    //                 var is_seed = stream.match(reg_soundseed, true);
+                    //                 if (is_seed !== null){
+                    //                     tokentype = 'SOUND';
+                    //                     state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
+                    //                     state.tokenIndex++;
+                    //                 } else {
+                    //                     match=errorFallbackMatchToken(stream);
+                    //                     //depending on whether the verb is directional or not, we log different errors
+                    //                     logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
+                    //                     tokentype = 'ERROR';
+                    //                     state.current_line_wip_array.push("ERROR");
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    // }
 
-                    if (stream.eol()){
-                        processSoundsLine(state);
-                    }     
+                    // if (stream.eol()){
+                    //     processSoundsLine(state);
+                    // }     
 
-                        return tokentype;
+                    //     return tokentype;
 
                     }
 
