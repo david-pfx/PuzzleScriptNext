@@ -944,7 +944,7 @@ canvasResize();
 function tryPlaySimpleSound(soundname) {
   if (state.sfx_Events[soundname]!==undefined) {
     var seed = state.sfx_Events[soundname];
-		playSound(seed,true);
+		playSeed(seed,true);
   }
 }
 function tryPlayTitleSound() {
@@ -3482,24 +3482,24 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		}
 
         for (var i=0;i<seedsToPlay_CantMove.length;i++) {			
-            playSound(seedsToPlay_CantMove[i]);
+            playSeed(seedsToPlay_CantMove[i]);
         }
 
         for (var i=0;i<seedsToPlay_CanMove.length;i++) {
-            playSound(seedsToPlay_CanMove[i]);
+            playSeed(seedsToPlay_CanMove[i]);
         }
 
         for (var i=0;i<state.sfx_CreationMasks.length;i++) {
           var entry = state.sfx_CreationMasks[i];
           if (sfxCreateMask.anyBitsInCommon(entry.objectMask)) {
-            playSound(entry.seed);
+            playSeed(entry.seed);
           }
         }
 
         for (var i=0;i<state.sfx_DestructionMasks.length;i++) {
           var entry = state.sfx_DestructionMasks[i];
           if (sfxDestroyMask.anyBitsInCommon(entry.objectMask)) {
-            playSound(entry.seed);
+            playSeed(entry.seed);
           }
         }
 
@@ -3579,6 +3579,14 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
   }
 
   return modified;
+}
+
+// play a seed which could be a sound or an animation
+function playSeed(seed, ignore) {
+	if (seed > 0)
+		playSound(seed, ignore);
+	// else nothing yet
+
 }
 
 function checkWin(dontDoWin) {

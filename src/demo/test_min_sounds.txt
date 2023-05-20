@@ -33,7 +33,8 @@ SOUNDS
 
 player move 85101706
 player cantmove 56601502
-sfx99 64217903
+g destroy fxfade 85101706
+sfx99 64217903 
 
 ================
 COLLISIONLAYERS
@@ -46,7 +47,8 @@ k
 RULES
 ======
 
-[ > p | r ] -> [ > p | > r ] sfx99
+[ > p | r ] -> [ > p | > r ] sfx99 cancel
+[ > p | g ] -> [ > p | ]
 
 ==============
 WINCONDITIONS

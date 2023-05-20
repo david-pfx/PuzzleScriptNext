@@ -246,7 +246,7 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /\d+\b/u;
+    const reg_soundseed = /(\d+|fx\w+)\b\s*/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
@@ -499,117 +499,103 @@ var codeMirrorFn = function() {
             return 'ERROR';                            
         } 
         
-        if (state.current_line_wip_array.length===0){
-            //can be OBJECT_NAME or SOUNDEVENT
-            const match = stream.match(reg_soundevents, true);
-            if (!match) {
-                const match = stream.match(reg_name, true);
+        switch (state.current_line_wip_array.length) {
+            case 0: {
+                //can be OBJECT_NAME or SOUNDEVENT
+                const match = stream.match(reg_soundevents, true);
                 if (!match) {
-                    logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
-                    return 'ERROR';
+                    const match = stream.match(reg_name, true);
+                    if (!match) {
+                        logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+                        return 'ERROR';
+                    } 
+                    const matched_name = match[0].trim();
+                    if (!wordAlreadyDeclared(state, matched_name)){                 
+                        logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
+                        return 'ERROR';
+                    }
+                    const tokentype = 'NAME';
+                    state.current_line_wip_array.push([matched_name,tokentype]);    
+                    state.tokenIndex++;
+                    return tokentype;
                 } 
-                const matched_name = match[0].trim();
-                if (!wordAlreadyDeclared(state, matched_name)){                 
-                    logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
-                    return 'ERROR';
-                }
-                const tokentype = 'NAME';
-                state.current_line_wip_array.push([matched_name,tokentype]);    
-                state.tokenIndex++;
+                const tokentype = 'SOUNDEVENT';
+                state.current_line_wip_array.push([match[0].trim(),tokentype]);  
+                state.tokenIndex++;  
                 return tokentype;
             } 
-            const tokentype = 'SOUNDEVENT';
-            state.current_line_wip_array.push([match[0].trim(),tokentype]);  
-            state.tokenIndex++;  
-            return tokentype;
-        } 
-        
-        if (state.current_line_wip_array.length===1) {
-            if (state.current_line_wip_array[0][1] === 'SOUNDEVENT') {                            
-                const match = stream.match(reg_soundseed, true);
+            case 1:  {
+                if (state.current_line_wip_array[0][1] === 'SOUNDEVENT') {                            
+                    const match = stream.match(reg_soundseed, true);
+                    if (match) {
+                        const tokentype = 'SOUND';
+                        state.current_line_wip_array.push([match[1],tokentype]);
+                        state.tokenIndex++;
+                        return tokentype;
+                    } else {
+                        logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
+                        return 'ERROR';
+                    }
+                } 
+                //[0] is object name
+                //it's a sound verb
+                const match = stream.match(reg_soundverbs, true);
                 if (match) {
-                    const tokentype = 'SOUND';
+                    const tokentype = 'SOUNDVERB';
                     state.current_line_wip_array.push([match[0].trim(),tokentype]);
                     state.tokenIndex++;
                     return tokentype;
-                } else {
-                    logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                    return 'ERROR';
                 }
+                logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+                return 'ERROR';
             } 
-            //[0] is object name
-            //it's a sound verb
-            const match = stream.match(reg_soundverbs, true);
-            if (match) {
-                const tokentype = 'SOUNDVERB';
-                state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                state.tokenIndex++;
-                return tokentype;
+            default: {
+                const lastTokenType = state.current_line_wip_array[state.current_line_wip_array.length-1];
+                const dirAllowed = lastTokenType !== 'SOUND' && soundverbs_directional.includes(state.current_line_wip_array[1][0]);
+                // try to match direction
+                if (dirAllowed) {
+                    const is_direction = stream.match(reg_sounddirectionindicators, true);
+                    if (is_direction){
+                        const tokentype = 'DIRECTION';
+                        state.current_line_wip_array.push([is_direction[0].trim(), tokentype]);
+                        state.tokenIndex++;
+                        return tokentype;
+                    }
+                }
+                // seeds are always welcome, after all
+                const is_seed = stream.match(reg_soundseed, true);
+                if (is_seed) {
+                    const tokentype = 'SOUND';
+                    state.current_line_wip_array.push([is_seed[1], tokentype]);
+                    state.tokenIndex++;
+                    return tokentype;
+                }
+                const match=errorFallbackMatchToken(stream);
+                //depending on whether the verb is directional or not, we log different errors
+                const msg = dirAllowed ? "direction or sound seed" : "sound seed";
+                logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[1].toUpperCase()}".`, state.lineNumber);
+                return 'ERROR';
             }
-            logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-            return 'ERROR';
-        } 
-
-        if (state.current_line_wip_array[0][1] === 'SOUNDEVENT') {
-            const match=errorFallbackMatchToken(stream);
-            logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-            return 'ERROR';
-        } 
-        //if there's a seed on the right, any additional content is superfluous
-        if (state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND') {
-            const match=errorFallbackMatchToken(stream);
-            logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-            return 'ERROR';
-        } 
-        //match seed or direction                          
-        if (soundverbs_directional.indexOf(state.current_line_wip_array[1][0]) >= 0) {
-            const is_direction = stream.match(reg_sounddirectionindicators, true);
-            if (is_direction){
-                const tokentype = 'DIRECTION';
-                state.current_line_wip_array.push([is_direction[0].trim(), tokentype]);
-                state.tokenIndex++;
-                return tokentype;
-            }
-            const is_seed = stream.match(reg_soundseed, true);
-            if (is_seed){
-                const tokentype = 'SOUND';
-                state.current_line_wip_array.push([is_seed[0].trim(), tokentype]);
-                state.tokenIndex++;
-                return tokentype;
-            }
-            //depending on whether the verb is directional or not, we log different errors
-            const match=errorFallbackMatchToken(stream);
-            logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length - 1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-            return 'ERROR';
         }
-        //only match seed
-        const is_seed = stream.match(reg_soundseed, true);
-        if (is_seed){
-            const tokentype = 'SOUND';
-            state.current_line_wip_array.push([is_seed[0].trim(), tokentype]);
-            state.tokenIndex++;
-            return tokentype;
-        }
-        //depending on whether the verb is directional or not, we log different errors
-        const match=errorFallbackMatchToken(stream);
-        logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length - 1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-        return 'ERROR';
     }
-    
+
+    ///-------------------------------------------------------------------------
+    // extract parsed SOUNDS information and generate runtime data
     function processSoundsLine(state){
-        if (state.current_line_wip_array.length===0){
+        const last = (a) => a[a.length-1];
+        if (state.current_line_wip_array.length === 0 || last(state.current_line_wip_array) === 'ERROR')
             return;
-        }
-        //if last entry in array is 'ERROR', do nothing
-        if (state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
-
-        } else {
-            //take the first component from each pair in the array
-            var soundrow = state.current_line_wip_array;//.map(function(a){return a[0];});
-            soundrow.push(state.lineNumber);
-            state.sounds.push(soundrow);
-        }
-
+        //take the first component from each pair in the array
+        // but seeds at the end generate a line each
+        let soundrow = state.current_line_wip_array;
+        if (soundrow.find(row => row[1] === 'SOUND')) {
+            do {
+                const isound = soundrow.findIndex(row => row[1] === 'SOUND');
+                state.sounds.push([ ...soundrow.slice(0, isound + 1), state.lineNumber ]);
+                soundrow.splice(isound, 1);                    
+            } while (soundrow.find(row => row[1] === 'SOUND'));
+        } else 
+            state.sounds.push([ ...soundrow, state.lineNumber ]);
     }
 
     // because of all the early-outs in the token function, this is really just right now attached
@@ -1691,7 +1677,6 @@ var codeMirrorFn = function() {
                                     return 'DIRECTION';
                                 } else if (m==='random') {
                                     return 'DIRECTION';
-                            // PS+ what is this???
                                 } else if (m==='global') {
                                     return 'DIRECTION';
                                 }else if (m.match(reg_commandwords)) {

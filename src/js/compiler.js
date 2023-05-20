@@ -2902,7 +2902,7 @@ function generateSoundData(state) {
                     directions.push(sound[j][0]);      
                 } else {
                     //Don't know how if I can get here, but just in case
-                    logError(`Expected a direction here, but found instead "$(sound[j][0])".`, lineNumber);
+                    logError(`Expected a direction here, but found instead "${sound[j][0]}".`, lineNumber);
             }
             }
             if (directions.length > 0 && (verb !== 'move' && verb !== 'cantmove')) {
