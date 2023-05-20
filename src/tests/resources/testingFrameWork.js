@@ -85,7 +85,7 @@ function runCompilationTest(dataarray) {
 
 	var strippedErrorStrings = errorStrings.map(stripHTMLTags);
 	if (errorCount!==recordedErrorCount){
-		return false;
+		QUnit.assert.equal(errorCount,recordedErrorCount, "Error count not as expected");
 	}
 
 	var i_recorded=0;
@@ -98,11 +98,9 @@ function runCompilationTest(dataarray) {
 		}
 	}
 
-	if (i_recorded<recordedErrorStrings.length){
-		var simulated_summary = strippedErrorStrings.join("\n");
-		var recorded_summary = recordedErrorStrings.join("\n");
-		QUnit.assert.equal(simulated_summary,recorded_summary)
-		return false;
-	}
+	var simulated_summary = strippedErrorStrings.join("\n");
+	var recorded_summary = recordedErrorStrings.join("\n");
+	QUnit.assert.equal(simulated_summary,recorded_summary, "Error strings not as expected")
+	return false;
 	return true;
 }

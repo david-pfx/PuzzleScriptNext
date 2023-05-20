@@ -1,8 +1,8 @@
-title test min
+title test min sounds
 author polymino
 homepage www.polyomino.com
 
-// minimal program as base for tests
+// test program for sounds and animations
 
 verbose_logging
 debug

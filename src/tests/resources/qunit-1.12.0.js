@@ -731,6 +731,11 @@ config = {
 			id: "notrycatch",
 			label: "No try-catch",
 			tooltip: "Enabling this will run tests outside of a try-catch block. Makes debugging exceptions in IE reasonable. Stored as query-strings."
+		},
+		{
+			id: "showsource",
+			label: "Show source",
+			tooltip: "Enabling this will show the source code, if needed."
 		}
 	],
 

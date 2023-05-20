@@ -289,7 +289,8 @@ var codeMirrorFn = function() {
     // test for warning message only
     function isKeyword(token) {
         return token.match(reg_winconditionquantifiers) || token.match(reg_commandwords) || token.match(reg_sectionNames) 
-        || token.match(reg_directions) || token.match(reg_ruledirectionindicators) || token.match(reg_sounddirectionindicators);
+        || token.match(reg_directions) || token.match(reg_ruledirectionindicators) || token.match(reg_sounddirectionindicators)
+        || "[|]<>^v".includes(token);
     }
 
     function errorFallbackMatchToken(stream){
