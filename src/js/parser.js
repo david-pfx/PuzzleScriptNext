@@ -29,7 +29,7 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-var reg_commandwords = /afx\d+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align/u;
+var reg_commandwords = /afx\w+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align/u;
 var reg_twiddleable_params = /background_color|text_color|key_repeat_interval|realtime_interval|again_interval|flickscreen|zoomscreen|smoothscreen|noundo|norestart|message_text_align/u;
 
 function TooManyErrors(){
@@ -246,13 +246,13 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /(\d+|fx\w+)\b\s*/u;
+    const reg_soundseed = /(\d+|afx\w+)\b\s*/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
     const reg_soundverbs = /(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const soundverbs_directional = ['move','cantmove'];
-    const reg_soundevents = /(sfx\d+|afx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
+    const reg_soundevents = /(afx\w+|sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     // todo: reaction, mclick
     const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
@@ -267,14 +267,14 @@ var codeMirrorFn = function() {
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
-        'tween_length', 'local_radius', "tween_snap", 'local_radius', 'font_size', 'sprite_size', 
-        'level_select_unlocked_ahead', "level_select_unlocked_rollover"];
+        'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
+        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'animate_interval'];
     const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
         'flickscreen', 'zoomscreen', 'level_select_solve_symbol', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        "tween_easing", "message_text_align", 
-        "text_message_continue", "sitelock_origin_whitelist", 
-        "sitelock_hostname_whitelist"];
+        'tween_easing', 'message_text_align', 
+        'text_message_continue', 'sitelock_origin_whitelist', 
+        'sitelock_hostname_whitelist'];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
@@ -290,7 +290,7 @@ var codeMirrorFn = function() {
     function isKeyword(token) {
         return token.match(reg_winconditionquantifiers) || token.match(reg_commandwords) || token.match(reg_sectionNames) 
         || token.match(reg_directions) || token.match(reg_ruledirectionindicators) || token.match(reg_sounddirectionindicators)
-        || "[|]<>^v".includes(token);
+        || '[|]<>^v'.includes(token);
     }
 
     function errorFallbackMatchToken(stream){
@@ -574,7 +574,7 @@ var codeMirrorFn = function() {
                 const match=errorFallbackMatchToken(stream);
                 //depending on whether the verb is directional or not, we log different errors
                 const msg = dirAllowed ? "direction or sound seed" : "sound seed";
-                logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[1].toUpperCase()}".`, state.lineNumber);
+                logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[0].toUpperCase()}".`, state.lineNumber);
                 return 'ERROR';
             }
         }
@@ -829,7 +829,7 @@ var codeMirrorFn = function() {
         if (state.objects_section == 0) {
             state.objects_candname = candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            state.objects[state.objects_candname] = {
+            state.objects[state.objects_candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],

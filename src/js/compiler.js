@@ -60,7 +60,7 @@ function generateExtraMembers(state) {
 
     //annotate objects with layers
     //assign ids at the same time
-    state.idDict = [];
+    state.idDict = [];          // doc: dictionary of object names indexed by ID
     var idcount = 0;
     for (var layerIndex = 0; layerIndex < state.collisionLayers.length; layerIndex++) {
         for (var j = 0; j < state.collisionLayers[layerIndex].length; j++) {
@@ -86,8 +86,8 @@ function generateExtraMembers(state) {
     }
 
     // how many words do our bitvecs need to hold?
-    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;
-    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;
+    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;     // doc: size of BitVec to hold objects, at 32 bits per
+    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;             // doc: size of BitVec to hold directions, at 5 bits per
     state.STRIDE_OBJ = STRIDE_OBJ;
     state.STRIDE_MOV = STRIDE_MOV;
 
@@ -2313,7 +2313,7 @@ function getMaskFromName(state,name) {
 function generateMasks(state) {
     state.playerMask = getMaskFromName(state, 'player');
 
-    var layerMasks = [];
+    var layerMasks = [];                        // doc: bit vector of object IDs in a layer
     var layerCount = state.collisionLayers.length;
     for (var layer = 0; layer < layerCount; layer++) {
         var layerMask = new BitVec(STRIDE_OBJ);
@@ -2326,7 +2326,7 @@ function generateMasks(state) {
         }
         layerMasks.push(layerMask);
     }
-    state.layerMasks = layerMasks;
+    state.layerMasks = layerMasks;              // doc: array of layer masks indexed by layer
 
     var objectMask = {};
     for (var n in state.objects) {
@@ -2849,9 +2849,10 @@ var soundDirectionIndicators = ["up", "down", "left", "right", "horizontal", "ve
 
 function generateSoundData(state) {
     var sfx_Events = {};
+    // doc: lists of sfx event triggers { objectMask:, directionMask:, layer:, seed: }
     var sfx_CreationMasks = [];
     var sfx_DestructionMasks = [];
-    var sfx_MovementMasks = state.collisionLayers.map(x => []);
+    var sfx_MovementMasks = state.collisionLayers.map(x => []);     // doc: array of sfx movement triggers, indexed by layer
     var sfx_MovementFailureMasks = [];
 
     for (var i = 0; i < state.sounds.length; i++) {
@@ -2963,52 +2964,35 @@ function generateSoundData(state) {
                 }
             }
             
-            //if verb in soundverbs_directional
-            if (verb === 'move' || verb === 'cantmove') {
-                for (var j = 0; j < targets.length; j++) {
-                    var targetName = targets[j];
-                    var targetDat = state.objects[targetName];
-                    var targetLayer = targetDat.layer;
-                    var shiftedDirectionMask = new BitVec(STRIDE_MOV);
+            // note: a single sounds line refer to multiple targets, and can generate multiple mask entries
+            // note: this information required to support animation
+            for (let j = 0; j < targets.length; j++) {
+                const targetName = targets[j];
+                const targetDat = state.objects[targetName];
+                const targetLayer = targetDat.layer;
+                let shiftedDirectionMask = null;
+                if (verb === 'move' || verb === 'cantmove') {
+                    shiftedDirectionMask = new BitVec(STRIDE_MOV);
                     shiftedDirectionMask.ishiftor(directionMask, 5 * targetLayer);
-
-                    var o = {
-                        objectMask: objectMask,
-                        directionMask: shiftedDirectionMask,
-                        layer:targetLayer,
-                        seed: seed
-                    };
-
-                    if (verb === 'move') {
-                        sfx_MovementMasks[targetLayer].push(o);
-                    } else {
-                        sfx_MovementFailureMasks.push(o);
-                    }
                 }
-            }
 
+                // doc: sfx seed for single target object as mask, movement as mask shifted to target layer
+                const o = {
+                    objId: targetDat.id,
+                    directionMask: shiftedDirectionMask,
+                    layer:targetLayer,
+                    seed: seed
+                };
+                console.log(`verb ${verb} o: ${JSON.stringify(o)}}`);
 
-
-            var targetArray;
-            switch (verb) {
-                case "create":
-                    {
-                        var o = {
-                            objectMask: objectMask,
-                            seed: seed
-                        }
-                        sfx_CreationMasks.push(o);
-                        break;
-                    }
-                case "destroy":
-                    {
-                        var o = {
-                            objectMask: objectMask,
-                            seed: seed
-                        }
-                        sfx_DestructionMasks.push(o);
-                        break;
-                    }
+                if (verb === 'move')
+                    sfx_MovementMasks[targetLayer].push(o);
+                else if (verb === 'cantmove') 
+                    sfx_MovementFailureMasks.push(o);
+                else if (verb === 'create') 
+                    sfx_CreationMasks.push(o);
+                else // (verb === 'destroy') 
+                    sfx_DestructionMasks.push(o);
             }
         }
     }

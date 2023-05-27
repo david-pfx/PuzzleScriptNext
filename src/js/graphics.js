@@ -575,30 +575,69 @@ function redraw() {
         var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
         var tweening = state.metadata.tween_length && currentMovedEntities;
 
-        if (!tweening) { //Seperated tweening/non-tweening draw loops for performance considerations
-            for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-                for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var posMask = curlevel.getCellInto(posIndex,_o12);    
-                    for (var k = 0; k < state.objectCount; k++) {            
+        if (tweening) drawObjectsTweening();
+        else drawObjects();
 
-                        if (posMask.get(k) != 0) {                  
-                            var spriteX = (k % spritesheetSize)|0;
-                            var spriteY = (k / spritesheetSize)|0;
+        // Default draw loop, including when animating
+        function drawObjects() {
+            const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);
+            for (let i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
+                for (let j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                    const posIndex = j + i * curlevel.height;
+                    const posMask = curlevel.getCellInto(posIndex,_o12);    
+                    
+                    for (let k = 0; k < state.objectCount; k++) {   // will draw objects in layer order
+                        const animate = (tween > 0) ? seedsToAnimate[posIndex+','+k] : null;
+                        if (posMask.get(k) || animate) {
+                            const spriteX = (k % spritesheetSize)|0;
+                            const spriteY = (k / spritesheetSize)|0;
+                            
+                            let params = {
+                                x: xoffset + (i-mini-cameraOffset.x) * cellwidth,
+                                y: yoffset + (j-minj-cameraOffset.y) * cellheight,
+                                scale: 1.0, 
+                                alpha: 1.0,                                
+                            };
+                            if (animate) 
+                                params = calcAnimate(animate, params, tween);
 
-                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
-                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
-                                
+                            ctx.globalAlpha = params.alpha;                            
                             ctx.drawImage(
                                 spritesheetCanvas, 
                                 spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
-                                Math.floor(x), Math.floor(y), cellwidth, cellheight);
+                                Math.floor(params.x), Math.floor(params.y), 
+                                cellwidth * params.scale, cellheight * params.scale);
+                            ctx.globalAlpha = 1;
                         }
                     }
                 }
             }
-        } else { //Loop when tweening
+        } 
+
+        // calculate animation for this object
+        function calcAnimate(animate, params, tween) {
+            const funcs = {
+                sa: p => { p.scale = tween; },
+                sd: p => { p.scale = -tween; },
+                aa: p => { p.alpha = tween; },
+                ad: p => { p.alpha = -tween; },
+            }
+            const afx = animate.seed.substring(2);
+            if (funcs[afx])
+                funcs[afx(param)];
+            return params;
+            // if (ts) {
+            //     const delta = dirMasksDelta[ts.dir];
+            //     ret.x = cellwidth * delta[0] * tween;
+            //     ret.y = cellheight * delta[1] * tween;
+            // }
+        }
+
+        // Draw loop when tweening
+        function drawObjectsTweening() {
             var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
+
+            //  todo: setup this code should go in SetGameState
 
             //Defaults
             var tween_name = "linear";
@@ -666,7 +705,8 @@ function redraw() {
                 }
             }
         }
-        
+
+        // todo: this code should go in its own function
         if (diffToVisualize!==null){
             //find previous state (this is never called on the very first state, the one before player inputs are applied, so there is always a previous state)
             var prevstate_lineNumberIndex=diffToVisualize.lineNumber-1;

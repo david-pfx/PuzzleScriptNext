@@ -53,6 +53,7 @@ var keybuffer = [];
 
 var tweeninterval=0;
 var tweentimer=0;
+var animateinterval=0;
 
 var restarting=false;
 

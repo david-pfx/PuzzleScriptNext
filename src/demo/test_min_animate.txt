@@ -1,0 +1,80 @@
+title test min sounds
+author polymino
+homepage www.polyomino.com
+
+// test program for animations
+animate_interval 2.0
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+
+player move afxt
+player cantmove afxr
+g create afxsa
+g destroy afxsd
+b create afxaa
+b destroy afxad
+sfx99 64217903 
+
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ] sfx99
+[ > p | g ] -> [ p | b ]
+[ > p | b ] -> [ p | g ]
+right [ lclick b | ] -> [ | b ]
+right [ | rclick b ] -> [ b | ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b......
+
+message second level
+
+..........
+....pry...
+..........
+
