@@ -26,7 +26,7 @@
 .lowertoolbar  #clickMe{
 	padding:0px;
 	margin:0px;
-	height:16px;
+	height:24px;
    padding-left:2px;
    padding-right:3px;
 }
@@ -47,7 +47,7 @@
 .lowertoolbar  input {
 	padding:0;
 	border:0;
-	height:16px;
+	height:24px;
 }
 
 #soundbar {

@@ -157,8 +157,6 @@ function consoleCacheDump() {
 			summarised_message+=`</span>`;
 		}
 	}
-
-
 	addToConsole(summarised_message);
 }
 
@@ -166,6 +164,7 @@ function consoleError(text) {
         var errorString = '<span class="errorText">' + text + '</span>';
         consolePrint(errorString,true);
 }
+
 function clearConsole() {
 	var code = document.getElementById('consoletextarea');
 	code.innerHTML = '';
@@ -181,17 +180,29 @@ function clearConsole() {
 var clearConsoleClick = document.getElementById("clearConsoleClick");
 clearConsoleClick.addEventListener("click", clearConsole, false);
 clearConsoleClick.addEventListener("click", clearConsole, false);
+
 function verboseToggle() {
 	if (!titleScreen) {
-		var verboseOn = !verbose_logging
-	verbose_logging = verboseOn;
-	cache_console_messages = verboseOn;
-	consolePrint("Verbose logging is now " + (verbose_logging ? "ENABLED" : "DISABLED"), true);
+		const verboseOn = !verbose_logging;
+		verbose_logging = verboseOn;
+		cache_console_messages = verboseOn;
+		consolePrint("Verbose logging is now " + (verbose_logging ? "ENABLED" : "DISABLED"), true);
 	} else {
-		consolePrint("Once your game is running, you can use this button to toggle Verbose Logging", true);
+		consolePrint("When your game is running, you can use this button to toggle Verbose Logging", true);
 	}
 }
 
 var verboseLoggingClick = document.getElementById("verboseLoggingClick");
 verboseLoggingClick.addEventListener("click", verboseToggle, false);
 verboseLoggingClick.addEventListener("click", verboseToggle, false);
+
+function showLayersToggle() {
+	showLayers = !showLayers;
+	if (showLayers) showLayersNo = 0;
+	consolePrint(`Show layers is now ${showLayers ? "ON" : "OFF"}`, true);
+	redraw();
+}
+
+var showLayersClick = document.getElementById("showLayersClick");
+showLayersClick.addEventListener("click", showLayersToggle, false);
+showLayersClick.addEventListener("click", showLayersToggle, false);

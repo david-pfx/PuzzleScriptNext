@@ -1092,7 +1092,7 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
-		    if (showContinueOptionOnTitleScreen()) {
+		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
 
@@ -1135,6 +1135,7 @@ function setGameState(_state, command, randomseed) {
 			    quittingTitleScreen=false;
 			    messageselected=false;
 			    titleMode = 0;
+				showLayers = false;
 				loadLevelFromState(state,targetLevel,randomseed);
 				break;
 			}
@@ -1155,6 +1156,7 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
+			showLayers = false;
 			loadLevelFromState(state,targetLevel,randomseed);
 			break;
 		}
@@ -1176,6 +1178,7 @@ function setGameState(_state, command, randomseed) {
 				    quittingTitleScreen=false;
 				    messageselected=false;
 				    titleMode = 0;
+					showLayers = false;
 					loadLevelFromState(state,i);
 					break;
 				}
@@ -2795,7 +2798,8 @@ function twiddleMetadataExtras(resetAutoTick = true) {
   if (state.metadata.key_repeat_interval!==undefined) {
     repeatinterval=state.metadata.key_repeat_interval*1000;
   } else {
-    repeatinterval=150;
+    repeatinterval=500;
+    //repeatinterval=150;
   }
 
   if ('background_color' in state.metadata) {

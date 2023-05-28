@@ -580,6 +580,7 @@ function redraw() {
 
         // Default draw loop, including when animating
         function drawObjects() {
+            showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
             const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);
             for (let i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
                 for (let j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
@@ -587,8 +588,12 @@ function redraw() {
                     const posMask = curlevel.getCellInto(posIndex,_o12);    
                     
                     for (let k = 0; k < state.objectCount; k++) {   // will draw objects in layer order
-                        const animate = (tween > 0) ? seedsToAnimate[posIndex+','+k] : null;
+                        const animate = null;
+                        //const animate = (tween > 0) ? seedsToAnimate[posIndex+','+k] : null;
                         if (posMask.get(k) || animate) {
+                            const obj = state.objects[state.idDict[k]];
+                            if (showLayers && obj.layer != showLayerNo)
+                                continue;
                             const spriteX = (k % spritesheetSize)|0;
                             const spriteY = (k / spritesheetSize)|0;
                             
