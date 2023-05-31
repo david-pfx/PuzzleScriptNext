@@ -425,6 +425,8 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
+    const showTimer = document.getElementById('timer');
+    showTimer.innerHTML = timer;
 
     var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
 
@@ -573,7 +575,11 @@ function redraw() {
 
         var renderBorderSize = smoothscreen ? 1 : 0;
         var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
+
         var tweening = state.metadata.tween_length && currentMovedEntities;
+        // global flag to force redraw
+        //seedsToAnimate.length = 0;  // temp:
+        isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
         if (tweening) drawObjectsTweening();
         else drawObjects();
@@ -581,15 +587,17 @@ function redraw() {
         // Default draw loop, including when animating
         function drawObjects() {
             showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
-            const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);
+            const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+            if (tween == 0) 
+                seedsToAnimate = {};
+
             for (let i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
                 for (let j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
                     const posIndex = j + i * curlevel.height;
                     const posMask = curlevel.getCellInto(posIndex,_o12);    
                     
                     for (let k = 0; k < state.objectCount; k++) {   // will draw objects in layer order
-                        const animate = null;
-                        //const animate = (tween > 0) ? seedsToAnimate[posIndex+','+k] : null;
+                        const animate = (isAnimating) ? seedsToAnimate[posIndex+','+k] : null;
                         if (posMask.get(k) || animate) {
                             const obj = state.objects[state.idDict[k]];
                             if (showLayers && obj.layer != showLayerNo)
@@ -598,19 +606,20 @@ function redraw() {
                             const spriteY = (k / spritesheetSize)|0;
                             
                             let params = {
-                                x: xoffset + (i-mini-cameraOffset.x) * cellwidth,
-                                y: yoffset + (j-minj-cameraOffset.y) * cellheight,
+                                x: 0,
+                                y: 0,
                                 scale: 1.0, 
                                 alpha: 1.0,                                
                             };
                             if (animate) 
-                                params = calcAnimate(animate, params, tween);
+                                params = calcAnimate(animate.seed.substring(3), animate.dir, params, tween);
 
                             ctx.globalAlpha = params.alpha;                            
                             ctx.drawImage(
                                 spritesheetCanvas, 
                                 spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
-                                Math.floor(params.x), Math.floor(params.y), 
+                                Math.floor(xoffset + (i-mini-cameraOffset.x + params.x) * cellwidth), 
+                                Math.floor(yoffset + (j-minj-cameraOffset.y + params.y) * cellheight), 
                                 cellwidth * params.scale, cellheight * params.scale);
                             ctx.globalAlpha = 1;
                         }
@@ -620,22 +629,21 @@ function redraw() {
         } 
 
         // calculate animation for this object
-        function calcAnimate(animate, params, tween) {
+        function calcAnimate(afx, dir, params, tween) {
             const funcs = {
-                sa: p => { p.scale = tween; },
-                sd: p => { p.scale = -tween; },
-                aa: p => { p.alpha = tween; },
-                ad: p => { p.alpha = -tween; },
+                t:  p => { 
+                            const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
+                            p.x = -tween * delta[0]; 
+                            p.y = -tween * delta[1]; 
+                        },
+                sa: p => { p.scale = 1 - tween; },
+                sd: p => { p.scale = tween; },
+                aa: p => { p.alpha = 1 - tween; },
+                ad: p => { p.alpha = tween; },
             }
-            const afx = animate.seed.substring(2);
             if (funcs[afx])
-                funcs[afx(param)];
+                funcs[afx](params);
             return params;
-            // if (ts) {
-            //     const delta = dirMasksDelta[ts.dir];
-            //     ret.x = cellwidth * delta[0] * tween;
-            //     ret.y = cellheight * delta[1] * tween;
-            // }
         }
 
         // Draw loop when tweening

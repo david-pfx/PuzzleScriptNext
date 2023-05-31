@@ -1561,6 +1561,21 @@ var dirMasksDelta = {
 	21: [0, 0]
 };
 
+// utility functions
+function getObject(objid) {
+	return state.objects[state.idDict[objid]];
+}
+
+// get movement in layer from movement mask
+function getLayerMovement(movmask, layer) {
+	return movmask.getshiftor(0x1f, 5*layer);
+}
+
+// update position index by x and y
+function deltaPositionIndex(level, positionIndex, x, y) {
+	return positionIndex + y + x * level.height;
+}
+
 function getPlayerPositions() {
     var result=[];
     var playerMask = state.playerMask;
@@ -1616,7 +1631,7 @@ function startMovement(dir) {
 
 var seedsToPlay_CanMove=[];
 var seedsToPlay_CantMove=[];
-var seedsToAnimate=[];  // doc: array of { kind:, seed:, dir: } indexed by tile positition, layer
+var seedsToAnimate={};  // doc: "positition,layer": { kind:, seed:, dir: }
 
 function repositionEntitiesOnLayer(positionIndex,layer,dirMask) 
 {
@@ -1651,8 +1666,16 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
       		var directionMask = fx.directionMask;
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
-				if (fx.seed.startsWith('afx'))
-					seedsToAnimate[positionIndex+','+fx.objId] = { seed: fx.seed, dir: 2 };
+				if (fx.seed.startsWith('afx')) {
+					const object = getObject(fx.objId);
+					const move = getLayerMovement(movementMask, object.layer);
+					const position = deltaPositionIndex(level, positionIndex, dirMasksDelta[move][0], dirMasksDelta[move][1])
+					seedsToAnimate[position+','+fx.objId] = { 
+						kind: 'move', 
+						seed: fx.seed, 
+						dir: move 
+					};
+				}
 				else if (seedsToPlay_CanMove.indexOf(fx.seed)===-1)
 					seedsToPlay_CanMove.push(fx.seed);
       		}
@@ -2249,18 +2272,33 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
   if (!oldCellMask.equals(curCellMask) || !oldMovementMask.equals(curMovementMask) || rigidchange) { 
 		result=true;
 		if (rigidchange) {
-		level.rigidGroupIndexMask[currentIndex] = curRigidGroupIndexMask;
-		level.rigidMovementAppliedMask[currentIndex] = curRigidMovementAppliedMask;
+			level.rigidGroupIndexMask[currentIndex] = curRigidGroupIndexMask;
+			level.rigidMovementAppliedMask[currentIndex] = curRigidMovementAppliedMask;
 		}
+
+		// were any objects create or destroyed? Add to list for sfx checking
+		// - as mask, one bit per object
+		// - as list, one entry per object, with position
 
 		var created = curCellMask.cloneInto(_o4);
 		created.iclear(oldCellMask);
 		sfxCreateMask.ior(created);
-		afxCreateList.push({ posIndex: currentIndex, objMask: created });
+		for (let objId = 0; objId < state.objectCount; ++objId) {
+			if (created.get(objId))
+				sfxCreateList.push({ 
+					posIndex: currentIndex, objId: objId
+				});
+		}
+
 		var destroyed = oldCellMask.cloneInto(_o5);
 		destroyed.iclear(curCellMask);
 		sfxDestroyMask.ior(destroyed);
-		afxDestroyList.push({ posIndex: currentIndex, objMask: destroyed });
+		for (let objId = 0; objId < state.objectCount; ++objId) {
+			if (destroyed.get(objId))
+				sfxDestroyList.push({ 
+					posIndex: currentIndex, objId: objId
+				});
+		}
 
 		level.setCell(currentIndex, curCellMask);
 		level.setMovements(currentIndex, curMovementMask);
@@ -3019,8 +3057,18 @@ function resolveMovements(level, bannedGroup){
 				if (cellMask.get(fx.objId)) {
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
 						if (fx.seed.startsWith('afx')) {
-							seedsToAnimate[i+','+fx.objId] = { seed: fx.seed, dir: 2 };
-						} else if (seedsToPlay_CantMove.indexOf(fx.seed)===-1)
+							const object = getObject(fx.objId);
+							const move = getLayerMovement(movementMask, object.layer);
+							const position = deltaPositionIndex(level, i, dirMasksDelta[move][0], dirMasksDelta[move][1])
+							seedsToAnimate[position+','+fx.objId] = { 
+								kind: 'cant', 
+								seed: fx.seed, 
+								dir: move 
+							};
+						}
+						//if (fx.seed.startsWith('afx')) {
+							//seedsToAnimate[i+','+fx.objId] = { kind: 'cant', seed: fx.seed, dir: 2 };
+						else if (seedsToPlay_CantMove.indexOf(fx.seed)===-1)
 							seedsToPlay_CantMove.push(fx.seed);
 					}
 				}
@@ -3038,8 +3086,8 @@ function resolveMovements(level, bannedGroup){
 
 var sfxCreateMask=null;			// doc: mask for all objects created
 var sfxDestroyMask=null;		// doc: mask for all objects destroyed
-var afxCreateList = []; 		// doc: list of created { posindex:, objmask: }
-var afxDestroyList = [];		// doc: list of destroyed { posindex:, objmask: }
+var sfxCreateList = []; 		// doc: list of created { posindex:, objmask: }
+var sfxDestroyList = [];		// doc: list of destroyed { posindex:, objmask: }
 
 function calculateRowColMasks() {
 	for(var i=0;i<level.mapCellContents.length;i++) {
@@ -3147,12 +3195,12 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		}
 	    sfxCreateMask.setZero();
 	    sfxDestroyMask.setZero();
-		afxCreateList = [];
-		afxDestroyList = [];
+		sfxCreateList = [];
+		sfxDestroyList = [];
 		
 		seedsToPlay_CanMove=[];
 		seedsToPlay_CantMove=[];
-		seedsToAnimate=[];
+		seedsToAnimate={};
 		
 		calculateRowColMasks();
 
@@ -3197,8 +3245,8 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 					level.commandQueueSourceRules = startState.commandQueueSourceRules.concat([])
 					sfxCreateMask.setZero()
 					sfxDestroyMask.setZero()
-					afxCreateList = [];
-					afxDestroyList = [];
+					sfxCreateList = [];
+					sfxDestroyList = [];
 								// TODO: should
 
 				}
@@ -3397,12 +3445,13 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
             playSeed(seedsToPlay_CanMove[i]);
         }
 
+		// create and destroy were added ???
 		for (const entry of state.sfx_CreationMasks) {
 			if (sfxCreateMask.get(entry.objId)) {		// mask for objects created vs mask for sfx create event
 				if (entry.seed.startsWith('afx')) {
-					for (const fx of afxCreateList) {
-						if (fx.objMask.get(entry.objId))
-							seedsToAnimate[fx.posIndex+','+entry.objid] = { seed: fx.seed };
+					for (const fx of sfxCreateList) {
+						if (fx.objId == entry.objId)
+							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
 					}
 				} else playSeed(entry.seed);
 			}
@@ -3411,9 +3460,9 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		for (const entry of state.sfx_DestructionMasks) {
 			if (sfxDestroyMask.get(entry.objId)) {
 				if (entry.seed.startsWith('afx')) {
-					for (const fx of afxDestroyList) {
-						if (fx.objMask.get(entry.objId))
-							seedsToAnimate[fx.posIndex+','+entry.objid] = { seed: fx.seed };
+					for (const fx of sfxDestroyList) {
+						if (fx.objId == entry.objId)
+							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
 					}
 				} else playSeed(entry.seed);
 			}
@@ -3483,6 +3532,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
+		console.log(`seedsToAnimate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 

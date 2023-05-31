@@ -1,9 +1,9 @@
-title test min sounds
+title test min animate
 author polymino
 homepage www.polyomino.com
 
 // test program for animations
-animate_interval 2.0
+//animate_interval 2.0
 
 verbose_logging
 debug
@@ -51,9 +51,10 @@ k
 RULES
 ======
 
-[ > p | r ] -> [ > p | > r ] sfx99
-[ > p | g ] -> [ p | b ]
-[ > p | b ] -> [ p | g ]
+[ > p | r ] -> [ r | p ]
+[ > p | g | ] -> [ p | | g ]
+[ > p | b ] -> [ p | y ]
+[ > p | y ] -> [ p | b ]
 right [ lclick b | ] -> [ | b ]
 right [ | rclick b ] -> [ b | ]
 
@@ -68,9 +69,9 @@ LEVELS
 
 //message first level
 
-...g......
-....p.r.y.
-...b......
+.pg......
+....r.y..
+..b......
 
 message second level
 

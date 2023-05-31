@@ -39,8 +39,6 @@ var throttle_movement=false;
 var cache_console_messages=false;
 var quittingTitleScreen=false;
 var quittingMessageScreen=false;
-var showLayers = false;
-var showLayerNo = 0;
 
 var deltatime=17; // this gets updated every frame; see loop()
 var timer=0;
@@ -54,8 +52,12 @@ var norepeat_action=false;
 var oldflickscreendat=[];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
 var keybuffer = [];
 
+var debugLevel = 1;
+var showLayers = false;
+var showLayerNo = 0;
 var tweeninterval=0;
 var tweentimer=0;
+var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
 var animateinterval=0;
 
 var restarting=false;

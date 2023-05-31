@@ -2930,6 +2930,7 @@ function generateSoundData(state) {
 
             var objectMask = state.objectMasks[target];
 
+            // construct a 5 bit direction mask
             var directionMask = 0;
             for (var j = 0; j < directions.length; j++) {
                 directions[j] = directions[j].trim();
@@ -2942,7 +2943,7 @@ function generateSoundData(state) {
                 }
             }
 
-
+            // construct a list of targets, after expanding properties (if any)
             var targets = [target];
             var modified = true;
             while (modified) {
@@ -2964,26 +2965,28 @@ function generateSoundData(state) {
                 }
             }
             
-            // note: a single sounds line refer to multiple targets, and can generate multiple mask entries
+            // create 'mask' entries for runtime sound event checking, one per target object
+            // this code originally kept only the masks, but could misfire if object on one mask hit direction on another
             // note: this information required to support animation
             for (let j = 0; j < targets.length; j++) {
                 const targetName = targets[j];
                 const targetDat = state.objects[targetName];
                 const targetLayer = targetDat.layer;
                 let shiftedDirectionMask = null;
+                // separate masks for each layer
                 if (verb === 'move' || verb === 'cantmove') {
                     shiftedDirectionMask = new BitVec(STRIDE_MOV);
                     shiftedDirectionMask.ishiftor(directionMask, 5 * targetLayer);
                 }
 
-                // doc: sfx seed for single target object as mask, movement as mask shifted to target layer
+                // doc: sfx/afx seed for target object, movement(s) as mask shifted to target layer
                 const o = {
                     objId: targetDat.id,
                     directionMask: shiftedDirectionMask,
                     layer:targetLayer,
                     seed: seed
                 };
-                console.log(`verb ${verb} o: ${JSON.stringify(o)}}`);
+                if (debugLevel) console.log(`verb ${verb} o: ${JSON.stringify(o)}`);
 
                 if (verb === 'move')
                     sfx_MovementMasks[targetLayer].push(o);

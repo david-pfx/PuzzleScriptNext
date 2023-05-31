@@ -1548,9 +1548,9 @@ function update() {
         }
     }
 
-	if (draw || (typeof state !== "undefined" && 
-		(state.metadata.smoothscreen !== undefined || state.metadata.tween_length !== undefined))) {
-      redraw();
+	// force redraw to update animations
+	if (draw || isAnimating) {
+	  	redraw();
 	}
 }
 
