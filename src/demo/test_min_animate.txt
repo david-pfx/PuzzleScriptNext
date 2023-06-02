@@ -33,7 +33,7 @@ SOUNDS
 =======
 
 player move afxt
-player cantmove afxr
+player cantmove afxn 64217903
 g create afxsa
 g destroy afxsd
 b create afxaa

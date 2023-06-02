@@ -1018,7 +1018,7 @@ function level4Serialization() {
 }
 
 
-
+// major function to set up game state on start of run
 function setGameState(_state, command, randomseed) {
   oldflickscreendat=[];
   timer=0;
@@ -1071,13 +1071,13 @@ function setGameState(_state, command, randomseed) {
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval * 1000 : 150;
 	tweeninterval = state.metadata.tween_length ? state.metadata.tween_length * 1000 : 0;
 	againinterval = state.metadata.again_interval ? state.metadata.again_interval * 1000 : 150;
-	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval * 1000 : 500;
+	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval * 1000 : 250;
     
 	if (throttle_movement && autotickinterval===0) {
       logWarning("throttle_movement is designed for use in conjunction with realtime_interval. Using it in other situations makes games gross and unresponsive, broadly speaking.  Please don't.");
     }
     norepeat_action = state.metadata.norepeat_action!==undefined;
-    
+
     switch(command[0]){
     	case "restart":
     	{
@@ -3059,15 +3059,12 @@ function resolveMovements(level, bannedGroup){
 						if (fx.seed.startsWith('afx')) {
 							const object = getObject(fx.objId);
 							const move = getLayerMovement(movementMask, object.layer);
-							const position = deltaPositionIndex(level, i, dirMasksDelta[move][0], dirMasksDelta[move][1])
-							seedsToAnimate[position+','+fx.objId] = { 
+							seedsToAnimate[i+','+fx.objId] = { 
 								kind: 'cant', 
 								seed: fx.seed, 
 								dir: move 
 							};
 						}
-						//if (fx.seed.startsWith('afx')) {
-							//seedsToAnimate[i+','+fx.objId] = { kind: 'cant', seed: fx.seed, dir: 2 };
 						else if (seedsToPlay_CantMove.indexOf(fx.seed)===-1)
 							seedsToPlay_CantMove.push(fx.seed);
 					}
@@ -3544,7 +3541,8 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
     againing=false;
   }
 
-  return modified;
+  return true; // might beneeded for an animation
+  //return modified;
 }
 
 // play a seed which could be a sound or an animation
@@ -3668,17 +3666,6 @@ function DoWin() {
   winning=true;
   timer=0;
 }
-
-/*
-//this function isn't valid after refactoring, but also isn't used.
-function anyMovements() { 
-    for (var i=0;i<level.movementMask.length;i++) {
-        if (level.movementMask[i]!==0) {
-          return true;
-        }
-    }
-    return false;
-}*/
 
 function nextLevel() {
     againing=false;

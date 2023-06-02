@@ -591,24 +591,38 @@ function redraw() {
             if (tween == 0) 
                 seedsToAnimate = {};
 
-            for (let i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-                for (let j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                    const posIndex = j + i * curlevel.height;
-                    const posMask = curlevel.getCellInto(posIndex,_o12);    
-                    
-                    for (let k = 0; k < state.objectCount; k++) {   // will draw objects in layer order
-                        const animate = (isAnimating) ? seedsToAnimate[posIndex+','+k] : null;
-                        if (posMask.get(k) || animate) {
+            const iter = [
+                Math.max(mini - renderBorderSize, 0),
+                Math.min(maxi + renderBorderSize, curlevel.width),
+                Math.max(minj - renderBorderSize, 0),
+                Math.min(maxj + renderBorderSize, curlevel.height)
+            ];
+
+
+            // draw each object in all the places it occurs, in layer order
+            for (let k = 0; k < state.objectCount; k++) { 
+                const sheetpos = { 
+                    x: ~~(k % spritesheetSize) * cellwidth, 
+                    y: ~~(k / spritesheetSize) * cellheight
+                };
+
+                for (let i = iter[0]; i < iter[1]; i++) {
+                    for (let j = iter[2]; j < iter[3]; j++) {
+                        const posindex = j + i * curlevel.height;
+                        const posmask = curlevel.getCellInto(posindex,_o12);    
+                        const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
+                        if (posmask.get(k) || animate) {
                             const obj = state.objects[state.idDict[k]];
                             if (showLayers && obj.layer != showLayerNo)
                                 continue;
-                            const spriteX = (k % spritesheetSize)|0;
-                            const spriteY = (k / spritesheetSize)|0;
+                            const drawpos = {
+                                x: xoffset + (i-mini-cameraOffset.x) * cellwidth,
+                                y: yoffset + (j-minj-cameraOffset.y) * cellheight
+                            };
                             
                             let params = {
-                                x: 0,
-                                y: 0,
-                                scale: 1.0, 
+                                x: 0, y: 0,
+                                scalex: 1.0, scaley: 1.0,
                                 alpha: 1.0,                                
                             };
                             if (animate) 
@@ -617,10 +631,10 @@ function redraw() {
                             ctx.globalAlpha = params.alpha;                            
                             ctx.drawImage(
                                 spritesheetCanvas, 
-                                spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
-                                Math.floor(xoffset + (i-mini-cameraOffset.x + params.x) * cellwidth), 
-                                Math.floor(yoffset + (j-minj-cameraOffset.y + params.y) * cellheight), 
-                                cellwidth * params.scale, cellheight * params.scale);
+                                sheetpos.x, sheetpos.y, cellwidth, cellheight,
+                                Math.floor(drawpos.x + params.x * cellwidth), 
+                                Math.floor(drawpos.y + params.y * cellheight), 
+                                cellwidth * params.scalex, cellheight * params.scaley);
                             ctx.globalAlpha = 1;
                         }
                     }
@@ -632,12 +646,26 @@ function redraw() {
         function calcAnimate(afx, dir, params, tween) {
             const funcs = {
                 t:  p => { 
-                            const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
-                            p.x = -tween * delta[0]; 
-                            p.y = -tween * delta[1]; 
-                        },
-                sa: p => { p.scale = 1 - tween; },
-                sd: p => { p.scale = tween; },
+                    const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
+                    p.x = -tween * delta[0]; 
+                    p.y = -tween * delta[1]; 
+                },
+                n:  p => { 
+                    const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
+                    const tw = (tween > 0.5) ? 1 - tween : tween;
+                    p.x = tw * 0.25 * delta[0]; 
+                    p.y = tw * 0.25 * delta[1]; 
+                    //p.scalex = delta[0] ? (1 - tw) : 1; 
+                    //p.scaley = delta[1] ? (1 - tw) : 1; 
+                },
+                sa: p => { 
+                    p.scalex = p.scaley = 1 - tween; 
+                    p.x = p.y = tween / 2;
+                },
+                sd: p => { 
+                    p.scalex = p.scaley = tween; 
+                    p.x = p.y = 0.5 - tween / 2;
+                },
                 aa: p => { p.alpha = 1 - tween; },
                 ad: p => { p.alpha = tween; },
             }
@@ -646,35 +674,51 @@ function redraw() {
             return params;
         }
 
-        // Draw loop when tweening
-        function drawObjectsTweening() {
-            var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
-
-            //  todo: setup this code should go in SetGameState
-
-            //Defaults
-            var tween_name = "linear";
-            var tween_snap = state.sprite_size;
-
-            //Lookup
-            if (state.metadata.tween_easing!==undefined){
+        function getEasingFunction() {
+            let tween_name = "linear";
+            if (state.metadata.tween_easing){
                 tween_name = state.metadata.tween_easing;
-                if (parseInt(tween_name) != NaN && easingAliases[parseInt(tween_name)]) {
+                if (parseInt(tween_name) && easingAliases[parseInt(tween_name)]) {
                     tween_name = easingAliases[parseInt(tween_name)];
-                    //console.log(tween_name);
                 }
                 tween_name = tween_name.toLowerCase();
             }
-            if (state.metadata.tween_snap!==undefined) {
-                tween_snap = Math.max(parseInt(state.metadata.tween_snap), 1);
-            }
+            return EasingFunctions[tween_name];
+        }
 
-            //Apply
+        function getTweenSnap() {
+            return (state.metadata.tween_snap) ? Math.max(parseInt(state.metadata.tween_snap), 1) : state.sprite_size;
+        }
 
-            if (EasingFunctions[tween_name] != null) {
-                tween = EasingFunctions[tween_name](tween);
-            }
-            tween = Math.floor(tween * tween_snap) / tween_snap;
+        // Draw loop when tweening
+        function drawObjectsTweening() {
+            //  todo: setup this code should go in SetGameState
+
+            //Defaults
+            // var tween_name = "linear";
+            // var tween_snap = state.sprite_size;
+
+            // //Lookup
+            // if (state.metadata.tween_easing!==undefined){
+            //     tween_name = state.metadata.tween_easing;
+            //     if (parseInt(tween_name) != NaN && easingAliases[parseInt(tween_name)]) {
+            //         tween_name = easingAliases[parseInt(tween_name)];
+            //         //console.log(tween_name);
+            //     }
+            //     tween_name = tween_name.toLowerCase();
+            // }
+            // if (state.metadata.tween_snap!==undefined) {
+            //     tween_snap = Math.max(parseInt(state.metadata.tween_snap), 1);
+            // }
+
+            let tween = getEasingFunction(1-clamp(tweentimer/tweeninterval, 0, 1));
+            let snap = getTweenSnap();
+            tween = Math.floor(tween * snap) / snap;
+
+            // if (EasingFunctions[tween_name] != null) {
+            //     tween = EasingFunctions[tween_name](tween);
+            // }
+            // tween = Math.floor(tween * tween_snap) / tween_snap;
 
             for (var k = 0; k < state.idDict.length; k++) {
                 var object = state.objects[state.idDict[k]];
