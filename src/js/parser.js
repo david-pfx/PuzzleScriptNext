@@ -30,7 +30,7 @@ var errorCount=0;//only counts errors
 
 // used here and in compiler
 var reg_commandwords = /afx\w+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align/u;
-var reg_twiddleable_params = /background_color|text_color|key_repeat_interval|realtime_interval|again_interval|flickscreen|zoomscreen|smoothscreen|noundo|norestart|message_text_align/u;
+var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -252,14 +252,20 @@ var codeMirrorFn = function() {
     const reg_csv_separators = /[ \,]*/;
     const reg_soundverbs = /(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const soundverbs_directional = ['move','cantmove'];
-    const reg_soundevents = /(afx\w+|sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
+    const reg_soundevents = /^(afx\w+|sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     // todo: reaction, mclick
     const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
-    const reg_sounddirectionindicators = /[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
+    const reg_sounddirectionindicators = /^[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
+    const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels',
+        '|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical',
+        'any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','message', "move", "action", "create", 
+        "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", 
+        "restart", "win", "message", "again", "undo", "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", 
+        "showmessage", "closemessage"];
     const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
@@ -286,13 +292,6 @@ var codeMirrorFn = function() {
     let reg_notcommentstart = /[^\(]+/;
     let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
     
-    // test for warning message only
-    function isKeyword(token) {
-        return token.match(reg_winconditionquantifiers) || token.match(reg_commandwords) || token.match(reg_sectionNames) 
-        || token.match(reg_directions) || token.match(reg_ruledirectionindicators) || token.match(reg_sounddirectionindicators)
-        || '[|]<>^v'.includes(token);
-    }
-
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
         if (match===null){
@@ -325,7 +324,7 @@ var codeMirrorFn = function() {
                 ok=false;
             }
 
-            if (isKeyword(candname)) {
+            if (keyword_array.includes(candname)) {
                 logWarning('You named an object "' + candname.toUpperCase() + '", but this is a keyword. Don\'t do that!', state.lineNumber);
             }
 
@@ -822,8 +821,8 @@ var codeMirrorFn = function() {
                 logError(`Name "${candname}" already in use.`, state.lineNumber);
             }
         }
-        if (isKeyword(candname)) {
-            logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
+        if (keyword_array.includes(candname)) {
+                logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
         }
         // create base object and array for colours
         if (state.objects_section == 0) {
@@ -1681,7 +1680,7 @@ var codeMirrorFn = function() {
                                 } else if (m==='global') {
                                     return 'DIRECTION';
                                 }else if (m.match(reg_commandwords)) {
-                                    if (m==='message' || m==='goto' || m.match(reg_twiddleable_params)) {
+                                    if (m==='message' || m==='goto' || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
                                     }                                	
                                     return 'COMMAND';

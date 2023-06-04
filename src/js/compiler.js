@@ -811,7 +811,7 @@ if (tokens.length===1) {
 }
 
 if (tokens.indexOf('->') == -1) {
-    logError("A rule has to have an arrow in it.  There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
+    logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
 }
 
     var curcell = [];
@@ -978,7 +978,8 @@ if (tokens.indexOf('->') == -1) {
                     }
                     commands.push([token.toLowerCase(), messageStr]);
                     i=tokens.length;
-                } else if (token.match(reg_twiddleable_params)) {
+                } else if (twiddleable_params.includes(token.toLowerCase())) {
+                    //} else if (token.match(reg_twiddleable_params)) {
                     if (!state.metadata.includes("runtime_metadata_twiddling")) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
@@ -3145,6 +3146,7 @@ function loadFile(str) {
 
 var ifrm;
 
+// compile a script for editor or testing, run inputs and return state if valid
 function compile(command, text, randomseed) {
     matchCache = {};
     forceRegenImages = true;
@@ -3178,13 +3180,22 @@ function compile(command, text, randomseed) {
     } catch(error){
         consolePrint(error);
         console.log(`Compile error: ${error}`);
+        errorStrings.push(error);
+        errorCount++;
     } finally {
         compiling = false;
     }
 
-    console.log(`End compile: ${state && !state.invalid ? "ok" : "FAILED"}`);
-    if (state && state.levels && state.levels.length === 0) {
-        logError('No levels found.  Add some levels!', undefined, true);
+    if (!state || state.invalid) {
+        console.log(`End compile: aborted with error ${errorStrings[errorStrings.length - 1]}`);
+        consoleError(`<span class="systemMessage">Compilation aborted. ${errorStrings[errorStrings.length - 1]}</span>`);
+        return null;
+    }
+    
+    console.log(`End compile: ${state && !state.invalid && errorCount == 0 ? "ok" : "FAILED, error count = " + errorCount}`);
+
+    if (state.levels && state.levels.length === 0) {
+        logError('No levels found. Add some levels!', undefined, true);
     }
 
     if (errorCount > 0) {
@@ -3217,32 +3228,25 @@ function compile(command, text, randomseed) {
         }
     }
 
-        //Puzzlescript Plus errors
-        // bug: crashes here if compile exits with null value
-        if (IDE && state) {
-        //if (IDE && state !== undefined) {
-            if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
-                logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
-            }
-    
-            if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
-                logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
-            }
-
-            if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
-                logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
-            }
-
-            if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
-                logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
-            }
+    if (IDE) {
+        if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
+            logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
         }
 
-        // bug: crashes here if compile leaves state undefined
-    if (state) {//otherwise error
-    //if (state!==null){//otherwise error
-        setGameState(state, command, randomseed);
+        if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
+            logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
+        }
+
+        if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
+            logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
+        }
+
+        if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
+            logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
+        }
     }
+
+    setGameState(state, command, randomseed);
 
     clearInputHistory();
 
@@ -3251,6 +3255,8 @@ function compile(command, text, randomseed) {
     }
 
     consoleCacheDump();
+
+    return state;
 
 }
 

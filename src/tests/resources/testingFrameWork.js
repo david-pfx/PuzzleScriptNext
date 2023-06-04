@@ -19,7 +19,8 @@ function runTest(dataarray) {
 	if (targetlevel===undefined) {
 		targetlevel=0;
 	}
-	compile(["loadLevel",targetlevel],levelString,randomseed);
+	if (!compile(["loadLevel",targetlevel],levelString,randomseed))
+		return null;		// there is only grief if we continue.
 
 	while (againing) {
 		againing=false;
@@ -78,6 +79,7 @@ function runCompilationTest(dataarray) {
 	errorCount=0;
 
 	try{
+		//compile(["rebuild"],levelString);
 		compile(["restart"],levelString);
 	} catch (error){
 		console.log(error);
@@ -85,7 +87,8 @@ function runCompilationTest(dataarray) {
 
 	var strippedErrorStrings = errorStrings.map(stripHTMLTags);
 	if (errorCount!==recordedErrorCount){
-		QUnit.assert.equal(errorCount,recordedErrorCount, "Error count not as expected");
+		QUnit.assert.equal(errorCount,recordedErrorCount, `Error count not as expected, errors:\n${strippedErrorStrings.join('\n')}`);
+		return false;
 	}
 
 	var i_recorded=0;
@@ -100,7 +103,9 @@ function runCompilationTest(dataarray) {
 
 	var simulated_summary = strippedErrorStrings.join("\n");
 	var recorded_summary = recordedErrorStrings.join("\n");
-	QUnit.assert.equal(simulated_summary,recorded_summary, "Error strings not as expected")
-	return false;
+	if (simulated_summary != recorded_summary) {
+		QUnit.assert.equal(simulated_summary,recorded_summary, "Error strings not as expected")
+		return false;
+	}
 	return true;
 }
