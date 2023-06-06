@@ -2830,23 +2830,16 @@ function generateLoopPoints(state) {
     state.lateLoopPoint = loopPoint;
 }
 
-function validSeed(seed) {
-    return /^\s*\d+\s*$/.exec(seed) !== null;
-}
-
-var soundDirectionIndicatorMasks = {
-    'up': parseInt('00001', 2),
-    'down': parseInt('00010', 2),
-    'left': parseInt('00100', 2),
-    'right': parseInt('01000', 2),
-    'horizontal': parseInt('01100', 2),
-    'vertical': parseInt('00011', 2),
-    'orthogonal': parseInt('01111', 2),
-    '___action____': parseInt('10000', 2)
+var soundDirectionMasks = {
+    'up':           1,
+    'down':         2,
+    'left':         4,
+    'right':        8,
+    'horizontal': 0xc,
+    'vertical':     3,
+    'orthogonal': 0xf,
+    '_action_'  :0x10
 };
-
-var soundDirectionIndicators = ["up", "down", "left", "right", "horizontal", "vertical", "orthogonal", "___action____"];
-
 
 function generateSoundData(state) {
     var sfx_Events = {};
@@ -2856,107 +2849,57 @@ function generateSoundData(state) {
     var sfx_MovementMasks = state.collisionLayers.map(x => []);     // doc: array of sfx movement triggers, indexed by layer
     var sfx_MovementFailureMasks = [];
 
-    for (var i = 0; i < state.sounds.length; i++) {
-        var sound = state.sounds[i];
-        if (sound.length <= 1) {
-            continue;
-        }
-        var lineNumber = sound[sound.length - 1];
+    for (const sound of state.sounds) {
+        if (sound[0] === "SOUNDEVENT") {
+            const event = sound[1];
+            const seed = sound[2];
+            const line = sound[3];
+            if (sfx_Events[event]) 
+                logWarning(`${event.toUpperCase()} already declared.`, line);
+            sfx_Events[event] = seed;
+        } else { // SOUND
+            const target = sound[1];
+            let verb = sound[2];
+            let directions = sound[3];
+            const seed = sound[4];
+            const line = sound[5];
 
-        if (sound.length === 2) {
-            logError('incorrect sound declaration.', lineNumber);
-            continue;
-        }
+            if (target in state.aggregatesDict)
+                logError('cannot assign sound events to aggregate objects (declared with "and"), only to regular objects, or properties, things defined in terms of "or" ("' + target + '").', line);
+            if (!(target in state.objectMasks))
+                logError(`Object "${target}" not found.`, line);
 
-        const v0=sound[0][0].trim();
-        const t0=sound[0][1].trim();
-        const v1=sound[1][0].trim();
-        const t1=sound[1][1].trim();
-        
-        var seed = sound[sound.length - 2][0];
-        var seed_t = sound[sound.length - 2][1];
-        if (seed_t !== 'SOUND') {
-            logError("Expecting sfx data, instead found \"" + seed + "\".", lineNumber);
-        }
-
-        if (t0 === "SOUNDEVENT") {
-
-            if (sound.length > 4) {
-                logError("too much stuff to define a sound event.", lineNumber);
-            } else {
-                //out of an abundance of caution, doing a fallback warning rather than expanding the scope of the error #779
-                if (sound.length > 3) {
-                    logWarning("too much stuff to define a sound event.", lineNumber);
-                }
-            }
-
-            if (sfx_Events[v0] !== undefined) {
-                logWarning(v0.toUpperCase() + " already declared.", lineNumber);
-                }
-            sfx_Events[v0] = seed;
-
-            } else {
-            var target = v0;
-            var verb = v1;
-            var directions = [];
-            for (var j=2;j<sound.length-2;j++){//avoid last sound declaration as well as the linenumber element at the end
-                if (sound[j][1] === 'DIRECTION') {
-                    directions.push(sound[j][0]);      
-                } else {
-                    //Don't know how if I can get here, but just in case
-                    logError(`Expected a direction here, but found instead "${sound[j][0]}".`, lineNumber);
-            }
-            }
-            if (directions.length > 0 && (verb !== 'move' && verb !== 'cantmove')) {
-                logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', lineNumber);
-            }
-
-            if (verb === 'action') {
+            if (soundverbs_directional.includes(verb)) {
+                if (directions.length == 0)
+                    directions = ['orthogonal'];
+            } else if (verb === 'action') {
                 verb = 'move';
-                directions = ['___action____'];
-            }
-
-            if (directions.length == 0) {
-                directions = ["orthogonal"];
-            }
-            
-
-            if (target in state.aggregatesDict) {
-                logError('cannot assign sound events to aggregate objects (declared with "and"), only to regular objects, or properties, things defined in terms of "or" ("' + target + '").', lineNumber);
-            } else if (target in state.objectMasks) {
-
-            } else {
-                logError('Object "' + target + '" not found.', lineNumber);
-            }
-
-            var objectMask = state.objectMasks[target];
+                directions = ['_action_'];
+            } else if (directions.length > 0)
+                logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', line);
 
             // construct a 5 bit direction mask
-            var directionMask = 0;
-            for (var j = 0; j < directions.length; j++) {
-                directions[j] = directions[j].trim();
-                var direction = directions[j];
-                if (soundDirectionIndicators.indexOf(direction) === -1) {
-                    logError('Was expecting a direction, instead found "' + direction + '".', lineNumber);
-                } else {
-                    var soundDirectionMask = soundDirectionIndicatorMasks[direction];
-                    directionMask |= soundDirectionMask;
-                }
+            let directionMask = 0;
+            for (const dir of directions) {
+                if (!soundDirectionMasks[dir]) 
+                    logError(`Was expecting a direction, instead found "${dir}".`, line);
+                else 
+                    directionMask |= soundDirectionMasks[dir];
             }
 
             // construct a list of targets, after expanding properties (if any)
-            var targets = [target];
-            var modified = true;
+            let targets = [target];
+            let modified = true;
             while (modified) {
                 modified = false;
                 for (var k = 0; k < targets.length; k++) {
-                    var t = targets[k];
+                    const t = targets[k];
                     if (t in state.synonymsDict) {
                         targets[k] = state.synonymsDict[t];
                         modified = true;
                     } else if (t in state.propertiesDict) {
                         modified = true;
-                        var props = state.propertiesDict[t];
+                        const props = state.propertiesDict[t];
                         targets.splice(k, 1);
                         k--;
                         for (var l = 0; l < props.length; l++) {
@@ -3181,7 +3124,7 @@ function compile(command, text, randomseed) {
         consolePrint(error);
         console.log(`Compile error: ${error}`);
         errorStrings.push(error);
-        errorCount++;
+        //errorCount++;
     } finally {
         compiling = false;
     }
@@ -3191,7 +3134,7 @@ function compile(command, text, randomseed) {
         consoleError(`<span class="systemMessage">Compilation aborted. ${errorStrings[errorStrings.length - 1]}</span>`);
         return null;
     }
-    
+
     console.log(`End compile: ${state && !state.invalid && errorCount == 0 ? "ok" : "FAILED, error count = " + errorCount}`);
 
     if (state.levels && state.levels.length === 0) {

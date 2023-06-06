@@ -29,8 +29,16 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-var reg_commandwords = /afx\w+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align/u;
-var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+const reg_commandwords = /afx\w+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align/u;
+const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+const soundverbs_directional = ['move','cantmove'];
+
+// utility functions
+
+// return last element in array, or null
+function peek(a) {
+    return a && a.length > 0 ? a[a.length - 1] : null;
+}
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -246,13 +254,12 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /(\d+|afx\w+)\b\s*/u;
+    const reg_soundseed = /^(\d+|afx\w+)\b\s*/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
-    const soundverbs_directional = ['move','cantmove'];
-    const reg_soundevents = /^(afx\w+|sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
+    const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
+    const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     // todo: reaction, mclick
     const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
@@ -291,6 +298,15 @@ var codeMirrorFn = function() {
     // updated for // comment style
     let reg_notcommentstart = /[^\(]+/;
     let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
+
+    // lexer functions
+
+    // match by regex, eat white space, optional return tolower
+    function MatchRegex(stream, regex, tolower) {
+        const match = stream.match(regex);
+        if (match) stream.eatSpace();
+        return !match ? null : tolower ? match[0].toLowerCase() : match[0];
+    }
     
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
@@ -477,125 +493,96 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // parse various parts of a sounds line, return token type
+    // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
-            // match=stream.match(reg_notcommentstart, true);
-            //if there was an error earlier on the line just try to do greedy matching here
-            if (stream.match(reg_soundevents, true))
-                return 'SOUNDEVENT';
-            if (stream.match(reg_soundverbs, true)) 
-                return 'SOUNDVERB';
-            if (stream.match(reg_sounddirectionindicators, true)) 
-                return 'DIRECTION';
-            if (stream.match(reg_soundseed, true))
-                return 'SOUND';
-            const match = stream.match(reg_name, true);
-            if (match) {
-                if (wordAlreadyDeclared(state, match[0]))
-                    return 'NAME';
-                else return 'ERROR';                   
-            }
-            return 'ERROR';                            
-        } 
+        const tokens = buildTokens();
+        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
+            parseTokens(tokens);
+            state.sounds.push(...createSoundRows(tokens));
+        }
+        return tokens;
+
+        // functions
+        function tokenPush(token, kind) {
+            tokens.push({
+                token: token, kind: kind, pos: stream.pos
+            });
+        }
         
-        switch (state.current_line_wip_array.length) {
-            case 0: {
-                //can be OBJECT_NAME or SOUNDEVENT
-                const match = stream.match(reg_soundevents, true);
-                if (!match) {
-                    const match = stream.match(reg_name, true);
-                    if (!match) {
-                        logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
-                        return 'ERROR';
-                    } 
-                    const matched_name = match[0].trim();
-                    if (!wordAlreadyDeclared(state, matched_name)){                 
-                        logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
-                        return 'ERROR';
+        // build a list of tokens and kinds
+        function buildTokens() {
+            const tokens = [];
+            while (!stream.eol()) {
+                const token = MatchRegex(stream, /[A-Za-z0-9_:]+/, true);
+                if (!token) {
+                    if (!matchComment(stream, state)) {
+                        //depending on whether the verb is directional or not, we log different errors
+                        const dirok = peek(tokens) && peek(tokens).token !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.token));
+                        const msg = dirok ? "direction or sound seed" : "sound seed";
+                        tokenPush(stream.match(reg_notcommentstart), 'ERROR');
+                        logError(`Ah I was expecting a ${msg} after ${last}, but I don't know what to make of "${peek(tokens).token}".`, state.lineNumber);
                     }
-                    const tokentype = 'NAME';
-                    state.current_line_wip_array.push([matched_name,tokentype]);    
-                    state.tokenIndex++;
-                    return tokentype;
+                    return tokens;
+                }
+                const kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
+                : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                : token.match(reg_soundseed) ? 'SOUND'
+                : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
+                : token.match(reg_name) ? (wordAlreadyDeclared(state, token) ? 'NAME' : 'ERROR')
+                : 'ERROR';
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+            }
+            return tokens;
+        }
+
+        function parseTokens(tokens) {
+            if (tokens[0].kind == 'NAME') {
+                // player move [ up... ] 142315...
+                if (!wordAlreadyDeclared(state, tokens[0].token)) {
+                    logError(`unexpected sound token "${tokens[0].token}".`, state.lineNumber);
+                    tokens[0].kind = 'ERROR';
                 } 
-                const tokentype = 'SOUNDEVENT';
-                state.current_line_wip_array.push([match[0].trim(),tokentype]);  
-                state.tokenIndex++;  
-                return tokentype;
-            } 
-            case 1:  {
-                if (state.current_line_wip_array[0][1] === 'SOUNDEVENT') {                            
-                    const match = stream.match(reg_soundseed, true);
-                    if (match) {
-                        const tokentype = 'SOUND';
-                        state.current_line_wip_array.push([match[1],tokentype]);
-                        state.tokenIndex++;
-                        return tokentype;
-                    } else {
-                        logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                        return 'ERROR';
-                    }
+                if (!(tokens[1] && tokens[1].kind) == 'SOUNDVERB') {
+                    logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+                    tokens[1].kind = 'ERROR';
                 } 
-                //[0] is object name
-                //it's a sound verb
-                const match = stream.match(reg_soundverbs, true);
-                if (match) {
-                    const tokentype = 'SOUNDVERB';
-                    state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                    state.tokenIndex++;
-                    return tokentype;
-                }
-                logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                return 'ERROR';
-            } 
-            default: {
-                const lastTokenType = state.current_line_wip_array[state.current_line_wip_array.length-1];
-                const dirAllowed = lastTokenType !== 'SOUND' && soundverbs_directional.includes(state.current_line_wip_array[1][0]);
-                // try to match direction
-                if (dirAllowed) {
-                    const is_direction = stream.match(reg_sounddirectionindicators, true);
-                    if (is_direction){
-                        const tokentype = 'DIRECTION';
-                        state.current_line_wip_array.push([is_direction[0].trim(), tokentype]);
-                        state.tokenIndex++;
-                        return tokentype;
+                let i = 2;
+                const dirok = soundverbs_directional.includes(tokens[1].token);
+                while (dirok && tokens[i] && tokens[i].kind == 'DIRECTION')
+                    ++i;
+                while (tokens[i]) {
+                    if (tokens[i].kind == 'SOUND') ++i;
+                    else {
+                        const msg = dirAllowed ? "direction or sound seed" : "sound seed";
+                        logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[0].toUpperCase()}".`, state.lineNumber);
+                        tokens[i].kind = 'ERROR';
+                        break;
                     }
                 }
-                // seeds are always welcome, after all
-                const is_seed = stream.match(reg_soundseed, true);
-                if (is_seed) {
-                    const tokentype = 'SOUND';
-                    state.current_line_wip_array.push([is_seed[1], tokentype]);
-                    state.tokenIndex++;
-                    return tokentype;
+    
+            } else if (tokens[0].kind == 'SOUNDEVENT') {
+                // closemessage 1241234...
+                if (tokens[1].kind != 'SOUND') {
+                    logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
+                    tokens[1].kind = 'ERROR';
                 }
-                const match=errorFallbackMatchToken(stream);
-                //depending on whether the verb is directional or not, we log different errors
-                const msg = dirAllowed ? "direction or sound seed" : "sound seed";
-                logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[0].toUpperCase()}".`, state.lineNumber);
-                return 'ERROR';
+
+            } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+        }
+
+        function createSoundRows(tokens){
+            const seeds = tokens.filter(s => s.kind == 'SOUND').map(s => s.token);
+            if (tokens[0].kind == 'NAME') {
+                const dirs = tokens.filter(s => s.kind == 'DIRECTION').map(s => s.token);
+                return seeds.map(s => [ 'SOUND', tokens[0].token, tokens[1].token, dirs, s, state.lineNumber ]);
+                //return seeds.map(s => ({ kind: 'SOUND', name: s.token, dirs: dirs, seed: s, line: state.lineNumber }));
+            } else { // 'SOUNDEVENT'
+                return seeds.map(s => [ 'SOUNDEVENT', tokens[0].token, s, state.lineNumber ]);
+                //return seeds.map(s => ({ kind: 'SOUNDEVENT', name: s.token, seed: s, line: state.lineNumber }));
             }
         }
-    }
-
-    ///-------------------------------------------------------------------------
-    // extract parsed SOUNDS information and generate runtime data
-    function processSoundsLine(state){
-        const last = (a) => a[a.length-1];
-        if (state.current_line_wip_array.length === 0 || last(state.current_line_wip_array) === 'ERROR')
-            return;
-        //take the first component from each pair in the array
-        // but seeds at the end generate a line each
-        let soundrow = state.current_line_wip_array;
-        if (soundrow.find(row => row[1] === 'SOUND')) {
-            do {
-                const isound = soundrow.findIndex(row => row[1] === 'SOUND');
-                state.sounds.push([ ...soundrow.slice(0, isound + 1), state.lineNumber ]);
-                soundrow.splice(isound, 1);                    
-            } while (soundrow.find(row => row[1] === 'SOUND'));
-        } else 
-            state.sounds.push([ ...soundrow, state.lineNumber ]);
     }
 
     // because of all the early-outs in the token function, this is really just right now attached
@@ -605,8 +592,8 @@ var codeMirrorFn = function() {
     function endOfLineProcessing(state, mixedCase){
         if (state.section==='legend'){
             processLegendLine(state,mixedCase);
-        } else if (state.section ==='sounds'){
-            processSoundsLine(state);
+        // } else if (state.section ==='sounds'){
+        //     processSoundsLine(state);
         }
     }
 
@@ -1302,207 +1289,22 @@ var codeMirrorFn = function() {
                     break;
                 }
 
+                // SOUND DEFINITION:
+                // SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
+                // OBJECT_NAME
+                //     NONDIRECTIONAL_VERB ~ INT
+                //     DIRECTIONAL_VERB
+                //         INT
+                //         DIR+ ~ INT
                 case 'sounds': {
-                    const tokentype = parseSounds(stream, state);
-                    if (tokentype == 'ERROR') {
-                        errorFallbackMatchToken(stream);
-                        state.current_line_wip_array.push("ERROR");
-                    }
-
-                    if (stream.eol())
-                        processSoundsLine(state);
-                    return tokentype;
-
-                    /*
-                    SOUND DEFINITION:
-                        SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
-                        OBJECT_NAME
-                            NONDIRECTIONAL_VERB ~ INT
-                            DIRECTIONAL_VERB
-                                INT
-                                DIR+ ~ INT
-                    */
-                    // var tokentype="";
-
-                    // if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
-                    //     // match=stream.match(reg_notcommentstart, true);
-                    //     //if there was an error earlier on the line just try to do greedy matching here
-                    //     var match = null;
-
-                    //     //events
-                    //     if (match === null) { 
-                    //         match = stream.match(reg_soundevents, true);
-                    //         if (match !== null) { 
-                    //             tokentype = 'SOUNDEVENT';
-                    //         }
-                    //     }
-
-                    //     //verbs
-                    //     if (match === null) { 
-                    //         match = stream.match(reg_soundverbs, true);
-                    //         if (match !== null) {
-                    //             tokentype = 'SOUNDVERB';
-                    //         }
-                    //     }
-                    //     //directions
-                    //     if (match === null) { 
-                    //         match = stream.match(reg_sounddirectionindicators, true);
-                    //         if (match !== null) {
-                    //             tokentype = 'DIRECTION';
-                    //         }
-                    //     }
-
-                    //     //sound seeds
-                    //     if (match === null) {                                           
-                    //         var match = stream.match(reg_soundseed, true);
-                    //         if (match !== null)
-                    //         {
-                    //             tokentype = 'SOUND';
-                    //         }
-                    //     }
-
-                    //     //objects
-                    //     if (match === null) { 
-                    //         match = stream.match(reg_name, true);
-                    //         if (match !== null) {
-                    //             if (wordAlreadyDeclared(state, match[0])){
-                    //                 tokentype = 'NAME';
-                    //         } else {
-                    //                 tokentype = 'ERROR';                   
-                    //         }
-                    //         }                          
-                    //     }
-
-                    //     //error
-                    //     if (match === null) { 
-                    //         match = errorFallbackMatchToken(stream);
-                    //         tokentype = 'ERROR';                            
-                    //     }
-
-                    // } else if (state.current_line_wip_array.length===0){
-                    //     //can be OBJECT_NAME or SOUNDEVENT
-                    //     var match = stream.match(reg_soundevents, true);
-                    //     if (match == null){
-                    //         match = stream.match(reg_name, true);
-                    //         if (match == null ){
-                    //             tokentype = 'ERROR';
-                    //             match=errorFallbackMatchToken(stream);
-                    //             state.current_line_wip_array.push("ERROR");
-                    //             logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
-                    //         } else {
-                    //             var matched_name = match[0].trim();
-                    //             if (!wordAlreadyDeclared(state, matched_name)){                 
-                    //                 tokentype = 'ERROR';
-                    //                 state.current_line_wip_array.push("ERROR");
-                    //                 logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
-                    //             } else {                                    
-                    //                 tokentype = 'NAME';
-                    //                 state.current_line_wip_array.push([matched_name,tokentype]);    
-                    //                 state.tokenIndex++;
-                    //             }
-                    //         }
-                    //     } else {
-                    //         tokentype = 'SOUNDEVENT';
-                    //         state.current_line_wip_array.push([match[0].trim(),tokentype]);  
-                    //         state.tokenIndex++;  
-                    //     }
-
-                    // } else if (state.current_line_wip_array.length===1) {
-                    //     var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-
-                    //     if (is_soundevent){                            
-                    //         var match = stream.match(reg_soundseed, true);
-                    //         if (match !== null)
-                    //         {
-                    //             tokentype = 'SOUND';
-                    //             state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                    //             state.tokenIndex++;
-                    //         } else {
-                    //             match=errorFallbackMatchToken(stream);
-                    //             logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                    //             tokentype = 'ERROR';
-                    //             state.current_line_wip_array.push("ERROR");
-                    //         }
-                    //     } else {
-                    //         //[0] is object name
-                    //         //it's a sound verb
-                    //         var match = stream.match(reg_soundverbs, true);
-                    //         if (match !== null){
-                    //             tokentype = 'SOUNDVERB';
-                    //             state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                    //             state.tokenIndex++;
-                    //         } else {
-                    //             match=errorFallbackMatchToken(stream);
-                    //             logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                    //             tokentype = 'ERROR';
-                    //             state.current_line_wip_array.push("ERROR");
-                    //         }
-                            
-                    //     }
-                    // } else {
-                    //     var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-                    //     if (is_soundevent){
-                    //         match=errorFallbackMatchToken(stream);
-                    //         logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                    //         tokentype = 'ERROR';
-                    //         state.current_line_wip_array.push("ERROR");
-                    //     } else {                            
-                    //         //if there's a seed on the right, any additional content is superfluous
-                    //         var is_seedonright = state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND';
-                    //         if (is_seedonright){
-                    //             match=errorFallbackMatchToken(stream);
-                    //             logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                    //             tokentype = 'ERROR';
-                    //             state.current_line_wip_array.push("ERROR");
-                    //         } else {
-                    //             var directional_verb = soundverbs_directional.indexOf(state.current_line_wip_array[1][0])>=0;    
-                    //             if (directional_verb){  
-                    //                 //match seed or direction                          
-                    //                 var is_direction = stream.match(reg_sounddirectionindicators, true);
-                    //                 if (is_direction !== null){
-                    //                     tokentype = 'DIRECTION';
-                    //                     state.current_line_wip_array.push([is_direction[0].trim(),tokentype]);
-                    //                     state.tokenIndex++;
-                    //                 } else {
-                    //                     var is_seed = stream.match(reg_soundseed, true);
-                    //                     if (is_seed !== null){
-                    //                         tokentype = 'SOUND';
-                    //                         state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                    //                         state.tokenIndex++;
-                    //                     } else {
-                    //                         match=errorFallbackMatchToken(stream);
-                    //                         //depending on whether the verb is directional or not, we log different errors
-                    //                         logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                    //                         tokentype = 'ERROR';
-                    //                         state.current_line_wip_array.push("ERROR");
-                    //                     }
-                    //                 }
-                    //             } else {
-                    //                 //only match seed
-                    //                 var is_seed = stream.match(reg_soundseed, true);
-                    //                 if (is_seed !== null){
-                    //                     tokentype = 'SOUND';
-                    //                     state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                    //                     state.tokenIndex++;
-                    //                 } else {
-                    //                     match=errorFallbackMatchToken(stream);
-                    //                     //depending on whether the verb is directional or not, we log different errors
-                    //                     logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                    //                     tokentype = 'ERROR';
-                    //                     state.current_line_wip_array.push("ERROR");
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-                    // if (stream.eol()){
-                    //     processSoundsLine(state);
-                    // }     
-
-                    //     return tokentype;
-
-                    }
+                    if (sol) 
+                        state.current_line_wip_array = parseSounds(stream, state);
+                    if (state.current_line_wip_array.length > 0) {
+                        const token = state.current_line_wip_array.shift();
+                        stream.pos = token.pos;
+                        return token.kind;
+                    } 
+                }
 
                 case 'collisionlayers': {
                     if (sol) {
