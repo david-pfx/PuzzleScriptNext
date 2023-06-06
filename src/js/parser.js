@@ -640,123 +640,88 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // parse prelude metadata lines
-    // push key,value pair onto state.metadata array (gets converted to object later)
-    // can get called 3 times: tokenIndex 0=option name, 1=args, 2=trailing junk (not comment)
-    function parsePrelude(stream, mixedCase, state) {
-        // return true if no trailing junk on line, else error
-        function checkEol() {
-            var junk = stream.match(/[^\(]+/);
-            if (junk)
-                logError(`End of line expected, instead found ${junk[0].trim()}.`, state.lineNumber);
-            return !junk;
+    // parse a PRELUDE line, extract parsed information, return array of tokens
+    function parsePrelude(stream, state) {
+        const tokens = buildTokens();
+        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
+            const value = parseTokens(tokens);
+            if (value)
+                setState(state, value);
         }
+        return tokens;
 
-        // parse keyword line given option name
-        function parseKeyword(token) {
-            if (preamble_keywords.includes(token)) {
-                if (token == 'case_sensitive') {
-                    state.case_sensitive = true;
-                    // if (Object.keys(state.metadata).length > 0) {
-                    //     logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
-                    // }
-                }
-                state.metadata.push(token, true);
-                return true;
-            }
-        }
+        // functions
 
-        // first entry, parse option name
-        if (state.tokenIndex++ == 0) {
-            const match = stream.match(/\s*(\w+)\s*/);
-            if (!match) {
-                logError('Unrecognised stuff in the prelude.', state.lineNumber);
-            } else {
-                let token = match[1];
-                if (token in state.metadata_lines) {
-                    var otherline = state.metadata_lines[token];
-                    logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
+        // build a list of tokens and kinds
+        function buildTokens() {
+            const tokens = [];
+            while (!stream.eol()) {
+                let token = '';
+                let kind = 'ERROR'
+                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].token)) {
+                    token = MatchRegex(stream, /.*/).trim();  // take it all
+                    kind = 'METADATATEXT';
                 } else {
-                    state.current_line_wip_array[1] = token;
-                    if (parseKeyword(token)) {
-                        return checkEol() ? 'METADATA' : 'ERROR';
-                    }
-                    for (const table of preamble_tables) {
-                        if (table.includes(token)) {
-                            if (!stream.match(reg_notcommentstart, false)) {
-                                logError(`MetaData "${token}" needs a value.`, state.lineNumber);
-                                return 'ERROR';
-                            }
-                            return 'METADATA';
-                        }
-                    }
-                    logError(`Unknown option '${token}' in the prelude.`, state.lineNumber);
-                }
-            }
-            stream.match(reg_notcommentstart);
-            return 'ERROR';
-        } 
-
-        // Second entry, parse option arguments
-        if (state.tokenIndex != 2) throw 'oops!';
-        let token = state.current_line_wip_array[1];
-
-        // these options use the rest of the line in mixed case as the argument
-        if (preamble_param_text.includes(token)) {
-            // retrieve mixedCase value as argument to eol           
-            const arg = mixedCase.substring(stream.pos).trim();
-            stream.skipToEnd();
-            state.metadata.push(token, arg);
-            return 'METADATATEXT';
-        }
-        
-        // these options have arguments which are a sequence of one or more tokens separated by whitespace
-        let args = []
-        do {
-            const match = stream.match(/([-.+#\w]+)\s*/);  
-            if (match) args.push(match[1]);
-            else break;
-        } while (true);
-        if (!checkEol()) return 'ERROR';
-
-        if (preamble_param_single.includes(token)) {
-            if (args && args.length != 1) {
-                logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
-            } else {
-                state.metadata.push(token, args[0]);
-                if (token.match(/color/)) {
-                    const candcol = args[0].toLowerCase();
-                    if (candcol in colorPalettes.arnecolors) {
-                        return 'COLOR COLOR-' + candcol.toUpperCase();
-                    } else if (candcol === "transparent") {
-                        return 'COLOR FADECOLOR';
+                    token = MatchRegex(stream, /[\w-.+#*]+/, true);
+                    if (!token) {
+                        if (matchComment(stream, state)) return tokens;
+                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
+                        token = MatchRegex(stream, reg_notcommentstart);
                     } else {
-                        const color = candcol.match(/#[0-9a-fA-F]+/);
-                        if (color) return 'MULTICOLOR' + color[0];
+                        if (tokens.length == 0)
+                            kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
+                        else kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
+                        : (token === "transparent") ? 'COLOR FADECOLOR'
+                        : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
+                        : 'METADATATEXT';
                     }
                 }
-                return 'METADATA';
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
             }
-        } else if (preamble_param_number.includes(token)) {
-            const value = (args && args.length == 1) ? parseFloat(args[0]) : NaN;
-            if (value == NaN)
-                logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
-            else {
-                state.metadata.push(token, value);
-                if (token == 'sprite_size')
-                    state.sprite_size = Math.round(value);
-                return 'METADATA';
+            return tokens;
+        }
+
+        function parseTokens(tokens) {
+            const token = tokens[0].token;
+            const args = tokens.slice(1).map(t => t.token);
+            let value = null;
+            if (state.metadata_lines[token]) {
+                var otherline = state.metadata_lines[token];
+                logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
             }
-        } else if (preamble_param_multi.includes(token)) {
-            if (args && args.length < 1) {
-                logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
-            } else {
-                state.metadata.push(token, args.join(' '));
-                return 'METADATA';
+            if (preamble_keywords.includes(token)) {
+                if (tokens.length > 1)
+                    logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
+                else value = [token, true];
+            } else if (preamble_param_number.includes(token)) {
+                if (args.length != 1 || !parseFloat(args[0]))
+                    logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
+                else value = [token, parseFloat(args[0])];
+            } else if (preamble_param_single.includes(token) || preamble_param_text.includes(token)) {
+                if (args.length != 1)
+                    logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                else value = [token, args[0]];
+            } else if (preamble_param_multi.includes(token)) {
+                if (args.length < 1)
+                    logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
+                else value = [token, args.join(' ')];
+            }
+            return value;
+        }
+
+        function setState(state, value) {
+            state.metadata.push(...value);
+            if (value[0] == 'sprite_size')
+                state.sprite_size = Math.round(value[1]);
+            if (value[0] == 'case_sensitive') {
+                state.case_sensitive = true;
+                if (state.metadata.keys().some(k => preamble_param_text.includes(k)))
+                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
         }
-        stream.match(reg_notcommentstart);
-        return 'ERROR';
+
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1166,10 +1131,15 @@ var codeMirrorFn = function() {
             //if color is not set, try to parse color
             switch (state.section) {
                 case '': {
-                    if (sol)
-                        state.current_line_wip_array = [mixedCase];
-                    else mixedCase = state.current_line_wip_array[0];
-                    return parsePrelude(stream, mixedCase, state);
+                    if (sol) {
+                        stream.string = mixedCase;  // put it back, for now!
+                        state.current_line_wip_array = parsePrelude(stream, state);
+                    }
+                    if (state.current_line_wip_array.length > 0) {
+                        const token = state.current_line_wip_array.shift();
+                        stream.pos = token.pos;
+                        return token.kind;
+                    } 
                 }
                 case 'objects': {
                     if (sol)

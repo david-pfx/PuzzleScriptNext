@@ -692,33 +692,11 @@ function redraw() {
 
         // Draw loop when tweening
         function drawObjectsTweening() {
-            //  todo: setup this code should go in SetGameState
-
-            //Defaults
-            // var tween_name = "linear";
-            // var tween_snap = state.sprite_size;
-
-            // //Lookup
-            // if (state.metadata.tween_easing!==undefined){
-            //     tween_name = state.metadata.tween_easing;
-            //     if (parseInt(tween_name) != NaN && easingAliases[parseInt(tween_name)]) {
-            //         tween_name = easingAliases[parseInt(tween_name)];
-            //         //console.log(tween_name);
-            //     }
-            //     tween_name = tween_name.toLowerCase();
-            // }
-            // if (state.metadata.tween_snap!==undefined) {
-            //     tween_snap = Math.max(parseInt(state.metadata.tween_snap), 1);
-            // }
-
-            let tween = getEasingFunction(1-clamp(tweentimer/tweeninterval, 0, 1));
-            let snap = getTweenSnap();
+            // assume already validated
+            const easing = state.metadata.tween_easing || 'linear';
+            const snap = state.metadata.tween_snap || state.sprite_size;
+            let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
             tween = Math.floor(tween * snap) / snap;
-
-            // if (EasingFunctions[tween_name] != null) {
-            //     tween = EasingFunctions[tween_name](tween);
-            // }
-            // tween = Math.floor(tween * tween_snap) / tween_snap;
 
             for (var k = 0; k < state.idDict.length; k++) {
                 var object = state.objects[state.idDict[k]];
@@ -732,9 +710,6 @@ function redraw() {
                         if (posMask.get(k) != 0) {                  
                             var spriteX = (k % spritesheetSize)|0;
                             var spriteY = (k / spritesheetSize)|0;
-
-                            
-                        //console.log(posIndex + " " + layerID);
     
                             var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                             var y = yoffset + (j-minj-cameraOffset.y) * cellheight;

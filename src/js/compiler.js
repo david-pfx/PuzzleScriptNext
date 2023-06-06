@@ -980,7 +980,7 @@ if (tokens.indexOf('->') == -1) {
                     i=tokens.length;
                 } else if (twiddleable_params.includes(token.toLowerCase())) {
                     //} else if (token.match(reg_twiddleable_params)) {
-                    if (!state.metadata.includes("runtime_metadata_twiddling")) {
+                    if (!state.metadata.includes('runtime_metadata_twiddling')) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
                         var messageIndex = findIndexAfterToken(origLine,tokens,i);
@@ -2413,7 +2413,7 @@ function checkObjectsAreLayered(state) {
 function isInt(value) {
 return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
 }
-
+// convert metadata to object format and validate
 function twiddleMetaData(state, update = false) {
 	var newmetadata;
 
@@ -2461,6 +2461,7 @@ function twiddleMetaData(state, update = false) {
             }
         }
     }
+
     if (newmetadata.flickscreen !== undefined) {
 		var val = newmetadata.flickscreen;
         newmetadata.flickscreen = getCoords(val,state.metadata_lines.flickscreen);
@@ -2544,7 +2545,27 @@ function twiddleMetaData(state, update = false) {
 		}
 	}
 
-	state.metadata=newmetadata;
+    if (newmetadata.tween_easing) {
+        let easing = newmetadata.tween_easing;
+        if (easing) {
+            easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+            if (EasingFunctions(easing)) 
+                newmetadata.tween_easing = easing;
+            else {
+                logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);
+                delete newmetadata.tween_easing;
+            }
+        }
+    }
+
+    if (newmetadata.tween_snap) {
+        const snap = Math.max(parseInt(state.metadata.tween_snap), 1);
+        if (snap) newmetadata.tween_snap = snap;
+        else {
+            logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
+            delete newmetadata.tween_snap;
+        }
+    }
 
 	if (!update) {
 		state.default_metadata = deepClone(newmetadata);
@@ -2842,12 +2863,12 @@ var soundDirectionMasks = {
 };
 
 function generateSoundData(state) {
-    var sfx_Events = {};
+    const sfx_Events = {};
     // doc: lists of sfx event triggers { objectMask:, directionMask:, layer:, seed: }
-    var sfx_CreationMasks = [];
-    var sfx_DestructionMasks = [];
-    var sfx_MovementMasks = state.collisionLayers.map(x => []);     // doc: array of sfx movement triggers, indexed by layer
-    var sfx_MovementFailureMasks = [];
+    const sfx_CreationMasks = [];
+    const sfx_DestructionMasks = [];
+    const sfx_MovementMasks = state.collisionLayers.map(x => []);     // doc: array of sfx movement triggers, indexed by layer
+    const sfx_MovementFailureMasks = [];
 
     for (const sound of state.sounds) {
         if (sound[0] === "SOUNDEVENT") {
@@ -2892,7 +2913,7 @@ function generateSoundData(state) {
             let modified = true;
             while (modified) {
                 modified = false;
-                for (var k = 0; k < targets.length; k++) {
+                for (const k = 0; k < targets.length; k++) {
                     const t = targets[k];
                     if (t in state.synonymsDict) {
                         targets[k] = state.synonymsDict[t];
@@ -2902,7 +2923,7 @@ function generateSoundData(state) {
                         const props = state.propertiesDict[t];
                         targets.splice(k, 1);
                         k--;
-                        for (var l = 0; l < props.length; l++) {
+                        for (const l = 0; l < props.length; l++) {
                             targets.push(props[l]);
                         }
                     }
@@ -2980,7 +3001,7 @@ function formatHomePage(state) {
         }
 
         if ('text_color' in state.metadata) {
-            var separator = document.getElementById("separator");
+            const separator = document.getElementById("separator");
             if (separator != null) {
                 separator.style.color = state.fgcolor;
             }
