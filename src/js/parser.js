@@ -29,7 +29,7 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-const reg_commandwords = /afx\w+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
 
@@ -254,7 +254,7 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /^(\d+|afx\w+)\b\s*/u;
+    const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
@@ -502,25 +502,21 @@ var codeMirrorFn = function() {
         }
         return tokens;
 
-        // functions
-        function tokenPush(token, kind) {
-            tokens.push({
-                token: token, kind: kind, pos: stream.pos
-            });
-        }
-        
         // build a list of tokens and kinds
         function buildTokens() {
             const tokens = [];
             while (!stream.eol()) {
-                const token = MatchRegex(stream, /[A-Za-z0-9_:]+/, true);
+                const token = MatchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
                 if (!token) {
                     if (!matchComment(stream, state)) {
                         //depending on whether the verb is directional or not, we log different errors
                         const dirok = peek(tokens) && peek(tokens).token !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.token));
                         const msg = dirok ? "direction or sound seed" : "sound seed";
-                        tokenPush(stream.match(reg_notcommentstart), 'ERROR');
-                        logError(`Ah I was expecting a ${msg} after ${last}, but I don't know what to make of "${peek(tokens).token}".`, state.lineNumber);
+                        const token = stream.match(reg_notcommentstart)[0];
+                        logError(`Ah I was expecting a ${msg} after ${peek(tokens).token}, but I don't know what to make of "${token}".`, state.lineNumber);
+                        tokens.push({
+                            token: token, kind: 'ERROR', pos: stream.pos
+                        });
                     }
                     return tokens;
                 }

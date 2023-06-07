@@ -32,16 +32,18 @@ gbr = g or b or r
 SOUNDS
 =======
 
-player move afxt 85101706
+player move 85101706 afx:ease=13:xlate
 g move left down 85101706
 g move right up 64217903
-player cantmove horizontal afxn 64217903
-player cantmove vertical afxn 64217903
-player action afxn 64217903
-g create afxsa 47877305
-g destroy afxsd 85101706
-b create afxaa 47877305
-b destroy afxad 85101706
+player cantmove horizontal 64217903 afx:xlate=-.5
+player cantmove vertical 64217903 afx:xlate=-1
+player action 64217903 afx:xlate
+g create 47877305 afx:scale
+g destroy 85101706 afx:alpha
+b create 47877305 afx:angle=180
+b destroy 85101706 afx:alpha
+r create 47877305 afx:alpha
+r destroy 85101706 afx:alpha
 sfx99 64217903 
 
 ================

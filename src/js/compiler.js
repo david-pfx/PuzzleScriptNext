@@ -2913,7 +2913,7 @@ function generateSoundData(state) {
             let modified = true;
             while (modified) {
                 modified = false;
-                for (const k = 0; k < targets.length; k++) {
+                for (let k = 0; k < targets.length; k++) {
                     const t = targets[k];
                     if (t in state.synonymsDict) {
                         targets[k] = state.synonymsDict[t];
@@ -3141,7 +3141,7 @@ function compile(command, text, randomseed) {
     try {
         console.log(`Begin compile: '${text.split('\n')[0]}'`);
         var state = loadFile(text);
-    } catch(error){
+    } catch(error) {
         consolePrint(error);
         console.log(`Compile error: ${error}`);
         errorStrings.push(error);
