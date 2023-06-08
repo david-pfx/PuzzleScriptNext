@@ -7,14 +7,45 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest release is Release v-23e16. It includes the following.
+The latest version is Release v-23f09. It includes the following.
 
-### Load a program from anywhere on the Web
+### Object animation
 
-Start the editor with a URL like this: 
+The SOUNDS section is enhanced by the ability for an object to have an animation instead of or as well as a sound.
+Use it like this. The test program is `test_min_animate.txt` and the demo is `next_yasban.txt`.
 ```
-.../editor.html?url=<path>
+player move 85101706 afx:ease=13:xlate
+player cantmove horizontal 64217903 afx:xlate=-.5
+player cantmove vertical 64217903 afx:xlate=-1
+g create 47877305 afx:scale
+b create 47877305 afx:angle=180
+b destroy 85101706 afx:alpha
 ```
+
+All animations start with `afx` and have one or more parameters separated by `:`. 
+Each parameter may have an argument separated by `=`.
+The parameters are:
+ * `xlate[=factor]` animates a translate movement of an object
+ * `scale[=factor]` animates a scaling (resizing or zooming) of an object
+ * `alpha[=factor]` animates the alpha (transparency) of an object
+ * `angle[=angle]` animates the rotation (`angle`) of an object, default 360 degrees
+ * `ease[=function]` applies an easing `function` (non-linear tweening), as per `tween_easing` in the prelude
+
+ An argument of `factor` is multiplied by the magitude of the animation, and defaults to 1.0.
+ Multiple animations may be applied to an object.
+ Feel free to experiment.
+
+ All animations take place in a single period of time, set by in the prelude by `animate_interval`. 
+ The default is 0.25 sec.
+
+ ```
+ animate_interval 0.4 //  set animations to run in 0.4 secs
+ ```
+
+ ### Show single layer
+ The editor has a new button to show a single layer of a running game.
+ The PgUp and PgDn keys move through the layers.
+ This is a work in progress.
 
 ### Comment styles
 Like this:
@@ -85,6 +116,13 @@ rgb = r or g or b
 gbr = g or b or r
 
 [ > p | rgb ] -> [ p | gbr ]
+```
+
+### Load a program from anywhere on the Web
+
+Start the editor with a URL like this: 
+```
+.../editor.html?url=<path>
 ```
 
 
