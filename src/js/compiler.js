@@ -2567,6 +2567,8 @@ function twiddleMetaData(state, update = false) {
         }
     }
 
+    state.metadata=newmetadata;
+
 	if (!update) {
 		state.default_metadata = deepClone(newmetadata);
 	}
@@ -2923,7 +2925,7 @@ function generateSoundData(state) {
                         const props = state.propertiesDict[t];
                         targets.splice(k, 1);
                         k--;
-                        for (const l = 0; l < props.length; l++) {
+                        for (let l = 0; l < props.length; l++) {
                             targets.push(props[l]);
                         }
                     }

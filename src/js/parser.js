@@ -496,7 +496,7 @@ var codeMirrorFn = function() {
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
         const tokens = buildTokens();
-        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
+        if (tokens.length > 0) {
             parseTokens(tokens);
             state.sounds.push(...createSoundRows(tokens));
         }
@@ -823,7 +823,7 @@ var codeMirrorFn = function() {
     // parse sprite grid, one cell at a time (to show them coloured)
     function parseObjectSprite(stream, state) {
         let ch = stream.next();
-        if (ch.match(/.\d/)) {
+        if (!ch.match(/[.\d]/)) {
             logError(`Unknown character "${ch}" in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
             stream.match(reg_notcommentstart, true);
             return 'ERROR';
