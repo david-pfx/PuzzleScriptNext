@@ -29,11 +29,16 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-var commandwords = ["sfx0", "sfx1", "sfx2", "sfx3", "sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again" //];
-    , "undo", "nosave", "quit", "zoomscreen", "flickscreen", "smoothscreen", "again_interval", "realtime_interval"
-    , "key_repeat_interval", 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align'];
-var twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval',
-    'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
+const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+const soundverbs_directional = ['move','cantmove'];
+
+// utility functions
+
+// return last element in array, or null
+function peek(a) {
+    return a && a.length > 0 ? a[a.length - 1] : null;
+}
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -249,27 +254,25 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /\d+\b/u;
+    const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
     const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
-    const soundverbs_directional = ['move','cantmove'];
-    const reg_soundevents = /(undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage|sfx0|sfx1|sfx2|sfx3|sfx4|sfx5|sfx6|sfx7|sfx8|sfx9|sfx10)\b[\p{Z}\s]*/u;
+    const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
+    const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     // todo: reaction, mclick
     const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
-    const reg_sounddirectionindicators = /[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
+    const reg_sounddirectionindicators = /^[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
-    const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 
-        'levels','|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 
-        'horizontal', 'vertical','any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action',
-        'message', "move", "create", "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", 
-        "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", "restart", "win", "message", "again", "undo", 
-        "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", "showmessage", "closemessage",
-        'lclick', 'rclick']; // todo: reaction, mclick
+    const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels',
+        '|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical',
+        'any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','message', "move", "action", "create", 
+        "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", 
+        "restart", "win", "message", "again", "undo", "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", 
+        "showmessage", "closemessage"];
     const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
@@ -277,14 +280,14 @@ var codeMirrorFn = function() {
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
-        'tween_length', 'local_radius', "tween_snap", 'local_radius', 'font_size', 'sprite_size', 
-        'level_select_unlocked_ahead', "level_select_unlocked_rollover"];
+        'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
+        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'animate_interval'];
     const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
         'flickscreen', 'zoomscreen', 'level_select_solve_symbol', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        "tween_easing", "message_text_align", 
-        "text_message_continue", "sitelock_origin_whitelist", 
-        "sitelock_hostname_whitelist"];
+        'tween_easing', 'message_text_align', 
+        'text_message_continue', 'sitelock_origin_whitelist', 
+        'sitelock_hostname_whitelist'];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
@@ -292,10 +295,19 @@ var codeMirrorFn = function() {
         'red', 'darkred', 'lightred', 'brown', 'darkbrown', 'lightbrown', 'orange', 'yellow', 'green', 'darkgreen',
         'lightgreen', 'blue', 'lightblue', 'darkblue', 'purple', 'pink', 'transparent'];
 
+    // updated for // comment style
     let reg_notcommentstart = /[^\(]+/;
     let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
-    
 
+    // lexer functions
+
+    // match by regex, eat white space, optional return tolower
+    function MatchRegex(stream, regex, tolower) {
+        const match = stream.match(regex);
+        if (match) stream.eatSpace();
+        return !match ? null : tolower ? match[0].toLowerCase() : match[0];
+    }
+    
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
         if (match===null){
@@ -328,7 +340,7 @@ var codeMirrorFn = function() {
                 ok=false;
             }
 
-            if (keyword_array.indexOf(candname)>=0) {
+            if (keyword_array.includes(candname)) {
                 logWarning('You named an object "' + candname.toUpperCase() + '", but this is a keyword. Don\'t do that!', state.lineNumber);
             }
 
@@ -480,20 +492,93 @@ var codeMirrorFn = function() {
         }
     }
 
-    function processSoundsLine(state){
-        if (state.current_line_wip_array.length===0){
-            return;
+    ////////////////////////////////////////////////////////////////////////////
+    // parse a SOUNDS line, extract parsed information, return array of tokens
+    function parseSounds(stream, state) {
+        const tokens = buildTokens();
+        if (tokens.length > 0) {
+            parseTokens(tokens);
+            state.sounds.push(...createSoundRows(tokens));
         }
-        //if last entry in array is 'ERROR', do nothing
-        if (state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
+        return tokens;
 
-        } else {
-            //take the first component from each pair in the array
-            var soundrow = state.current_line_wip_array;//.map(function(a){return a[0];});
-            soundrow.push(state.lineNumber);
-            state.sounds.push(soundrow);
+        // build a list of tokens and kinds
+        function buildTokens() {
+            const tokens = [];
+            while (!stream.eol()) {
+                const token = MatchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
+                if (!token) {
+                    if (!matchComment(stream, state)) {
+                        //depending on whether the verb is directional or not, we log different errors
+                        const dirok = peek(tokens) && peek(tokens).token !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.token));
+                        const msg = dirok ? "direction or sound seed" : "sound seed";
+                        const token = stream.match(reg_notcommentstart)[0];
+                        logError(`Ah I was expecting a ${msg} after ${peek(tokens).token}, but I don't know what to make of "${token}".`, state.lineNumber);
+                        tokens.push({
+                            token: token, kind: 'ERROR', pos: stream.pos
+                        });
+                    }
+                    return tokens;
+                }
+                const kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
+                : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                : token.match(reg_soundseed) ? 'SOUND'
+                : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
+                : token.match(reg_name) ? (wordAlreadyDeclared(state, token) ? 'NAME' : 'ERROR')
+                : 'ERROR';
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+            }
+            return tokens;
         }
 
+        function parseTokens(tokens) {
+            if (tokens[0].kind == 'NAME') {
+                // player move [ up... ] 142315...
+                if (!wordAlreadyDeclared(state, tokens[0].token)) {
+                    logError(`unexpected sound token "${tokens[0].token}".`, state.lineNumber);
+                    tokens[0].kind = 'ERROR';
+                } 
+                if (!(tokens[1] && tokens[1].kind) == 'SOUNDVERB') {
+                    logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+                    tokens[1].kind = 'ERROR';
+                } 
+                let i = 2;
+                const dirok = soundverbs_directional.includes(tokens[1].token);
+                while (dirok && tokens[i] && tokens[i].kind == 'DIRECTION')
+                    ++i;
+                while (tokens[i]) {
+                    if (tokens[i].kind == 'SOUND') ++i;
+                    else {
+                        const msg = dirAllowed ? "direction or sound seed" : "sound seed";
+                        logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[0].toUpperCase()}".`, state.lineNumber);
+                        tokens[i].kind = 'ERROR';
+                        break;
+                    }
+                }
+    
+            } else if (tokens[0].kind == 'SOUNDEVENT') {
+                // closemessage 1241234...
+                if (tokens[1].kind != 'SOUND') {
+                    logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
+                    tokens[1].kind = 'ERROR';
+                }
+
+            } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+        }
+
+        function createSoundRows(tokens){
+            const seeds = tokens.filter(s => s.kind == 'SOUND').map(s => s.token);
+            if (tokens[0].kind == 'NAME') {
+                const dirs = tokens.filter(s => s.kind == 'DIRECTION').map(s => s.token);
+                return seeds.map(s => [ 'SOUND', tokens[0].token, tokens[1].token, dirs, s, state.lineNumber ]);
+                //return seeds.map(s => ({ kind: 'SOUND', name: s.token, dirs: dirs, seed: s, line: state.lineNumber }));
+            } else { // 'SOUNDEVENT'
+                return seeds.map(s => [ 'SOUNDEVENT', tokens[0].token, s, state.lineNumber ]);
+                //return seeds.map(s => ({ kind: 'SOUNDEVENT', name: s.token, seed: s, line: state.lineNumber }));
+            }
+        }
     }
 
     // because of all the early-outs in the token function, this is really just right now attached
@@ -503,8 +588,8 @@ var codeMirrorFn = function() {
     function endOfLineProcessing(state, mixedCase){
         if (state.section==='legend'){
             processLegendLine(state,mixedCase);
-        } else if (state.section ==='sounds'){
-            processSoundsLine(state);
+        // } else if (state.section ==='sounds'){
+        //     processSoundsLine(state);
         }
     }
 
@@ -551,123 +636,88 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // parse prelude metadata lines
-    // push key,value pair onto state.metadata array (gets converted to object later)
-    // can get called 3 times: tokenIndex 0=option name, 1=args, 2=trailing junk (not comment)
-    function parsePrelude(stream, mixedCase, state) {
-        // return true if no trailing junk on line, else error
-        function checkEol() {
-            var junk = stream.match(/[^\(]+/);
-            if (junk)
-                logError(`End of line expected, instead found ${junk[0].trim()}.`, state.lineNumber);
-            return !junk;
+    // parse a PRELUDE line, extract parsed information, return array of tokens
+    function parsePrelude(stream, state) {
+        const tokens = buildTokens();
+        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
+            const value = parseTokens(tokens);
+            if (value)
+                setState(state, value);
         }
+        return tokens;
 
-        // parse keyword line given option name
-        function parseKeyword(token) {
-            if (preamble_keywords.includes(token)) {
-                if (token == 'case_sensitive') {
-                    state.case_sensitive = true;
-                    // if (Object.keys(state.metadata).length > 0) {
-                    //     logWarningNoLine("[PS+] Please make sure that CASE_SENSITIVE is your topmost prelude flag. Sometimes this fixes errors with other prelude flags.", false, false)
-                    // }
-                }
-                state.metadata.push(token, true);
-                return true;
-            }
-        }
+        // functions
 
-        // first entry, parse option name
-        if (state.tokenIndex++ == 0) {
-            const match = stream.match(/\s*(\w+)\s*/);
-            if (!match) {
-                logError('Unrecognised stuff in the prelude.', state.lineNumber);
-            } else {
-                let token = match[1];
-                if (token in state.metadata_lines) {
-                    var otherline = state.metadata_lines[token];
-                    logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
+        // build a list of tokens and kinds
+        function buildTokens() {
+            const tokens = [];
+            while (!stream.eol()) {
+                let token = '';
+                let kind = 'ERROR'
+                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].token)) {
+                    token = MatchRegex(stream, /.*/).trim();  // take it all
+                    kind = 'METADATATEXT';
                 } else {
-                    state.current_line_wip_array[1] = token;
-                    if (parseKeyword(token)) {
-                        return checkEol() ? 'METADATA' : 'ERROR';
-                    }
-                    for (const table of preamble_tables) {
-                        if (table.includes(token)) {
-                            if (!stream.match(reg_notcommentstart, false)) {
-                                logError(`MetaData "${token}" needs a value.`, state.lineNumber);
-                                return 'ERROR';
-                            }
-                            return 'METADATA';
-                        }
-                    }
-                    logError(`Unknown option '${token}' in the prelude.`, state.lineNumber);
-                }
-            }
-            stream.match(reg_notcommentstart);
-            return 'ERROR';
-        } 
-
-        // Second entry, parse option arguments
-        if (state.tokenIndex != 2) throw 'oops!';
-        let token = state.current_line_wip_array[1];
-
-        // these options use the rest of the line in mixed case as the argument
-        if (preamble_param_text.includes(token)) {
-            // retrieve mixedCase value as argument to eol           
-            const arg = mixedCase.substring(stream.pos).trim();
-            stream.skipToEnd();
-            state.metadata.push(token, arg);
-            return 'METADATATEXT';
-        }
-        
-        // these options have arguments which are a sequence of one or more tokens separated by whitespace
-        let args = []
-        do {
-            const match = stream.match(/([-.+#\w]+)\s*/);  
-            if (match) args.push(match[1]);
-            else break;
-        } while (true);
-        if (!checkEol()) return 'ERROR';
-
-        if (preamble_param_single.includes(token)) {
-            if (args && args.length != 1) {
-                logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
-            } else {
-                state.metadata.push(token, args[0]);
-                if (token.match(/color/)) {
-                    const candcol = args[0].toLowerCase();
-                    if (candcol in colorPalettes.arnecolors) {
-                        return 'COLOR COLOR-' + candcol.toUpperCase();
-                    } else if (candcol === "transparent") {
-                        return 'COLOR FADECOLOR';
+                    token = MatchRegex(stream, /[\w-.+#*]+/, true);
+                    if (!token) {
+                        if (matchComment(stream, state)) return tokens;
+                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
+                        token = MatchRegex(stream, reg_notcommentstart);
                     } else {
-                        const color = candcol.match(/#[0-9a-fA-F]+/);
-                        if (color) return 'MULTICOLOR' + color[0];
+                        if (tokens.length == 0)
+                            kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
+                        else kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
+                        : (token === "transparent") ? 'COLOR FADECOLOR'
+                        : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
+                        : 'METADATATEXT';
                     }
                 }
-                return 'METADATA';
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
             }
-        } else if (preamble_param_number.includes(token)) {
-            const value = (args && args.length == 1) ? parseFloat(args[0]) : NaN;
-            if (value == NaN)
-                logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
-            else {
-                state.metadata.push(token, value);
-                if (token == 'sprite_size')
-                    state.sprite_size = Math.round(value);
-                return 'METADATA';
+            return tokens;
+        }
+
+        function parseTokens(tokens) {
+            const token = tokens[0].token;
+            const args = tokens.slice(1).map(t => t.token);
+            let value = null;
+            if (state.metadata_lines[token]) {
+                var otherline = state.metadata_lines[token];
+                logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
             }
-        } else if (preamble_param_multi.includes(token)) {
-            if (args && args.length < 1) {
-                logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
-            } else {
-                state.metadata.push(token, args.join(' '));
-                return 'METADATA';
+            if (preamble_keywords.includes(token)) {
+                if (tokens.length > 1)
+                    logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
+                else value = [token, true];
+            } else if (preamble_param_number.includes(token)) {
+                if (args.length != 1 || !parseFloat(args[0]))
+                    logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
+                else value = [token, parseFloat(args[0])];
+            } else if (preamble_param_single.includes(token) || preamble_param_text.includes(token)) {
+                if (args.length != 1)
+                    logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                else value = [token, args[0]];
+            } else if (preamble_param_multi.includes(token)) {
+                if (args.length < 1)
+                    logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
+                else value = [token, args.join(' ')];
+            }
+            return value;
+        }
+
+        function setState(state, value) {
+            state.metadata.push(...value);
+            if (value[0] == 'sprite_size')
+                state.sprite_size = Math.round(value[1]);
+            if (value[0] == 'case_sensitive') {
+                state.case_sensitive = true;
+                if (state.metadata.keys().some(k => preamble_param_text.includes(k)))
+                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
         }
-        stream.match(reg_notcommentstart);
-        return 'ERROR';
+
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -719,14 +769,14 @@ var codeMirrorFn = function() {
                 logError(`Name "${candname}" already in use.`, state.lineNumber);
             }
         }
-        if (keyword_array.indexOf(candname) >= 0) {
-            logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
+        if (keyword_array.includes(candname)) {
+                logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
         }
         // create base object and array for colours
         if (state.objects_section == 0) {
             state.objects_candname = candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            state.objects[state.objects_candname] = {
+            state.objects[state.objects_candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
@@ -773,7 +823,7 @@ var codeMirrorFn = function() {
     // parse sprite grid, one cell at a time (to show them coloured)
     function parseObjectSprite(stream, state) {
         let ch = stream.next();
-        if (ch.match(/.\d/)) {
+        if (!ch.match(/[.\d]/)) {
             logError(`Unknown character "${ch}" in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
             stream.match(reg_notcommentstart, true);
             return 'ERROR';
@@ -1077,10 +1127,15 @@ var codeMirrorFn = function() {
             //if color is not set, try to parse color
             switch (state.section) {
                 case '': {
-                    if (sol)
-                        state.current_line_wip_array = [mixedCase];
-                    else mixedCase = state.current_line_wip_array[0];
-                    return parsePrelude(stream, mixedCase, state);
+                    if (sol) {
+                        stream.string = mixedCase;  // put it back, for now!
+                        state.current_line_wip_array = parsePrelude(stream, state);
+                    }
+                    if (state.current_line_wip_array.length > 0) {
+                        const token = state.current_line_wip_array.shift();
+                        stream.pos = token.pos;
+                        return token.kind;
+                    } 
                 }
                 case 'objects': {
                     if (sol)
@@ -1200,197 +1255,22 @@ var codeMirrorFn = function() {
                     break;
                 }
 
+                // SOUND DEFINITION:
+                // SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
+                // OBJECT_NAME
+                //     NONDIRECTIONAL_VERB ~ INT
+                //     DIRECTIONAL_VERB
+                //         INT
+                //         DIR+ ~ INT
                 case 'sounds': {
-                    /*
-                    SOUND DEFINITION:
-                        SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
-                        OBJECT_NAME
-                            NONDIRECTIONAL_VERB ~ INT
-                            DIRECTIONAL_VERB
-                                INT
-                                DIR+ ~ INT
-                    */
-                    var tokentype="";
-
-                    if (state.current_line_wip_array.length>0 && state.current_line_wip_array[state.current_line_wip_array.length-1]==='ERROR'){
-                        // match=stream.match(reg_notcommentstart, true);
-                        //if there was an error earlier on the line just try to do greedy matching here
-                        var match = null;
-
-                        //events
-                        if (match === null) { 
-                            match = stream.match(reg_soundevents, true);
-                            if (match !== null) { 
-                                tokentype = 'SOUNDEVENT';
-                            }
-                        }
-
-                        //verbs
-                        if (match === null) { 
-                            match = stream.match(reg_soundverbs, true);
-                            if (match !== null) {
-                                tokentype = 'SOUNDVERB';
-                            }
-                        }
-                        //directions
-                        if (match === null) { 
-                            match = stream.match(reg_sounddirectionindicators, true);
-                            if (match !== null) {
-                                tokentype = 'DIRECTION';
-                            }
-                        }
-
-                        //sound seeds
-                        if (match === null) {                                           
-                            var match = stream.match(reg_soundseed, true);
-                            if (match !== null)
-                            {
-                                tokentype = 'SOUND';
-                            }
-                        }
-
-                        //objects
-                        if (match === null) { 
-                            match = stream.match(reg_name, true);
-                            if (match !== null) {
-                                if (wordAlreadyDeclared(state, match[0])){
-                                    tokentype = 'NAME';
-                            } else {
-                                    tokentype = 'ERROR';                   
-                            }
-                            }                          
-                        }
-
-                        //error
-                        if (match === null) { 
-                            match = errorFallbackMatchToken(stream);
-                            tokentype = 'ERROR';                            
-                        }
-
-                    } else if (state.current_line_wip_array.length===0){
-                        //can be OBJECT_NAME or SOUNDEVENT
-                        var match = stream.match(reg_soundevents, true);
-                        if (match == null){
-                            match = stream.match(reg_name, true);
-                            if (match == null ){
-                                tokentype = 'ERROR';
-                                match=errorFallbackMatchToken(stream);
-                                state.current_line_wip_array.push("ERROR");
-                                logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
-                            } else {
-                                var matched_name = match[0].trim();
-                                if (!wordAlreadyDeclared(state, matched_name)){                 
-                                    tokentype = 'ERROR';
-                                    state.current_line_wip_array.push("ERROR");
-                                    logError(`unexpected sound token "${matched_name}".`, state.lineNumber);
-                                } else {                                    
-                                    tokentype = 'NAME';
-                                    state.current_line_wip_array.push([matched_name,tokentype]);    
-                                    state.tokenIndex++;
-                                }
-                            }
-                        } else {
-                            tokentype = 'SOUNDEVENT';
-                            state.current_line_wip_array.push([match[0].trim(),tokentype]);  
-                            state.tokenIndex++;  
-                        }
-
-                    } else if (state.current_line_wip_array.length===1) {
-                        var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-
-                        if (is_soundevent){                            
-                            var match = stream.match(reg_soundseed, true);
-                            if (match !== null)
-                            {
-                                tokentype = 'SOUND';
-                                state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                                state.tokenIndex++;
-                            } else {
-                                match=errorFallbackMatchToken(stream);
-                                logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                                tokentype = 'ERROR';
-                                state.current_line_wip_array.push("ERROR");
-                            }
-                        } else {
-                            //[0] is object name
-                            //it's a sound verb
-                            var match = stream.match(reg_soundverbs, true);
-                            if (match !== null){
-                                tokentype = 'SOUNDVERB';
-                                state.current_line_wip_array.push([match[0].trim(),tokentype]);
-                                state.tokenIndex++;
-                            } else {
-                                match=errorFallbackMatchToken(stream);
-                                logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                                tokentype = 'ERROR';
-                                state.current_line_wip_array.push("ERROR");
-                            }
-                            
-                        }
-                    } else {
-                        var is_soundevent = state.current_line_wip_array[0][1] === 'SOUNDEVENT';
-                        if (is_soundevent){
-                            match=errorFallbackMatchToken(stream);
-                            logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                            tokentype = 'ERROR';
-                            state.current_line_wip_array.push("ERROR");
-                        } else {                            
-                            //if there's a seed on the right, any additional content is superfluous
-                            var is_seedonright = state.current_line_wip_array[state.current_line_wip_array.length-1][1] === 'SOUND';
-                            if (is_seedonright){
-                                match=errorFallbackMatchToken(stream);
-                                logError(`I wasn't expecting anything after the sound declaration ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()} on this line, so I don't know what to do with "${match[0].trim().toUpperCase()}" here.`, state.lineNumber);
-                                tokentype = 'ERROR';
-                                state.current_line_wip_array.push("ERROR");
-                            } else {
-                                var directional_verb = soundverbs_directional.indexOf(state.current_line_wip_array[1][0])>=0;    
-                                if (directional_verb){  
-                                    //match seed or direction                          
-                                    var is_direction = stream.match(reg_sounddirectionindicators, true);
-                                    if (is_direction !== null){
-                                        tokentype = 'DIRECTION';
-                                        state.current_line_wip_array.push([is_direction[0].trim(),tokentype]);
-                                        state.tokenIndex++;
-                                    } else {
-                                        var is_seed = stream.match(reg_soundseed, true);
-                                        if (is_seed !== null){
-                                            tokentype = 'SOUND';
-                                            state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                                            state.tokenIndex++;
-                                        } else {
-                                            match=errorFallbackMatchToken(stream);
-                                            //depending on whether the verb is directional or not, we log different errors
-                                            logError(`Ah I was expecting direction or a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                                            tokentype = 'ERROR';
-                                            state.current_line_wip_array.push("ERROR");
-                                        }
-                                    }
-                                } else {
-                                    //only match seed
-                                    var is_seed = stream.match(reg_soundseed, true);
-                                    if (is_seed !== null){
-                                        tokentype = 'SOUND';
-                                        state.current_line_wip_array.push([is_seed[0].trim(),tokentype]);
-                                        state.tokenIndex++;
-                                    } else {
-                                        match=errorFallbackMatchToken(stream);
-                                        //depending on whether the verb is directional or not, we log different errors
-                                        logError(`Ah I was expecting a sound seed here after ${state.current_line_wip_array[state.current_line_wip_array.length-1][0].toUpperCase()}, but I don't know what to make of "${match[0].trim().toUpperCase()}".`, state.lineNumber);
-                                        tokentype = 'ERROR';
-                                        state.current_line_wip_array.push("ERROR");
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (stream.eol()){
-                        processSoundsLine(state);
-                    }     
-
-                        return tokentype;
-
-                    }
+                    if (sol) 
+                        state.current_line_wip_array = parseSounds(stream, state);
+                    if (state.current_line_wip_array.length > 0) {
+                        const token = state.current_line_wip_array.shift();
+                        stream.pos = token.pos;
+                        return token.kind;
+                    } 
+                }
 
                 case 'collisionlayers': {
                     if (sol) {
@@ -1565,10 +1445,9 @@ var codeMirrorFn = function() {
                                     return 'DIRECTION';
                                 } else if (m==='random') {
                                     return 'DIRECTION';
-                            // PS+ what is this???
                                 } else if (m==='global') {
                                     return 'DIRECTION';
-                                }else if (commandwords.indexOf(m)>=0) {
+                                }else if (m.match(reg_commandwords)) {
                                     if (m==='message' || m==='goto' || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
                                     }                                	

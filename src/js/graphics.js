@@ -425,6 +425,8 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
+    const showTimer = document.getElementById('timer');
+    showTimer.innerHTML = timer;
 
     var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
 
@@ -573,56 +575,118 @@ function redraw() {
 
         var renderBorderSize = smoothscreen ? 1 : 0;
         var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
+
         var tweening = state.metadata.tween_length && currentMovedEntities;
+        // global flag to force redraw
+        //seedsToAnimate.length = 0;  // temp:
+        isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
-        if (!tweening) { //Seperated tweening/non-tweening draw loops for performance considerations
-            for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-                for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var posMask = curlevel.getCellInto(posIndex,_o12);    
-                    for (var k = 0; k < state.objectCount; k++) {            
+        if (tweening) drawObjectsTweening();
+        else drawObjects();
 
-                        if (posMask.get(k) != 0) {                  
-                            var spriteX = (k % spritesheetSize)|0;
-                            var spriteY = (k / spritesheetSize)|0;
+        // Default draw loop, including when animating
+        function drawObjects() {
+            showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
+            const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+            if (tween == 0) 
+                seedsToAnimate = {};
 
-                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
-                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
-                                
+            const iter = [
+                Math.max(mini - renderBorderSize, 0),
+                Math.min(maxi + renderBorderSize, curlevel.width),
+                Math.max(minj - renderBorderSize, 0),
+                Math.min(maxj + renderBorderSize, curlevel.height)
+            ];
+
+
+            // draw each object in all the places it occurs, in layer order
+            for (let k = 0; k < state.objectCount; k++) { 
+                const sheetpos = { 
+                    x: ~~(k % spritesheetSize) * cellwidth, 
+                    y: ~~(k / spritesheetSize) * cellheight
+                };
+
+                for (let i = iter[0]; i < iter[1]; i++) {
+                    for (let j = iter[2]; j < iter[3]; j++) {
+                        const posindex = j + i * curlevel.height;
+                        const posmask = curlevel.getCellInto(posindex,_o12);    
+                        const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
+                        if (posmask.get(k) || animate) {
+                            const obj = state.objects[state.idDict[k]];
+                            if (showLayers && obj.layer != showLayerNo)
+                                continue;
+                            const drawpos = {
+                                x: xoffset + (i-mini-cameraOffset.x) * cellwidth,
+                                y: yoffset + (j-minj-cameraOffset.y) * cellheight
+                            };
+                            
+                            let params = {
+                                x: 0, y: 0,
+                                scalex: 1.0, scaley: 1.0,
+                                alpha: 1.0,                                
+                                angle: 0.0,                                
+                            };
+                            if (animate) 
+                                params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
+
+                            const csz = { x: params.scalex * cellwidth, y: params.scaley * cellheight };
+                            const rc = { 
+                                x: Math.floor(drawpos.x + params.x * cellwidth), 
+                                y: Math.floor(drawpos.y + params.y * cellheight),
+                                w: csz.x,
+                                h: csz.y
+                            };
+                            ctx.globalAlpha = params.alpha;
+                            ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
+                            ctx.rotate(params.angle * Math.PI / 180);
                             ctx.drawImage(
                                 spritesheetCanvas, 
-                                spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
-                                Math.floor(x), Math.floor(y), cellwidth, cellheight);
+                                sheetpos.x, sheetpos.y, cellwidth, cellheight,
+                                -csz.x/2, -csz.y/2, rc.w, rc.h);
+                            ctx.globalAlpha = 1;
+                            ctx.setTransform(1, 0, 0, 1, 0, 0);
                         }
                     }
                 }
             }
-        } else { //Loop when tweening
-            var tween = 1-clamp(tweentimer/tweeninterval, 0, 1);
+        } 
 
-            //Defaults
-            var tween_name = "linear";
-            var tween_snap = state.sprite_size;
-
-            //Lookup
-            if (state.metadata.tween_easing!==undefined){
-                tween_name = state.metadata.tween_easing;
-                if (parseInt(tween_name) != NaN && easingAliases[parseInt(tween_name)]) {
-                    tween_name = easingAliases[parseInt(tween_name)];
-                    //console.log(tween_name);
-                }
-                tween_name = tween_name.toLowerCase();
+        // calculate animation for this object
+        // todo: pre-compute for performance reasons?
+        function calcAnimate(afx, kind, dir, params, tween) {
+            const funcs = {
+                xlate: (p,a) => { 
+                    const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
+                    p.x = -tween * delta[0] * (a || 1); 
+                    p.y = -tween * delta[1] * (a || 1); 
+                },
+                scale: (p,a) => { 
+                    p.scalex = p.scaley = tween; 
+                    p.x = p.y = 0.5 - tween / 2 * (a || 1);
+                },
+                alpha: (p,a) => { p.alpha = tween * (a || 1); },
+                angle: (p,a) => { p.angle = tween * (a || 360); },
+                ease: (p,a) => { tween = easingFunction(a)(tween); },
+                tween: (p,a) => { tween = tween * (a || 1); },
             }
-            if (state.metadata.tween_snap!==undefined) {
-                tween_snap = Math.max(parseInt(state.metadata.tween_snap), 1);
-            }
+            if (kind == 'create') tween = 1 - tween;
+            else if (kind == 'cant') tween = (tween > 0.5) ? 1 - tween : tween;
 
-            //Apply
-
-            if (EasingFunctions[tween_name] != null) {
-                tween = EasingFunctions[tween_name](tween);
+            for (x of afx) {
+                const xs = x.split('=');
+                if (funcs[xs[0]])
+                    funcs[xs[0]](params, xs[1]);
             }
-            tween = Math.floor(tween * tween_snap) / tween_snap;
+            return params;
+        }
+
+        // Draw loop used when tweening
+        function drawObjectsTweening() {
+            // assume already validated
+            const easing = state.metadata.tween_easing || 'linear';
+            const snap = state.metadata.tween_snap || state.sprite_size;
+            let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
+            tween = Math.floor(tween * snap) / snap;
 
             for (var k = 0; k < state.idDict.length; k++) {
                 var object = state.objects[state.idDict[k]];
@@ -636,9 +700,6 @@ function redraw() {
                         if (posMask.get(k) != 0) {                  
                             var spriteX = (k % spritesheetSize)|0;
                             var spriteY = (k / spritesheetSize)|0;
-
-                            
-                        //console.log(posIndex + " " + layerID);
     
                             var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
                             var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
@@ -666,7 +727,8 @@ function redraw() {
                 }
             }
         }
-        
+
+        // todo: this code should go in its own function
         if (diffToVisualize!==null){
             //find previous state (this is never called on the very first state, the one before player inputs are applied, so there is always a previous state)
             var prevstate_lineNumberIndex=diffToVisualize.lineNumber-1;
@@ -1011,6 +1073,15 @@ function canvasResize() {
  * Easing Functions - inspired from http://gizma.com/easing/
  * only considering the t value for the range [0, 1] => [0, 1]
  */
+
+// return an easing function by name or no if valid, else default to linear
+function easingFunction(ease) {
+    const e = ease in EasingFunctions ? ease
+        : ease in easingAliases ? easingAliases[ease].toLowerCase()
+        : 'linear';
+    return EasingFunctions[e];
+}
+
 EasingFunctions = {
     // no easing, no acceleration
     linear: t => t,

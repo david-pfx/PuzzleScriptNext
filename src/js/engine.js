@@ -944,7 +944,7 @@ canvasResize();
 function tryPlaySimpleSound(soundname) {
   if (state.sfx_Events[soundname]!==undefined) {
     var seed = state.sfx_Events[soundname];
-		playSound(seed,true);
+		playSeed(seed,true);
   }
 }
 function tryPlayTitleSound() {
@@ -1018,7 +1018,7 @@ function level4Serialization() {
 }
 
 
-
+// major function to set up game state on start of run
 function setGameState(_state, command, randomseed) {
   oldflickscreendat=[];
   timer=0;
@@ -1029,8 +1029,8 @@ function setGameState(_state, command, randomseed) {
     STRIDE_MOV=_state.STRIDE_MOV;
     STRIDE_OBJ=_state.STRIDE_OBJ;
     
-    sfxCreateMask=new BitVec(STRIDE_OBJ);
-    sfxDestroyMask=new BitVec(STRIDE_OBJ);
+    sfxCreateMask=new BitVec(STRIDE_OBJ);		// doc: mask for objects that were created
+    sfxDestroyMask=new BitVec(STRIDE_OBJ);		// doc: mask for objects that were destroyed
 
   if (command===undefined) {
     command=["restart"];
@@ -1068,28 +1068,16 @@ function setGameState(_state, command, randomseed) {
       autotickinterval=0;
     }
 
-    if (state.metadata.key_repeat_interval!==undefined) {
-    	repeatinterval=state.metadata.key_repeat_interval*1000;
-    } else {
-      repeatinterval=150;
-	}
-	
-	if (state.metadata.tween_length!==undefined) {
-		tweeninterval=state.metadata.tween_length*1000;
-    } else {
-		tweeninterval = 0;
-    }
-
-    if (state.metadata.again_interval!==undefined) {
-    againinterval=state.metadata.again_interval*1000;
-    } else {
-      againinterval=150;
-    }
-    if (throttle_movement && autotickinterval===0) {
+	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval * 1000 : 150;
+	tweeninterval = state.metadata.tween_length ? state.metadata.tween_length * 1000 : 0;
+	againinterval = state.metadata.again_interval ? state.metadata.again_interval * 1000 : 150;
+	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval * 1000 : 250;
+    
+	if (throttle_movement && autotickinterval===0) {
       logWarning("throttle_movement is designed for use in conjunction with realtime_interval. Using it in other situations makes games gross and unresponsive, broadly speaking.  Please don't.");
     }
     norepeat_action = state.metadata.norepeat_action!==undefined;
-    
+
     switch(command[0]){
     	case "restart":
     	{
@@ -1104,7 +1092,7 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
-		    if (showContinueOptionOnTitleScreen()) {
+		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
 
@@ -1147,6 +1135,7 @@ function setGameState(_state, command, randomseed) {
 			    quittingTitleScreen=false;
 			    messageselected=false;
 			    titleMode = 0;
+				showLayers = false;
 				loadLevelFromState(state,targetLevel,randomseed);
 				break;
 			}
@@ -1167,6 +1156,7 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
+			showLayers = false;
 			loadLevelFromState(state,targetLevel,randomseed);
 			break;
 		}
@@ -1188,6 +1178,7 @@ function setGameState(_state, command, randomseed) {
 				    quittingTitleScreen=false;
 				    messageselected=false;
 				    titleMode = 0;
+					showLayers = false;
 					loadLevelFromState(state,i);
 					break;
 				}
@@ -1570,6 +1561,21 @@ var dirMasksDelta = {
 	21: [0, 0]
 };
 
+// utility functions
+function getObject(objid) {
+	return state.objects[state.idDict[objid]];
+}
+
+// get movement in layer from movement mask
+function getLayerMovement(movmask, layer) {
+	return movmask.getshiftor(0x1f, 5*layer);
+}
+
+// update position index by x and y
+function deltaPositionIndex(level, positionIndex, x, y) {
+	return positionIndex + y + x * level.height;
+}
+
 function getPlayerPositions() {
     var result=[];
     var playerMask = state.playerMask;
@@ -1625,6 +1631,7 @@ function startMovement(dir) {
 
 var seedsToPlay_CanMove=[];
 var seedsToPlay_CantMove=[];
+var seedsToAnimate={};  // doc: "positition,layer": { kind:, seed:, dir: }
 
 function repositionEntitiesOnLayer(positionIndex,layer,dirMask) 
 {
@@ -1651,17 +1658,29 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
         return false;
     }
 
-	for (var i=0;i<state.sfx_MovementMasks[layer].length;i++) {
-		var o = state.sfx_MovementMasks[layer][i];
-    var objectMask = o.objectMask;
-    if (objectMask.anyBitsInCommon(sourceMask)) {
-      var movementMask = level.getMovements(positionIndex);
-      var directionMask = o.directionMask;
-      if (movementMask.anyBitsInCommon(directionMask) && seedsToPlay_CanMove.indexOf(o.seed)===-1) {
-        seedsToPlay_CanMove.push(o.seed);
-      }
-    }
-  }
+	// for each sound movement event, which applies to a single object and layer
+	for (let i=0;i<state.sfx_MovementMasks[layer].length;i++) {
+		const fx = state.sfx_MovementMasks[layer][i];
+		if (sourceMask.get(fx.objId)) {
+      		var movementMask = level.getMovements(positionIndex);
+      		var directionMask = fx.directionMask;
+			// does it match any movement at this location?
+      		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
+				if (fx.seed.startsWith('afx')) {
+					const object = getObject(fx.objId);
+					const move = getLayerMovement(movementMask, object.layer);
+					const position = deltaPositionIndex(level, positionIndex, dirMasksDelta[move][0], dirMasksDelta[move][1])
+					seedsToAnimate[position+','+fx.objId] = { 
+						kind: 'move', 
+						seed: fx.seed, 
+						dir: move 
+					};
+				}
+				else if (seedsToPlay_CanMove.indexOf(fx.seed)===-1)
+					seedsToPlay_CanMove.push(fx.seed);
+      		}
+    	}
+  	}
 
     var movingEntities = sourceMask.clone();
     sourceMask.iclear(layerMask);
@@ -2253,16 +2272,33 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
   if (!oldCellMask.equals(curCellMask) || !oldMovementMask.equals(curMovementMask) || rigidchange) { 
 		result=true;
 		if (rigidchange) {
-		level.rigidGroupIndexMask[currentIndex] = curRigidGroupIndexMask;
-		level.rigidMovementAppliedMask[currentIndex] = curRigidMovementAppliedMask;
+			level.rigidGroupIndexMask[currentIndex] = curRigidGroupIndexMask;
+			level.rigidMovementAppliedMask[currentIndex] = curRigidMovementAppliedMask;
 		}
+
+		// were any objects create or destroyed? Add to list for sfx checking
+		// - as mask, one bit per object
+		// - as list, one entry per object, with position
 
 		var created = curCellMask.cloneInto(_o4);
 		created.iclear(oldCellMask);
 		sfxCreateMask.ior(created);
+		for (let objId = 0; objId < state.objectCount; ++objId) {
+			if (created.get(objId))
+				sfxCreateList.push({ 
+					posIndex: currentIndex, objId: objId
+				});
+		}
+
 		var destroyed = oldCellMask.cloneInto(_o5);
 		destroyed.iclear(curCellMask);
 		sfxDestroyMask.ior(destroyed);
+		for (let objId = 0; objId < state.objectCount; ++objId) {
+			if (destroyed.get(objId))
+				sfxDestroyList.push({ 
+					posIndex: currentIndex, objId: objId
+				});
+		}
 
 		level.setCell(currentIndex, curCellMask);
 		level.setMovements(currentIndex, curMovementMask);
@@ -2279,108 +2315,7 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
 }
 
 
-//say cellRow has length 5, with a split in the middle
-/*
-function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink) {
-  var result = [];
-  var matchfirsthalf = cellRow[0].matches(i)&&cellRow[1].matches((i+d)%level.n_tiles);
-  if (matchfirsthalf) {
-    for (var k=mink,kmaxk;k++) {
-      if (cellRow[2].matches((i+d*(k+0))%level.n_tiles)&&cellRow[2].matches((i+d*(k+1))%level.n_tiles)) {
-        result.push([i,k]);
-      }
-    }
-  }
-  return result;
-}
-*/
-/*
-function DoesCellRowMatchWildCard(direction,cellRow,i,maxk,mink) {
-  if (mink === undefined) {
-    mink = 0;
-  }
 
-  var cellPattern = cellRow[0];
-
-    //var result=[];
-
-    if (cellPattern.matches(i)){
-      var delta = dirMasksDelta[direction];
-      var d0 = delta[0]*level.height;
-    var d1 = delta[1];
-        var targetIndex = i;
-
-        for (var j=1;j<cellRow.length;j+=1) {
-            targetIndex = (targetIndex+d1+d0);
-
-            var cellPattern = cellRow[j]
-            if (cellPattern === ellipsisPattern) {
-              //BAM inner loop time
-              for (var k=mink;k<maxk;k++) {
-                var targetIndex2=targetIndex;
-                    targetIndex2 = (targetIndex2+(d1+d0)*(k)+level.n_tiles)%level.n_tiles;
-                for (var j2=j+1;j2<cellRow.length;j2++) {
-                    cellPattern = cellRow[j2];
-              if (!cellPattern.matches(targetIndex2)) {
-                break;
-              }
-                        targetIndex2 = (targetIndex2+d1+d0);
-                }
-
-                if (j2>=cellRow.length) {
-                  return true;
-                    //result.push([i,k]);
-                }
-              }
-              break;
-            } else if (!cellPattern.matches(targetIndex)) {
-        break;
-            }
-        }               
-    }  
-    return false;
-}
-*/
-//say cellRow has length 3
-/*
-CellRow Matches can be specialized to look something like:
-function cellRowMatchesFunctionGenerate(direction,cellRow,i) {
-  var delta = dirMasksDelta[direction];
-  var d = delta[1]+delta[0]*level.height;
-  return cellRow[0].matches(i)&&cellRow[1].matches((i+d)%level.n_tiles)&&cellRow[2].matches((i+2*d)%level.n_tiles);
-}
-*/
-/*
-function DoesCellRowMatch(direction,cellRow,i,k) {
-  var cellPattern = cellRow[0];
-    if (cellPattern.matches(i)) {
-
-      var delta = dirMasksDelta[direction];
-      var d0 = delta[0]*level.height;
-    var d1 = delta[1];
-    var cr_l = cellRow.length;
-
-        var targetIndex = i;
-        for (var j=1;j<cr_l;j++) {
-            targetIndex = (targetIndex+d1+d0);
-            cellPattern = cellRow[j];
-      if (cellPattern === ellipsisPattern) {
-          //only for once off verifications
-              targetIndex = (targetIndex+(d1+d0)*k);          
-            }
-        if (!cellPattern.matches(targetIndex)) {
-                break;
-            }
-        }   
-        
-        if (j>=cellRow.length) {
-            return true;
-        }
-
-    }  
-    return false;
-}
-*/
 function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_Movements,d, isGlobal) {	
 	var result=[];
 	
@@ -2901,7 +2836,8 @@ function twiddleMetadataExtras(resetAutoTick = true) {
   if (state.metadata.key_repeat_interval!==undefined) {
     repeatinterval=state.metadata.key_repeat_interval*1000;
   } else {
-    repeatinterval=150;
+    repeatinterval=500;
+    //repeatinterval=150;
   }
 
   if ('background_color' in state.metadata) {
@@ -3116,13 +3052,21 @@ function resolveMovements(level, bannedGroup){
 					}
 				}
 			}
-			for (var j=0;j<state.sfx_MovementFailureMasks.length;j++) {
-				var o = state.sfx_MovementFailureMasks[j];
-				var objectMask = o.objectMask;
-				if (objectMask.anyBitsInCommon(cellMask)) {
-					var directionMask = o.directionMask;
-					if (movementMask.anyBitsInCommon(directionMask) && seedsToPlay_CantMove.indexOf(o.seed)===-1) {
-						seedsToPlay_CantMove.push(o.seed);
+			// go through each of the fx masks to see if it applies to an object in this cell
+			for (const fx of state.sfx_MovementFailureMasks) {
+				if (cellMask.get(fx.objId)) {
+					if (movementMask.anyBitsInCommon(fx.directionMask)) {
+						if (fx.seed.startsWith('afx')) {
+							const object = getObject(fx.objId);
+							const move = getLayerMovement(movementMask, object.layer);
+							seedsToAnimate[i+','+fx.objId] = { 
+								kind: 'cant', 
+								seed: fx.seed, 
+								dir: move 
+							};
+						}
+						else if (seedsToPlay_CantMove.indexOf(fx.seed)===-1)
+							seedsToPlay_CantMove.push(fx.seed);
 					}
 				}
 			}
@@ -3137,8 +3081,10 @@ function resolveMovements(level, bannedGroup){
     return doUndo;
 }
 
-var sfxCreateMask=null;
-var sfxDestroyMask=null;
+var sfxCreateMask=null;			// doc: mask for all objects created
+var sfxDestroyMask=null;		// doc: mask for all objects destroyed
+var sfxCreateList = []; 		// doc: list of created { posindex:, objmask: }
+var sfxDestroyList = [];		// doc: list of destroyed { posindex:, objmask: }
 
 function calculateRowColMasks() {
 	for(var i=0;i<level.mapCellContents.length;i++) {
@@ -3246,10 +3192,13 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		}
 	    sfxCreateMask.setZero();
 	    sfxDestroyMask.setZero();
-
+		sfxCreateList = [];
+		sfxDestroyList = [];
+		
 		seedsToPlay_CanMove=[];
 		seedsToPlay_CantMove=[];
-
+		seedsToAnimate={};
+		
 		calculateRowColMasks();
 
 		var alreadyResolved=[];
@@ -3293,7 +3242,9 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 					level.commandQueueSourceRules = startState.commandQueueSourceRules.concat([])
 					sfxCreateMask.setZero()
 					sfxDestroyMask.setZero()
-					// TODO: should
+					sfxCreateList = [];
+					sfxDestroyList = [];
+								// TODO: should
 
 				}
 
@@ -3481,30 +3432,41 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			return false;
 		}
 
+		// move completed, survived so far, look at sounds to play
+		// move and cant were added during rule processing
         for (var i=0;i<seedsToPlay_CantMove.length;i++) {			
-            playSound(seedsToPlay_CantMove[i]);
+            playSeed(seedsToPlay_CantMove[i]);
         }
 
         for (var i=0;i<seedsToPlay_CanMove.length;i++) {
-            playSound(seedsToPlay_CanMove[i]);
+            playSeed(seedsToPlay_CanMove[i]);
         }
 
-        for (var i=0;i<state.sfx_CreationMasks.length;i++) {
-          var entry = state.sfx_CreationMasks[i];
-          if (sfxCreateMask.anyBitsInCommon(entry.objectMask)) {
-            playSound(entry.seed);
-          }
-        }
-
-        for (var i=0;i<state.sfx_DestructionMasks.length;i++) {
-          var entry = state.sfx_DestructionMasks[i];
-          if (sfxDestroyMask.anyBitsInCommon(entry.objectMask)) {
-            playSound(entry.seed);
-          }
-        }
-
+		// create and destroy were added ???
+		for (const entry of state.sfx_CreationMasks) {
+			if (sfxCreateMask.get(entry.objId)) {		// mask for objects created vs mask for sfx create event
+				if (entry.seed.startsWith('afx')) {
+					for (const fx of sfxCreateList) {
+						if (fx.objId == entry.objId)
+							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
+					}
+				} else playSeed(entry.seed);
+			}
+		}
+  
+		for (const entry of state.sfx_DestructionMasks) {
+			if (sfxDestroyMask.get(entry.objId)) {
+				if (entry.seed.startsWith('afx')) {
+					for (const fx of sfxDestroyList) {
+						if (fx.objId == entry.objId)
+							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
+					}
+				} else playSeed(entry.seed);
+			}
+		}
+  
 		if (!dontModify){
-	    processOutputCommands(level.commandQueue);
+	    	processOutputCommands(level.commandQueue);
 		}
 
 	    if (textMode===false) {
@@ -3567,6 +3529,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
+		console.log(`seedsToAnimate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 
@@ -3578,7 +3541,16 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
     againing=false;
   }
 
-  return modified;
+  return true; // might beneeded for an animation
+  //return modified;
+}
+
+// play a seed which could be a sound or an animation
+function playSeed(seed, ignore) {
+	if (seed > 0)
+		playSound(seed, ignore);
+	// else nothing yet
+
 }
 
 function checkWin(dontDoWin) {
@@ -3694,17 +3666,6 @@ function DoWin() {
   winning=true;
   timer=0;
 }
-
-/*
-//this function isn't valid after refactoring, but also isn't used.
-function anyMovements() { 
-    for (var i=0;i<level.movementMask.length;i++) {
-        if (level.movementMask[i]!==0) {
-          return true;
-        }
-    }
-    return false;
-}*/
 
 function nextLevel() {
     againing=false;

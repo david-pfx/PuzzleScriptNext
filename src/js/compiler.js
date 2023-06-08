@@ -60,7 +60,7 @@ function generateExtraMembers(state) {
 
     //annotate objects with layers
     //assign ids at the same time
-    state.idDict = [];
+    state.idDict = [];          // doc: dictionary of object names indexed by ID
     var idcount = 0;
     for (var layerIndex = 0; layerIndex < state.collisionLayers.length; layerIndex++) {
         for (var j = 0; j < state.collisionLayers[layerIndex].length; j++) {
@@ -86,8 +86,8 @@ function generateExtraMembers(state) {
     }
 
     // how many words do our bitvecs need to hold?
-    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;
-    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;
+    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;     // doc: size of BitVec to hold objects, at 32 bits per
+    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;             // doc: size of BitVec to hold directions, at 5 bits per
     state.STRIDE_OBJ = STRIDE_OBJ;
     state.STRIDE_MOV = STRIDE_MOV;
 
@@ -813,7 +813,7 @@ if (tokens.length===1) {
 }
 
 if (tokens.indexOf('->') == -1) {
-    logError("A rule has to have an arrow in it.  There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
+    logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
 }
 
     var curcell = [];
@@ -956,7 +956,7 @@ if (tokens.indexOf('->') == -1) {
                      curcell.push(token);
                      curcell.push(token);
                  }
-            } else if (commandwords.indexOf(token.toLowerCase())>=0) {
+            } else if (token.match(reg_commandwords)) {
                 if (rhs===false) {
                     logError("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 } else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
@@ -981,7 +981,8 @@ if (tokens.indexOf('->') == -1) {
                     commands.push([token.toLowerCase(), messageStr]);
                     i=tokens.length;
                 } else if (twiddleable_params.includes(token.toLowerCase())) {
-                    if (!state.metadata.includes("runtime_metadata_twiddling")) {
+                    //} else if (token.match(reg_twiddleable_params)) {
+                    if (!state.metadata.includes('runtime_metadata_twiddling')) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
                         var messageIndex = findIndexAfterToken(origLine,tokens,i);
@@ -2315,7 +2316,7 @@ function getMaskFromName(state,name) {
 function generateMasks(state) {
     state.playerMask = getMaskFromName(state, 'player');
 
-    var layerMasks = [];
+    var layerMasks = [];                        // doc: bit vector of object IDs in a layer
     var layerCount = state.collisionLayers.length;
     for (var layer = 0; layer < layerCount; layer++) {
         var layerMask = new BitVec(STRIDE_OBJ);
@@ -2328,7 +2329,7 @@ function generateMasks(state) {
         }
         layerMasks.push(layerMask);
     }
-    state.layerMasks = layerMasks;
+    state.layerMasks = layerMasks;              // doc: array of layer masks indexed by layer
 
     var objectMask = {};
     for (var n in state.objects) {
@@ -2414,7 +2415,7 @@ function checkObjectsAreLayered(state) {
 function isInt(value) {
 return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
 }
-
+// convert metadata to object format and validate
 function twiddleMetaData(state, update = false) {
 	var newmetadata;
 
@@ -2462,6 +2463,7 @@ function twiddleMetaData(state, update = false) {
             }
         }
     }
+
     if (newmetadata.flickscreen !== undefined) {
 		var val = newmetadata.flickscreen;
         newmetadata.flickscreen = getCoords(val,state.metadata_lines.flickscreen);
@@ -2545,7 +2547,29 @@ function twiddleMetaData(state, update = false) {
 		}
 	}
 
-	state.metadata=newmetadata;
+    if (newmetadata.tween_easing) {
+        let easing = newmetadata.tween_easing;
+        if (easing) {
+            easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+            if (EasingFunctions(easing)) 
+                newmetadata.tween_easing = easing;
+            else {
+                logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);
+                delete newmetadata.tween_easing;
+            }
+        }
+    }
+
+    if (newmetadata.tween_snap) {
+        const snap = Math.max(parseInt(state.metadata.tween_snap), 1);
+        if (snap) newmetadata.tween_snap = snap;
+        else {
+            logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
+            delete newmetadata.tween_snap;
+        }
+    }
+
+    state.metadata=newmetadata;
 
 	if (!update) {
 		state.default_metadata = deepClone(newmetadata);
@@ -2831,186 +2855,116 @@ function generateLoopPoints(state) {
     state.lateLoopPoint = loopPoint;
 }
 
-function validSeed(seed) {
-    return /^\s*\d+\s*$/.exec(seed) !== null;
-}
-
-var soundDirectionIndicatorMasks = {
-    'up': parseInt('00001', 2),
-    'down': parseInt('00010', 2),
-    'left': parseInt('00100', 2),
-    'right': parseInt('01000', 2),
-    'horizontal': parseInt('01100', 2),
-    'vertical': parseInt('00011', 2),
-    'orthogonal': parseInt('01111', 2),
-    '___action____': parseInt('10000', 2)
+var soundDirectionMasks = {
+    'up':           1,
+    'down':         2,
+    'left':         4,
+    'right':        8,
+    'horizontal': 0xc,
+    'vertical':     3,
+    'orthogonal': 0xf,
+    '_action_'  :0x10
 };
 
-var soundDirectionIndicators = ["up", "down", "left", "right", "horizontal", "vertical", "orthogonal", "___action____"];
-
-
 function generateSoundData(state) {
-    var sfx_Events = {};
-    var sfx_CreationMasks = [];
-    var sfx_DestructionMasks = [];
-    var sfx_MovementMasks = state.collisionLayers.map(x => []);
-    var sfx_MovementFailureMasks = [];
+    const sfx_Events = {};
+    // doc: lists of sfx event triggers { objectMask:, directionMask:, layer:, seed: }
+    const sfx_CreationMasks = [];
+    const sfx_DestructionMasks = [];
+    const sfx_MovementMasks = state.collisionLayers.map(x => []);     // doc: array of sfx movement triggers, indexed by layer
+    const sfx_MovementFailureMasks = [];
 
-    for (var i = 0; i < state.sounds.length; i++) {
-        var sound = state.sounds[i];
-        if (sound.length <= 1) {
-            continue;
-        }
-        var lineNumber = sound[sound.length - 1];
+    for (const sound of state.sounds) {
+        if (sound[0] === "SOUNDEVENT") {
+            const event = sound[1];
+            const seed = sound[2];
+            const line = sound[3];
+            if (sfx_Events[event]) 
+                logWarning(`${event.toUpperCase()} already declared.`, line);
+            sfx_Events[event] = seed;
+        } else { // SOUND
+            const target = sound[1];
+            let verb = sound[2];
+            let directions = sound[3];
+            const seed = sound[4];
+            const line = sound[5];
 
-        if (sound.length === 2) {
-            logError('incorrect sound declaration.', lineNumber);
-            continue;
-        }
+            if (target in state.aggregatesDict)
+                logError('cannot assign sound events to aggregate objects (declared with "and"), only to regular objects, or properties, things defined in terms of "or" ("' + target + '").', line);
+            if (!(target in state.objectMasks))
+                logError(`Object "${target}" not found.`, line);
 
-        const v0=sound[0][0].trim();
-        const t0=sound[0][1].trim();
-        const v1=sound[1][0].trim();
-        const t1=sound[1][1].trim();
-        
-        var seed = sound[sound.length - 2][0];
-        var seed_t = sound[sound.length - 2][1];
-        if (seed_t !== 'SOUND') {
-            logError("Expecting sfx data, instead found \"" + seed + "\".", lineNumber);
-        }
-
-        if (t0 === "SOUNDEVENT") {
-
-            if (sound.length > 4) {
-                logError("too much stuff to define a sound event.", lineNumber);
-            } else {
-                //out of an abundance of caution, doing a fallback warning rather than expanding the scope of the error #779
-                if (sound.length > 3) {
-                    logWarning("too much stuff to define a sound event.", lineNumber);
-                }
-            }
-
-            if (sfx_Events[v0] !== undefined) {
-                logWarning(v0.toUpperCase() + " already declared.", lineNumber);
-                }
-            sfx_Events[v0] = seed;
-
-            } else {
-            var target = v0;
-            var verb = v1;
-            var directions = [];
-            for (var j=2;j<sound.length-2;j++){//avoid last sound declaration as well as the linenumber element at the end
-                if (sound[j][1] === 'DIRECTION') {
-                    directions.push(sound[j][0]);      
-                } else {
-                    //Don't know how if I can get here, but just in case
-                    logError(`Expected a direction here, but found instead "$(sound[j][0])".`, lineNumber);
-            }
-            }
-            if (directions.length > 0 && (verb !== 'move' && verb !== 'cantmove')) {
-                logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', lineNumber);
-            }
-
-            if (verb === 'action') {
+            if (soundverbs_directional.includes(verb)) {
+                if (directions.length == 0)
+                    directions = ['orthogonal'];
+            } else if (verb === 'action') {
                 verb = 'move';
-                directions = ['___action____'];
+                directions = ['_action_'];
+            } else if (directions.length > 0)
+                logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', line);
+
+            // construct a 5 bit direction mask
+            let directionMask = 0;
+            for (const dir of directions) {
+                if (!soundDirectionMasks[dir]) 
+                    logError(`Was expecting a direction, instead found "${dir}".`, line);
+                else 
+                    directionMask |= soundDirectionMasks[dir];
             }
 
-            if (directions.length == 0) {
-                directions = ["orthogonal"];
-            }
-            
-
-            if (target in state.aggregatesDict) {
-                logError('cannot assign sound events to aggregate objects (declared with "and"), only to regular objects, or properties, things defined in terms of "or" ("' + target + '").', lineNumber);
-            } else if (target in state.objectMasks) {
-
-            } else {
-                logError('Object "' + target + '" not found.', lineNumber);
-            }
-
-            var objectMask = state.objectMasks[target];
-
-            var directionMask = 0;
-            for (var j = 0; j < directions.length; j++) {
-                directions[j] = directions[j].trim();
-                var direction = directions[j];
-                if (soundDirectionIndicators.indexOf(direction) === -1) {
-                    logError('Was expecting a direction, instead found "' + direction + '".', lineNumber);
-                } else {
-                    var soundDirectionMask = soundDirectionIndicatorMasks[direction];
-                    directionMask |= soundDirectionMask;
-                }
-            }
-
-
-            var targets = [target];
-            var modified = true;
+            // construct a list of targets, after expanding properties (if any)
+            let targets = [target];
+            let modified = true;
             while (modified) {
                 modified = false;
-                for (var k = 0; k < targets.length; k++) {
-                    var t = targets[k];
+                for (let k = 0; k < targets.length; k++) {
+                    const t = targets[k];
                     if (t in state.synonymsDict) {
                         targets[k] = state.synonymsDict[t];
                         modified = true;
                     } else if (t in state.propertiesDict) {
                         modified = true;
-                        var props = state.propertiesDict[t];
+                        const props = state.propertiesDict[t];
                         targets.splice(k, 1);
                         k--;
-                        for (var l = 0; l < props.length; l++) {
+                        for (let l = 0; l < props.length; l++) {
                             targets.push(props[l]);
                         }
                     }
                 }
             }
             
-            //if verb in soundverbs_directional
-            if (verb === 'move' || verb === 'cantmove') {
-                for (var j = 0; j < targets.length; j++) {
-                    var targetName = targets[j];
-                    var targetDat = state.objects[targetName];
-                    var targetLayer = targetDat.layer;
-                    var shiftedDirectionMask = new BitVec(STRIDE_MOV);
+            // create 'mask' entries for runtime sound event checking, one per target object
+            // this code originally kept only the masks, but could misfire if object on one mask hit direction on another
+            // note: this information required to support animation
+            for (let j = 0; j < targets.length; j++) {
+                const targetName = targets[j];
+                const targetDat = state.objects[targetName];
+                const targetLayer = targetDat.layer;
+                let shiftedDirectionMask = null;
+                // separate masks for each layer
+                if (verb === 'move' || verb === 'cantmove') {
+                    shiftedDirectionMask = new BitVec(STRIDE_MOV);
                     shiftedDirectionMask.ishiftor(directionMask, 5 * targetLayer);
-
-                    var o = {
-                        objectMask: objectMask,
-                        directionMask: shiftedDirectionMask,
-                        layer:targetLayer,
-                        seed: seed
-                    };
-
-                    if (verb === 'move') {
-                        sfx_MovementMasks[targetLayer].push(o);
-                    } else {
-                        sfx_MovementFailureMasks.push(o);
-                    }
                 }
-            }
 
+                // doc: sfx/afx seed for target object, movement(s) as mask shifted to target layer
+                const o = {
+                    objId: targetDat.id,
+                    directionMask: shiftedDirectionMask,
+                    layer:targetLayer,
+                    seed: seed
+                };
+                if (debugLevel) console.log(`verb ${verb} o: ${JSON.stringify(o)}`);
 
-
-            var targetArray;
-            switch (verb) {
-                case "create":
-                    {
-                        var o = {
-                            objectMask: objectMask,
-                            seed: seed
-                        }
-                        sfx_CreationMasks.push(o);
-                        break;
-                    }
-                case "destroy":
-                    {
-                        var o = {
-                            objectMask: objectMask,
-                            seed: seed
-                        }
-                        sfx_DestructionMasks.push(o);
-                        break;
-                    }
+                if (verb === 'move')
+                    sfx_MovementMasks[targetLayer].push(o);
+                else if (verb === 'cantmove') 
+                    sfx_MovementFailureMasks.push(o);
+                else if (verb === 'create') 
+                    sfx_CreationMasks.push(o);
+                else // (verb === 'destroy') 
+                    sfx_DestructionMasks.push(o);
             }
         }
     }
@@ -3051,7 +3005,7 @@ function formatHomePage(state) {
         }
 
         if ('text_color' in state.metadata) {
-            var separator = document.getElementById("separator");
+            const separator = document.getElementById("separator");
             if (separator != null) {
                 separator.style.color = state.fgcolor;
             }
@@ -3160,6 +3114,7 @@ function loadFile(str) {
 
 var ifrm;
 
+// compile a script for editor or testing, run inputs and return state if valid
 function compile(command, text, randomseed) {
     matchCache = {};
     forceRegenImages = true;
@@ -3190,16 +3145,25 @@ function compile(command, text, randomseed) {
     try {
         console.log(`Begin compile: '${text.split('\n')[0]}'`);
         var state = loadFile(text);
-    } catch(error){
+    } catch(error) {
         consolePrint(error);
         console.log(`Compile error: ${error}`);
+        errorStrings.push(error);
+        //errorCount++;
     } finally {
         compiling = false;
     }
 
-    console.log(`End compile: ${state && !state.invalid ? "ok" : "FAILED"}`);
-    if (state && state.levels && state.levels.length === 0) {
-        logError('No levels found.  Add some levels!', undefined, true);
+    if (!state || state.invalid) {
+        console.log(`End compile: aborted with error ${errorStrings[errorStrings.length - 1]}`);
+        consoleError(`<span class="systemMessage">Compilation aborted. ${errorStrings[errorStrings.length - 1]}</span>`);
+        return null;
+    }
+
+    console.log(`End compile: ${state && !state.invalid && errorCount == 0 ? "ok" : "FAILED, error count = " + errorCount}`);
+
+    if (state.levels && state.levels.length === 0) {
+        logError('No levels found. Add some levels!', undefined, true);
     }
 
     if (errorCount > 0) {
@@ -3232,32 +3196,25 @@ function compile(command, text, randomseed) {
         }
     }
 
-        //Puzzlescript Plus errors
-        // bug: crashes here if compile exits with null value
-        if (IDE && state) {
-        //if (IDE && state !== undefined) {
-            if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
-                logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
-            }
-    
-            if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
-                logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
-            }
-
-            if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
-                logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
-            }
-
-            if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
-                logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
-            }
+    if (IDE) {
+        if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
+            logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
         }
 
-        // bug: crashes here if compile leaves state undefined
-    if (state) {//otherwise error
-    //if (state!==null){//otherwise error
-        setGameState(state, command, randomseed);
+        if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
+            logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
+        }
+
+        if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
+            logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
+        }
+
+        if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
+            logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
+        }
     }
+
+    setGameState(state, command, randomseed);
 
     clearInputHistory();
 
@@ -3266,6 +3223,8 @@ function compile(command, text, randomseed) {
     }
 
     consoleCacheDump();
+
+    return state;
 
 }
 

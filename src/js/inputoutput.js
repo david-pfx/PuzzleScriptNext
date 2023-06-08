@@ -873,8 +873,7 @@ function relMouseCoords(event){
     }
     while(currentElement = currentElement.offsetParent)
 
-	// bug? could be undefined and not null
-	if (event.touches!=null && event.touches.length >= 1){
+	if (event.touches && event.touches.length >= 1){
 		canvasX = event.touches[0].pageX - totalOffsetX;
 		canvasY = event.touches[0].pageY - totalOffsetY;
 	} else if (event.changedTouches != null && event.changedTouches.length >= 1) {
@@ -1219,7 +1218,6 @@ function checkKey(e,justPressed) {
         case 67://c
         case 88://x
         {
-//            window.console.log("ACTION");
 			if (justPressed && ignoreNotJustPressedAction){
 				ignoreNotJustPressedAction=false;
 			}
@@ -1353,6 +1351,22 @@ function checkKey(e,justPressed) {
 				} 
         	}	
         	break;	
+		}
+		case 33://PgUp
+		{
+			if (!textMode && showLayers) {
+				showLayerNo++;	// will be range checked on use
+				canvasResize();
+				return prevent(e);
+			}
+		}
+		case 34://PgDn
+		{
+			if (!textMode && showLayers) {
+				showLayerNo--;	// will be range checked on use
+				canvasResize();
+				return prevent(e);
+			}
 		}
     }
     if (throttle_movement && inputdir>=0&&inputdir<=3) {
@@ -1534,9 +1548,9 @@ function update() {
         }
     }
 
-	if (draw || (typeof state !== "undefined" && 
-		(state.metadata.smoothscreen !== undefined || state.metadata.tween_length !== undefined))) {
-      redraw();
+	// force redraw to update animations
+	if (draw || isAnimating) {
+	  	redraw();
 	}
 }
 
