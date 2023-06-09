@@ -24,7 +24,7 @@ Many more people have directly & indirectly contributed to PS+, so here's a list
 - TilmannR for contributing the `goto` command
 - minotalen for reporting bugs & helping write documentation
 - Cel-iki/BoredMatt for helping me make code examples
-- jsmiller11 for writing [psUtil](https://github.com/jcmiller11/psUtil) (that I adapted for the PS+ sprite upscaler tool)
+- jcmiller11 for writing [psUtil](https://github.com/jcmiller11/psUtil) (that I adapted for the PS+ sprite upscaler tool)
 - ClementSparrow who is making [their own cool Puzzlescript fork](https://github.com/ClementSparrow/Pattern-Script), from which I used the alternate Github authentication method!
 - MinoMe/Kalixtan for contributing sprite tweening!
 - And everyone that has made cool games using the tool! You can see [a list of PS+ games in the Gallery](https://auroriax.github.io/PuzzleScript/Gallery/index.html).
