@@ -110,6 +110,31 @@ e;black red blue green yellow
 34
 23
 
+// 36 colours
+f;black white black white black white black white black white   red blue green yellow orange red blue green yellow orange red blue green yellow orange red blue green yellow orange red blue green yellow orange white
+012345
+6789ab
+cdefgh
+ijklmn
+opqrst
+uvwxyz
+
+h;#000 #111 #222 #333 #444 #555 #666 #777 #888 #999 #aaa #bbb #ccc #ddd #eee #fff #fff #fff #000 #001 #002 #003 #004 #005 #006 #007 #008 #009 #00a #00b #00c #00d #00e #00f #00f #00f
+012345
+6789ab
+cdefgh
+ijklmn
+opqrst
+uvwxyz
+
+i;#ff0 #ff1 #ff2 #ff3 #ff4 #ff5 #ff6 #ff7 #ff8 #ff9 #ffa #ffb #ffc #ffd #ffe #fff #fff #fff #f00 #f01 #f02 #f03 #f04 #f05 #f06 #f07 #f08 #f09 #f0a #f0b #f0c #f0d #f0e #f0f #f0f #f0f
+012345
+6789ab
+cdefgh
+ijklmn
+opqrst
+uvwxyz
+
 =======
 LEGEND
 =======
@@ -125,7 +150,7 @@ Background
 y
 Player, R, B, G
 k
-s,t,u,w,x,q,z,m,n,l,c,d,e
+s,t,u,w,x,q,z,m,n,l,c,d,e,f,h,i
 
 ======
 RULES
@@ -147,9 +172,9 @@ LEVELS
 .............
 .rbgykprbgyk.
 .............
-.s.u.x.z.n.r.
+.s.u.x.z.n.i.
 ..t.w.q.m.l..
-...c.d.e.b.g.
+...c.d.e.f.h.
 .............
 
 message second level

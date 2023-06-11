@@ -35,7 +35,7 @@ const soundverbs_directional = ['move','cantmove'];
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
     'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
-    'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel)'];
+    'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
 // utility functions
@@ -846,10 +846,7 @@ var codeMirrorFn = function() {
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
-                    } else {
-                        token = stream.match(reg_notcommentstart, true);
-                        logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
-                    } 
+                    } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
                 } else {                            
                     token = stream.match(reg_notcommentstart, true);
                     logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
@@ -883,10 +880,10 @@ var codeMirrorFn = function() {
                 let value = -1;
                 if (token = matchRegex(stream, /^\./)) kind = 'COLOR FADECOLOR';
                 else if (token = matchRegex(stream, /^[0-9a-zA-Z]/, true)) {
-                    value = token <= '9' ? +token : token.charCodeAt(0) - 97;  // letter 'a'
+                    value = token <= '9' ? +token : 10 + token.charCodeAt(0) - 97;  // letter 'a'
                     if (!obj.colors[value]) 
-                        logError(`Trying to access color number ${value} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
-                    else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[token].toUpperCase();
+                        logError(`Trying to access color number ${value + 1} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
+                    else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[value].toUpperCase();
                 } 
                 else if (token = matchRegex(stream, /^./)) {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
@@ -1029,6 +1026,9 @@ var codeMirrorFn = function() {
                     state.levels.push([]);
                 } 
             } else if (state.section === 'objects') {
+                if (debugLevel && state.objects_section == 3) 
+                    console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+
                 state.objects_section = 0;
             }
         },
@@ -1192,7 +1192,8 @@ var codeMirrorFn = function() {
                         state.objects_section = 1;
                     } else if (state.objects_section == 3) {
                         // if not a grid char assume missing blank line and go to next object
-                        if (sol && !stream.match(/^[.\d]/, false) && !stream.match(/^text/u, false)) {
+                        if (sol && !stream.match(/^[.\d]/, false) 
+                            && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^text/u, false)) {
                             if (debugLevel) 
                                 console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;

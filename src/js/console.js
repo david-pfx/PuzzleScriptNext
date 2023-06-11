@@ -192,7 +192,7 @@ function verboseToggle() {
 	}
 }
 
-var verboseLoggingClick = document.getElementById("verboseLoggingClick");
+const verboseLoggingClick = document.getElementById("verboseLoggingClick");
 verboseLoggingClick.addEventListener("click", verboseToggle, false);
 verboseLoggingClick.addEventListener("click", verboseToggle, false);
 
@@ -203,6 +203,14 @@ function showLayersToggle() {
 	redraw();
 }
 
-var showLayersClick = document.getElementById("showLayersClick");
+const showLayersClick = document.getElementById("showLayersClick");
 showLayersClick.addEventListener("click", showLayersToggle, false);
 showLayersClick.addEventListener("click", showLayersToggle, false);
+
+function callRunClick() {
+	runClick();
+}
+
+const runProgramClick = document.getElementById("runProgramClick");
+runProgramClick.addEventListener("click", callRunClick, false);
+runProgramClick.addEventListener("click", callRunClick, false);
