@@ -12,6 +12,7 @@ run_rules_on_level_start
 tween_length 0.25
 sprite_size 9
 nokeyboard 
+mouse_clicks
 
 ========
 OBJECTS
@@ -140,8 +141,8 @@ tempobj = r0 or init or mix
 SOUNDS
 =======
 
-//clickable lclick 32169907 afxRR
-//clickable rclick 32169907 afxRL
+player lclick 32169907 afxRR
+player rclick 32169907 afxRL
 sfx0 32169907
 sfx1 16334503
 

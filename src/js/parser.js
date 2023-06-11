@@ -32,6 +32,11 @@ var errorCount=0;//only counts errors
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
+let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
+    'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
+let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
+    'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel)'];
+const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
 // utility functions
 
@@ -261,8 +266,6 @@ var codeMirrorFn = function() {
     const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
-    // todo: reaction, mclick
-    const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
     const reg_sounddirectionindicators = /^[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
@@ -277,17 +280,18 @@ var codeMirrorFn = function() {
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
-        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
+        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
+        'mouse_clicks'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
         'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
-        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'animate_interval'];
+        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
+        'animate_interval'];
     const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
-        'flickscreen', 'zoomscreen', 'level_select_solve_symbol', 
+        'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        'tween_easing', 'message_text_align', 
-        'text_message_continue', 'sitelock_origin_whitelist', 
-        'sitelock_hostname_whitelist'];
+        'level_select_solve_symbol', 'text_message_continue', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
+        'puzzlescript_next_version'];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
@@ -718,8 +722,11 @@ var codeMirrorFn = function() {
                 if (state.metadata.keys().some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
+            if (value[0] == 'mouse_clicks') {
+                directions_table.push(...mouse_clicks_table);
+                directions_only.push(...mouse_clicks_table);
+            }
         }
-
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1467,7 +1474,7 @@ var codeMirrorFn = function() {
                             } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
-                            } else if (state.tokenIndex === 1 && reg_directions.exec(m)) {
+                            } else if (state.tokenIndex === 1 && directions_table.includes(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else {

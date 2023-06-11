@@ -7,6 +7,8 @@ homepage www.polyomino.com
 
 verbose_logging
 debug
+mouse_clicks
+
 ========
 OBJECTS
 ========

@@ -5,8 +5,6 @@
 var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
-// todo: reaction, mclick
-var reg_directions_only = /^(\>|\<|\^|v|up|down|left|right|action|lclick|rclick|moving|stationary|no|randomdir|random|horizontal|vertical|orthogonal|perpendicular|parallel)$/i;
 
 function isColor(str) {
 	str = str.trim();
@@ -859,7 +857,7 @@ if (tokens.indexOf('->') == -1) {
                 }
                 incellrow = true;
                 curcell = [];
-            } else if (reg_directions_only.exec(token)) {
+            } else if (directions_only.includes(token)) {
                 if (curcell.length % 2 == 1) {
                     logError("Error, an item can only have one direction/action at a time, but you're looking for several at once!", lineNumber);
                 } else if (!incellrow) {
