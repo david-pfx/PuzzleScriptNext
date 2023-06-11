@@ -302,7 +302,7 @@ var codeMirrorFn = function() {
     // lexer functions
 
     // match by regex, eat white space, optional return tolower
-    function MatchRegex(stream, regex, tolower) {
+    function matchRegex(stream, regex, tolower) {
         const match = stream.match(regex);
         if (match) stream.eatSpace();
         return !match ? null : tolower ? match[0].toLowerCase() : match[0];
@@ -506,7 +506,7 @@ var codeMirrorFn = function() {
         function buildTokens() {
             const tokens = [];
             while (!stream.eol()) {
-                const token = MatchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
+                const token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
                 if (!token) {
                     if (!matchComment(stream, state)) {
                         //depending on whether the verb is directional or not, we log different errors
@@ -599,6 +599,7 @@ var codeMirrorFn = function() {
         stream.match(/\s*/);
         if (stream.eol()) 
             return state.commentLevel > 0;
+        // set comment style if first time
         if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
             if (stream.match(/\//, false)) {
                 state.commentStyle = '//';
@@ -632,6 +633,7 @@ var codeMirrorFn = function() {
             else if (stream.match(')'))
                 state.commentLevel--;
         }
+        stream.eatSpace();
         return true;
     }
 
@@ -655,14 +657,14 @@ var codeMirrorFn = function() {
                 let token = '';
                 let kind = 'ERROR'
                 if (tokens.length == 1 && preamble_param_text.includes(tokens[0].token)) {
-                    token = MatchRegex(stream, /.*/).trim();  // take it all
+                    token = matchRegex(stream, /.*/).trim();  // take it all
                     kind = 'METADATATEXT';
                 } else {
-                    token = MatchRegex(stream, /[\w-.+#*]+/, true);
+                    token = matchRegex(stream, /[\w-.+#*]+/, true);
                     if (!token) {
                         if (matchComment(stream, state)) return tokens;
                         logError('Unrecognised stuff in the prelude.', state.lineNumber);
-                        token = MatchRegex(stream, reg_notcommentstart);
+                        token = matchRegex(stream, reg_notcommentstart);
                     } else {
                         if (tokens.length == 0)
                             kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
@@ -721,144 +723,184 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // parse and store an object name, return token type
+    // parse and store an object name, return token token list
     function parseObjectName(stream, mixedCase, state) {
-        function parseCopySprite() {
-            const match = state.objects_section > 0 ? stream.match(reg_name) : null;
-            if (!match) {
-                const junk = stream.match(reg_notcommentstart, true);
-                logWarning(`Invalid sprite copy: ${junk}.`, state.lineNumber);
-                return 'ERROR'
+        const tokens = [];
+        const symbols = {};
+        const aliases = [];
+        if (getTokens() && checkTokens())
+            setState();
+        return tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!stream.eol()) {
+                let token = null;
+                let kind = 'ERROR';
+                if (token = matchComment(stream,state)) kind = 'comment';
+                else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
+                else if (tokens.length > 0 && (token = matchRegex(stream, /^copy:/u))) kind = 'SPRITEPARENT';
+                else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u, true)) kind = 'NAME';  // Unicode letters and numbers
+                //else if (token = matchRegex(stream, /^[A-Za-z0-9_:]+/, true)) kind = 'NAME';
+                else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
+                else {
+                    token = stream.match(reg_notcommentstart, true);
+                    logWarning(`Invalid object name in object section: ${token}.`, state.lineNumber);
+                }
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+                if (kind == 'SEMICOLON') break;
             }
-            let cloneName = match[0];
-            if (state.objects[state.objects_candname].cloneSprite != "") {
-                logError(`You already assigned a sprite parent for ${cloneName}, you can't have more than one!`, state.lineNumber);
-                return 'ERROR';
-            } else if (cloneName == state.objects_candname) {
-                logError(`You attempted to set the sprite parent for ${cloneName} to itself! Please don't."`, state.lineNumber)
-                return 'ERROR';
-            } else {
-                state.objects[state.objects_candname].cloneSprite = cloneName;
-                //state.objects_section = 1;
-                return "SPRITEPARENT";
-            }
+            return tokens.length;
         }
 
-        // look for an object name, alias/glyph or copy:
-        if (stream.match(/copy:/)) 
-            return parseCopySprite();
-
-        let match_name = stream.match(reg_name);
-        if (!match_name && state.objects_section > 0)
-            match_name = stream.match(/([^\s])\s*/);  // glyph
-        if (!match_name) {
-            const junk = stream.match(reg_notcommentstart, true);
-            if (stream.pos > 0)
-                logWarning(`Invalid object name in object section: ${junk}.`, state.lineNumber);
-            return 'ERROR';
-        } 
-
-        const candname = match_name[1];
-        if (state.objects[candname]) {
-            logError(`Object "${candname}" defined multiple times.`, state.lineNumber);
-            return 'ERROR';
-        }
-        for (let i = 0; i < state.legend_synonyms.length; i++) {
-            var entry = state.legend_synonyms[i];
-            if (entry[0] == candname) {
-                logError(`Name "${candname}" already in use.`, state.lineNumber);
+        function checkTokens() {
+            for (let x = 0; x < tokens.length; x++) {
+                let t = tokens[x];
+                let error = false;
+                if (t.kind == 'NAME') {
+                    if (keyword_array.includes(t.token)) {
+                        logWarning(`You named an object "${t.token}", but this is a keyword. Don't do that!`, state.lineNumber);
+                    }
+                    if (state.objects[t.token]) {
+                        logError(`Object "${t.token}" defined multiple times.`, state.lineNumber);
+                        error = true;
+                    } else if (state.legend_synonyms.some(s => s[0] == t.token)) {
+                        logError(`Name "${t.token}" already in use.`, state.lineNumber);
+                        error = true;
+                    } else {
+                        if (x == 0) symbols.candname = t.token;
+                        else aliases.push(t.token);
+                        //else symbols.aliases = (symbols.aliases || []).concat(t.token);
+                    }
+                } else if (t.kind == 'SPRITEPARENT') {
+                    t = tokens[++x];
+                    if (t.kind != 'NAME') {
+                        logError(`Missing sprite parent.`, state.lineNumber);
+                        error = true;
+                    } else if (symbols.parent) {
+                        logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                        error = true;
+                    } else if (t.token == symbols.candname) {
+                        logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
+                        error = true;
+                    } else symbols.parent = t.token;
+                }
+                if (error) tokens[x].kind = 'ERROR';
             }
+            return (!tokens.some(t => t.kind == 'ERROR'));
         }
-        if (keyword_array.includes(candname)) {
-                logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
-        }
-        // create base object and array for colours
-        if (state.objects_section == 0) {
-            state.objects_candname = candname;
+    
+        function setState() {
+            const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            state.objects[state.objects_candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
+            state.objects[candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
-                cloneSprite: "",
+                cloneSprite: symbols.parent || "",
                 spriteText: null
             };
-            state.objects[candname].colors = [];
-        } else {
-            //set up alias
-            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            var synonym = [candname, state.objects_candname];
-            synonym.lineNumber = state.lineNumber;
-            state.legend_synonyms.push(synonym);
-        }
-        if (state.case_sensitive) {
-            if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
-                // setup aliases for special objects
-                var synonym = [candname.toLowerCase(), state.objects_candname];
-                synonym.lineNumber = state.lineNumber;
-                state.legend_synonyms.push(synonym);
+            if (candname != candname.toLowerCase() && candname.match(/^(background|player)$/u))
+                createAlias(candname, candname.toLowerCase(), state.lineNumber);
+            for (const alias of aliases) {
+                registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
+                createAlias(alias, candname, state.lineNumber);
             }
         }
-        state.objects_section = 1;  // repeat this section to get next name
-        return 'NAME';
-    };
 
-    ////////////////////////////////////////////////////////////////////////////
-    function parseObjectColor(stream, state) {
-        const match_color = stream.match(/([#\w]+)\s*/, true);
-        const candcol = match_color ? match_color[1].toLowerCase() : null;
-        if (!(candcol && (color_names.includes(candcol) || candcol.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)))) {
-            const tail = stream.match(reg_notcommentstart, true);
-            logError(`Was looking for color for object ${state.objects_candname}, got "${candcol || tail}" instead.`, state.lineNumber);
-            return 'ERROR';
-        } 
-
-        state.objects[state.objects_candname].colors.push(candcol);
-        return (candcol in colorPalettes.arnecolors) ? `COLOR COLOR-${candcol.toUpperCase()}`
-            : (candcol === "transparent") ? 'COLOR FADECOLOR'
-            : `MULTICOLOR${candcol}`;
+        function createAlias(alias, candname, lineno) {
+            if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+            const synonym = [alias, candname];
+            synonym.lineNumber = lineno;
+            state.legend_synonyms.push(synonym);
+        }
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    function parseObjectColors(stream, state) {
+        const tokens = [];
+        const colours = [];
+        if (getTokens())
+            state.objects[state.objects_candname].colors = colours;
+            //state.objects[state.objects_candname].colors.push(...colours);
+        return tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!stream.eol()) {
+                let token = null;
+                let kind = 'ERROR';
+                if (token = matchComment(stream,state)) kind = 'comment';
+                else if (token = matchRegex(stream, /^[#\w]+/, true)) {
+                    if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                        colours.push(token);
+                        kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
+                            : (token === "transparent") ? 'COLOR FADECOLOR'
+                            : `MULTICOLOR${token}`;
+                    } else {
+                        token = stream.match(reg_notcommentstart, true);
+                        logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
+                    } 
+                } else {                            
+                    token = stream.match(reg_notcommentstart, true);
+                    logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
+                    break;
+                } 
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+            }
+            return tokens.length;
+        }
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
     // parse sprite grid, one cell at a time (to show them coloured)
     function parseObjectSprite(stream, state) {
-        let ch = stream.next();
-        if (!ch.match(/[.\d]/)) {
-            logError(`Unknown character "${ch}" in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
-            stream.match(reg_notcommentstart, true);
-            return 'ERROR';
-        }
+        const tokens = [];
+        const values = [];
+        const obj = state.objects[state.objects_candname];
 
-        let obj = state.objects[state.objects_candname];
-        let spritematrix = state.objects_spritematrix;
-        spritematrix[spritematrix.length - 1] += ch;
-        obj.spritematrix = spritematrix;
+        if (getTokens())
+            obj.spritematrix = (obj.spritematrix || []).concat([values]);
+        return tokens;
 
-        if (ch !== '.') {
-            let n = parseInt(ch);
-            if (n >= obj.colors.length) {
-                logError(`Trying to access color number ${n} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
-                return 'ERROR';
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!stream.eol()) {
+                if (matchRegex(stream, /^\s+/)) break; // stop on whitespace, rest is comment or junk
+                let token = null;
+                let kind = 'ERROR';
+                let value = -1;
+                if (token = matchRegex(stream, /^\./)) kind = 'COLOR FADECOLOR';
+                else if (token = matchRegex(stream, /^[0-9a-zA-Z]/, true)) {
+                    value = token <= '9' ? +token : token.charCodeAt(0) - 97;  // letter 'a'
+                    if (!obj.colors[value]) 
+                        logError(`Trying to access color number ${value} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
+                    else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[token].toUpperCase();
+                } 
+                else if (token = matchRegex(stream, /^./)) {
+                    logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
+                }
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+                values.push(value);
             }
-            if (isNaN(n)) {
-                logError(`Invalid character "${ch} " in sprite for ${state.objects_candname}`, state.lineNumber);
-                return 'ERROR';
-            }
-            return 'COLOR BOLDCOLOR COLOR-' + obj.colors[n].toUpperCase();
+            return tokens.length;
         }
-        return 'COLOR FADECOLOR';
     }
 
-    function parseObjectText(stream, state, mixedCase) {
-        const pos = stream.pos;
-        const arg = stream.match(reg_notcommentstart, true);
-        if (!arg || arg[0].trim() == '') {
-            logError(`Object text needs a value.`, state.lineNumber);
-            return 'ERROR';
-        }
+    // parse text object
+    function parseObjectText(stream, state) {
+        const token = matchRegex(stream, /.*/).trim();
         const obj = state.objects[state.objects_candname];
-        obj.spriteText = mixedCase.substring(pos, stream.pos).trim();
-        return 'COLOR BOLDCOLOR COLOR-' + obj.colors[0].toUpperCase();
+        obj.spriteText = token;
+        return [{
+            token: token, kind: 'COLOR BOLDCOLOR COLOR-' + obj.colors[0].toUpperCase(), pos: stream.pos
+        }];
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -976,15 +1018,20 @@ var codeMirrorFn = function() {
         },
         blankLine: function(state) {
             if (state.section === 'levels') {
-                    if (state.levels[state.levels.length - 1].length > 0)
-                    {
-                        state.levels.push([]);
-                    }
+                if (state.levels[state.levels.length - 1].length > 0) {
+                    state.levels.push([]);
+                } 
+            } else if (state.section === 'objects') {
+                state.objects_section = 0;
             }
         },
         // function is called to successively find tokens and return a token type in a source code line
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
+            // these sections may have pre-loaded tokens, to be cleared before *anything* else
+            if (['', 'prelude', 'objects', 'sounds'].includes(state.section) && state.current_line_wip_array.length > 0)
+                return flushToken();
+
            	var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
@@ -1068,8 +1115,7 @@ var codeMirrorFn = function() {
                 }
 
                 if (state.section === 'objects'){
-                    if (!state.commentStyle)
-                        state.commentStyle = '()';
+                    state.commentStyle ||= '()';
                 } else if (state.section === 'sounds') {
                     //populate names from rules
                     for (var n in state.objects) {
@@ -1122,52 +1168,52 @@ var codeMirrorFn = function() {
                 return null;
             }
 
-            //if color is set, try to set matrix
-            //if can't set matrix, try to parse name
-            //if color is not set, try to parse color
+            // per section specific parsing
             switch (state.section) {
                 case '': {
                     if (sol) {
                         stream.string = mixedCase;  // put it back, for now!
                         state.current_line_wip_array = parsePrelude(stream, state);
                     }
-                    if (state.current_line_wip_array.length > 0) {
-                        const token = state.current_line_wip_array.shift();
-                        stream.pos = token.pos;
-                        return token.kind;
-                    } 
+                    if (state.current_line_wip_array.length > 0)
+                        return flushToken();
+
                 }
                 case 'objects': {
-                    if (sol)
-                        state.current_line_wip_array = [mixedCase];
-                    else mixedCase = state.current_line_wip_array[0];
-
-                    if (state.objects_section == 1 || state.objects_section == 2) {
-                        if (sol || (state.commentStyle == '//' && stream.match(/;\s*/)))
-                            state.objects_section++;
+                    if (state.objects_section == 0) {
+                        state.current_line_wip_array = [];
+                        state.objects_section = 1;
+                    } else if (state.objects_section == 3) {
+                        // if not a grid char assume missing blank line and go to next object
+                        if (sol && !stream.match(/^[.\d]/, false) && !stream.match(/^text/u, false)) {
+                            if (debugLevel) 
+                                console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            state.objects_section = 1;
+                        }
                     }
+
+                    if (sol)
+                        state.current_line_wip_array['mixed'] = mixedCase;
+                    else mixedCase = state.current_line_wip_array['mixed'];
 
                     //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
-                    case 0:
-                    case 1: { //LOOK FOR NAME(s)
-                            state.objects_spritematrix = [];
-                            return parseObjectName(stream, mixedCase, state);
+                    case 1: { 
+                            state.current_line_wip_array.push(...parseObjectName(stream, mixedCase, state));
+                            state.objects_section++;
+                            return flushToken();
                         }
-                    case 2: { //LOOK FOR COLOR(s)
-                            return parseObjectColor(stream, state);
+                    case 2: { 
+                            state.current_line_wip_array.push(...parseObjectColors(stream, state));
+                            state.objects_section++;
+                            return flushToken();
                         }
                     case 3: {
-                            if (stream.match(/text/u, true))
-                                return parseObjectText(stream, state, mixedCase);
-                            // if not a grid char assume missing blank line and go to next object
-                            if (sol && !stream.match(/^[.\d]/, false)) {
-                                state.objects_section = 0;
-                                return parseObjectName(stream, mixedCase, state);
-                            }
-                            if (sol)
-                                state.objects_spritematrix.push('');
-                            return parseObjectSprite(stream, state);
+                            if (stream.match(/^text/u, true)) {
+                                stream.string = mixedCase;
+                                state.current_line_wip_array.push(...parseObjectText(stream, state));
+                            } else state.current_line_wip_array.push(...parseObjectSprite(stream, state));
+                            return flushToken();
                         }
                     }
                     break;
@@ -1263,13 +1309,10 @@ var codeMirrorFn = function() {
                 //         INT
                 //         DIR+ ~ INT
                 case 'sounds': {
-                    if (sol) 
+                    if (sol)
                         state.current_line_wip_array = parseSounds(stream, state);
-                    if (state.current_line_wip_array.length > 0) {
-                        const token = state.current_line_wip_array.shift();
-                        stream.pos = token.pos;
-                        return token.kind;
-                    } 
+                    if (state.current_line_wip_array.length > 0) 
+                        return flushToken();
                 }
 
                 case 'collisionlayers': {
@@ -1621,6 +1664,17 @@ var codeMirrorFn = function() {
                 stream.next();
                 return null;
             }
+
+            // flush token and kind list back to code mirror
+
+            function flushToken() {
+                if (state.current_line_wip_array.length > 0) {
+                    const token = state.current_line_wip_array.shift();
+                    stream.pos = token.pos;
+                    return token.kind;
+                } else return null;
+            }
+
         },
         startState: function() {
             return {

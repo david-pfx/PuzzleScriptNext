@@ -30,25 +30,6 @@ function colorToHex(palette, str) {
     return str;
 }
 
-
-function generateSpriteMatrix(dat) {
-
-    var result = [];
-    for (var i = 0; i < dat.length; i++) {
-        var row = [];
-        for (var j = 0; j < dat[i].length; j++) {
-            var ch = dat[i].charAt(j);
-            if (ch == '.') {
-                row.push(-1);
-            } else {
-                row.push(ch);
-            }
-        }
-        result.push(row);
-    }
-    return result;
-}
-
 var debugMode;
 var colorPalette;
 
@@ -125,11 +106,12 @@ function generateExtraMembers(state) {
 
     //convert colors to hex
     for (var n in state.objects) {
+        const maxColours = 36; // now 0-9 and a-z
         if (state.objects.hasOwnProperty(n)) {
             //convert color to hex
             var o = state.objects[n];
-            if (o.colors.length > 10) {
-                logError("a sprite cannot have more than 10 colors.  Why you would want more than 10 is beyond me.", o.lineNumber + 1);
+            if (o.colors.length > maxColours) {
+                logError(`a sprite cannot have more than ${maxColours} colors.  Why you would want more than ${maxColours} is beyond me.`, o.lineNumber + 1);
             }
             for (var i = 0; i < o.colors.length; i++) {
                 var c = o.colors[i];
@@ -176,7 +158,7 @@ function generateExtraMembers(state) {
               }
           } else {
             // we now allow sprites of any length and width
-              o.spritematrix = generateSpriteMatrix(o.spritematrix);
+              //o.spritematrix = generateSpriteMatrix(o.spritematrix);
           }
         }
     }
@@ -2953,7 +2935,7 @@ function generateSoundData(state) {
                     layer:targetLayer,
                     seed: seed
                 };
-                if (debugLevel) console.log(`verb ${verb} o: ${JSON.stringify(o)}`);
+                if (debugLevel) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
 
                 if (verb === 'move')
                     sfx_MovementMasks[targetLayer].push(o);

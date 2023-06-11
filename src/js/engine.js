@@ -3529,7 +3529,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
-		console.log(`seedsToAnimate: ${JSON.stringify(seedsToAnimate)}`);
+		if (debugLevel) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 
