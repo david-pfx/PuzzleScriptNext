@@ -591,6 +591,12 @@ function redraw() {
             if (tween == 0) 
                 seedsToAnimate = {};
 
+            const spriteScaler = state.metadata.sprite_size ? { 
+                size: state.sprite_size, 
+                pivotx: 0.0, // todo
+                pivoty: 1.0 
+            } : null;
+
             const iter = [
                 Math.max(mini - renderBorderSize, 0),
                 Math.min(maxi + renderBorderSize, curlevel.width),
@@ -615,6 +621,7 @@ function redraw() {
                             const obj = state.objects[state.idDict[k]];
                             if (showLayers && obj.layer != showLayerNo)
                                 continue;
+                            const spriteScale = spriteScaler ? Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size : 1;
                             const drawpos = {
                                 x: xoffset + (i-mini-cameraOffset.x) * cellwidth,
                                 y: yoffset + (j-minj-cameraOffset.y) * cellheight
@@ -629,7 +636,7 @@ function redraw() {
                             if (animate) 
                                 params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
-                            const csz = { x: params.scalex * cellwidth, y: params.scaley * cellheight };
+                            const csz = { x: params.scalex * cellwidth * spriteScale, y: params.scaley * cellheight * spriteScale };
                             const rc = { 
                                 x: Math.floor(drawpos.x + params.x * cellwidth), 
                                 y: Math.floor(drawpos.y + params.y * cellheight),

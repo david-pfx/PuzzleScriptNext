@@ -840,6 +840,7 @@ var codeMirrorFn = function() {
                 let token = null;
                 let kind = 'ERROR';
                 if (token = matchComment(stream,state)) kind = 'comment';
+                else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
                 else if (token = matchRegex(stream, /^[#\w]+/, true)) {
                     if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
                         colours.push(token);
@@ -855,6 +856,7 @@ var codeMirrorFn = function() {
                 tokens.push({
                     token: token, kind: kind, pos: stream.pos
                 });
+                if (kind == 'SEMICOLON') break;
             }
             return tokens.length;
         }
@@ -899,12 +901,21 @@ var codeMirrorFn = function() {
 
     // parse text object
     function parseObjectText(stream, state) {
-        const token = matchRegex(stream, /.*/).trim();
-        const obj = state.objects[state.objects_candname];
-        obj.spriteText = token;
-        return [{
-            token: token, kind: 'COLOR BOLDCOLOR COLOR-' + obj.colors[0].toUpperCase(), pos: stream.pos
-        }];
+        const tokens = [];
+        while (!stream.eol()) {
+            let token = null;
+            let kind = 'ERROR';
+            if (token = matchRegex(stream, /text:/u)) kind = 'LOGICWORD';
+            else if (token = matchRegex(stream, /.*/).trim()) {
+                const obj = state.objects[state.objects_candname];
+                obj.spriteText = token;
+                kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
+            }
+            tokens.push({
+                token: token, kind: kind, pos: stream.pos
+            });
+        }
+        return tokens;
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1193,7 +1204,10 @@ var codeMirrorFn = function() {
                     } else if (state.objects_section == 3) {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) 
-                            && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^text/u, false)) {
+                            && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
+                        //if (sol && !stream.match(/^[.\d]/, false) && !stream.match(/^[\w]+:/u, false)) {
+                        //  if (sol && !stream.match(/^[.\d]/, false) 
+                        //      && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^text/u, false)) {
                             if (debugLevel) 
                                 console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
@@ -1217,7 +1231,7 @@ var codeMirrorFn = function() {
                             return flushToken();
                         }
                     case 3: {
-                            if (stream.match(/^text/u, true)) {
+                            if (stream.match(/^text:/u, false)) {
                                 stream.string = mixedCase;
                                 state.current_line_wip_array.push(...parseObjectText(stream, state));
                             } else state.current_line_wip_array.push(...parseObjectSprite(stream, state));
