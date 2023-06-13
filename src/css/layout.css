@@ -10,7 +10,7 @@ HTML, BODY
 {
 	position:absolute;
 	left: 0;
-	top: 30px;
+	top: 40px;
 	bottom: 0;
 	width: 50%;
 	height: 100%;
@@ -41,7 +41,7 @@ HTML, BODY
 	display: block;
 	left: 2px;
 	right: 0px;
-	height: 36px;
+	height: 40px;
 	top: 0px;
 	background-color: #444444;
 	overflow: hidden;

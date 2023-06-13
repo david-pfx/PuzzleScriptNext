@@ -256,8 +256,7 @@ function getAuthURL()
 	// 	+ "&allow_signup=true";
 }
 
-function printUnauthorized()
-{
+function printUnauthorized() {
 	const authUrl = getAuthURL();
 	consolePrint(
 		"<br>"+PSFORKNAME+" needs permission to share/save games through GitHub:<br><ul><li><a target=\"_blank\" href=\"" + authUrl + "\">Give "+PSFORKNAME+" permission</a></li></ul>",
@@ -265,13 +264,11 @@ function printUnauthorized()
 	);
 }
 
-function shareClick()
-{
+function shareClick() {
 	return shareOnGitHub(true);
 }
 
-function cloudSaveClick()
-{
+function cloudSaveClick() {
 	return shareOnGitHub(false);
 }
 
@@ -356,7 +353,7 @@ function shareClick() {
     lastDownTarget=canvas;	
 }
 
-function githubLogOut(){
+function githubLogOut() {
 	storage_remove("oauth_access_token");
 
 	const authUrl = getAuthURL();
@@ -404,4 +401,30 @@ function exportClick() {
 	var sourceString = JSON.stringify(sourceCode);
 	
 	buildStandalone(sourceString);
+}
+
+async function openClick() {
+	const pickerOpts = {
+		types: [
+		  {
+			description: "Scriptw",
+			accept: {
+			  "*/*": [".txt"],
+			},
+		  },
+		],
+		multiple: false,
+	  };
+	  
+	// Open file picker and destructure the result the first handle
+	const [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+	// get file contents
+	const fileInfo = await fileHandle.getFile();
+	const contents = await fileInfo.text();
+
+	loadFile(contents.replaceAll('\r', ''));  // just in case
+}
+
+function saveAsClick() {
+	console.log("save as");
 }

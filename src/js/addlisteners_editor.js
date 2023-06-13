@@ -8,6 +8,12 @@ for (var i=0;i<10;i++) {
 //var soundButtonPress = document.getElementById("soundButtonPress");
 //soundButtonPress.addEventListener("click", buttonPress, false);
 
+var openClickLink = document.getElementById("openClickLink");
+openClickLink.addEventListener("click", openClick, false);
+
+var saveAsClickLink = document.getElementById("saveAsClickLink");
+saveAsClickLink.addEventListener("click", saveAsClick, false);
+
 var solveClickLink = document.getElementById("solveClickLink");
 solveClickLink.addEventListener("click", solveClick, false);
 

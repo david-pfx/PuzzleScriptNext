@@ -137,9 +137,10 @@ section Level 3
 <div id="verticaldragbar"></div>
 
 <div id="uppertoolbar">
-	&nbsp;&nbsp;&nbsp;<a href="index.html"><h2>PuzzleScript Next</h2></a> - <a id="saveClickLink" href="javascript:void(0);">SAVE</a> - 
-
-	<form action="" style="display:inline;"><select id="loadDropDown" name="default" style="display:inline; width:100px"> -
+&nbsp;&nbsp;&nbsp;<a href="index.html"><h2>PuzzleScript Next</h2></a> 
+- <a id="openClickLink" title="Open local file" href="javascript:void(0);">OPEN</a> 
+- <a id="saveAsClickLink" title="Save As local file" href="javascript:void(0);">SAVE AS</a> 
+- <form action="" style="display:inline;"><select id="loadDropDown" name="default" style="display:inline; width:100px"> -
 </select></form> - <form action="" style="display:inline;"> <select  id="exampleDropdown"  name="default" style="display:inline; width:150px">
 <option value="load" selected="selected">Load Example+</option>
 <optgroup label="Puzzlescript Plus: Basics">
@@ -179,7 +180,14 @@ section Level 3
 <option value="blank">Blank Project</option>
 </optgroup>
 </select>
-</form>- <a id="runClickLink" title="Compiles and runs the current game in the editor pane (keyboard shortcut: cmd/ctrl+shift+enter)." href="javascript:void('Run the Game');">RUN</a> - <a title="Rebuilds the program life (keyboard shortcut: cmd/ctrl+enter)." id="rebuildClickLink" href="javascript:void('Rebuild without restarting');">REBUILD</a> - <a id="levelEditorClickLink" title="Toggle the level editor (keyboard shortcut: E)." href="javascript:void('Open Level Editor');">LEVEL EDITOR</a> - <a id="exportClickLink" title="Export a standalone HTML Build of your game." href="javascript:void('Export Standalone HTML Build');">EXPORT</a> - <a id="shareClickLink" title="Generate a shareable link to a playable copy of your game." href="javascript:void('Generate Link To Game');">SHARE</a> - <a href="Documentation/documentation.html" title="How Puzzlescript Works."  target="Puzzle_Script_Documentation">DOCS</a>
+</form>
+- <a id="saveClickLink" title="Save in local storage" href="javascript:void(0);">SAVE</a> 
+- <a id="runClickLink" title="Compiles and runs the current game in the editor pane (cmd/ctrl+shift+enter)." href="javascript:void('Run the Game');">RUN</a> 
+- <a id="rebuildClickLink" title="Rebuilds the program life (cmd/ctrl+enter)." href="javascript:void('Rebuild without restarting');">REBUILD</a> 
+- <a id="levelEditorClickLink" title="Toggle the level editor (keyboard shortcut: E)." href="javascript:void('Open Level Editor');">LEVEL EDITOR</a> 
+- <a id="exportClickLink" title="Export a standalone HTML Build of your game." href="javascript:void('Export Standalone HTML Build');">EXPORT</a> 
+- <a id="shareClickLink" title="Generate a shareable link to a playable copy of your game." href="javascript:void('Generate Link To Game');">SHARE</a> 
+- <a href="Documentation/documentation.html" title="How Puzzlescript Works."  target="Puzzle_Script_Documentation">DOCS</a>
 - <a id="solveClickLink" href="javascript:void('Solve a Level');">SOLVE</a>
 - <a id="cancelClickLink" hidden="true" href="javascript:void('Cancel solver');">STOP SOLVER</a>
 <span id="solvingProgress" style="color: white;" ></span>

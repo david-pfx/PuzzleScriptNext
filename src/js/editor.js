@@ -3,35 +3,50 @@ var _editorDirty = false;
 var _editorCleanState = "";
 
 window.addEventListener('load', function () {
-	let demoFile = getParameterByName("demo");
-	let urlFile=getParameterByName("url");
-	if (demoFile && demoFile.length>0) {
-		tryLoadFile(`demo/${demoFile}.txt`);
+	let file = null;
+	if (file = getParameterByName("demo")) {
+		tryLoadFile(`demo/${file}.txt`);
 		code.value = "loading...";
-	} else if (urlFile && urlFile.length>0) {
-		tryLoadFile(urlFile);
+	} else if (file = getParameterByName("url")) {
+		tryLoadFile(file);
+		code.value = "loading...";
+	} else if (file = getParameterByName("file")) {
+		tryLoadFile(file);
+		code.value = "loading...";
+	} else if (file =getParameterByName("hack")) {
+		let id = gistToLoad.replace(/[\\\/]/,"");
+		tryLoadGist(id);
 		code.value = "loading...";
 	} else {
-		let gistToLoad=getParameterByName("hack");
-		if (gistToLoad!==null&&gistToLoad.length>0) {
-			let id = gistToLoad.replace(/[\\\/]/,"");
-			tryLoadGist(id);
-			code.value = "loading...";
-		} else {
-			try {
-				if (storage_has('saves')) {
-					let curSaveArray = JSON.parse(storage_get('saves'));
-					let sd = curSaveArray[curSaveArray.length-1];
-					code.value = sd.text;
-					let loadDropdown = document.getElementById('loadDropDown');
-					loadDropdown.selectedIndex=0;
-				}
-			} catch(ex) {
-				
+	// let demoFile = getParameterByName("demo");
+	// let urlFile=getParameterByName("url");
+	// let localFile=getParameterByName("file");
+	// if (demoFile && demoFile.length>0) {
+	// 	tryLoadFile(`demo/${demoFile}.txt`);
+	// 	code.value = "loading...";
+	// } else if (urlFile && urlFile.length>0) {
+	// 	tryLoadFile(urlFile);
+	// 	code.value = "loading...";
+	// } else {
+		// let gistToLoad=getParameterByName("hack");
+		// if (gistToLoad!==null&&gistToLoad.length>0) {
+		// 	let id = gistToLoad.replace(/[\\\/]/,"");
+		// 	tryLoadGist(id);
+		// 	code.value = "loading...";
+		//} else {
+		try {
+			if (storage_has('saves')) {
+				let curSaveArray = JSON.parse(storage_get('saves'));
+				let sd = curSaveArray[curSaveArray.length-1];
+				code.value = sd.text;
+				let loadDropdown = document.getElementById('loadDropDown');
+				loadDropdown.selectedIndex=0;
 			}
+		} catch(ex) {
+			
 		}
 	}
-})
+});
 
 CodeMirror.commands.swapLineUp = function(cm) {
     var ranges = cm.listSelections(), linesToMove = [], at = cm.firstLine() - 1, newSels = [];
@@ -110,6 +125,9 @@ editor.on('mousedown', function(cm, event) {
       prevent(event);         // prevent refocus
       compile(["levelline",cm.posFromMouse(event).line]);
     }
+  } else if (event.target.className == 'cm-LAYER') {
+	showLayers = !showLayers;
+	if (showLayers) showLayersNo = 3;
   }
 });
 
