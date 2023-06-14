@@ -923,113 +923,74 @@ var codeMirrorFn = function() {
     // return value is an object containing a specific set of named functions
     return {
         copyState: function(state) {
-            var objectsCopy = {};
-            for (var i in state.objects) {
-              if (state.objects.hasOwnProperty(i)) {
-                var o = state.objects[i];
-                objectsCopy[i] = {
-                  colors: o.colors.concat([]),
-                  lineNumber : o.lineNumber,
-                  spritematrix: o.spritematrix.concat([]),
-                  spriteText: o.spriteText
-                  // bug: why no copy of cloneSprite?
-                }
-              }
+            // clone one layer down
+            const newObjects = {};
+            for (const [key,obj] of Object.entries(state.objects)) {
+                newObjects[key] = {
+                    colors: obj.colors.slice(),
+                    lineNumber : obj.lineNumber,
+                    spritematrix: obj.spritematrix.slice(),
+                    spriteText: obj.spriteText
+                    // bug: why no copy of cloneSprite?
+                };
             }
 
-            var collisionLayersCopy = [];
-            for (var i = 0; i < state.collisionLayers.length; i++) {
-              collisionLayersCopy.push(state.collisionLayers[i].concat([]));
-            }
+            return ({
 
-            var legend_synonymsCopy = [];
-            var legend_aggregatesCopy = [];
-            var legend_propertiesCopy = [];
-            var soundsCopy = [];
-            var levelsCopy = [];
-            var winConditionsCopy = [];
-            var rulesCopy = [];
+                original_case_names: Object.assign({}, state.original_case_names),
+                original_line_numbers: Object.assign({}, state.original_line_numbers),
+                lineNumber: state.lineNumber,
 
-            for (var i = 0; i < state.legend_synonyms.length; i++) {
-              legend_synonymsCopy.push(state.legend_synonyms[i].concat([]));
-            }
-            for (var i = 0; i < state.legend_aggregates.length; i++) {
-              legend_aggregatesCopy.push(state.legend_aggregates[i].concat([]));
-            }
-            for (var i = 0; i < state.legend_properties.length; i++) {
-              legend_propertiesCopy.push(state.legend_properties[i].concat([]));
-            }
-            for (var i = 0; i < state.sounds.length; i++) {
-              soundsCopy.push(state.sounds[i].concat([]));
-            }
-            for (var i = 0; i < state.levels.length; i++) {
-              levelsCopy.push(state.levels[i].concat([]));
-            }
-            for (var i = 0; i < state.winconditions.length; i++) {
-              winConditionsCopy.push(state.winconditions[i].concat([]));
-            }
-            for (var i = 0; i < state.rules.length; i++) {
-              rulesCopy.push(state.rules[i].concat([]));
-            }
+                objects: newObjects,
+                collisionLayers: state.collisionLayers.map(p => p.slice()),
 
-            var original_case_namesCopy = Object.assign({},state.original_case_names);
-            var original_line_numbersCopy = Object.assign({},state.original_line_numbers);
-            
-            var nstate = {
-              lineNumber: state.lineNumber,
+                commentLevel: state.commentLevel,
+                commentStyle: state.commentStyle,
+                section: state.section,
+                visitedSections: state.visitedSections.slice(),
 
-              objects: objectsCopy,
-              collisionLayers: collisionLayersCopy,
+                line_should_end: state.line_should_end,
+                line_should_end_because: state.line_should_end_because,
+                sol_after_comment: state.sol_after_comment,
 
-              commentLevel: state.commentLevel,
-              commentStyle: state.commentStyle,
-              section: state.section,
-              visitedSections: state.visitedSections.concat([]),
+                objects_candname: state.objects_candname,
+                objects_section: state.objects_section,
+                objects_spritematrix: state.objects_spritematrix.slice(),
 
-              line_should_end: state.line_should_end,
-              line_should_end_because: state.line_should_end_because,
-              sol_after_comment: state.sol_after_comment,
+                tokenIndex: state.tokenIndex,
+                // PS+ SECTION command argument if any
+                currentSection: state.currentSection,
+                current_line_wip_array: state.current_line_wip_array.slice(),
 
-              objects_candname: state.objects_candname,
-              objects_section: state.objects_section,
-              objects_spritematrix: state.objects_spritematrix.concat([]),
+                legend_synonyms: state.legend_synonyms.map(p => p.slice()),
+                legend_aggregates: state.legend_aggregates.map(p => p.slice()),
+                legend_properties: state.legend_properties.map(p => p.slice()),
 
-              tokenIndex: state.tokenIndex,
-              // PS+ SECTION command argument if any
-              currentSection: state.currentSection,
-              current_line_wip_array: state.current_line_wip_array.concat([]),
+                sounds: state.sounds.map(p => p.slice()),
 
-              legend_synonyms: legend_synonymsCopy,
-              legend_aggregates: legend_aggregatesCopy,
-              legend_properties: legend_propertiesCopy,
+                rules: state.rules.map(p => p.slice()),
 
-              sounds: soundsCopy,
+                names: state.names.slice(),
 
-              rules: rulesCopy,
+                winconditions: state.winconditions.slice(),
 
-              names: state.names.concat([]),
+                original_case_names : Object.assign({},state.original_case_names),
+                original_line_numbers : Object.assign({},state.original_line_numbers),
+    
+                abbrevNames: state.abbrevNames.slice(),
 
-              winconditions: winConditionsCopy,
+                metadata : state.metadata.slice(),
+                metadata_lines: Object.assign({}, state.metadata_lines),
 
-              original_case_names : original_case_namesCopy,
-              original_line_numbers : original_line_numbersCopy,
+                sprite_size : state.sprite_size,
 
-              abbrevNames: state.abbrevNames.concat([]),
+                case_sensitive : state.case_sensitive,
 
-              metadata : state.metadata.concat([]),
-              metadata_lines: Object.assign({}, state.metadata_lines),
+                levels: state.levels.map(p => p.slice()),
 
-              sprite_size : state.sprite_size,
-
-              case_sensitive : state.case_sensitive,
-
-              levels: levelsCopy,
-
-              STRIDE_OBJ : state.STRIDE_OBJ,
-              STRIDE_MOV : state.STRIDE_MOV
-            };
-
-            return nstate;        
+                STRIDE_OBJ : state.STRIDE_OBJ,
+                STRIDE_MOV : state.STRIDE_MOV
+            });
         },
         blankLine: function(state) {
             if (state.section === 'levels') {
@@ -1700,16 +1661,9 @@ var codeMirrorFn = function() {
         },
         startState: function() {
             return {
-                /*
-                    permanently useful
-                */
                 objects: {},
 
-                /*
-                    for parsing
-                */
                 lineNumber: 0,
-
                 commentLevel: 0,  // trigger comment style
                 commentStyle: null,
 
