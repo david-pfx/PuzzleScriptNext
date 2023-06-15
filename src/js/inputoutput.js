@@ -704,8 +704,9 @@ function onMouseDown(event, wasFiredByTouch = false) {
 					prevent(event)
 				}
 				return mouseAction(event,true,state.lmbID);		// must break to not execute dragging=false;
-			} else
+			} else if (state.metadata.mouse_clicks) {
 				return mouseAction(event, true, -1); // trigger lclick
+			}
 
         }
         dragging=false;
@@ -719,8 +720,7 @@ function onMouseDown(event, wasFiredByTouch = false) {
         		return levelEditorRightClick(event,true);
         	} else if ("mouse_right" in state.metadata) {
 				return mouseAction(event,true,state.rmbID);
-			} else {
-				// prevent(event); does not work
+			} else if (state.metadata.mouse_clicks) {
 				return mouseAction(event, true, -2); // trigger rclick
 			}
         } else {

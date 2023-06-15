@@ -32,6 +32,11 @@ var errorCount=0;//only counts errors
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
+let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
+    'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
+let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
+    'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
+const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
 // utility functions
 
@@ -255,14 +260,11 @@ var codeMirrorFn = function() {
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
     const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
-    const reg_sectionNames = /(objects|collisionlayers|legend|sounds|rules|winconditions|levels)(?![\p{L}\p{N}_])[\p{Z}\s]*/ui;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
     const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
-    // todo: reaction, mclick
-    const reg_directions = /^(lclick|rclick|action|up|down|left|right|\^|v|\<|\>|moving|stationary|parallel|perpendicular|horizontal|orthogonal|vertical|no|randomdir|random)$/;
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
     const reg_sounddirectionindicators = /^[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
@@ -277,17 +279,18 @@ var codeMirrorFn = function() {
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
-        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard'];
+        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
+        'mouse_clicks'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
         'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
-        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'animate_interval'];
+        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
+        'animate_interval'];
     const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
-        'flickscreen', 'zoomscreen', 'level_select_solve_symbol', 
+        'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        'tween_easing', 'message_text_align', 
-        'text_message_continue', 'sitelock_origin_whitelist', 
-        'sitelock_hostname_whitelist'];
+        'level_select_solve_symbol', 'text_message_continue', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
+        'puzzlescript_next_version'];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
@@ -302,12 +305,18 @@ var codeMirrorFn = function() {
     // lexer functions
 
     // match by regex, eat white space, optional return tolower
-    function MatchRegex(stream, regex, tolower) {
+    let matchPos = 0;
+    function matchRegex(stream, regex, tolower, testFunc) {
+        matchPos = stream.pos;
         const match = stream.match(regex);
         if (match) stream.eatSpace();
         return !match ? null : tolower ? match[0].toLowerCase() : match[0];
     }
     
+    function pushBack(stream) {
+        stream.pos = matchPos;
+    }
+
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
         if (match===null){
@@ -316,6 +325,50 @@ var codeMirrorFn = function() {
             match=stream.match(reg_notcommentstart, true);                                    
         }
         return match;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // return true and swallow any kind of comment
+    function matchComment(stream, state) {
+        stream.match(/\s*/);
+        if (stream.eol()) 
+            return state.commentLevel > 0;
+        // set comment style if first time
+        if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
+            if (stream.match(/\//, false)) {
+                state.commentStyle = '//';
+                reg_notcommentstart = /(.(?!\/\/))+/;
+                //reg_notcommentstart = /.+(?=\/\/)?/;
+
+            } else {
+                state.commentStyle = '()';
+                reg_notcommentstart = /[^\(]+/;
+            }
+        }
+        // handle // comments
+        if (state.commentStyle == '//'){
+            if (!stream.match('//'))
+                return false;
+            stream.match(/.*/);
+            return true;
+        }
+        // handle () comments
+        if (state.commentLevel == 0) {
+            if(!stream.match('('))
+                return false;
+            state.commentLevel = 1;
+        }
+        while (state.commentLevel > 0) {
+            stream.match(/[^\(\)]*/);
+            if (stream.eol())
+                break;
+            if (stream.match('('))
+                state.commentLevel++;
+            else if (stream.match(')'))
+                state.commentLevel--;
+        }
+        stream.eatSpace();
+        return true;
     }
 
     function processLegendLine(state, mixedCase){
@@ -493,6 +546,332 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse a SECTION line, validate order etc
+    function parseSection(stream, state) {
+        const section = matchRegex(stream, /^\w+/, true);
+
+        if (!sectionNames.includes(section)) {
+            pushBack(stream);
+            return false;
+        }
+
+        state.section = section;
+        if (state.visitedSections.includes(state.section)) {
+            logError(`cannot duplicate sections (you tried to duplicate "${state.section.toUpperCase()}").`, state.lineNumber);
+        }
+        state.line_should_end = true;
+        state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
+        state.visitedSections.push(state.section);
+        const sectionIndex = sectionNames.indexOf(state.section);
+
+        const name_plus = state.case_sensitive ? state.section : state.section.toUpperCase();
+        if (sectionIndex == 0) {
+            state.objects_section = 0;
+            if (state.visitedSections.length > 1) {
+                logError(`section "${name_plus}" must be the first section'`, state.lineNumber);
+            }
+        } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
+            if (sectionIndex===-1) {
+                logError(`no such section as "${name_plus}".`, state.lineNumber);
+            } else {
+                logError(`section "${name_plus}" is out of order, must follow  "${sectionNames[sectionIndex - 1].toUpperCase()}" (or it could be that the section "${sectionNames[sectionIndex - 1].toUpperCase()}"is just missing totally.  You have to include all section headings, even if the section itself is empty).`, state.lineNumber);
+            }
+        }
+
+        // finalise previous section, based on assumed ordering. Yuck!
+        if (state.section === 'objects'){
+            state.commentStyle ||= '()';
+        } else if (state.section === 'sounds') {
+            state.names.push(...Object.keys(state.objects));
+            state.names.push(...state.legend_synonyms.map(s => s[0]));
+            state.names.push(...state.legend_aggregates.map(s => s[0]));
+            state.names.push(...state.legend_properties.map(s => s[0]));
+        } else if (state.section === 'levels') {
+            state.abbrevNames.push(...Object.keys(state.objects));
+            state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
+            state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
+        }
+        return true;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // parse a PRELUDE line, extract parsed information, return array of tokens
+    function parsePrelude(stream, state) {
+        const tokens = buildTokens();
+        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
+            const value = parseTokens(tokens);
+            if (value)
+                setState(state, value);
+        }
+        return tokens;
+
+        // functions
+
+        // build a list of tokens and kinds
+        function buildTokens() {
+            const tokens = [];
+            while (!stream.eol()) {
+                let token = '';
+                let kind = 'ERROR'
+                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].token)) {
+                    token = matchRegex(stream, /.*/).trim();  // take it all
+                    kind = 'METADATATEXT';
+                } else {
+                    token = matchRegex(stream, /[\w-.+#*]+/, true);
+                    if (!token) {
+                        if (matchComment(stream, state)) return tokens;
+                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
+                        token = matchRegex(stream, reg_notcommentstart);
+                    } else {
+                        if (tokens.length == 0)
+                            kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
+                        else kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
+                        : (token === "transparent") ? 'COLOR FADECOLOR'
+                        : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
+                        : 'METADATATEXT';
+                    }
+                }
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+            }
+            return tokens;
+        }
+
+        function parseTokens(tokens) {
+            const token = tokens[0].token;
+            const args = tokens.slice(1).map(t => t.token);
+            let value = null;
+            if (state.metadata_lines[token]) {
+                var otherline = state.metadata_lines[token];
+                logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
+            }
+            if (preamble_keywords.includes(token)) {
+                if (tokens.length > 1)
+                    logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
+                else value = [token, true];
+            } else if (preamble_param_number.includes(token)) {
+                if (args.length != 1 || !parseFloat(args[0]))
+                    logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
+                else value = [token, parseFloat(args[0])];
+            } else if (preamble_param_single.includes(token) || preamble_param_text.includes(token)) {
+                if (args.length != 1)
+                    logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                else value = [token, args[0]];
+            } else if (preamble_param_multi.includes(token)) {
+                if (args.length < 1)
+                    logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
+                else value = [token, args.join(' ')];
+            }
+            return value;
+        }
+
+        function setState(state, value) {
+            state.metadata.push(...value);
+            if (value[0] == 'sprite_size')
+                state.sprite_size = Math.round(value[1]);
+            if (value[0] == 'case_sensitive') {
+                state.case_sensitive = true;
+                if (state.metadata.keys().some(k => preamble_param_text.includes(k)))
+                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
+            }
+            if (value[0] == 'mouse_clicks') {
+                directions_table.push(...mouse_clicks_table);
+                directions_only.push(...mouse_clicks_table);
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // parse and store an object name, return token token list
+    function parseObjectName(stream, mixedCase, state) {
+        const tokens = [];
+        const symbols = {};
+        const aliases = [];
+        if (getTokens() && checkTokens())
+            setState();
+        return tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!stream.eol()) {
+                let token = null;
+                let kind = 'ERROR';
+                if (token = matchComment(stream,state)) kind = 'comment';
+                else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
+                else if (tokens.length > 0 && (token = matchRegex(stream, /^copy:/u))) kind = 'SPRITEPARENT';
+                else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u, true)) kind = 'NAME';  // Unicode letters and numbers
+                //else if (token = matchRegex(stream, /^[A-Za-z0-9_:]+/, true)) kind = 'NAME';
+                else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
+                else {
+                    token = stream.match(reg_notcommentstart, true);
+                    logWarning(`Invalid object name in object section: ${token}.`, state.lineNumber);
+                }
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+                if (kind == 'SEMICOLON') break;
+            }
+            return tokens.length;
+        }
+
+        function checkTokens() {
+            for (let x = 0; x < tokens.length; x++) {
+                let t = tokens[x];
+                let error = false;
+                if (t.kind == 'NAME') {
+                    if (keyword_array.includes(t.token)) {
+                        logWarning(`You named an object "${t.token}", but this is a keyword. Don't do that!`, state.lineNumber);
+                    }
+                    if (state.objects[t.token]) {
+                        logError(`Object "${t.token}" defined multiple times.`, state.lineNumber);
+                        error = true;
+                    } else if (state.legend_synonyms.some(s => s[0] == t.token)) {
+                        logError(`Name "${t.token}" already in use.`, state.lineNumber);
+                        error = true;
+                    } else {
+                        if (x == 0) symbols.candname = t.token;
+                        else aliases.push(t.token);
+                        //else symbols.aliases = (symbols.aliases || []).concat(t.token);
+                    }
+                } else if (t.kind == 'SPRITEPARENT') {
+                    t = tokens[++x];
+                    if (t.kind != 'NAME') {
+                        logError(`Missing sprite parent.`, state.lineNumber);
+                        error = true;
+                    } else if (symbols.parent) {
+                        logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                        error = true;
+                    } else if (t.token == symbols.candname) {
+                        logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
+                        error = true;
+                    } else symbols.parent = t.token;
+                }
+                if (error) tokens[x].kind = 'ERROR';
+            }
+            return (!tokens.some(t => t.kind == 'ERROR'));
+        }
+    
+        function setState() {
+            const candname = state.objects_candname = symbols.candname;
+            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            state.objects[candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
+                lineNumber: state.lineNumber,
+                colors: [],
+                spritematrix: [],
+                cloneSprite: symbols.parent || "",
+                spriteText: null
+            };
+            if (candname != candname.toLowerCase() && candname.match(/^(background|player)$/u))
+                createAlias(candname, candname.toLowerCase(), state.lineNumber);
+            for (const alias of aliases) {
+                registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
+                createAlias(alias, candname, state.lineNumber);
+            }
+        }
+
+        function createAlias(alias, candname, lineno) {
+            if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+            const synonym = [alias, candname];
+            synonym.lineNumber = lineno;
+            state.legend_synonyms.push(synonym);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    function parseObjectColors(stream, state) {
+        const tokens = [];
+        const colours = [];
+        if (getTokens())
+            state.objects[state.objects_candname].colors = colours;
+            //state.objects[state.objects_candname].colors.push(...colours);
+        return tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!stream.eol()) {
+                let token = null;
+                let kind = 'ERROR';
+                if (token = matchComment(stream,state)) kind = 'comment';
+                else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
+                else if (token = matchRegex(stream, /^[#\w]+/, true)) {
+                    if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                        colours.push(token);
+                        kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
+                            : (token === "transparent") ? 'COLOR FADECOLOR'
+                            : `MULTICOLOR${token}`;
+                    } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
+                } else {                            
+                    token = stream.match(reg_notcommentstart, true);
+                    logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
+                    break;
+                } 
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+                if (kind == 'SEMICOLON') break;
+            }
+            return tokens.length;
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
+    // parse sprite grid, one cell at a time (to show them coloured)
+    function parseObjectSprite(stream, state) {
+        const tokens = [];
+        const values = [];
+        const obj = state.objects[state.objects_candname];
+
+        if (getTokens())
+            obj.spritematrix = (obj.spritematrix || []).concat([values]);
+        return tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!stream.eol()) {
+                if (matchRegex(stream, /^\s+/)) break; // stop on whitespace, rest is comment or junk
+                let token = null;
+                let kind = 'ERROR';
+                let value = -1;
+                if (token = matchRegex(stream, /^\./)) kind = 'COLOR FADECOLOR';
+                else if (token = matchRegex(stream, /^[0-9a-zA-Z]/, true)) {
+                    value = token <= '9' ? +token : 10 + token.charCodeAt(0) - 97;  // letter 'a'
+                    if (!obj.colors[value]) 
+                        logError(`Trying to access color number ${value + 1} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
+                    else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[value].toUpperCase();
+                } 
+                else if (token = matchRegex(stream, /^./)) {
+                    logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
+                }
+                tokens.push({
+                    token: token, kind: kind, pos: stream.pos
+                });
+                values.push(value);
+            }
+            return tokens.length;
+        }
+    }
+
+    // parse text object
+    function parseObjectText(stream, state) {
+        const tokens = [];
+        while (!stream.eol()) {
+            let token = null;
+            let kind = 'ERROR';
+            if (token = matchRegex(stream, /text:/u)) kind = 'LOGICWORD';
+            else if (token = matchRegex(stream, /.*/).trim()) {
+                const obj = state.objects[state.objects_candname];
+                obj.spriteText = token;
+                kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
+            }
+            tokens.push({
+                token: token, kind: kind, pos: stream.pos
+            });
+        }
+        return tokens;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
         const tokens = buildTokens();
@@ -506,7 +885,7 @@ var codeMirrorFn = function() {
         function buildTokens() {
             const tokens = [];
             while (!stream.eol()) {
-                const token = MatchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
+                const token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
                 if (!token) {
                     if (!matchComment(stream, state)) {
                         //depending on whether the verb is directional or not, we log different errors
@@ -594,397 +973,97 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // return true and swallow any kind of comment
-    function matchComment(stream, state) {
-        stream.match(/\s*/);
-        if (stream.eol()) 
-            return state.commentLevel > 0;
-        if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
-            if (stream.match(/\//, false)) {
-                state.commentStyle = '//';
-                reg_notcommentstart = /(.(?!\/\/))+/;
-                //reg_notcommentstart = /.+(?=\/\/)?/;
-
-            } else {
-                state.commentStyle = '()';
-                reg_notcommentstart = /[^\(]+/;
-            }
-        }
-        // handle // comments
-        if (state.commentStyle == '//'){
-            if (!stream.match('//'))
-                return false;
-            stream.match(/.*/);
-            return true;
-        }
-        // handle () comments
-        if (state.commentLevel == 0) {
-            if(!stream.match('('))
-                return false;
-            state.commentLevel = 1;
-        }
-        while (state.commentLevel > 0) {
-            stream.match(/[^\(\)]*/);
-            if (stream.eol())
-                break;
-            if (stream.match('('))
-                state.commentLevel++;
-            else if (stream.match(')'))
-                state.commentLevel--;
-        }
-        return true;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // parse a PRELUDE line, extract parsed information, return array of tokens
-    function parsePrelude(stream, state) {
-        const tokens = buildTokens();
-        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
-            const value = parseTokens(tokens);
-            if (value)
-                setState(state, value);
-        }
-        return tokens;
-
-        // functions
-
-        // build a list of tokens and kinds
-        function buildTokens() {
-            const tokens = [];
-            while (!stream.eol()) {
-                let token = '';
-                let kind = 'ERROR'
-                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].token)) {
-                    token = MatchRegex(stream, /.*/).trim();  // take it all
-                    kind = 'METADATATEXT';
-                } else {
-                    token = MatchRegex(stream, /[\w-.+#*]+/, true);
-                    if (!token) {
-                        if (matchComment(stream, state)) return tokens;
-                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
-                        token = MatchRegex(stream, reg_notcommentstart);
-                    } else {
-                        if (tokens.length == 0)
-                            kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
-                        else kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
-                        : (token === "transparent") ? 'COLOR FADECOLOR'
-                        : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
-                        : 'METADATATEXT';
-                    }
-                }
-                tokens.push({
-                    token: token, kind: kind, pos: stream.pos
-                });
-            }
-            return tokens;
-        }
-
-        function parseTokens(tokens) {
-            const token = tokens[0].token;
-            const args = tokens.slice(1).map(t => t.token);
-            let value = null;
-            if (state.metadata_lines[token]) {
-                var otherline = state.metadata_lines[token];
-                logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
-            }
-            if (preamble_keywords.includes(token)) {
-                if (tokens.length > 1)
-                    logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
-                else value = [token, true];
-            } else if (preamble_param_number.includes(token)) {
-                if (args.length != 1 || !parseFloat(args[0]))
-                    logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
-                else value = [token, parseFloat(args[0])];
-            } else if (preamble_param_single.includes(token) || preamble_param_text.includes(token)) {
-                if (args.length != 1)
-                    logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
-                else value = [token, args[0]];
-            } else if (preamble_param_multi.includes(token)) {
-                if (args.length < 1)
-                    logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
-                else value = [token, args.join(' ')];
-            }
-            return value;
-        }
-
-        function setState(state, value) {
-            state.metadata.push(...value);
-            if (value[0] == 'sprite_size')
-                state.sprite_size = Math.round(value[1]);
-            if (value[0] == 'case_sensitive') {
-                state.case_sensitive = true;
-                if (state.metadata.keys().some(k => preamble_param_text.includes(k)))
-                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
-            }
-        }
-
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // parse and store an object name, return token type
-    function parseObjectName(stream, mixedCase, state) {
-        function parseCopySprite() {
-            const match = state.objects_section > 0 ? stream.match(reg_name) : null;
-            if (!match) {
-                const junk = stream.match(reg_notcommentstart, true);
-                logWarning(`Invalid sprite copy: ${junk}.`, state.lineNumber);
-                return 'ERROR'
-            }
-            let cloneName = match[0];
-            if (state.objects[state.objects_candname].cloneSprite != "") {
-                logError(`You already assigned a sprite parent for ${cloneName}, you can't have more than one!`, state.lineNumber);
-                return 'ERROR';
-            } else if (cloneName == state.objects_candname) {
-                logError(`You attempted to set the sprite parent for ${cloneName} to itself! Please don't."`, state.lineNumber)
-                return 'ERROR';
-            } else {
-                state.objects[state.objects_candname].cloneSprite = cloneName;
-                //state.objects_section = 1;
-                return "SPRITEPARENT";
-            }
-        }
-
-        // look for an object name, alias/glyph or copy:
-        if (stream.match(/copy:/)) 
-            return parseCopySprite();
-
-        let match_name = stream.match(reg_name);
-        if (!match_name && state.objects_section > 0)
-            match_name = stream.match(/([^\s])\s*/);  // glyph
-        if (!match_name) {
-            const junk = stream.match(reg_notcommentstart, true);
-            if (stream.pos > 0)
-                logWarning(`Invalid object name in object section: ${junk}.`, state.lineNumber);
-            return 'ERROR';
-        } 
-
-        const candname = match_name[1];
-        if (state.objects[candname]) {
-            logError(`Object "${candname}" defined multiple times.`, state.lineNumber);
-            return 'ERROR';
-        }
-        for (let i = 0; i < state.legend_synonyms.length; i++) {
-            var entry = state.legend_synonyms[i];
-            if (entry[0] == candname) {
-                logError(`Name "${candname}" already in use.`, state.lineNumber);
-            }
-        }
-        if (keyword_array.includes(candname)) {
-                logWarning(`You named an object "${candname}", but this is a keyword. Don't do that!`, state.lineNumber);
-        }
-        // create base object and array for colours
-        if (state.objects_section == 0) {
-            state.objects_candname = candname;
-            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            state.objects[state.objects_candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
-                lineNumber: state.lineNumber,
-                colors: [],
-                spritematrix: [],
-                cloneSprite: "",
-                spriteText: null
-            };
-            state.objects[candname].colors = [];
-        } else {
-            //set up alias
-            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            var synonym = [candname, state.objects_candname];
-            synonym.lineNumber = state.lineNumber;
-            state.legend_synonyms.push(synonym);
-        }
-        if (state.case_sensitive) {
-            if ((candname.toLowerCase() == "player" && candname != "player") || (candname.toLowerCase() == "background" && candname != "background")) {
-                // setup aliases for special objects
-                var synonym = [candname.toLowerCase(), state.objects_candname];
-                synonym.lineNumber = state.lineNumber;
-                state.legend_synonyms.push(synonym);
-            }
-        }
-        state.objects_section = 1;  // repeat this section to get next name
-        return 'NAME';
-    };
-
-    ////////////////////////////////////////////////////////////////////////////
-    function parseObjectColor(stream, state) {
-        const match_color = stream.match(/([#\w]+)\s*/, true);
-        const candcol = match_color ? match_color[1].toLowerCase() : null;
-        if (!(candcol && (color_names.includes(candcol) || candcol.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)))) {
-            const tail = stream.match(reg_notcommentstart, true);
-            logError(`Was looking for color for object ${state.objects_candname}, got "${candcol || tail}" instead.`, state.lineNumber);
-            return 'ERROR';
-        } 
-
-        state.objects[state.objects_candname].colors.push(candcol);
-        return (candcol in colorPalettes.arnecolors) ? `COLOR COLOR-${candcol.toUpperCase()}`
-            : (candcol === "transparent") ? 'COLOR FADECOLOR'
-            : `MULTICOLOR${candcol}`;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // parse sprite grid, one cell at a time (to show them coloured)
-    function parseObjectSprite(stream, state) {
-        let ch = stream.next();
-        if (!ch.match(/[.\d]/)) {
-            logError(`Unknown character "${ch}" in sprite matrix for object ${state.objects_candname}.`, state.lineNumber);
-            stream.match(reg_notcommentstart, true);
-            return 'ERROR';
-        }
-
-        let obj = state.objects[state.objects_candname];
-        let spritematrix = state.objects_spritematrix;
-        spritematrix[spritematrix.length - 1] += ch;
-        obj.spritematrix = spritematrix;
-
-        if (ch !== '.') {
-            let n = parseInt(ch);
-            if (n >= obj.colors.length) {
-                logError(`Trying to access color number ${n} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
-                return 'ERROR';
-            }
-            if (isNaN(n)) {
-                logError(`Invalid character "${ch} " in sprite for ${state.objects_candname}`, state.lineNumber);
-                return 'ERROR';
-            }
-            return 'COLOR BOLDCOLOR COLOR-' + obj.colors[n].toUpperCase();
-        }
-        return 'COLOR FADECOLOR';
-    }
-
-    function parseObjectText(stream, state, mixedCase) {
-        const pos = stream.pos;
-        const arg = stream.match(reg_notcommentstart, true);
-        if (!arg || arg[0].trim() == '') {
-            logError(`Object text needs a value.`, state.lineNumber);
-            return 'ERROR';
-        }
-        const obj = state.objects[state.objects_candname];
-        obj.spriteText = mixedCase.substring(pos, stream.pos).trim();
-        return 'COLOR BOLDCOLOR COLOR-' + obj.colors[0].toUpperCase();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
     // called as per CodeMirror API
     // return value is an object containing a specific set of named functions
     return {
         copyState: function(state) {
-            var objectsCopy = {};
-            for (var i in state.objects) {
-              if (state.objects.hasOwnProperty(i)) {
-                var o = state.objects[i];
-                objectsCopy[i] = {
-                  colors: o.colors.concat([]),
-                  lineNumber : o.lineNumber,
-                  spritematrix: o.spritematrix.concat([]),
-                  spriteText: o.spriteText
-                  // bug: why no copy of cloneSprite?
-                }
-              }
+            // clone one layer down
+            const newObjects = {};
+            for (const [key,obj] of Object.entries(state.objects)) {
+                newObjects[key] = {
+                    colors: obj.colors.slice(),
+                    lineNumber : obj.lineNumber,
+                    spritematrix: obj.spritematrix.slice(),
+                    spriteText: obj.spriteText
+                    // bug: why no copy of cloneSprite?
+                };
             }
 
-            var collisionLayersCopy = [];
-            for (var i = 0; i < state.collisionLayers.length; i++) {
-              collisionLayersCopy.push(state.collisionLayers[i].concat([]));
-            }
+            return ({
+                original_case_names: Object.assign({}, state.original_case_names),
+                original_line_numbers: Object.assign({}, state.original_line_numbers),
+                lineNumber: state.lineNumber,
 
-            var legend_synonymsCopy = [];
-            var legend_aggregatesCopy = [];
-            var legend_propertiesCopy = [];
-            var soundsCopy = [];
-            var levelsCopy = [];
-            var winConditionsCopy = [];
-            var rulesCopy = [];
+                objects: newObjects,
+                collisionLayers: state.collisionLayers.map(p => p.slice()),
 
-            for (var i = 0; i < state.legend_synonyms.length; i++) {
-              legend_synonymsCopy.push(state.legend_synonyms[i].concat([]));
-            }
-            for (var i = 0; i < state.legend_aggregates.length; i++) {
-              legend_aggregatesCopy.push(state.legend_aggregates[i].concat([]));
-            }
-            for (var i = 0; i < state.legend_properties.length; i++) {
-              legend_propertiesCopy.push(state.legend_properties[i].concat([]));
-            }
-            for (var i = 0; i < state.sounds.length; i++) {
-              soundsCopy.push(state.sounds[i].concat([]));
-            }
-            for (var i = 0; i < state.levels.length; i++) {
-              levelsCopy.push(state.levels[i].concat([]));
-            }
-            for (var i = 0; i < state.winconditions.length; i++) {
-              winConditionsCopy.push(state.winconditions[i].concat([]));
-            }
-            for (var i = 0; i < state.rules.length; i++) {
-              rulesCopy.push(state.rules[i].concat([]));
-            }
+                commentLevel: state.commentLevel,
+                commentStyle: state.commentStyle,
+                section: state.section,
+                visitedSections: state.visitedSections.slice(),
 
-            var original_case_namesCopy = Object.assign({},state.original_case_names);
-            var original_line_numbersCopy = Object.assign({},state.original_line_numbers);
-            
-            var nstate = {
-              lineNumber: state.lineNumber,
+                line_should_end: state.line_should_end,
+                line_should_end_because: state.line_should_end_because,
+                sol_after_comment: state.sol_after_comment,
 
-              objects: objectsCopy,
-              collisionLayers: collisionLayersCopy,
+                objects_candname: state.objects_candname,
+                objects_section: state.objects_section,
+                objects_spritematrix: state.objects_spritematrix.slice(),
 
-              commentLevel: state.commentLevel,
-              commentStyle: state.commentStyle,
-              section: state.section,
-              visitedSections: state.visitedSections.concat([]),
+                tokenIndex: state.tokenIndex,
+                // PS+ SECTION command argument if any
+                currentSection: state.currentSection,
+                current_line_wip_array: state.current_line_wip_array.slice(),
 
-              line_should_end: state.line_should_end,
-              line_should_end_because: state.line_should_end_because,
-              sol_after_comment: state.sol_after_comment,
+                legend_synonyms: state.legend_synonyms.map(p => p.slice()),
+                legend_aggregates: state.legend_aggregates.map(p => p.slice()),
+                legend_properties: state.legend_properties.map(p => p.slice()),
 
-              objects_candname: state.objects_candname,
-              objects_section: state.objects_section,
-              objects_spritematrix: state.objects_spritematrix.concat([]),
+                sounds: state.sounds.map(p => p.slice()),
 
-              tokenIndex: state.tokenIndex,
-              // PS+ SECTION command argument if any
-              currentSection: state.currentSection,
-              current_line_wip_array: state.current_line_wip_array.concat([]),
+                rules: state.rules.map(p => p.slice()),
 
-              legend_synonyms: legend_synonymsCopy,
-              legend_aggregates: legend_aggregatesCopy,
-              legend_properties: legend_propertiesCopy,
+                names: state.names.slice(),
 
-              sounds: soundsCopy,
+                winconditions: state.winconditions.slice(),
 
-              rules: rulesCopy,
+                original_case_names : Object.assign({},state.original_case_names),
+                original_line_numbers : Object.assign({},state.original_line_numbers),
+    
+                abbrevNames: state.abbrevNames.slice(),
 
-              names: state.names.concat([]),
+                metadata : state.metadata.slice(),
+                metadata_lines: Object.assign({}, state.metadata_lines),
 
-              winconditions: winConditionsCopy,
+                sprite_size : state.sprite_size,
 
-              original_case_names : original_case_namesCopy,
-              original_line_numbers : original_line_numbersCopy,
+                case_sensitive : state.case_sensitive,
 
-              abbrevNames: state.abbrevNames.concat([]),
+                levels: state.levels.map(p => p.slice()),
 
-              metadata : state.metadata.concat([]),
-              metadata_lines: Object.assign({}, state.metadata_lines),
-
-              sprite_size : state.sprite_size,
-
-              case_sensitive : state.case_sensitive,
-
-              levels: levelsCopy,
-
-              STRIDE_OBJ : state.STRIDE_OBJ,
-              STRIDE_MOV : state.STRIDE_MOV
-            };
-
-            return nstate;        
+                STRIDE_OBJ : state.STRIDE_OBJ,
+                STRIDE_MOV : state.STRIDE_MOV
+            });
         },
         blankLine: function(state) {
             if (state.section === 'levels') {
-                    if (state.levels[state.levels.length - 1].length > 0)
-                    {
-                        state.levels.push([]);
-                    }
+                if (state.levels[state.levels.length - 1].length > 0) {
+                    state.levels.push([]);
+                } 
+            } else if (state.section === 'objects') {
+                if (debugLevel && state.objects_section == 3) 
+                    console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+
+                state.objects_section = 0;
             }
         },
         // function is called to successively find tokens and return a token type in a source code line
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
+            // these sections may have pre-loaded tokens, to be cleared before *anything* else
+            if (['', 'prelude', 'objects', 'sounds'].includes(state.section) && state.current_line_wip_array.length > 0)
+                return flushToken();
+
            	var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
@@ -1040,134 +1119,67 @@ var codeMirrorFn = function() {
                 return 'EQUALSBIT';
             }
 
-            //MATCH SECTION NAME
-            var sectionNameMatches = stream.match(reg_sectionNames, true);
-            if (sol && sectionNameMatches) {
-
-                state.section = sectionNameMatches[0].trim().toLowerCase();
-                if (state.visitedSections.indexOf(state.section) >= 0) {
-                    logError('cannot duplicate sections (you tried to duplicate \"' + state.section.toUpperCase() + '").', state.lineNumber);
-                }
-                state.line_should_end = true;
-                state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
-                state.visitedSections.push(state.section);
-                var sectionIndex = sectionNames.indexOf(state.section);
-
-                var name_plus = state.case_sensitive ? state.section : state.section.toUpperCase()
-                if (sectionIndex == 0) {
-                    state.objects_section = 0;
-                    if (state.visitedSections.length > 1) {
-                        logError('section "' + name_plus + '" must be the first section', state.lineNumber);
-                    }
-                } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
-                    if (sectionIndex===-1) {
-                        logError('no such section as "' + name_plus + '".', state.lineNumber);
-                    } else {
-                        logError('section "' + name_plus + '" is out of order, must follow  "' + sectionNames[sectionIndex - 1].toUpperCase() + '" (or it could be that the section "'+sectionNames[sectionIndex - 1].toUpperCase()+`"is just missing totally.  You have to include all section headings, even if the section itself is empty).`, state.lineNumber);                            
-                    }
-                }
-
-                if (state.section === 'objects'){
-                    if (!state.commentStyle)
-                        state.commentStyle = '()';
-                } else if (state.section === 'sounds') {
-                    //populate names from rules
-                    for (var n in state.objects) {
-                        if (state.objects.hasOwnProperty(n)) {
-                            state.names.push(n);
-                        }
-                    }
-                    //populate names from legends
-                    for (var i = 0; i < state.legend_synonyms.length; i++) {
-                        var n = state.legend_synonyms[i][0];
-                        state.names.push(n);
-                    }
-                    for (var i = 0; i < state.legend_aggregates.length; i++) {
-                        var n = state.legend_aggregates[i][0];
-                        state.names.push(n);
-                    }
-                    for (var i = 0; i < state.legend_properties.length; i++) {
-                        var n = state.legend_properties[i][0];
-                        state.names.push(n);
-                    }
-                }
-                else if (state.section === 'levels') {
-                    //populate character abbreviations
-                    for (var n in state.objects) {
-                        if (state.objects.hasOwnProperty(n) && n.length == 1) {
-                            state.abbrevNames.push(n);
-                        }
-                    }
-
-                    for (var i = 0; i < state.legend_synonyms.length; i++) {
-                        if (state.legend_synonyms[i][0].length == 1) {
-                            state.abbrevNames.push(state.legend_synonyms[i][0]);
-                        }
-                    }
-                    for (var i = 0; i < state.legend_aggregates.length; i++) {
-                        if (state.legend_aggregates[i][0].length == 1) {
-                            state.abbrevNames.push(state.legend_aggregates[i][0]);
-                        }
-                    }
-                }
+            if (sol && parseSection(stream, state))
                 return 'HEADER';
-            } else {
-                if (state.section === undefined) {
-                    logError('must start with section "OBJECTS"', state.lineNumber);
-                }
-            }
+            // bug: can never happen
+            // } else {
+            //     if (state.section === undefined) {
+            //     logError('must start with section "OBJECTS"', state.lineNumber);
+            //     }
+            // }
 
             if (stream.eol()) {
                 endOfLineProcessing(state,mixedCase);  
                 return null;
             }
 
-            //if color is set, try to set matrix
-            //if can't set matrix, try to parse name
-            //if color is not set, try to parse color
+            // per section specific parsing
             switch (state.section) {
                 case '': {
                     if (sol) {
                         stream.string = mixedCase;  // put it back, for now!
                         state.current_line_wip_array = parsePrelude(stream, state);
                     }
-                    if (state.current_line_wip_array.length > 0) {
-                        const token = state.current_line_wip_array.shift();
-                        stream.pos = token.pos;
-                        return token.kind;
-                    } 
+                    if (state.current_line_wip_array.length > 0)
+                        return flushToken();
+
                 }
                 case 'objects': {
-                    if (sol)
-                        state.current_line_wip_array = [mixedCase];
-                    else mixedCase = state.current_line_wip_array[0];
-
-                    if (state.objects_section == 1 || state.objects_section == 2) {
-                        if (sol || (state.commentStyle == '//' && stream.match(/;\s*/)))
-                            state.objects_section++;
+                    if (state.objects_section == 0) {
+                        state.current_line_wip_array = [];
+                        state.objects_section = 1;
+                    } else if (state.objects_section == 3) {
+                        // if not a grid char assume missing blank line and go to next object
+                        if (sol && !stream.match(/^[.\d]/, false) 
+                            && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
+                            if (debugLevel) 
+                                console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            state.objects_section = 1;
+                        }
                     }
+
+                    if (sol)
+                        state.current_line_wip_array['mixed'] = mixedCase;
+                    else mixedCase = state.current_line_wip_array['mixed'];
 
                     //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
-                    case 0:
-                    case 1: { //LOOK FOR NAME(s)
-                            state.objects_spritematrix = [];
-                            return parseObjectName(stream, mixedCase, state);
+                    case 1: { 
+                            state.current_line_wip_array.push(...parseObjectName(stream, mixedCase, state));
+                            state.objects_section++;
+                            return flushToken();
                         }
-                    case 2: { //LOOK FOR COLOR(s)
-                            return parseObjectColor(stream, state);
+                    case 2: { 
+                            state.current_line_wip_array.push(...parseObjectColors(stream, state));
+                            state.objects_section++;
+                            return flushToken();
                         }
                     case 3: {
-                            if (stream.match(/text/u, true))
-                                return parseObjectText(stream, state, mixedCase);
-                            // if not a grid char assume missing blank line and go to next object
-                            if (sol && !stream.match(/^[.\d]/, false)) {
-                                state.objects_section = 0;
-                                return parseObjectName(stream, mixedCase, state);
-                            }
-                            if (sol)
-                                state.objects_spritematrix.push('');
-                            return parseObjectSprite(stream, state);
+                            if (stream.match(/^text:/u, false)) {
+                                stream.string = mixedCase;
+                                state.current_line_wip_array.push(...parseObjectText(stream, state));
+                            } else state.current_line_wip_array.push(...parseObjectSprite(stream, state));
+                            return flushToken();
                         }
                     }
                     break;
@@ -1263,13 +1275,10 @@ var codeMirrorFn = function() {
                 //         INT
                 //         DIR+ ~ INT
                 case 'sounds': {
-                    if (sol) 
+                    if (sol)
                         state.current_line_wip_array = parseSounds(stream, state);
-                    if (state.current_line_wip_array.length > 0) {
-                        const token = state.current_line_wip_array.shift();
-                        stream.pos = token.pos;
-                        return token.kind;
-                    } 
+                    if (state.current_line_wip_array.length > 0) 
+                        return flushToken();
                 }
 
                 case 'collisionlayers': {
@@ -1424,7 +1433,7 @@ var codeMirrorFn = function() {
                             } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
-                            } else if (state.tokenIndex === 1 && reg_directions.exec(m)) {
+                            } else if (state.tokenIndex === 1 && directions_table.includes(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else {
@@ -1621,19 +1630,23 @@ var codeMirrorFn = function() {
                 stream.next();
                 return null;
             }
+
+            // flush token and kind list back to code mirror
+
+            function flushToken() {
+                if (state.current_line_wip_array.length > 0) {
+                    const token = state.current_line_wip_array.shift();
+                    stream.pos = token.pos;
+                    return token.kind;
+                } else return null;
+            }
+
         },
         startState: function() {
             return {
-                /*
-                    permanently useful
-                */
                 objects: {},
 
-                /*
-                    for parsing
-                */
                 lineNumber: 0,
-
                 commentLevel: 0,  // trigger comment style
                 commentStyle: null,
 

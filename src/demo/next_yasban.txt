@@ -73,7 +73,7 @@ Crate C; Yellow DarkBrown
 Background .; LightGrey
 Void -; Blue
 Hello H; blue yellow
-text Hello world!
+text: Hello world!
 
 =======
 LEGEND
