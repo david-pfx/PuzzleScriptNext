@@ -1526,8 +1526,7 @@ var dirMaskName = {
 	19: 'lclick',
 	20: 'rclick',
 	// todo: 21: 'mclick',
-	// todo: 22: 'drag',
-	// todo: 23: 'reaction',
+	// todo: 22: 'reaction',
 };
 
 var dirMasks = {
@@ -1543,8 +1542,7 @@ var dirMasks = {
 	'lclick': 19,
 	'rclick': 20,
 	// todo: 'mclick': 21,
-	// todo: 'drag': 22,
-	// todo: 'reaction': 23,
+	// todo: 'reaction': 22,
 	'': 0
 };
 
@@ -1701,7 +1699,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     return true;
 }
 
-function repositionEntitiesAtCell(positionIndex, shouldRecordMovement = false) {
+function repositionEntitiesAtCell(positionIndex) {
     var movementMask = level.getMovements(positionIndex);
     if (movementMask.iszero())
         return false;
@@ -1712,16 +1710,11 @@ function repositionEntitiesAtCell(positionIndex, shouldRecordMovement = false) {
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
-				if (shouldRecordMovement & state.metadata.tween_length != undefined) {
+				if (state.metadata.tween_length) {
 					var delta = dirMasksDelta[layerMovement];
 					var targetIndex = (positionIndex+delta[1]+delta[0]*level.height);
 
-					var index = "p"+targetIndex+"-l"+layer;
-					newMovedEntities[index] = layerMovement;
-					/*console.log("Tweened into cell! x:"+ ((positionIndex / level.height | 0)) 
-						+ " y:" + ((positionIndex % level.height)) 
-						+ " delta:" + delta + " index:" + index + " dir:" +layerMovement)
-						*/
+					newMovedEntities["p"+targetIndex+"-l"+layer] = layerMovement;
 				}
 
                 movementMask.ishiftclear(layerMovement, 5*layer);
@@ -2754,14 +2747,7 @@ Rule.prototype.queueCommands = function() {
 		var command=commands[i];
 		var already=false;
 		if (level.commandQueue.indexOf(command[0])>=0) {
-			if (state.metadata.runtime_metadata_twiddling !== undefined)
-			{
-				if (!twiddleable_params.includes(command[0])) {
 			continue;
-				} //Otherwise, allow multiple changes for twiddleable params per turn
-			} else {
-				continue;
-		}
 		}
 		level.commandQueue.push(command[0]);
 		level.commandQueueSourceRules.push(this);
@@ -2813,11 +2799,13 @@ Rule.prototype.queueCommands = function() {
 
       twiddleMetadataExtras()
 
-      if (verbose_logging) {
-		var inspect_ID =  addToDebugTimeline(level,this.lineNumber);
-		var logString = `-> Set ${command[0]} to ${value}.`;
-		consolePrint(logString,false,this.lineNumber,inspect_ID);
+      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+        var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
+        if (value != command[1]) {
+          log += " ("+command[1]+")"
         }
+        consolePrintFromRule(log,this,true);
+      }
     }   
   }
 };
@@ -3025,13 +3013,13 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 
 
 //if this returns!=null, need to go back and reprocess
-function resolveMovements(level, bannedGroup, shouldRecordMovement = false){
+function resolveMovements(level, bannedGroup){
 	var moved=true;
 
     while(moved){
         moved=false;
         for (var i=0;i<level.n_tiles;i++) {
-		  moved = repositionEntitiesAtCell(i, shouldRecordMovement) || moved;
+		  moved = repositionEntitiesAtCell(i) || moved;
         }
     }
     var doUndo=false;
@@ -3223,8 +3211,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
         	
 			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
-			
-        	var shouldUndo = resolveMovements(level,bannedGroup,!dontModify);
+        	var shouldUndo = resolveMovements(level, bannedGroup);
 
         	if (shouldUndo) {
         		rigidloop=true;
