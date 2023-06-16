@@ -1699,7 +1699,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     return true;
 }
 
-function repositionEntitiesAtCell(positionIndex) {
+function repositionEntitiesAtCell(positionIndex, shouldRecordMovement = false) {
     var movementMask = level.getMovements(positionIndex);
     if (movementMask.iszero())
         return false;
@@ -1710,11 +1710,16 @@ function repositionEntitiesAtCell(positionIndex) {
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
-				if (state.metadata.tween_length) {
+				if (shouldRecordMovement & state.metadata.tween_length != undefined) {
 					var delta = dirMasksDelta[layerMovement];
 					var targetIndex = (positionIndex+delta[1]+delta[0]*level.height);
 
-					newMovedEntities["p"+targetIndex+"-l"+layer] = layerMovement;
+					var index = "p"+targetIndex+"-l"+layer;
+					newMovedEntities[index] = layerMovement;
+					/*console.log("Tweened into cell! x:"+ ((positionIndex / level.height | 0)) 
+						+ " y:" + ((positionIndex % level.height)) 
+						+ " delta:" + delta + " index:" + index + " dir:" +layerMovement)
+						*/
 				}
 
                 movementMask.ishiftclear(layerMovement, 5*layer);
@@ -2747,7 +2752,14 @@ Rule.prototype.queueCommands = function() {
 		var command=commands[i];
 		var already=false;
 		if (level.commandQueue.indexOf(command[0])>=0) {
+			if (state.metadata.runtime_metadata_twiddling !== undefined)
+			{
+				if (!twiddleable_params.includes(command[0])) {
 			continue;
+				} //Otherwise, allow multiple changes for twiddleable params per turn
+			} else {
+				continue;
+		}
 		}
 		level.commandQueue.push(command[0]);
 		level.commandQueueSourceRules.push(this);
@@ -2799,13 +2811,11 @@ Rule.prototype.queueCommands = function() {
 
       twiddleMetadataExtras()
 
-      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
-        var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
-        if (value != command[1]) {
-          log += " ("+command[1]+")"
+      if (verbose_logging) {
+		var inspect_ID =  addToDebugTimeline(level,this.lineNumber);
+		var logString = `-> Set ${command[0]} to ${value}.`;
+		consolePrint(logString,false,this.lineNumber,inspect_ID);
         }
-        consolePrintFromRule(log,this,true);
-      }
     }   
   }
 };
@@ -3013,13 +3023,13 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 
 
 //if this returns!=null, need to go back and reprocess
-function resolveMovements(level, bannedGroup){
+function resolveMovements(level, bannedGroup, shouldRecordMovement = false){
 	var moved=true;
 
     while(moved){
         moved=false;
         for (var i=0;i<level.n_tiles;i++) {
-		  moved = repositionEntitiesAtCell(i) || moved;
+		  moved = repositionEntitiesAtCell(i, shouldRecordMovement) || moved;
         }
     }
     var doUndo=false;
@@ -3211,7 +3221,8 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
         	
 			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
-        	var shouldUndo = resolveMovements(level, bannedGroup);
+			
+        	var shouldUndo = resolveMovements(level,bannedGroup,!dontModify);
 
         	if (shouldUndo) {
         		rigidloop=true;

@@ -169,9 +169,9 @@ ncp("./src", "./bin/", function (err) {
                 "./src/js/layout.js",
                 "./src/js/addlisteners.js",
                 "./src/js/addlisteners_editor.js",
-                "./src/js/makegif.js",
                 "./src/js/solver.js",
-                "./src/js/FastPriorityQueue.js"];
+                "./src/js/FastPriorityQueue.js",
+                "./src/js/makegif.js"];
 
             var corpus = {};
             for (var i = 0; i < files.length; i++) {

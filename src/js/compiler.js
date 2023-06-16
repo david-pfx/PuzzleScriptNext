@@ -624,6 +624,8 @@ function convertSectionNamesToIndices(state) {
 		for (var c = 0; c < rule.commands.length; c++) {
 			var command = rule.commands[c];
 			if (command[0] != 'goto') continue;
+            
+            if ( typeof command[1] == "number") {continue;} //Variant rule was previously converted into an index PS+#105
 			var sectionName = command[1].toLowerCase();
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
@@ -3177,6 +3179,7 @@ function compile(command, text, randomseed) {
     if (IDE) {
         if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
             logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
+            logWarning("[PS+] Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true);
         }
 
         if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
@@ -3190,16 +3193,23 @@ function compile(command, text, randomseed) {
         if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
             logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
         }
+
+        if(state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+            logWarning("[PS+] RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true);
+        }
+
+        if(state.metadata.level_select !== undefined && state.sections.length == 0) {
+            logWarning("[PS+] To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true);
+        }
+        if (isSitelocked()) {
+            logError("The game is sitelocked. To continue testing, add the current domain '"+window.location.origin+ "' to the list.", undefined, true);
+        }
     }
 
-    setGameState(state, command, randomseed);
-
-    clearInputHistory();
-
-    if (isSitelocked() && IDE) {
-        logError("The game is sitelocked. To continue testing, add the current domain '"+window.location.origin+ "' to the list.", undefined, true);
+    if (state) { //otherwise error
+        setGameState(state, command, randomseed);
+        clearInputHistory();
     }
-
     consoleCacheDump();
 
     return state;

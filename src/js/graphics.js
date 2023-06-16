@@ -1013,9 +1013,9 @@ function canvasResize() {
     var w = 5;
     var h = 5;
 
-    if (sprites.length >= 2) {
-        var w = sprites[1].dat.length;
-        var h = sprites[1].dat.length;//sprites[1].dat[0].length;
+    if (state.sprite_size !== undefined) {
+        var w = state.sprite_size;
+        var h = state.sprite_size;//sprites[1].dat[0].length;
     }
 
     if (textMode) {
