@@ -7,7 +7,7 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23f09. It includes the following.
+The latest version is Release v-23f16. It includes the following.
 
 ### Sprites can be of any size or width
 
@@ -74,7 +74,7 @@ The parameters are:
  animate_interval 0.4 //  set animations to run in 0.4 secs
  ```
 
- ### Comment styles
+### Comment styles
 Like this:
 ```
 title PuzzleScriptNext Starter
@@ -117,7 +117,7 @@ These movements are also displayed in the editor to show where the click happene
 
 Instead of a sprite matrix, use `text:` followed by a string of one or more characters. 
 The rest of the line is the text in the sprite (trimmed).
-The test program is [`test_min_text.txt`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_text).
+The test program is [`test_min_text`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_text).
 Use it like this. 
 ```
 s; purple; text S
@@ -134,7 +134,7 @@ A future release may offer a better font.
 Property objects work as maps, to move objects in corresponding positions within the definition.
 There must be at least one on each side and all must be the same size.
 
-Use it like this. The test program is [`test_min_corr.txt`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_corr).
+Use it like this. The test program is [`test_min_move_corr`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_move_corr).
 ```
 rgb = r or g or b
 gbr = g or b or r
