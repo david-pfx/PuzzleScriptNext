@@ -477,10 +477,7 @@ function redraw() {
         ctx.fillStyle = state.bgcolor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        var mini=0;
-        var maxi=screenwidth;
-        var minj=0;
-        var maxj=screenheight;
+        let minMaxIJ = [ 0, 0, screenwidth, screenheight ];
 
         var cameraOffset = {
             x: 0,
@@ -490,8 +487,8 @@ function redraw() {
         if (levelEditorOpened) {
             var glyphcount = glyphCount();
             editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
-            maxi-=2;
-            maxj-=2+editorRowCount;
+            minMaxIJ[2] -= 2;
+            minMaxIJ[3] -= 2 + editorRowCount;
         } else if (flickscreen) {
             var playerPositions = getPlayerPositions();
             if (playerPositions.length>0) {
@@ -499,36 +496,28 @@ function redraw() {
                 var px = (playerPosition/(curlevel.height))|0;
                 var py = (playerPosition%curlevel.height)|0;
 
-                var screenx = (px/screenwidth)|0;
-                var screeny = (py/screenheight)|0;
-                mini=screenx*screenwidth;
-                minj=screeny*screenheight;
-                maxi=Math.min(mini+screenwidth,curlevel.width);
-                maxj=Math.min(minj+screenheight,curlevel.height);
+                const screenx = (px / screenwidth) | 0;
+                const screeny = (py / screenheight) | 0;
+                const mini = screenx * screenwidth;
+                const minj = screeny * screenheight;
+                minMaxIJ = [min, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
 
-                oldflickscreendat=[mini,minj,maxi,maxj];
+                oldflickscreendat = minMaxIJ;
             } else if (oldflickscreendat.length>0){
-                mini=oldflickscreendat[0];
-                minj=oldflickscreendat[1];
-                maxi=oldflickscreendat[2];
-                maxj=oldflickscreendat[3];
+                minMaxIJ = oldflickscreendat;
             }
         } else if (zoomscreen) {
             var playerPositions = getPlayerPositions();
             if (playerPositions.length>0) {
-                var playerPosition=playerPositions[0];
-                var px = (playerPosition/(curlevel.height))|0;
-                var py = (playerPosition%curlevel.height)|0;
-                mini=Math.max(Math.min(px-((screenwidth/2)|0),curlevel.width-screenwidth),0);
-                minj=Math.max(Math.min(py-((screenheight/2)|0),curlevel.height-screenheight),0);
-                maxi=Math.min(mini+screenwidth,curlevel.width);
-                maxj=Math.min(minj+screenheight,curlevel.height);
-                oldflickscreendat=[mini,minj,maxi,maxj];
+                const playerPosition = playerPositions[0];
+                const px = (playerPosition / (curlevel.height)) | 0;
+                const py = (playerPosition % curlevel.height) | 0;
+                const mini = Math.max(Math.min(px - ((screenwidth / 2) | 0), curlevel.width - screenwidth), 0);
+                const minj = Math.max(Math.min(py - ((screenheight / 2) | 0), curlevel.height - screenheight), 0);
+                minMaxIJ = [mini, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
+                oldflickscreendat = minMaxIJ;
             }  else if (oldflickscreendat.length>0){
-                mini=oldflickscreendat[0];
-                minj=oldflickscreendat[1];
-                maxi=oldflickscreendat[2];
-                maxj=oldflickscreendat[3];
+                minMaxIJ = oldflickscreendat;
             }         
         } else if (smoothscreen) {
             if (cameraPositionTarget !== null) {
@@ -547,31 +536,28 @@ function redraw() {
                     //console.log(coord + " "+ cameraPosition[coord])
                     cameraOffset[coord] = cameraPosition[coord] % 1;
                 })
-
-                mini=Math.max(Math.min(Math.floor(cameraPosition.x)-Math.floor(screenwidth/2), level.width-screenwidth),0);
-                minj=Math.max(Math.min(Math.floor(cameraPosition.y)-Math.floor(screenheight/2), level.height-screenheight),0);
-
-                maxi=Math.min(mini+screenwidth,level.width);
-                maxj=Math.min(minj+screenheight,level.height);
-                oldflickscreendat=[mini,minj,maxi,maxj];
+                const mini = Math.max(Math.min(Math.floor(cameraPosition.x) - Math.floor(screenwidth / 2), level.width - screenwidth), 0);
+                const minj = Math.max(Math.min(Math.floor(cameraPosition.y) - Math.floor(screenheight / 2), level.height - screenheight), 0);
+                minMaxIJ = [mini, minj, Math.min(mini + screenwidth, level.width), Math.min(minj + screenheight, level.height)];
+                oldflickscreendat = minMaxIJ;
             } else if (oldflickscreendat.length>0) {
-                mini=oldflickscreendat[0];
-                minj=oldflickscreendat[1];
-                maxi=oldflickscreendat[2];
-                maxj=oldflickscreendat[3];
+                minMaxIJ = oldflickscreendat;
             }
 
+            const iLen = (minMaxIJ[2] - minMaxIJ[0]) * cellwidth;
+            const jLen = (minMaxIJ[3] - minMaxIJ[1]) * cellheight;
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(xoffset, yoffset);
-            ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset);
-            ctx.lineTo(xoffset + (maxi - mini) * cellwidth, yoffset + (maxj - minj) * cellwidth);
-            ctx.lineTo(xoffset, yoffset + (maxj - minj) * cellwidth);
+            ctx.lineTo(xoffset + iLen, yoffset);
+            ctx.lineTo(xoffset + iLen, yoffset + jLen);
+            ctx.lineTo(xoffset, yoffset + jLen);
             ctx.clip();
         }
 	    
-		screenOffsetX = mini;
-		screenOffsetY = minj;
+        // used in function isInside
+		screenOffsetX = minMaxIJ[0];
+		screenOffsetY = minMaxIJ[1];
 
         var renderBorderSize = smoothscreen ? 1 : 0;
         var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
@@ -581,11 +567,18 @@ function redraw() {
         //seedsToAnimate.length = 0;  // temp:
         isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
-        if (tweening) drawObjectsTweening();
-        else drawObjects();
+        const iter = [
+            Math.max(minMaxIJ[0] - renderBorderSize, 0),
+            Math.min(minMaxIJ[2] + renderBorderSize, curlevel.width),
+            Math.max(minMaxIJ[1] - renderBorderSize, 0),
+            Math.min(minMaxIJ[3] + renderBorderSize, curlevel.height)
+        ];
+
+        if (tweening) drawObjectsTweening(iter);
+        else drawObjects(iter);
 
         // Default draw loop, including when animating
-        function drawObjects() {
+        function drawObjects(iter) {
             showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
             const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
             if (tween == 0) 
@@ -596,14 +589,6 @@ function redraw() {
                 pivotx: 0.0, // todo
                 pivoty: 1.0 
             } : null;
-
-            const iter = [
-                Math.max(mini - renderBorderSize, 0),
-                Math.min(maxi + renderBorderSize, curlevel.width),
-                Math.max(minj - renderBorderSize, 0),
-                Math.min(maxj + renderBorderSize, curlevel.height)
-            ];
-
 
             // draw each object in all the places it occurs, in layer order
             for (let k = 0; k < state.objectCount; k++) { 
@@ -623,8 +608,8 @@ function redraw() {
                                 continue;
                             const spriteScale = spriteScaler ? Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size : 1;
                             const drawpos = {
-                                x: xoffset + (i-mini-cameraOffset.x) * cellwidth,
-                                y: yoffset + (j-minj-cameraOffset.y) * cellheight
+                                x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth,
+                                y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight
                             };
                             
                             let params = {
@@ -688,7 +673,7 @@ function redraw() {
         }
 
         // Draw loop used when tweening
-        function drawObjectsTweening() {
+        function drawObjectsTweening(iter) {
             // assume already validated
             const easing = state.metadata.tween_easing || 'linear';
             const snap = state.metadata.tween_snap || state.sprite_size;
@@ -699,8 +684,8 @@ function redraw() {
                 var object = state.objects[state.idDict[k]];
                 var layerID = object.layer;
 
-                for (var i = Math.max(mini - renderBorderSize, 0); i < Math.min(maxi + renderBorderSize, curlevel.width); i++) {
-                    for (var j = Math.max(minj - renderBorderSize, 0); j < Math.min(maxj + renderBorderSize, curlevel.height); j++) {
+                for (var i = iter[0]; i < iter[0]; i++) {
+                    for (var j = iter[0]; j < iter[0]; j++) {
                         var posIndex = j + i * curlevel.height;
                         var posMask = curlevel.getCellInto(posIndex,_o12);                
                     
@@ -708,8 +693,8 @@ function redraw() {
                             var spriteX = (k % spritesheetSize)|0;
                             var spriteY = (k / spritesheetSize)|0;
     
-                            var x = xoffset + (i-mini-cameraOffset.x) * cellwidth;
-                            var y = yoffset + (j-minj-cameraOffset.y) * cellheight;
+                            var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
+                            var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
     
                             if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
                                 var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
@@ -751,8 +736,8 @@ function redraw() {
             prevlevel.movements = prev_state.movements;
             prevlevel.rigidMovementAppliedMask = prev_state.rigidMovementAppliedMask;
         
-            for (var i = mini; i < maxi; i++) {
-                for (var j = minj; j < maxj; j++) {
+            for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
+                for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
                     var posIndex = j + i * curlevel.height;
                     var movementbitvec_PREV = prevlevel.getMovements(posIndex);
                     var movementbitvec = curlevel.getMovements(posIndex);
@@ -760,36 +745,36 @@ function redraw() {
                     var posMask_PREV = prevlevel.getCellInto(posIndex,_o11); 
                     var posMask = curlevel.getCellInto(posIndex,_o12); 
                     if (!movementbitvec.equals(movementbitvec_PREV) || !posMask.equals(posMask_PREV)){
-                        ctx.drawImage(glyphHighlightDiff, xoffset + (i-mini) * cellwidth, yoffset + (j-minj) * cellheight);
+                        ctx.drawImage(glyphHighlightDiff, xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);
 
                     }
                 }
             }
         
             //draw movements!
-            for (var i = mini; i < maxi; i++) {
-                for (var j = minj; j < maxj; j++) {
+            for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
+                for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
                     var posIndex = j + i * curlevel.height;
                     var movementbitvec = curlevel.getMovements(posIndex);
                     for (var layer=0;layer<curlevel.layerCount;layer++) {
                         var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
                         const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
                         if (k >= 0) {
-                            ctx.drawImage(editorGlyphMovements[k], xoffset + (i - mini) * cellwidth, yoffset + (j - minj) * cellheight);
+                            ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
                         }
                     }                             
                 }
             }
         
             //draw rigid applciations!
-            for (var i = mini; i < maxi; i++) {
-                for (var j = minj; j < maxj; j++) {
+            for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
+                for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
                     var posIndex = j + i * curlevel.height;
                     var rigidbitvec = curlevel.getRigids(posIndex);
                     for (var layer=0;layer<curlevel.layerCount;layer++) {
                         var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
                         if (layerRigid!==0) {
-                            ctx.drawImage(editorGlyphMovements[5], xoffset + (i-mini) * cellwidth, yoffset + (j-minj) * cellheight);                            
+                            ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
                         }
                     }                             
                 }
@@ -804,7 +789,7 @@ function redraw() {
         }
 
 	    if (levelEditorOpened) {
-	    	drawEditorIcons(mini,minj);
+	    	drawEditorIcons(minMaxIJ[0], minMaxIJ[1]);
 	    }
     }
 }

@@ -1526,7 +1526,8 @@ var dirMaskName = {
 	19: 'lclick',
 	20: 'rclick',
 	// todo: 21: 'mclick',
-	// todo: 22: 'reaction',
+	// todo: 22: 'drag',
+	// todo: 23: 'reaction',
 };
 
 var dirMasks = {
@@ -1542,7 +1543,8 @@ var dirMasks = {
 	'lclick': 19,
 	'rclick': 20,
 	// todo: 'mclick': 21,
-	// todo: 'reaction': 22,
+	// todo: 'drag': 22,
+	// todo: 'reaction': 23,
 	'': 0
 };
 

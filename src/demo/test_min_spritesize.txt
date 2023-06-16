@@ -8,8 +8,8 @@ homepage www.polyomino.com
 verbose_logging
 debug
 
-// allowed but ignored
-sprite_size 7
+// remove the comments to see sprite scaling that can overflow a cell
+//sprite_size 7
 
 ========
 OBJECTS
