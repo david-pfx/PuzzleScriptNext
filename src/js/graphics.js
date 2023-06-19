@@ -288,11 +288,12 @@ function generateGlyphImages() {
 		var spritectx = glyphHighlight.getContext('2d');
 		spritectx.fillStyle = '#FFFFFF';
 
-		spritectx.fillRect(0,0,cellwidth,1);
-		spritectx.fillRect(0,0,1,cellheight);
-		
-		spritectx.fillRect(0,cellheight-1,cellwidth,1);
-		spritectx.fillRect(cellwidth-1,0,1,cellheight);
+        const hlwid = 3;
+        spritectx.fillRect(0, 0, cellwidth, hlwid);
+        spritectx.fillRect(0, 0, hlwid, cellheight);
+
+        spritectx.fillRect(0, cellheight - hlwid, cellwidth, hlwid);
+        spritectx.fillRect(cellwidth - hlwid, 0, hlwid, cellheight);
 
 		glyphPrintButton = textImages['editor_s'];
 
@@ -316,34 +317,30 @@ function generateGlyphImages() {
 		spritectx.fillRect(0,cellheight-1,cellwidth,1);
 		spritectx.fillRect(cellwidth-1,0,1,cellheight);
 
-        
-
 		glyphPrintButton = textImages['editor_s'];
-
 
 		//make highlight thingy
 		glyphHighlightResize = makeSpriteCanvas("highlightresize");
 		var spritectx = glyphHighlightResize.getContext('2d');
 		spritectx.fillStyle = '#FFFFFF';
 		
-		var minx=((cellwidth/2)-1)|0;
-		var xsize=cellwidth-minx-1-minx;
-		var miny=((cellheight/2)-1)|0;
-		var ysize=cellheight-miny-1-minx;
-
-		spritectx.fillRect(minx,0,xsize,cellheight);
-		spritectx.fillRect(0,miny,cellwidth,ysize);
+        const rswid = 3;
+        const minx = ~~(cellwidth / 2 - 1);
+        const miny = ~~(cellheight / 2 - 1);
+		spritectx.fillRect(minx, 0, rswid, cellheight);
+		spritectx.fillRect(0, miny, cellwidth, rswid);
 
 		//make highlight thingy
 		glyphMouseOver = makeSpriteCanvas("glyphMouseOver");
 		var spritectx = glyphMouseOver.getContext('2d');
 		spritectx.fillStyle = 'yellow';
-		
-		spritectx.fillRect(0,0,cellwidth,2);
-		spritectx.fillRect(0,0,2,cellheight);
-		
-		spritectx.fillRect(0,cellheight-2,cellwidth,2);
-		spritectx.fillRect(cellwidth-2,0,2,cellheight);
+		const mowid = 3;  // was 2
+
+        spritectx.fillRect(0, 0, cellwidth, mowid);
+        spritectx.fillRect(0, 0, mowid, cellheight);
+
+        spritectx.fillRect(0, cellheight - mowid, cellwidth, mowid);
+        spritectx.fillRect(cellwidth - mowid, 0, mowid, cellheight);
 
         //make movement glyphs
 
@@ -425,372 +422,369 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    const showTimer = document.getElementById('timer');
-    showTimer.innerHTML = timer;
 
-    var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+    if (textMode)
+        redrawTextMode();
+    else redrawCellGrid();
+}
 
-    if (textMode) {
-        ctx.fillStyle = state.bgcolor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+function redrawTextMode() {
+    const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+    ctx.fillStyle = state.bgcolor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
-            for (var i = 0; i < titleWidth; i++) {
-                for (var j = 0; j < titleHeight; j++) {
-                    var ch = titleImage[j].charAt(i);
-                    if (ch in font) {
-                        var index = fontIndex[ch];
-                        var textX = (index % textsheetSize)|0;
-                        var textY = (index / textsheetSize)|0;
-                        ctx.imageSmoothingEnabled = false;
-                        ctx.drawImage(
-                            textsheetCanvas,
-                            textX * textcellwidth,
-                            textY * textcellheight,
-                            textcellwidth, textcellheight,
-                            xoffset + i * cellwidth,
-                            yoffset + j * cellheight,
-                            cellwidth, cellheight
-                        );
-                        ctx.imageSmoothingEnabled = true;
-                    }
+    if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
+        for (var i = 0; i < titleWidth; i++) {
+            for (var j = 0; j < titleHeight; j++) {
+                var ch = titleImage[j].charAt(i);
+                if (ch in font) {
+                    var index = fontIndex[ch];
+                    var textX = (index % textsheetSize)|0;
+                    var textY = (index / textsheetSize)|0;
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(
+                        textsheetCanvas,
+                        textX * textcellwidth,
+                        textY * textcellheight,
+                        textcellwidth, textcellheight,
+                        xoffset + i * cellwidth,
+                        yoffset + j * cellheight,
+                        cellwidth, cellheight
+                    );
+                    ctx.imageSmoothingEnabled = true;
                 }
             }
-        } else {
-            if (spritesheetCanvas===null) {
-                regenSpriteImages();
-            }
-            
-            for(var i = 0; i < titleHeight; i++) {
-                var row = titleImage[i];
-                drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
-            }
         }
-        return;
     } else {
-        var curlevel = level;
-        if (diffToVisualize!==null){
-            curlevel = new Level(-1,diffToVisualize.width,diffToVisualize.height,diffToVisualize.layerCount,diffToVisualize.objects);
-            curlevel.movements = diffToVisualize.movements;
-            curlevel.rigidMovementAppliedMask = diffToVisualize.rigidMovementAppliedMask;
+        if (spritesheetCanvas===null) {
+            regenSpriteImages();
         }
-        ctx.fillStyle = state.bgcolor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        let minMaxIJ = [ 0, 0, screenwidth, screenheight ];
-
-        var cameraOffset = {
-            x: 0,
-            y: 0
-        };
-
-        if (levelEditorOpened) {
-            var glyphcount = glyphCount();
-            editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
-            minMaxIJ[2] -= 2;
-            minMaxIJ[3] -= 2 + editorRowCount;
-        } else if (flickscreen) {
-            var playerPositions = getPlayerPositions();
-            if (playerPositions.length>0) {
-                var playerPosition=playerPositions[0];
-                var px = (playerPosition/(curlevel.height))|0;
-                var py = (playerPosition%curlevel.height)|0;
-
-                const screenx = (px / screenwidth) | 0;
-                const screeny = (py / screenheight) | 0;
-                const mini = screenx * screenwidth;
-                const minj = screeny * screenheight;
-                minMaxIJ = [min, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
-
-                oldflickscreendat = minMaxIJ;
-            } else if (oldflickscreendat.length>0){
-                minMaxIJ = oldflickscreendat;
-            }
-        } else if (zoomscreen) {
-            var playerPositions = getPlayerPositions();
-            if (playerPositions.length>0) {
-                const playerPosition = playerPositions[0];
-                const px = (playerPosition / (curlevel.height)) | 0;
-                const py = (playerPosition % curlevel.height) | 0;
-                const mini = Math.max(Math.min(px - ((screenwidth / 2) | 0), curlevel.width - screenwidth), 0);
-                const minj = Math.max(Math.min(py - ((screenheight / 2) | 0), curlevel.height - screenheight), 0);
-                minMaxIJ = [mini, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
-                oldflickscreendat = minMaxIJ;
-            }  else if (oldflickscreendat.length>0){
-                minMaxIJ = oldflickscreendat;
-            }         
-        } else if (smoothscreen) {
-            if (cameraPositionTarget !== null) {
-                ['x', 'y'].forEach(function (coord) {
-                    var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
-
-                    if (cameraTargetVector === 0) {
-                        return;
-                    } else if (Math.abs(cameraTargetVector) < (0.5 / cellwidth)) {
-                        // Canvas doesn't actually render subpixels, but when the camera is less than half a subpixel away from target, snap to target
-                        cameraPosition[coord] = cameraPositionTarget[coord]
-                        return
-                    }
-
-                    cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
-                    //console.log(coord + " "+ cameraPosition[coord])
-                    cameraOffset[coord] = cameraPosition[coord] % 1;
-                })
-                const mini = Math.max(Math.min(Math.floor(cameraPosition.x) - Math.floor(screenwidth / 2), level.width - screenwidth), 0);
-                const minj = Math.max(Math.min(Math.floor(cameraPosition.y) - Math.floor(screenheight / 2), level.height - screenheight), 0);
-                minMaxIJ = [mini, minj, Math.min(mini + screenwidth, level.width), Math.min(minj + screenheight, level.height)];
-                oldflickscreendat = minMaxIJ;
-            } else if (oldflickscreendat.length>0) {
-                minMaxIJ = oldflickscreendat;
-            }
-
-            const iLen = (minMaxIJ[2] - minMaxIJ[0]) * cellwidth;
-            const jLen = (minMaxIJ[3] - minMaxIJ[1]) * cellheight;
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(xoffset, yoffset);
-            ctx.lineTo(xoffset + iLen, yoffset);
-            ctx.lineTo(xoffset + iLen, yoffset + jLen);
-            ctx.lineTo(xoffset, yoffset + jLen);
-            ctx.clip();
+        
+        for(var i = 0; i < titleHeight; i++) {
+            var row = titleImage[i];
+            drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
         }
-	    
-        // used in function isInside
-		screenOffsetX = minMaxIJ[0];
-		screenOffsetY = minMaxIJ[1];
+    }
+}
+   
+// redraw the cell grid including all modes and animations
+function redrawCellGrid() {
+    var curlevel = level;
+    if (diffToVisualize!==null){
+        curlevel = new Level(-1,diffToVisualize.width,diffToVisualize.height,diffToVisualize.layerCount,diffToVisualize.objects);
+        curlevel.movements = diffToVisualize.movements;
+        curlevel.rigidMovementAppliedMask = diffToVisualize.rigidMovementAppliedMask;
+    }
+    ctx.fillStyle = state.bgcolor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        var renderBorderSize = smoothscreen ? 1 : 0;
-        var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
+    let minMaxIJ = [ 0, 0, screenwidth, screenheight ];
 
-        var tweening = state.metadata.tween_length && currentMovedEntities;
-        // global flag to force redraw
-        //seedsToAnimate.length = 0;  // temp:
-        isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
+    var cameraOffset = {
+        x: 0,
+        y: 0
+    };
 
-        const iter = [
-            Math.max(minMaxIJ[0] - renderBorderSize, 0),
-            Math.min(minMaxIJ[2] + renderBorderSize, curlevel.width),
-            Math.max(minMaxIJ[1] - renderBorderSize, 0),
-            Math.min(minMaxIJ[3] + renderBorderSize, curlevel.height)
-        ];
+    if (flickscreen) {
+        var playerPositions = getPlayerPositions();
+        if (playerPositions.length>0) {
+            var playerPosition=playerPositions[0];
+            var px = (playerPosition/(curlevel.height))|0;
+            var py = (playerPosition%curlevel.height)|0;
 
-        if (tweening) drawObjectsTweening(iter);
-        else drawObjects(iter);
+            const screenx = (px / screenwidth) | 0;
+            const screeny = (py / screenheight) | 0;
+            const mini = screenx * screenwidth;
+            const minj = screeny * screenheight;
+            minMaxIJ = [mini, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
 
-        // Default draw loop, including when animating
-        function drawObjects(iter) {
-            showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
-            const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
-            if (tween == 0) 
-                seedsToAnimate = {};
+            oldflickscreendat = minMaxIJ;
+        } else if (oldflickscreendat.length>0){
+            minMaxIJ = oldflickscreendat;
+        }
+    } else if (zoomscreen) {
+        var playerPositions = getPlayerPositions();
+        if (playerPositions.length>0) {
+            const playerPosition = playerPositions[0];
+            const px = (playerPosition / (curlevel.height)) | 0;
+            const py = (playerPosition % curlevel.height) | 0;
+            const mini = Math.max(Math.min(px - ((screenwidth / 2) | 0), curlevel.width - screenwidth), 0);
+            const minj = Math.max(Math.min(py - ((screenheight / 2) | 0), curlevel.height - screenheight), 0);
+            minMaxIJ = [mini, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
+            oldflickscreendat = minMaxIJ;
+        }  else if (oldflickscreendat.length>0){
+            minMaxIJ = oldflickscreendat;
+        }         
+    } else if (smoothscreen) {
+        if (cameraPositionTarget !== null) {
+            ['x', 'y'].forEach(function (coord) {
+                var cameraTargetVector = cameraPositionTarget[coord] - cameraPosition[coord];
 
-            const spriteScaler = state.metadata.sprite_size ? { 
-                size: state.sprite_size, 
-                pivotx: 0.0, // todo
-                pivoty: 1.0 
-            } : null;
+                if (cameraTargetVector === 0) {
+                    return;
+                } else if (Math.abs(cameraTargetVector) < (0.5 / cellwidth)) {
+                    // Canvas doesn't actually render subpixels, but when the camera is less than half a subpixel away from target, snap to target
+                    cameraPosition[coord] = cameraPositionTarget[coord]
+                    return
+                }
 
-            // draw each object in all the places it occurs, in layer order
-            for (let k = 0; k < state.objectCount; k++) { 
-                const sheetpos = { 
-                    x: ~~(k % spritesheetSize) * cellwidth, 
-                    y: ~~(k / spritesheetSize) * cellheight
-                };
+                cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
+                //console.log(coord + " "+ cameraPosition[coord])
+                cameraOffset[coord] = cameraPosition[coord] % 1;
+            })
+            const mini = Math.max(Math.min(Math.floor(cameraPosition.x) - Math.floor(screenwidth / 2), level.width - screenwidth), 0);
+            const minj = Math.max(Math.min(Math.floor(cameraPosition.y) - Math.floor(screenheight / 2), level.height - screenheight), 0);
+            minMaxIJ = [mini, minj, Math.min(mini + screenwidth, level.width), Math.min(minj + screenheight, level.height)];
+            oldflickscreendat = minMaxIJ;
+        } else if (oldflickscreendat.length>0) {
+            minMaxIJ = oldflickscreendat;
+        }
 
-                for (let i = iter[0]; i < iter[1]; i++) {
-                    for (let j = iter[2]; j < iter[3]; j++) {
-                        const posindex = j + i * curlevel.height;
-                        const posmask = curlevel.getCellInto(posindex,_o12);    
-                        const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
-                        if (posmask.get(k) || animate) {
-                            const obj = state.objects[state.idDict[k]];
-                            if (showLayers && obj.layer != showLayerNo)
-                                continue;
-                            const spriteScale = spriteScaler ? Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size : 1;
-                            const drawpos = {
-                                x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth,
-                                y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight
-                            };
-                            
-                            let params = {
-                                x: 0, y: 0,
-                                scalex: 1.0, scaley: 1.0,
-                                alpha: 1.0,                                
-                                angle: 0.0,                                
-                            };
-                            if (animate) 
-                                params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
+        const iLen = (minMaxIJ[2] - minMaxIJ[0]) * cellwidth;
+        const jLen = (minMaxIJ[3] - minMaxIJ[1]) * cellheight;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xoffset, yoffset);
+        ctx.lineTo(xoffset + iLen, yoffset);
+        ctx.lineTo(xoffset + iLen, yoffset + jLen);
+        ctx.lineTo(xoffset, yoffset + jLen);
+        ctx.clip();
+    }
+    
+    // used in function isInside
+    screenOffsetX = minMaxIJ[0];
+    screenOffsetY = minMaxIJ[1];
 
-                            const csz = { x: params.scalex * cellwidth * spriteScale, y: params.scaley * cellheight * spriteScale };
-                            const rc = { 
-                                x: Math.floor(drawpos.x + params.x * cellwidth), 
-                                y: Math.floor(drawpos.y + params.y * cellheight),
-                                w: csz.x,
-                                h: csz.y
-                            };
-                            ctx.globalAlpha = params.alpha;
-                            ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
-                            ctx.rotate(params.angle * Math.PI / 180);
-                            ctx.drawImage(
-                                spritesheetCanvas, 
-                                sheetpos.x, sheetpos.y, cellwidth, cellheight,
-                                -csz.x/2, -csz.y/2, rc.w, rc.h);
-                            ctx.globalAlpha = 1;
-                            ctx.setTransform(1, 0, 0, 1, 0, 0);
-                        }
+    var renderBorderSize = smoothscreen ? 1 : 0;
+    var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
+
+    var tweening = state.metadata.tween_length && currentMovedEntities;
+    // global flag to force redraw
+    isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
+
+    const iter = [
+        Math.max(minMaxIJ[0] - renderBorderSize, 0),
+        Math.max(minMaxIJ[1] - renderBorderSize, 0),
+        Math.min(minMaxIJ[2] + renderBorderSize, curlevel.width),
+        Math.min(minMaxIJ[3] + renderBorderSize, curlevel.height)
+    ];
+
+    if (tweening) drawObjectsTweening(iter);
+    else drawObjects(iter);
+
+    if (diffToVisualize)
+        drawDiffToVisualize();
+    if (smoothscreen) {
+        if (state.metadata.smoothscreen.debug)
+            drawSmoothScreenDebug(ctx);
+        ctx.restore();
+    }
+
+    if (levelEditorOpened)
+        drawEditorIcons(minMaxIJ[0], minMaxIJ[1]);
+
+    //----- functions -----
+    // Default draw loop, including when animating
+    function drawObjects(iter) {
+        showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
+        const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+        if (tween == 0) 
+            seedsToAnimate = {};
+
+        const spriteScaler = state.metadata.sprite_size ? { 
+            size: state.sprite_size, 
+            pivotx: 0.0, // todo
+            pivoty: 1.0 
+        } : null;
+
+        // draw each object in all the places it occurs, in layer order
+        for (let k = 0; k < state.objectCount; k++) { 
+            const sheetpos = { 
+                x: ~~(k % spritesheetSize) * cellwidth, 
+                y: ~~(k / spritesheetSize) * cellheight
+            };
+
+            for (let i = iter[0]; i < iter[2]; i++) {
+                for (let j = iter[1]; j < iter[3]; j++) {
+                    const posindex = j + i * curlevel.height;
+                    const posmask = curlevel.getCellInto(posindex,_o12);    
+                    const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
+                    if (posmask.get(k) || animate) {
+                        const obj = state.objects[state.idDict[k]];
+                        if (showLayers && obj.layer != showLayerNo)
+                            continue;
+                        const spriteScale = spriteScaler ? Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size : 1;
+                        const drawpos = {
+                            x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth,
+                            y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight
+                        };
+                        
+                        let params = {
+                            x: 0, y: 0,
+                            scalex: 1.0, scaley: 1.0,
+                            alpha: 1.0,                                
+                            angle: 0.0,                                
+                        };
+                        if (animate) 
+                            params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
+
+                        const csz = { x: params.scalex * cellwidth * spriteScale, y: params.scaley * cellheight * spriteScale };
+                        const rc = { 
+                            x: Math.floor(drawpos.x + params.x * cellwidth), 
+                            y: Math.floor(drawpos.y + params.y * cellheight),
+                            w: csz.x,
+                            h: csz.y
+                        };
+                        ctx.globalAlpha = params.alpha;
+                        ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
+                        ctx.rotate(params.angle * Math.PI / 180);
+                        ctx.drawImage(
+                            spritesheetCanvas, 
+                            sheetpos.x, sheetpos.y, cellwidth, cellheight,
+                            -csz.x/2, -csz.y/2, rc.w, rc.h);
+                        ctx.globalAlpha = 1;
+                        ctx.setTransform(1, 0, 0, 1, 0, 0);
                     }
                 }
             }
-        } 
-
-        // calculate animation for this object
-        // todo: pre-compute for performance reasons?
-        function calcAnimate(afx, kind, dir, params, tween) {
-            const funcs = {
-                xlate: (p,a) => { 
-                    const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
-                    p.x = -tween * delta[0] * (a || 1); 
-                    p.y = -tween * delta[1] * (a || 1); 
-                },
-                scale: (p,a) => { 
-                    p.scalex = p.scaley = tween; 
-                    p.x = p.y = 0.5 - tween / 2 * (a || 1);
-                },
-                alpha: (p,a) => { p.alpha = tween * (a || 1); },
-                angle: (p,a) => { p.angle = tween * (a || 360); },
-                ease: (p,a) => { tween = easingFunction(a)(tween); },
-                tween: (p,a) => { tween = tween * (a || 1); },
-            }
-            if (kind == 'create') tween = 1 - tween;
-            else if (kind == 'cant') tween = (tween > 0.5) ? 1 - tween : tween;
-
-            for (x of afx) {
-                const xs = x.split('=');
-                if (funcs[xs[0]])
-                    funcs[xs[0]](params, xs[1]);
-            }
-            return params;
         }
+    } 
 
-        // Draw loop used when tweening
-        function drawObjectsTweening(iter) {
-            // assume already validated
-            const easing = state.metadata.tween_easing || 'linear';
-            const snap = state.metadata.tween_snap || state.sprite_size;
-            let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
-            tween = Math.floor(tween * snap) / snap;
+    // calculate animation for this object
+    // todo: pre-compute for performance reasons?
+    function calcAnimate(afx, kind, dir, params, tween) {
+        const funcs = {
+            xlate: (p,a) => { 
+                const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
+                p.x = -tween * delta[0] * (a || 1); 
+                p.y = -tween * delta[1] * (a || 1); 
+            },
+            scale: (p,a) => { 
+                p.scalex = p.scaley = tween; 
+                p.x = p.y = 0.5 - tween / 2 * (a || 1);
+            },
+            alpha: (p,a) => { p.alpha = tween * (a || 1); },
+            angle: (p,a) => { p.angle = tween * (a || 360); },
+            ease: (p,a) => { tween = easingFunction(a)(tween); },
+            tween: (p,a) => { tween = tween * (a || 1); },
+        }
+        if (kind == 'create') tween = 1 - tween;
+        else if (kind == 'cant') tween = (tween > 0.5) ? 1 - tween : tween;
 
-            for (var k = 0; k < state.idDict.length; k++) {
-                var object = state.objects[state.idDict[k]];
-                var layerID = object.layer;
+        for (x of afx) {
+            const xs = x.split('=');
+            if (funcs[xs[0]])
+                funcs[xs[0]](params, xs[1]);
+        }
+        return params;
+    }
 
-                for (var i = iter[0]; i < iter[0]; i++) {
-                    for (var j = iter[0]; j < iter[0]; j++) {
-                        var posIndex = j + i * curlevel.height;
-                        var posMask = curlevel.getCellInto(posIndex,_o12);                
-                    
-                        if (posMask.get(k) != 0) {                  
-                            var spriteX = (k % spritesheetSize)|0;
-                            var spriteY = (k / spritesheetSize)|0;
-    
-                            var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
-                            var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
-    
-                            if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
-                                var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
+    // Draw loop used when tweening
+    function drawObjectsTweening(iter) {
+        // assume already validated
+        const easing = state.metadata.tween_easing || 'linear';
+        const snap = state.metadata.tween_snap || state.sprite_size;
+        let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
+        tween = Math.floor(tween * snap) / snap;
 
-                                if (dir != 16) { //Cardinal directions
-                                    var delta = dirMasksDelta[dir];
+        for (var k = 0; k < state.idDict.length; k++) {
+            var object = state.objects[state.idDict[k]];
+            var layerID = object.layer;
+
+            for (var i = iter[0]; i < iter[2]; i++) {
+                for (var j = iter[1]; j < iter[3]; j++) {
+                    var posIndex = j + i * curlevel.height;
+                    var posMask = curlevel.getCellInto(posIndex,_o12);                
                 
-                                    x -= cellwidth*delta[0]*tween
-                                    y -= cellheight*delta[1]*tween
-                                } else if (dir == 16) { //Action button
-                                    ctx.globalAlpha = 1-tween;
-                                }
+                    if (posMask.get(k) != 0) {                  
+                        var spriteX = (k % spritesheetSize)|0;
+                        var spriteY = (k / spritesheetSize)|0;
+
+                        var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
+                        var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
+
+                        if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
+                            var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
+
+                            if (dir != 16) { //Cardinal directions
+                                var delta = dirMasksDelta[dir];
+            
+                                x -= cellwidth*delta[0]*tween
+                                y -= cellheight*delta[1]*tween
+                            } else if (dir == 16) { //Action button
+                                ctx.globalAlpha = 1-tween;
                             }
-                            
-                            ctx.drawImage(
-                                spritesheetCanvas, 
-                                spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
-                                Math.floor(x), Math.floor(y), cellwidth, cellheight);
-                            ctx.globalAlpha = 1;
                         }
+                        
+                        ctx.drawImage(
+                            spritesheetCanvas, 
+                            spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
+                            Math.floor(x), Math.floor(y), cellwidth, cellheight);
+                        ctx.globalAlpha = 1;
                     }
                 }
             }
         }
+    }
 
-        // todo: this code should go in its own function
-        if (diffToVisualize!==null){
-            //find previous state (this is never called on the very first state, the one before player inputs are applied, so there is always a previous state)
-            var prevstate_lineNumberIndex=diffToVisualize.lineNumber-1;
-            for (;prevstate_lineNumberIndex>=-1;prevstate_lineNumberIndex--)
-            {
-                if (debug_visualisation_array[diffToVisualize.turnIndex].hasOwnProperty(prevstate_lineNumberIndex)){
-                    break;
+    function drawDiffToVisualize() {
+        //find previous state (this is never called on the very first state, the one before player inputs are applied, so there is always a previous state)
+        var prevstate_lineNumberIndex=diffToVisualize.lineNumber-1;
+        for (;prevstate_lineNumberIndex>=-1;prevstate_lineNumberIndex--)
+        {
+            if (debug_visualisation_array[diffToVisualize.turnIndex].hasOwnProperty(prevstate_lineNumberIndex)){
+                break;
+            }
+        }
+
+        var prev_state = debug_visualisation_array[diffToVisualize.turnIndex][prevstate_lineNumberIndex];
+        var prevlevel = new Level(-1,prev_state.width,prev_state.height,prev_state.layerCount,prev_state.objects);
+        prevlevel.movements = prev_state.movements;
+        prevlevel.rigidMovementAppliedMask = prev_state.rigidMovementAppliedMask;
+    
+        for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
+            for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
+                var posIndex = j + i * curlevel.height;
+                var movementbitvec_PREV = prevlevel.getMovements(posIndex);
+                var movementbitvec = curlevel.getMovements(posIndex);
+                
+                var posMask_PREV = prevlevel.getCellInto(posIndex,_o11); 
+                var posMask = curlevel.getCellInto(posIndex,_o12); 
+                if (!movementbitvec.equals(movementbitvec_PREV) || !posMask.equals(posMask_PREV)){
+                    ctx.drawImage(glyphHighlightDiff, xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);
+
                 }
             }
-
-            var prev_state = debug_visualisation_array[diffToVisualize.turnIndex][prevstate_lineNumberIndex];
-            var prevlevel = new Level(-1,prev_state.width,prev_state.height,prev_state.layerCount,prev_state.objects);
-            prevlevel.movements = prev_state.movements;
-            prevlevel.rigidMovementAppliedMask = prev_state.rigidMovementAppliedMask;
-        
-            for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
-                for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var movementbitvec_PREV = prevlevel.getMovements(posIndex);
-                    var movementbitvec = curlevel.getMovements(posIndex);
-                    
-                    var posMask_PREV = prevlevel.getCellInto(posIndex,_o11); 
-                    var posMask = curlevel.getCellInto(posIndex,_o12); 
-                    if (!movementbitvec.equals(movementbitvec_PREV) || !posMask.equals(posMask_PREV)){
-                        ctx.drawImage(glyphHighlightDiff, xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);
-
+        }
+    
+        //draw movements!
+        for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
+            for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
+                var posIndex = j + i * curlevel.height;
+                var movementbitvec = curlevel.getMovements(posIndex);
+                for (var layer=0;layer<curlevel.layerCount;layer++) {
+                    var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
+                    const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
+                    if (k >= 0) {
+                        ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
                     }
-                }
-            }
-        
-            //draw movements!
-            for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
-                for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var movementbitvec = curlevel.getMovements(posIndex);
-                    for (var layer=0;layer<curlevel.layerCount;layer++) {
-                        var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
-                        const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
-                        if (k >= 0) {
-                            ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
-                        }
-                    }                             
-                }
-            }
-        
-            //draw rigid applciations!
-            for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
-                for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var rigidbitvec = curlevel.getRigids(posIndex);
-                    for (var layer=0;layer<curlevel.layerCount;layer++) {
-                        var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
-                        if (layerRigid!==0) {
-                            ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
-                        }
-                    }                             
-                }
+                }                             
             }
         }
-
-        if (smoothscreen) {
-            if (state.metadata.smoothscreen.debug) {
-                drawSmoothScreenDebug(ctx);
+    
+        //draw rigid applciations!
+        for (var i = minMaxIJ[0]; i < minMaxIJ[2]; i++) {
+            for (var j = minMaxIJ[1]; j < minMaxIJ[3]; j++) {
+                var posIndex = j + i * curlevel.height;
+                var rigidbitvec = curlevel.getRigids(posIndex);
+                for (var layer=0;layer<curlevel.layerCount;layer++) {
+                    var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
+                    if (layerRigid!==0) {
+                        ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
+                    }
+                }                             
             }
-            ctx.restore();
         }
-
-	    if (levelEditorOpened) {
-	    	drawEditorIcons(minMaxIJ[0], minMaxIJ[1]);
-	    }
     }
 }
 
@@ -866,75 +860,68 @@ function drawSmoothScreenDebug(ctx) {
 }
 
 function drawEditorIcons(mini,minj) {
-	var glyphCount = glyphImages.length;
-	var glyphStartIndex=0;
-	var glyphEndIndex = glyphImages.length;/*Math.min(
-							glyphStartIndex+10,
-							screenwidth-2,
-							glyphStartIndex+Math.max(glyphCount-glyphStartIndex,0)
-							);*/
-	var glyphsToDisplay = glyphEndIndex-glyphStartIndex;
+    // major rework using objects
+    const inRect = (pt,rc) => pt.x >= rc.x && pt.x < rc.x + rc.w && pt.y >= rc.y && pt.y < rc.y + rc.h;
+    const cellSize = { w: cellwidth, h: cellheight };
+    // glyph panel rectangle in cells, origin same as main board
+    const panelRect = { x: 0, y: -editorRowCount - 1, w: screenwidth + 1, h: editorRowCount };
+    // mouse position rebased to within panel
+    const mousePos = { x: mouseCoordX, y: mouseCoordY };
+    const mousePanelPos = inRect(mousePos, panelRect) ? { x: mousePos.x - panelRect.x, y: mousePos.y - panelRect.y } : { x: NaN, y: NaN };
+    // index into glyphs
+    const mouseIndex = mousePanelPos.x + mousePanelPos.y * panelRect.w;
+    const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
+    const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
+    const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
+    if (debugLevel) {
+        const ele = document.getElementById('debug');
+        ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
+    }
 
-	ctx.drawImage(glyphPrintButton,xoffset-cellwidth,yoffset-cellheight*(1+editorRowCount));
-	if (mouseCoordY===(-1-editorRowCount)&&mouseCoordX===-1) {
-			ctx.drawImage(glyphMouseOver,xoffset-cellwidth,yoffset-cellheight*(1+editorRowCount));								
-	}
+    let dp0 = drawPos(0)
+    dp0.x -= cellSize.w;  // special
+	ctx.drawImage(glyphPrintButton, dp0.x, dp0.y);
+	if (mousePos.x == panelRect.x - 1 && mousePos.y == panelRect.y) 
+		ctx.drawImage(glyphMouseOver, dp0.x, dp0.y);
 
-	var ypos = editorRowCount-(-mouseCoordY-2)-1;
-	var mouseIndex=mouseCoordX+(screenwidth-1)*ypos;
+    glyphImages.forEach((glyph,index) => {
+		ctx.drawImage(glyph, drawPos(index).x, drawPos(index).y);
+		if (index == mouseIndex)
+			ctx.drawImage(glyphMouseOver, drawPos(index).x, drawPos(index).y);
+		if (index == glyphSelectedIndex) 
+			ctx.drawImage(glyphHighlight, drawPos(index).x, drawPos(index).y);
+	});
 
-	for (var i=0;i<glyphsToDisplay;i++) {
-		var glyphIndex = glyphStartIndex+i;
-		var sprite = glyphImages[glyphIndex];
-        var xpos=i%(screenwidth-1);
-        var ypos=(i/(screenwidth-1))|0;
-		ctx.drawImage(sprite,xoffset+(xpos)*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));
-		if (mouseCoordX>=0&&mouseCoordX<(screenwidth-1)&&mouseIndex===i) {
-			ctx.drawImage(glyphMouseOver,xoffset+xpos*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));						
-		}
-		if (i===glyphSelectedIndex) {
-			ctx.drawImage(glyphHighlight,xoffset+xpos*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));
-		} 		
-	}
-
-    //filched from https://raw.githubusercontent.com/ClementSparrow/Pattern-Script/master/src/js/graphics.js
-    var tooltip_string = ''
-    var tooltip_objects = null
-    // prepare tooltip: legend for highlighted editor icon
-    if ( (mouseCoordX >= 0) && (mouseCoordX < screenwidth) && (mouseIndex >= 0) && (mouseIndex < glyphsToDisplay) )
-    {
-        const glyphIndex = glyphStartIndex + mouseIndex
-        const identifier_index = glyphImagesCorrespondance[glyphIndex]
+    let tooltip_string = '';
+    let tooltip_objects = null;
+    if (mouseIndex >= 0 && mouseIndex < glyphImagesCorrespondance.length) {
+        // prepare tooltip: legend for highlighted editor icon
+        const identifier_index = glyphImagesCorrespondance[mouseIndex]
         tooltip_string = identifier_index 
         if (identifier_index in state.synonymsDict){
             tooltip_string += " = " + state.synonymsDict[identifier_index];
         } else if (identifier_index in state.aggregatesDict){
             tooltip_string += " = " + state.aggregatesDict[identifier_index].join(" and ");
-            
         }
-    }
-    // prepare tooltip: content of a level's cell
-    else if ( (mouseCoordX >= 0) && (mouseCoordY >= 0) && (mouseCoordX < screenwidth) && (mouseCoordY < screenheight-editorRowCount) )
-    {
-        const posMask = level.getCellInto((mouseCoordY+minj) + (mouseCoordX+mini)*level.height, _o12);
+    } else if (mousePos.x >= 0 && mousePos.x < screenwidth && mousePos.y >= 0 && mousePos.y < screenheight) {
+        // prepare tooltip: content of a level's cell
+        const posMask = level.getCellInto((mousePos.y + minj) + (mousePos.x + mini) * level.height, _o12); //???
         tooltip_objects = state.idDict.filter( (x,k) => (posMask.get(k) != 0) )
-            // prepare tooltip: object names
-        if (tooltip_objects !== null)
-        {
-            tooltip_string = tooltip_objects.join(', ')
-        }
+        // prepare tooltip: object names
+        tooltip_string = tooltip_objects ? tooltip_objects.join(', ') : '';
     }
 
     // show tooltip
-    if (tooltip_string.length > 0)
-    {
+    if (tooltip_string) {
         ctx.fillStyle = state.fgcolor;
-        ctx.font = `16px "Source Sans Pro", Helvetica, Arial, sans-serif`;
-        ctx.fillText(tooltip_string, xoffset, yoffset-0.4*cellheight);
+        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
+        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.4*cellheight);
     }
 
-	if (mouseCoordX>=-1&&mouseCoordY>=-1&&mouseCoordX<screenwidth-1&&mouseCoordY<screenheight-1-editorRowCount) {
-		if (mouseCoordX==-1||mouseCoordY==-1||mouseCoordX==screenwidth-2||mouseCoordY===screenheight-2-editorRowCount) {
+
+
+    if (mouseCoordX >= -1 && mouseCoordY >= -1 && mouseCoordX <= screenwidth && mouseCoordY <= screenheight) {
+        if (mouseCoordX == -1 || mouseCoordY == -1 || mouseCoordX == screenwidth || mouseCoordY === screenheight) {
 			ctx.drawImage(glyphHighlightResize,
 				xoffset+mouseCoordX*cellwidth,
 				yoffset+mouseCoordY*cellheight
@@ -960,41 +947,42 @@ var forceRegenImages=false;
 var textcellwidth = 0;
 var textcellheight = 0;
 
+// recalculate screen layout and then call redraw
 function canvasResize() {
     canvas.width = canvas.parentNode.clientWidth;
     canvas.height = canvas.parentNode.clientHeight;
 
-    screenwidth=level.width;
+    screenwidth=level.width;        // board size, used to calculate cell size
     screenheight=level.height;
-    if (state!==undefined){
-        flickscreen=state.metadata.flickscreen!==undefined;
-        zoomscreen=state.metadata.zoomscreen!==undefined;
-        smoothscreen=state.metadata.smoothscreen!==undefined;
-	    if (levelEditorOpened) {
-            screenwidth+=2;
-            var glyphcount = glyphCount();
-            editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
-            screenheight+=2+editorRowCount;
-        } else if (flickscreen) {
-	        screenwidth=state.metadata.flickscreen[0];
-	        screenheight=state.metadata.flickscreen[1];
-	    } else if (zoomscreen) {
-	        screenwidth=state.metadata.zoomscreen[0];
-	        screenheight=state.metadata.zoomscreen[1];
-	    } else if (smoothscreen) {
-	        screenwidth=state.metadata.smoothscreen.screenSize.width;
-	        screenheight=state.metadata.smoothscreen.screenSize.height;
-	    }
-	}
+    if (!state) throw 'oops!';
 
-    if (textMode) {
-        screenwidth=titleWidth;
-        screenheight=titleHeight;
+    flickscreen=state.metadata.flickscreen!==undefined;
+    zoomscreen=state.metadata.zoomscreen!==undefined;
+    smoothscreen=state.metadata.smoothscreen!==undefined;
+    if (flickscreen) {
+        screenwidth=state.metadata.flickscreen[0];
+        screenheight=state.metadata.flickscreen[1];
+    } else if (zoomscreen) {
+        screenwidth=state.metadata.zoomscreen[0];
+        screenheight=state.metadata.zoomscreen[1];
+    } else if (smoothscreen) {
+        screenwidth=state.metadata.smoothscreen.screenSize.width;
+        screenheight=state.metadata.smoothscreen.screenSize.height;
+    } else if (textMode) {
+        screenwidth = titleWidth;
+        screenheight = titleHeight;
     }
-    
-    cellwidth = canvas.width / screenwidth;
-    cellheight = canvas.height / screenheight;
 
+    if (levelEditorOpened) {
+        editorRowCount = Math.ceil(glyphImages.length/(screenwidth-1));
+        cellwidth = canvas.width / (screenwidth + 2);
+        cellheight = canvas.height / (screenheight + 2 + editorRowCount);
+    } else {
+        cellwidth = canvas.width / screenwidth;
+        cellheight = canvas.height / screenheight;
+    }
+
+    // round the cell size as a multiple of sprite size
     var w = 5;
     var h = 5;
 
@@ -1018,25 +1006,27 @@ function canvasResize() {
         console.log("Resized below 1");
     }
 
+    // calculate an XY offset to position the board on the screen
     xoffset = 0;
     yoffset = 0;
 
     if (cellwidth / w > cellheight / h  || (textMode && state.metadata.custom_font !== undefined && loadedCustomFont)) {
         cellwidth = cellheight * w / h;
-        xoffset = (canvas.width - cellwidth * screenwidth) / 2;
-        yoffset = (canvas.height - cellheight * screenheight) / 2;
-    }
-    else { //if (cellheight > cellwidth) {
+    } else {
         cellheight = cellwidth * h / w;
-        yoffset = (canvas.height - cellheight * screenheight) / 2;
-        xoffset = (canvas.width - cellwidth * screenwidth) / 2;
     }
 
     if (levelEditorOpened && !textMode) {
+        xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
+        yoffset = (canvas.height - cellheight * (screenheight + 2 + editorRowCount)) / 2;
     	xoffset+=cellwidth;
     	yoffset+=cellheight*(1+editorRowCount);
+    } else {
+        xoffset = (canvas.width - cellwidth * screenwidth) / 2;
+        yoffset = (canvas.height - cellheight * screenheight) / 2;
     }
 
+    // tidy up for export to globals
     cellwidth = cellwidth|0;
     cellheight = cellheight|0;
     xoffset = xoffset|0;
