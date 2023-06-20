@@ -19,7 +19,7 @@ repopulateSaveDropdown();
 var loadDropdown = document.getElementById('loadDropDown');
 loadDropdown.selectedIndex=0;
 
-function levelEditorClick_Fn() {
+function levelEditorClick_Fn() {  // dup:
 	if (textMode || state.levels.length===0) {
 		compile(["loadLevel",0]);
 		levelEditorOpened=true;
@@ -237,7 +237,7 @@ function levelEditorClick_Fn() {
 
 // const HOSTPAGEURL = "http://www.puzzlescript.net"
 // const PSFORKNAME = "PuzzleScript"
-const HOSTPAGEURL = "https://polyomino.github.io/PuzzleScript"
+const HOSTPAGEURL = "https://polyomino.github.io/PuzzleScriptNext"
 const PSFORKNAME = "Puzzlescript Next"
 
 /* I don't want to setup the required server for an OAuth App, so for now we will use a slightly more complex method for the user, which is to create a personal identification token. */

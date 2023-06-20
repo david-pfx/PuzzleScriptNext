@@ -1362,6 +1362,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
     level.commandQueueSourceRules=[];
 }
 
+// globals
 var zoomscreen=false;
 var flickscreen=false;
 var smoothscreen=false;

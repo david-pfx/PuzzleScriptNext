@@ -651,7 +651,7 @@ var codeMirrorFn = function() {
                     logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
                 else value = [token, true];
             } else if (preamble_param_number.includes(token)) {
-                if (args.length != 1 || !parseFloat(args[0]))
+                if (args.length != 1 || parseFloat(args[0]) == NaN)
                     logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
                 else value = [token, parseFloat(args[0])];
             } else if (preamble_param_single.includes(token) || preamble_param_text.includes(token)) {
@@ -672,7 +672,7 @@ var codeMirrorFn = function() {
                 state.sprite_size = Math.round(value[1]);
             if (value[0] == 'case_sensitive') {
                 state.case_sensitive = true;
-                if (state.metadata.keys().some(k => preamble_param_text.includes(k)))
+                if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
             if (value[0] == 'mouse_clicks') {
@@ -694,14 +694,15 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
+            if (state.case_sensitive)
+                stream.string = mixedCase;
             while (!stream.eol()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = matchComment(stream,state)) kind = 'comment';
+                if (token = matchComment(stream,state)) kind = 'comment';   
                 else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
                 else if (tokens.length > 0 && (token = matchRegex(stream, /^copy:/u))) kind = 'SPRITEPARENT';
-                else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u, true)) kind = 'NAME';  // Unicode letters and numbers
-                //else if (token = matchRegex(stream, /^[A-Za-z0-9_:]+/, true)) kind = 'NAME';
+                else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
                 else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
                 else {
                     token = stream.match(reg_notcommentstart, true);
@@ -762,8 +763,11 @@ var codeMirrorFn = function() {
                 cloneSprite: symbols.parent || "",
                 spriteText: null
             };
-            if (candname != candname.toLowerCase() && candname.match(/^(background|player)$/u))
-                createAlias(candname, candname.toLowerCase(), state.lineNumber);
+            const cnlc = candname.toLowerCase();
+            if (candname != cnlc && [ "background", "player" ].includes(cnlc))
+                createAlias(cnlc, candname, state.lineNumber);
+            //if (candname != candname.toLowerCase() && candname.match(/^(background|player)$/u))
+            //  createAlias(candname, candname.toLowerCase(), state.lineNumber);
             for (const alias of aliases) {
                 registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
                 createAlias(alias, candname, state.lineNumber);

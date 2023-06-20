@@ -221,15 +221,17 @@ function tryLoadFile(fileName) {
 	fileOpenClient.open('GET', fileName);
 	fileOpenClient.onreadystatechange = function() {
 		
-  		if(fileOpenClient.readyState!=4) {
+  		if (fileOpenClient.readyState!=4)
   			return;
-  		}
-  		
-		editor.setValue(fileOpenClient.responseText);
-		clearConsole();
-		setEditorClean();
-		unloadGame();
-		compile(["restart"]);
+		if (fileOpenClient.status != 200 && fileOpenClient.status != 201) {
+			consoleError("HTTP Error "+ fileOpenClient.status + ' - ' + fileOpenClient.statusText);
+		} else {
+			editor.setValue(fileOpenClient.responseText);
+			clearConsole();
+			setEditorClean();
+			unloadGame();
+			compile(["restart"]);
+		}
 	}
 	fileOpenClient.send();
 }
