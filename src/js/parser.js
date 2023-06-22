@@ -269,12 +269,13 @@ var codeMirrorFn = function() {
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
     const reg_sounddirectionindicators = /^[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
-    const keyword_array = ['checkpoint','objects', 'collisionlayers', 'legend', 'sounds', 'rules', '...','winconditions', 'levels',
-        '|','[',']','up', 'down', 'left', 'right', 'late','rigid', '^','v','\>','\<','no','randomdir','random', 'horizontal', 'vertical',
-        'any', 'all', 'no', 'some', 'moving','stationary','parallel','perpendicular','action','message', "move", "action", "create", 
-        "destroy", "cantmove", "sfx0", "sfx1", "sfx2", "sfx3", "Sfx4", "sfx5", "sfx6", "sfx7", "sfx8", "sfx9", "sfx10", "cancel", "checkpoint", 
-        "restart", "win", "message", "again", "undo", "restart", "titlescreen", "startgame", "cancel", "endgame", "startlevel", "endlevel", 
-        "showmessage", "closemessage"];
+
+    const keyword_array = [ 'checkpoint', 'objects', 'collisionlayers', 'legend', 'sounds', 'rules', 'winconditions', 'levels',
+        '|', '[', ']', 'up', 'down', 'left', 'right', 'late', 'rigid', '^', 'v', '>', '<', 'no', 'randomdir', 'random', 'horizontal', 'vertical',
+        'any', 'all', 'no', 'some', 'moving', 'stationary', 'parallel', 'perpendicular', 'action', 'message', 'move', 
+        'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
+        'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
+        'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
     const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
@@ -613,39 +614,41 @@ var codeMirrorFn = function() {
             while (!stream.eol()) {
                 let token = '';
                 let kind = 'ERROR'
-                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].token)) {
+                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].text)) {
                     token = matchRegex(stream, /.*/).trim();  // take it all
                     kind = 'METADATATEXT';
                 } else {
                     token = matchRegex(stream, /[\w-.+#*]+/, true);
                     if (!token) {
                         if (matchComment(stream, state)) return tokens;
-                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
                         token = matchRegex(stream, reg_notcommentstart);
                     } else {
-                        if (tokens.length == 0)
+                        if (tokens.length == 0)  // first in line
                             kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
                         else kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
                         : (token === "transparent") ? 'COLOR FADECOLOR'
                         : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
                         : 'METADATATEXT';
                     }
+                    if (kind == 'ERROR')
+                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
                 }
                 tokens.push({
-                    token: token, kind: kind, pos: stream.pos
+                    text: token, kind: kind, pos: stream.pos
                 });
             }
             return tokens;
         }
 
         function parseTokens(tokens) {
-            const token = tokens[0].token;
-            const args = tokens.slice(1).map(t => t.token);
+            const token = tokens[0].text;
+            const args = tokens.slice(1).map(t => t.text);
             let value = null;
             if (state.metadata_lines[token]) {
                 var otherline = state.metadata_lines[token];
                 logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
             }
+            state.metadata_lines[token]=state.lineNumber;                                                                                    
             if (preamble_keywords.includes(token)) {
                 if (tokens.length > 1)
                     logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
@@ -662,7 +665,8 @@ var codeMirrorFn = function() {
                 if (args.length < 1)
                     logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
                 else value = [token, args.join(' ')];
-            }
+            } else 
+                logError('Unrecognised stuff in the prelude.', state.lineNumber);
             return value;
         }
 
@@ -709,7 +713,7 @@ var codeMirrorFn = function() {
                     logWarning(`Invalid object name in object section: ${token}.`, state.lineNumber);
                 }
                 tokens.push({
-                    token: token, kind: kind, pos: stream.pos
+                    text: token, kind: kind, pos: stream.pos
                 });
                 if (kind == 'SEMICOLON') break;
             }
@@ -721,19 +725,18 @@ var codeMirrorFn = function() {
                 let t = tokens[x];
                 let error = false;
                 if (t.kind == 'NAME') {
-                    if (keyword_array.includes(t.token)) {
-                        logWarning(`You named an object "${t.token}", but this is a keyword. Don't do that!`, state.lineNumber);
+                    if (keyword_array.includes(t.text)) {
+                        logWarning(`You named an object "${t.text}", but this is a keyword. Don't do that!`, state.lineNumber);
                     }
-                    if (state.objects[t.token]) {
-                        logError(`Object "${t.token}" defined multiple times.`, state.lineNumber);
+                    if (state.objects[t.text]) {
+                        logError(`Object "${t.text}" defined multiple times.`, state.lineNumber);
                         error = true;
-                    } else if (state.legend_synonyms.some(s => s[0] == t.token)) {
-                        logError(`Name "${t.token}" already in use.`, state.lineNumber);
+                    } else if (state.legend_synonyms.some(s => s[0] == t.text)) {
+                        logError(`Name "${t.text}" already in use.`, state.lineNumber);
                         error = true;
                     } else {
-                        if (x == 0) symbols.candname = t.token;
-                        else aliases.push(t.token);
-                        //else symbols.aliases = (symbols.aliases || []).concat(t.token);
+                        if (x == 0) symbols.candname = t.text;
+                        else aliases.push(t.text);
                     }
                 } else if (t.kind == 'SPRITEPARENT') {
                     t = tokens[++x];
@@ -743,10 +746,10 @@ var codeMirrorFn = function() {
                     } else if (symbols.parent) {
                         logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
                         error = true;
-                    } else if (t.token == symbols.candname) {
+                    } else if (t.text == symbols.candname) {
                         logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
                         error = true;
-                    } else symbols.parent = t.token;
+                    } else symbols.parent = t.text;
                 }
                 if (error) tokens[x].kind = 'ERROR';
             }
@@ -811,7 +814,7 @@ var codeMirrorFn = function() {
                     break;
                 } 
                 tokens.push({
-                    token: token, kind: kind, pos: stream.pos
+                    text: token, kind: kind, pos: stream.pos
                 });
                 if (kind == 'SEMICOLON') break;
             }
@@ -848,7 +851,7 @@ var codeMirrorFn = function() {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
                 }
                 tokens.push({
-                    token: token, kind: kind, pos: stream.pos
+                    text: token, kind: kind, pos: stream.pos
                 });
                 values.push(value);
             }
@@ -869,13 +872,20 @@ var codeMirrorFn = function() {
                 kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
             }
             tokens.push({
-                token: token, kind: kind, pos: stream.pos
+                text: token, kind: kind, pos: stream.pos
             });
         }
         return tokens;
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // SOUND DEFINITION:
+    // SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
+    // OBJECT_NAME
+    //     NONDIRECTIONAL_VERB ~ INT
+    //     DIRECTIONAL_VERB
+    //         INT
+    //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
         const tokens = buildTokens();
@@ -893,12 +903,12 @@ var codeMirrorFn = function() {
                 if (!token) {
                     if (!matchComment(stream, state)) {
                         //depending on whether the verb is directional or not, we log different errors
-                        const dirok = peek(tokens) && peek(tokens).token !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.token));
+                        const dirok = peek(tokens) && peek(tokens).text !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.text));
                         const msg = dirok ? "direction or sound seed" : "sound seed";
                         const token = stream.match(reg_notcommentstart)[0];
-                        logError(`Ah I was expecting a ${msg} after ${peek(tokens).token}, but I don't know what to make of "${token}".`, state.lineNumber);
+                        logError(`Ah I was expecting a ${msg} after ${peek(tokens).text}, but I don't know what to make of "${token}".`, state.lineNumber);
                         tokens.push({
-                            token: token, kind: 'ERROR', pos: stream.pos
+                            text: token, kind: 'ERROR', pos: stream.pos
                         });
                     }
                     return tokens;
@@ -910,56 +920,60 @@ var codeMirrorFn = function() {
                 : token.match(reg_name) ? (wordAlreadyDeclared(state, token) ? 'NAME' : 'ERROR')
                 : 'ERROR';
                 tokens.push({
-                    token: token, kind: kind, pos: stream.pos
+                    text: token, kind: kind, pos: stream.pos
                 });
             }
             return tokens;
         }
 
         function parseTokens(tokens) {
+            let tokx = 0;
             if (tokens[0].kind == 'NAME') {
                 // player move [ up... ] 142315...
-                if (!wordAlreadyDeclared(state, tokens[0].token)) {
-                    logError(`unexpected sound token "${tokens[0].token}".`, state.lineNumber);
+                if (!wordAlreadyDeclared(state, tokens[0].text)) {
+                    logError(`unexpected sound token "${tokens[0].text}".`, state.lineNumber);
                     tokens[0].kind = 'ERROR';
                 } 
                 if (!(tokens[1] && tokens[1].kind) == 'SOUNDVERB') {
                     logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
                     tokens[1].kind = 'ERROR';
                 } 
-                let i = 2;
-                const dirok = soundverbs_directional.includes(tokens[1].token);
-                while (dirok && tokens[i] && tokens[i].kind == 'DIRECTION')
-                    ++i;
-                while (tokens[i]) {
-                    if (tokens[i].kind == 'SOUND') ++i;
-                    else {
-                        const msg = dirAllowed ? "direction or sound seed" : "sound seed";
-                        logError(`Ah I was expecting a ${msg} after ${lastTokenType}, but I don't know what to make of "${match[0].toUpperCase()}".`, state.lineNumber);
-                        tokens[i].kind = 'ERROR';
-                        break;
-                    }
-                }
-    
+                tokx = 2;
+                const dirok = soundverbs_directional.includes(tokens[1].text);
+                while (dirok && tokens[tokx] && tokens[tokx].kind == 'DIRECTION')
+                    ++tokx;
+                if (tokens[tokx].kind != 'SOUND') {
+                    const msg = dirok ? "direction or sound seed" : "sound seed";
+                    logError(`Ah I was expecting a ${msg} after ${tokens[tokx-1].text}, but I don't know what to make of "${tokens[tokx].text}".`, state.lineNumber);
+                    tokens[tokx].kind = 'ERROR';
+                } 
             } else if (tokens[0].kind == 'SOUNDEVENT') {
                 // closemessage 1241234...
-                if (tokens[1].kind != 'SOUND') {
+                tokx = 1;
+                if (tokens[tokx].kind != 'SOUND') {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                    tokens[1].kind = 'ERROR';
+                    tokens[tokx].kind = 'ERROR';
                 }
 
-            } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);                        
+            } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
+            for (tokx++ ; tokx < tokens.length; tokx++) {
+                if (tokens[tokx].kind != 'SOUND') {
+                    logError(`I wasn't expecting anything after the sound declaration ${tokens[tokx-1].text} on this line, so I don't know what to do with "${tokens[tokx].text.toUpperCase()}" here.`, state.lineNumber);
+                    tokens[tokx].kind = 'ERROR';
+                    break;
+                }
+            }
         }
 
         function createSoundRows(tokens){
-            const seeds = tokens.filter(s => s.kind == 'SOUND').map(s => s.token);
+            const seeds = tokens.filter(s => s.kind == 'SOUND').map(s => s.text);
             if (tokens[0].kind == 'NAME') {
-                const dirs = tokens.filter(s => s.kind == 'DIRECTION').map(s => s.token);
-                return seeds.map(s => [ 'SOUND', tokens[0].token, tokens[1].token, dirs, s, state.lineNumber ]);
-                //return seeds.map(s => ({ kind: 'SOUND', name: s.token, dirs: dirs, seed: s, line: state.lineNumber }));
+                const dirs = tokens.filter(s => s.kind == 'DIRECTION').map(s => s.text);
+                return seeds.map(s => [ 'SOUND', tokens[0].text, tokens[1].text, dirs, s, state.lineNumber ]);
+                //return seeds.map(s => ({ kind: 'SOUND', name: s.text, dirs: dirs, seed: s, line: state.lineNumber }));
             } else { // 'SOUNDEVENT'
-                return seeds.map(s => [ 'SOUNDEVENT', tokens[0].token, s, state.lineNumber ]);
-                //return seeds.map(s => ({ kind: 'SOUNDEVENT', name: s.token, seed: s, line: state.lineNumber }));
+                return seeds.map(s => [ 'SOUNDEVENT', tokens[0].text, s, state.lineNumber ]);
+                //return seeds.map(s => ({ kind: 'SOUNDEVENT', name: s.text, seed: s, line: state.lineNumber }));
             }
         }
     }
@@ -1271,13 +1285,6 @@ var codeMirrorFn = function() {
                     break;
                 }
 
-                // SOUND DEFINITION:
-                // SOUNDEVENT ~ INT (Sound events take precedence if there's name overlap)
-                // OBJECT_NAME
-                //     NONDIRECTIONAL_VERB ~ INT
-                //     DIRECTIONAL_VERB
-                //         INT
-                //         DIR+ ~ INT
                 case 'sounds': {
                     if (sol)
                         state.current_line_wip_array = parseSounds(stream, state);

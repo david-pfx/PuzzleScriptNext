@@ -351,18 +351,12 @@ function generateTitleScreen()
 
 	var width = titleImage[0].length;
 	var titlelines=wordwrap(title,titleImage[0].length);
-	if (state.metadata.author!==undefined){
-		if ( titlelines.length>3){
-			titlelines.splice(3);
-			logWarning("Game title is too long to fit on screen, truncating to three lines.",state.metadata_lines.title,true);
-		}
-	} else {
-		if ( titlelines.length>5){
-			titlelines.splice(5);
-			logWarning("Game title is too long to fit on screen, truncating to five lines.",state.metadata_lines.title,true);
-		}
-
+	const maxl = state.metadata.author ? 3 : 5;
+	if (titlelines.length > maxl){
+		titlelines.splice(maxl);
+		logWarning("Game title is too long to fit on screen, truncating to three lines.", state.metadata_lines.title, true);
 	}
+
 	for (var i=0;i<titlelines.length;i++) {
 		var titleline=titlelines[i];
 		var titleLength=titleline.length;
@@ -1092,6 +1086,7 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
+			debugLevel = verbose_logging ? 1 : 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }

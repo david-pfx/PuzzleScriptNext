@@ -41,15 +41,11 @@ QUnit.module('PS execution', function() {
 						}
 						input += inputVals[testinput[j]];
 					}
-					var errormessage = "Output did not match. Input: [" + input +"], level ID: "+ td[1][3]+"\nExpected result:\n"+testresult+"\n";
-					errormessage += "\ntargetlevel : "+targetlevel;
-					if (randomseed!==undefined) {
-						errormessage += "\nrandomseed : "+randomseed;
-					}
-					if (audiooutput!==undefined) {
-						errormessage += "\naudioinput : "+audiooutput.join(";");
-					}
-					if (QUnit.config.showsource) errormessage += "\nSource code:\n" + testcode;
+					var errormessage = `Test failed. Input: [${input}]` +
+						`\n\ttargetlevel: ${targetlevel}` +
+						(randomseed ? `\n\trandomseed: ${randomseed}` : '') +
+						(audiooutput ? `\n\taudioinput : ${audiooutput.join(";")}` : '');
+					if (QUnit.config.showsource) errormessage += "\n--- Source code ---\n" + testcode;
 					QUnit.assert.true(runTest(td[1]),errormessage);
 				};
 			}(i)
@@ -60,10 +56,18 @@ QUnit.module('PS execution', function() {
 // run compiler tests that check for correct number and text of error messages
 // allow tests to be run over a range
 QUnit.module('PS compiler', function () {
+	// see https://stackoverflow.com/questions/39281295/add-append-html-to-qunit-output-results-for-specific-tests
+	const appendages = [];
+	const addTestAppendage = function(testName, testId){
+		appendages [testId] = testName;
+	};
 	for (var i = msgfirst; i < msgfirst + msghowmany && i < errormessage_testdata.length; i++) {
+		const testName = "🐛" + errormessage_testdata[i][0];
 		QUnit.test(
-			"🐛" + errormessage_testdata[i][0],
+			testName,
+			//"🐛" + errormessage_testdata[i][0],
 			function (num) {
+				addTestAppendage(testName, QUnit.config.testId);
 				return function () {
 					var td = errormessage_testdata[num];
 					var testcode = td[1][0];
@@ -73,10 +77,28 @@ QUnit.module('PS compiler', function () {
 					}
 					var errormessage = `Desired errors : ${testerrors}`;
 					//var errormessage =  testcode+"\n\n\ndesired errors : "+testerrors;
-					if (QUnit.config.showsource) errormessage += "\nSource code:\n" + testcode;
+					if (QUnit.config.showsource) errormessage += `\n--- Source code ---\n <a href="fred/html>link</a>"`;
+					//if (QUnit.config.showsource) errormessage += "\nSource code:\n" + testcode;
 					QUnit.assert.true(runCompilationTest(td[1]), errormessage);
 				};
 			}(i)
 		);
+
 	}
+	QUnit.testDone(function(details){
+		if (typeof appendages[details.testId] !== 'undefined') {
+			const testRowSelector = "qunit-test-output-" + details.testId;
+			const ele = document.getElementById(testRowSelector);
+			ele.insertAdjacentHTML('beforebegin', `<a href="fred/html">link</a>`);
+			const x = ele;
+	
+			// var testRow = $(testRowSelector);
+			// testRow.append("<button class=\"view\">View Graph</button>");
+			// var viewButtonSelector = testRowSelector + " button.view";
+			// $(viewButtonSelector).on('click', function(){
+			// 	// do stuff given the test name
+			// 	console.log(details.name);
+			// });
+		}
+	});
 });

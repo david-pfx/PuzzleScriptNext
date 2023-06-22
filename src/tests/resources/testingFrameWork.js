@@ -1,3 +1,7 @@
+// global
+let strippedErrorStrings = '';
+
+// perform a single run test
 function runTest(dataarray) {
 	unitTesting=true;
 	levelString=dataarray[0];
@@ -46,30 +50,34 @@ function runTest(dataarray) {
 
 	unitTesting=false;
 	var levelString = convertLevelToString();
-	var success = levelString == dataarray[2];
+	strippedErrorStrings = errorStrings.map(stripHTMLTags);
+
 	var success=true;
 	if (levelString !== dataarray[2]) {
 		success=false;
-		QUnit.assert.equal(levelString,dataarray[2],"Resulting level state is not the expected one.");
+		QUnit.assert.equal(levelString, dataarray[2], "Resulting level state is not the expected one.");
 	}
 
 	if (audio_output!==null){
 		//check if soundHistory array is same as audio_output
 		var audio_recorded = soundHistory.join(";");
 		var audio_expected = audio_output.join(";");
-		if (audio_recorded!=audio_expected){			
-			success=false;
-			QUnit.assert.equal(audio_recorded,audio_expected,"Audio output is not as expected");
+		if (audio_recorded != audio_expected) {
+			success = false;
+			QUnit.assert.equal(audio_recorded, audio_expected, "Audio output is not as expected");
 		}
 	}
-	if (success) {
-		return true;
-	} else {
-		return false;
+
+	// if the test succeeds ignore compile errors
+	if (!success && errorCount != 0) {
+		success=false;
+		QUnit.assert.equal(strippedErrorStrings, '', "Unexpected errors during output testing");
 	}
+	return success;
 }
 
 
+// perform a single compiler test
 function runCompilationTest(dataarray) {
 	unitTesting=true;
 	levelString=dataarray[0];
@@ -85,27 +93,22 @@ function runCompilationTest(dataarray) {
 		console.log(error);
 	}
 
-	var strippedErrorStrings = errorStrings.map(stripHTMLTags);
+	success = true;
+	strippedErrorStrings = errorStrings.map(stripHTMLTags);
 	if (errorCount!==recordedErrorCount){
-		QUnit.assert.equal(errorCount,recordedErrorCount, `Error count not as expected, errors:\n${strippedErrorStrings.join('\n')}`);
-		return false;
+		QUnit.assert.equal(errorCount,recordedErrorCount, `Error count not as expected`);
+		success = false;
 	}
 
-	var i_recorded=0;
-	var i_simulated=0;
-	for (i_simulated=0;i_simulated<strippedErrorStrings.length && i_recorded<recordedErrorStrings.length;i_simulated++){
-		var simulated_error = strippedErrorStrings[i_simulated].replace(/\s/g, '');
-		var recorded_error = recordedErrorStrings[i_recorded].replace(/\s/g, '');//html replaces '  ' with ' ', so I'm just comparing stripping all spaces lol.
-		if (simulated_error===recorded_error){
-			i_recorded++;
-		}
-	}
-
-	var simulated_summary = strippedErrorStrings.join("\n");
-	var recorded_summary = recordedErrorStrings.join("\n");
+	var simulated_summary = processErrors(strippedErrorStrings);
+	var recorded_summary = processErrors(recordedErrorStrings);
 	if (simulated_summary != recorded_summary) {
-		QUnit.assert.equal(simulated_summary,recorded_summary, "Error strings not as expected")
+		QUnit.assert.equal(simulated_summary, recorded_summary, "Error strings not as expected")
 		return false;
 	}
-	return true;
+	return success;
+}
+
+function processErrors(errors) {
+	return errors.map(e => e.replace(/\s+/g, ' ')).join("\n");
 }
