@@ -1,6 +1,3 @@
-// global
-let strippedErrorStrings = '';
-
 // perform a single run test
 function runTest(dataarray) {
 	unitTesting=true;
@@ -8,10 +5,11 @@ function runTest(dataarray) {
 	errorStrings = [];
 	errorCount=0;
 
-	for (var i=0;i<errorStrings.length;i++) {
-		var s = errorStrings[i];
-		throw s;
-	}
+	// Why???
+	// for (var i=0;i<errorStrings.length;i++) {
+	// 	var s = errorStrings[i];
+	// 	throw s;
+	// }
 
 	var inputDat = dataarray[1];
 	var targetlevel = dataarray[3];
@@ -50,63 +48,41 @@ function runTest(dataarray) {
 
 	unitTesting=false;
 	var levelString = convertLevelToString();
-	strippedErrorStrings = errorStrings.map(stripHTMLTags);
+	const strippedErrorStrings = errorStrings.map(stripHTMLTags);
 
-	var success=true;
-	if (levelString !== dataarray[2]) {
-		success=false;
-		QUnit.assert.equal(levelString, dataarray[2], "Resulting level state is not the expected one.");
-	}
+	const levelOk = levelString === dataarray[2];
+	QUnit.assert.true(levelOk, `Resulting level state not the expected one.\n${levelString}`);
 
-	if (audio_output!==null){
-		//check if soundHistory array is same as audio_output
-		var audio_recorded = soundHistory.join(";");
-		var audio_expected = audio_output.join(";");
-		if (audio_recorded != audio_expected) {
-			success = false;
-			QUnit.assert.equal(audio_recorded, audio_expected, "Audio output is not as expected");
-		}
-	}
+	const audioOk = !audio_output || soundHistory.join(";") == audio_output.join(";");
+	const audioJoin = !audio_output ? '' : audio_output.join(';');
+	QUnit.assert.true(audioOk, `Audio output not as expected.\n${audioJoin}`);
 
-	// if the test succeeds ignore compile errors
-	if (!success && errorCount != 0) {
-		success=false;
-		QUnit.assert.equal(strippedErrorStrings, '', "Unexpected errors during output testing");
-	}
-	return success;
+	// todo: option to suppress this
+	const errorsOk = errorCount == 0;
+	QUnit.assert.true(errorsOk, `Unexpected errors during output testing.\n${strippedErrorStrings}`);
+	return levelOk && audioOk && errorsOk;
 }
 
 
 // perform a single compiler test
 function runCompilationTest(dataarray) {
 	unitTesting=true;
-	levelString=dataarray[0];
-	var recordedErrorStrings=dataarray[1];
-	var recordedErrorCount=dataarray[2];
+	const [ levelString, recordedErrorStrings, recordedErrorCount ] = dataarray;
 	errorStrings = [];
 	errorCount=0;
 
 	try{
-		//compile(["rebuild"],levelString);
 		compile(["restart"],levelString);
 	} catch (error){
 		console.log(error);
 	}
 
-	success = true;
-	strippedErrorStrings = errorStrings.map(stripHTMLTags);
-	if (errorCount!==recordedErrorCount){
-		QUnit.assert.equal(errorCount,recordedErrorCount, `Error count not as expected`);
-		success = false;
-	}
-
-	var simulated_summary = processErrors(strippedErrorStrings);
-	var recorded_summary = processErrors(recordedErrorStrings);
-	if (simulated_summary != recorded_summary) {
-		QUnit.assert.equal(simulated_summary, recorded_summary, "Error strings not as expected")
-		return false;
-	}
-	return success;
+	const strippedErrorStrings = errorStrings.map(stripHTMLTags);
+	const simulated_summary = processErrors(strippedErrorStrings);
+	const recorded_summary = processErrors(recordedErrorStrings);
+	const errorsOk = simulated_summary == recorded_summary;
+    QUnit.assert.true(errorsOk, `Error strings not as expected.\n${simulated_summary}`)
+	return errorsOk;
 }
 
 function processErrors(errors) {
