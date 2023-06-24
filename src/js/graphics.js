@@ -959,7 +959,10 @@ function canvasResize() {
     flickscreen=state.metadata.flickscreen!==undefined;
     zoomscreen=state.metadata.zoomscreen!==undefined;
     smoothscreen=state.metadata.smoothscreen!==undefined;
-    if (flickscreen) {
+    if (textMode) {
+        screenwidth = titleWidth;
+        screenheight = titleHeight;
+    } else if (flickscreen) {
         screenwidth=state.metadata.flickscreen[0];
         screenheight=state.metadata.flickscreen[1];
     } else if (zoomscreen) {
@@ -968,9 +971,6 @@ function canvasResize() {
     } else if (smoothscreen) {
         screenwidth=state.metadata.smoothscreen.screenSize.width;
         screenheight=state.metadata.smoothscreen.screenSize.height;
-    } else if (textMode) {
-        screenwidth = titleWidth;
-        screenheight = titleHeight;
     }
 
     if (levelEditorOpened) {
@@ -983,23 +983,14 @@ function canvasResize() {
     }
 
     // round the cell size as a multiple of sprite size
-    var w = 5;
-    var h = 5;
-
-    if (state.sprite_size !== undefined) {
-        var w = state.sprite_size;
-        var h = state.sprite_size;//sprites[1].dat[0].length;
-    }
-
+    let w = h = state.sprite_size || 5;
     if (textMode) {
-        w=5 + 1;
-        var xchar = font['X'].split('\n').map(a=>a.trim());
+        w= 5 + 1;
+        const xchar = font['X'].split('\n').map(a=>a.trim());
         h = xchar.length;        
     }
-
     cellwidth =w * Math.max( ~~(cellwidth / w),1);
     cellheight = h * Math.max(~~(cellheight / h),1);
-
     if ((cellwidth == 0 || cellheight == 0) && !textMode) {
         cellwidth = w;
         cellheight = h;
