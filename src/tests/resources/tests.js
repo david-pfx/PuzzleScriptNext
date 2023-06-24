@@ -3,79 +3,153 @@
 // Updated to v2.19.4
 
 var inputVals = {0 : "U",1: "L",2:"D",3:"R",4:"A",tick:"T",undo:" UNDO ",restart:" RESTART "};
+const testLookup = {};
+const limit = 10000;
 
 // Pre-configuration as documented does not work, but this way does
 QUnit.config.autostart = true;
 QUnit.config.testTimeout = 5000;
+//QUnit.config.showsource = false;
 QUnit.config.urlConfig.push({
-		id: "showsource",
-		label: "Show source",
-		tooltip: "Enabling this will show the source code, if needed."
-	});
+	id: "showsource",
+	label: "Show source",
+	tooltip: "Enabling this will show the source code, if needed."
+});
 
-QUnit.module('PS rules ⚖️');
-testRuleList(testdata);
-//testRuleList(testdata.slice(0, 10));
+runRuleSuite('PS rules ⚖️', testdata);
+runCompileSuite('PS compile 🐛', errormessage_testdata);
+runFileSuite('Demo files 📃', 'demo_list.txt');
 
-QUnit.module('PS compile 🐛');
-testCompileList(errormessage_testdata);
-//testCompileList(errormessage_testdata.slice(0, 10));
-
-	
 // run tests that check for correct result in final level, seed and sound
-function testRuleList(testDataList) {
-	for (const [testName, testData] of testDataList) {
-		const [tdCode, tdi, tdResult, tdl, tdSeed, tdAudio] = testData;
-		const tdInput = tdi.map( j => inputVals[j] )
-			.join('')
-			.replaceAll(/([^t\s]{5})(?=[^\s])/gu, '$1 ')
-			.replaceAll(/\s\s+/g, ' ');
-		const tdLevel = tdl || 0;
-		const tdDescription = lineof('Level', tdLevel) 
-			+ lineof('Input', `<span style='white-space:pre-wrap;'>${tdInput}</span>`)
-			+ (tdSeed ? lineof('Random seed', tdSeed) : '')
-			+ (tdAudio ? lineof('Audio input', tdAudio) : '')
-			+ (QUnit.config.showsource ? lineof('Game', `<pre>${code}</pre>`) : '') // todo: does not work
-			+ '<br/>';
-
-		QUnit.test(
-			testName,
-			function(tdat) {
-				return function() {
-					QUnit.assert.true(runTest(tdat),
-						((errorStrings.length > 0) ? listify(errorStrings) : '') + tdDescription);
-				};
-			}(testData)
-		)
-	}
+function runRuleSuite(module, testDataList) {
+	QUnit.module(module, () => {
+	for (const [testName, testData] of testDataList.slice(0,limit)) 
+		testRule(testName, testData);
+	});
 }
 
 // run compiler tests that check for correct number and text of error messages
-function testCompileList(testDataList) {
-	for (const [testName, testData] of testDataList) {
-		const [tdCode, tdErrors] = testData;
-		const testerrors = '<b>Expected errors:</b><ul>' + tdErrors.map(m => '<li>'+JSON.stringify(m)+'</li>').join('') + '</ul>';
-		const tdDescription = (QUnit.config.showsource ? lineof('Game', `<pre>${code}</pre>`) : '');
-		QUnit.test(
-			testName,
-			function(tdat) {
-				return function() {
-					QUnit.assert.true(runCompilationTest(tdat),
-						testerrors 
-					  + listify(errorStrings) 
-					  + tdDescription);
-				}
-			}(testData)
+function runCompileSuite(module, testDataList) {
+	QUnit.module(module, () => {
+		for (const [testName, testData] of testDataList.slice(0,limit)) 
+			testCompile(testName, testData);
+	});
+}
+
+// Test that a list of files compile without error or warning
+function runFileSuite(title, filename) {
+	QUnit.module(title, () => {
+		getTextFile(filename, files => files.split('\n')
+			.map(f => f.trim())
+			.filter(f => !['README', 'blank.txt'].includes(f))
+			.slice(0, limit)
+			.forEach(f => {
+				getTextFile(`../demo/${f}`, text => {
+					testCompile(f, [text, []]);
+				});
+			})
 		);
+	});
+}
+
+function testRule(testName, testData) {
+	const [tdCode, tdi, tdResult, tdl, tdSeed, tdAudio] = testData;
+	const tdInput = tdi.map( j => inputVals[j] )
+		.join('')
+		.replaceAll(/([^t\s]{5})(?=[^\s])/gu, '$1 ')
+		.replaceAll(/\s\s+/g, ' ');
+	const tdLevel = tdl || 0;
+	const tdDescription = lineof('Level', tdLevel) 
+		+ lineof('Input', `<span style='white-space:pre-wrap;'>${tdInput}</span>`)
+		+ (tdSeed ? lineof('Random seed', tdSeed) : '')
+		+ (tdAudio ? lineof('Audio input', tdAudio) : '')
+		+ '<br/>';
+
+	QUnit.test(
+		testName,
+		function(tdat) {
+			return function() {
+				testLookup[QUnit.config.current.testId] = testData;
+				QUnit.assert.true(runTest(tdat),
+					"Passed all tests"
+				+ tdDescription
+				+ (errorStrings.length > 0 ? listify('Errors', errorStrings) : '') 
+				+ (QUnit.config.showsource ? lineof('Game', `<pre>${tdCode}</pre>`) : ''));
+			};
+		}(testData)
+	)
+}
+
+function testCompile(testName, testData) {
+	const [tdCode, tdErrors] = testData;
+	//const testerrors = '<b>Expected errors:</b><ul>' + tdErrors.map(m => '<li>'+JSON.stringify(m)+'</li>').join('') + '</ul>';
+	QUnit.test(
+		testName,
+		function(tdat) {
+			return function() {
+				testLookup[QUnit.config.current.testId] = testData;
+				QUnit.assert.true(runCompilationTest(tdat),
+					"Passed compile test<br/>"
+					+ (tdErrors.length > 0 ? listify("Expected", tdErrors) : '')
+					+ (errorStrings.length > 0 ? listify('Errors', errorStrings) : '')
+					+ (QUnit.config.showsource ? lineof('Game', `<pre>${tdCode}</pre>`) : ''));
+			}
+		}(testData)
+	);
+}
+
+QUnit.testDone(function(details){
+	if (typeof testLookup[details.testId] !== 'undefined') {
+		const testRowSelector = "qunit-test-output-" + details.testId;
+		const ele = document.getElementById(testRowSelector);
+		const eleA = ele.querySelector('a');
+		eleA.insertAdjacentHTML('afterend', `<a id="openClickLink-${details.testId}" href="javascript:void('Open in editor');">Open</a>`);
+		document.getElementById(`openClickLink-${details.testId}`).addEventListener("click", function(e) {
+			openInEditor(testLookup[details.testId][0]);
+		});
+
+		// todo: from P:S
+		// for (const [i, testdata_name] of this.testData[1].entries())
+		// {
+		// 	c = document.createElement( "a" );
+		// 	c.innerHTML = testdata_name
+		// 	c.href = "javascript:void('Copy "+testdata_name+"');"
+		// 	c.addEventListener("click", () => this.copyTestData(i), false)
+		// 	data_span.appendChild(c)
+		// }
 	}
+});
+
+// open the test program in the editor
+function openInEditor(code) {
+	// see https://stackoverflow.com/questions/1830347/quickest-way-to-pass-data-to-a-popup-window-i-created-using-window-open/76544014#76544014
+	localStorage.setItem('test_code', code);
+	window.open("/src/editor.html");
 }
 
 function lineof(t,s) {
 	return `<br/><b>${t}: </b>${s}`;
 }
 
-function listify(s) {
-	return '<b>Got errors:</b><ul>' + s.map(m => '<li>' + JSON.stringify(stripHTMLTags(m)) + '</li>').join('') + '</ul>';
+function listify(label, s) {
+	return `<b>Got ${label}:</b><ul>` + s.map(m => '<li>' + JSON.stringify(stripHTMLTags(m)) + '</li>').join('') + '</ul>';
+}
+
+// read a text file and return results via callback
+function getTextFile(filename, callback) {
+	var req = new XMLHttpRequest();
+	req.open('GET', filename);
+	req.onreadystatechange = function () {
+		if (req.readyState == 4) {
+			if (req.status == 200 || req.status == 201) {
+				callback(req.responseText);
+			} else {
+				consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
+				callback("");
+			}
+		}
+	}
+	req.send();
 }
 
 // todo:

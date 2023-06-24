@@ -51,15 +51,15 @@ function runTest(dataarray) {
 	const strippedErrorStrings = errorStrings.map(stripHTMLTags);
 
 	const levelOk = levelString === dataarray[2];
-	QUnit.assert.true(levelOk, `Resulting level state not the expected one.\n${levelString}`);
+	QUnit.assert.true(levelOk, `Resulting level state is the expected one.\n${levelString}`);
 
 	const audioOk = !audio_output || soundHistory.join(";") == audio_output.join(";");
 	const audioJoin = !audio_output ? '' : audio_output.join(';');
-	QUnit.assert.true(audioOk, `Audio output not as expected.\n${audioJoin}`);
+	QUnit.assert.true(audioOk, `Audio output as expected.\n${audioJoin}`);
 
 	// todo: option to suppress this
 	const errorsOk = errorCount == 0;
-	QUnit.assert.true(errorsOk, `Unexpected errors during output testing.\n${strippedErrorStrings}`);
+	QUnit.assert.true(errorsOk, `No errors during testing.\n${strippedErrorStrings}`);
 	return levelOk && audioOk && errorsOk;
 }
 
@@ -81,7 +81,7 @@ function runCompilationTest(dataarray) {
 	const simulated_summary = processErrors(strippedErrorStrings);
 	const recorded_summary = processErrors(recordedErrorStrings);
 	const errorsOk = simulated_summary == recorded_summary;
-    QUnit.assert.true(errorsOk, `Error strings not as expected.\n${simulated_summary}`)
+    QUnit.assert.true(errorsOk, `Error strings as expected.`)
 	return errorsOk;
 }
 
