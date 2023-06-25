@@ -2,13 +2,18 @@
 // See https://qunitjs.com/intro/#browser-support
 // Updated to v2.19.4
 
+// start with ?moduleid=xxxx to suppress start up, wait for selection
+
 var inputVals = {0 : "U",1: "L",2:"D",3:"R",4:"A",tick:"T",undo:" UNDO ",restart:" RESTART "};
 const testLookup = {};
-const limit = 10000;
+const limit = 10000;			// set this low while testing the testing
 
 // Pre-configuration as documented does not work, but this way does
-QUnit.config.autostart = true;
+QUnit.config.autostart = true;		// gotta call start() but from where?
+QUnit.config.reorder = false;
 QUnit.config.testTimeout = 5000;
+//QUnit.config.module = 'none';   // forced failure!
+QUnit.config.fixture = '<span>zzzzzzzzzzzzzzzzzzz</span>';
 //QUnit.config.showsource = false;
 QUnit.config.urlConfig.push({
 	id: "showsource",
@@ -17,8 +22,15 @@ QUnit.config.urlConfig.push({
 });
 
 runRuleSuite('PS rules ⚖️', testdata);
+runRuleSuite('PS+ rules ⚖️', plus_testdata);
 runCompileSuite('PS compile 🐛', errormessage_testdata);
-runFileSuite('Demo files 📃', 'demo_list.txt');
+runCompileSuite('PS+ compile 🐛', plus_errormessage_testdata);
+
+// cannot get this to work, spent enough time
+// see https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
+//runFileSuite('Demo files 📃', 'demo_list.txt');
+
+//addStartLink();
 
 // run tests that check for correct result in final level, seed and sound
 function runRuleSuite(module, testDataList) {
@@ -98,15 +110,27 @@ function testCompile(testName, testData) {
 	);
 }
 
-QUnit.testDone(function(details){
-	if (typeof testLookup[details.testId] !== 'undefined') {
+// QUnit callbacks
+
+QUnit.begin(details => {
+	// nice idea but DOM not built yet
+	//addStartLink();
+});
+
+QUnit.testDone(details => {
+	if (testLookup[details.testId]) {
+	//if (typeof testLookup[details.testId] !== 'undefined') {
+		// see https://stackoverflow.com/questions/39281295/add-append-html-to-qunit-output-results-for-specific-tests
 		const testRowSelector = "qunit-test-output-" + details.testId;
 		const ele = document.getElementById(testRowSelector);
-		const eleA = ele.querySelector('a');
-		eleA.insertAdjacentHTML('afterend', `<a id="openClickLink-${details.testId}" href="javascript:void('Open in editor');">Open</a>`);
-		document.getElementById(`openClickLink-${details.testId}`).addEventListener("click", function(e) {
-			openInEditor(testLookup[details.testId][0]);
-		});
+		if (!ele) console.log(`Cannot find selector ID ${testRowSelector}`);
+		else {
+			const eleA = ele.querySelector('a');
+			eleA.insertAdjacentHTML('afterend', `<a id="openClickLink-${details.testId}" href="javascript:void('Open in editor');">Open</a>`);
+			document.getElementById(`openClickLink-${details.testId}`).addEventListener("click", function(e) {
+				openInEditor(testLookup[details.testId][0]);
+			});
+		}
 
 		// todo: from P:S
 		// for (const [i, testdata_name] of this.testData[1].entries())
@@ -119,6 +143,15 @@ QUnit.testDone(function(details){
 		// }
 	}
 });
+
+// add a start link
+function addStartLink() {
+	const ele = document.getElementById("qunit-testrunner-toolbar");
+	ele.querySelector('span').insertAdjacentHTML('afterend', `<a id="startLink" href="javascript:void('Start the run');">Start</a>`);
+	document.getElementById(`startLink`).addEventListener("click", function(e) {
+		QUnit.start();;
+	});
+}
 
 // open the test program in the editor
 function openInEditor(code) {
@@ -139,63 +172,23 @@ function listify(label, s) {
 function getTextFile(filename, callback) {
 	var req = new XMLHttpRequest();
 	req.open('GET', filename);
-	req.onreadystatechange = function () {
-		if (req.readyState == 4) {
-			if (req.status == 200 || req.status == 201) {
-				callback(req.responseText);
-			} else {
-				consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
-				callback("");
-			}
-		}
+	req.onload = event => {
+		callback(req.responseText);
 	}
+	req.onerror = event => {
+		consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
+		callback("");
+	}
+	// req.onreadystatechange = function () {
+	// 	if (req.readyState == 4) {
+	// 		if (req.status == 200 || req.status == 201) {
+	// 			callback(req.responseText);
+	// 		} else {
+	// 			consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
+	// 			callback("");
+	// 		}
+	// 	}
+	// }
 	req.send();
 }
 
-// todo:
-// 	// see https://stackoverflow.com/questions/39281295/add-append-html-to-qunit-output-results-for-specific-tests
-// 	const appendages = [];
-// 	const addTestAppendage = function(testName, testId){
-// 		appendages [testId] = testName;
-// 	};
-// 	for (var i = msgfirst; i < msgfirst + msghowmany && i < errormessage_testdata.length; i++) {
-// 		const testName = "🐛" + errormessage_testdata[i][0];
-// 		QUnit.test(
-// 			testName,
-// 			//"🐛" + errormessage_testdata[i][0],
-// 			function (num) {
-// 				addTestAppendage(testName, QUnit.config.testId);
-// 				return function () {
-// 					var td = errormessage_testdata[num];
-// 					var testcode = td[1][0];
-// 					var testerrors = td[1][1];
-// 					if (td[1].length !== 3) {
-// 						throw "Error/Warning message testdata has wrong number of fields, invalid. Accidentally pasted in level recording data?" + "\n\n\n" + testcode;
-// 					}
-// 					var errormessage = `Desired errors : ${testerrors}`;
-// 					//var errormessage =  testcode+"\n\n\ndesired errors : "+testerrors;
-// 					if (QUnit.config.showsource) errormessage += `\n--- Source code ---\n <a href="fred/html>link</a>"`;
-// 					//if (QUnit.config.showsource) errormessage += "\nSource code:\n" + testcode;
-// 					QUnit.assert.true(runCompilationTest(td[1]), errormessage);
-// 				};
-// 			}(i)
-// 		);
-
-// 	}
-// 	QUnit.testDone(function(details){
-// 		if (typeof appendages[details.testId] !== 'undefined') {
-// 			const testRowSelector = "qunit-test-output-" + details.testId;
-// 			const ele = document.getElementById(testRowSelector);
-// 			ele.insertAdjacentHTML('beforebegin', `<a href="fred/html">link</a>`);
-// 			const x = ele;
-	
-// 			// var testRow = $(testRowSelector);
-// 			// testRow.append("<button class=\"view\">View Graph</button>");
-// 			// var viewButtonSelector = testRowSelector + " button.view";
-// 			// $(viewButtonSelector).on('click', function(){
-// 			// 	// do stuff given the test name
-// 			// 	console.log(details.name);
-// 			// });
-// 		}
-// 	});
-// });
