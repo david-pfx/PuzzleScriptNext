@@ -1,32 +1,42 @@
+// main entry point for editor
+
+const starterCodeFile = "next_starter.txt";
+
+// note: this returns the main editor window and any pre-loaded content
 var code = document.getElementById('code');
 var _editorDirty = false;
 var _editorCleanState = "";
 
+if (storage_has('test_code')) {
+	code.textContent = storage_get('test_code') + '';
+	storage_remove('test_code');
+} else code.textContent = '';
+
 window.addEventListener('load', function () {
 	let file = null;
 	if (file = getParameterByName("demo")) {
+		code.value = "loading...";
 		tryLoadFile(`demo/${file}.txt`);
-		code.value = "loading...";
 	} else if (file = getParameterByName("url")) {
-		tryLoadFile(file);
 		code.value = "loading...";
+		tryLoadFile(file);
 	} else if (file =getParameterByName("hack")) {
+		code.value = "loading...";
 		let id = gistToLoad.replace(/[\\\/]/,"");
 		tryLoadGist(id);
+	} else if (code.value == '') {
 		code.value = "loading...";
-	} else {
-		try {
-			if (storage_has('saves')) {
-				let curSaveArray = JSON.parse(storage_get('saves'));
-				let sd = curSaveArray[curSaveArray.length-1];
-				code.value = sd.text;
-				let loadDropdown = document.getElementById('loadDropDown');
-				loadDropdown.selectedIndex=0;
-			}
-		} catch(ex) {
-			
-		}
+		tryLoadFile(`demo/${starterCodeFile}`);
 	}
+	try {
+		if (storage_has('saves')) {
+			let curSaveArray = JSON.parse(storage_get('saves'));
+			let sd = curSaveArray[curSaveArray.length-1];
+			code.value = sd.text;
+			let loadDropdown = document.getElementById('loadDropDown');
+			loadDropdown.selectedIndex=0;
+		}
+	} catch(ex) { }
 });
 
 CodeMirror.commands.swapLineUp = function(cm) {
@@ -221,15 +231,17 @@ function tryLoadFile(fileName) {
 	fileOpenClient.open('GET', fileName);
 	fileOpenClient.onreadystatechange = function() {
 		
-  		if(fileOpenClient.readyState!=4) {
+  		if (fileOpenClient.readyState!=4)
   			return;
-  		}
-  		
-		editor.setValue(fileOpenClient.responseText);
-		clearConsole();
-		setEditorClean();
-		unloadGame();
-		compile(["restart"]);
+		if (fileOpenClient.status != 200 && fileOpenClient.status != 201) {
+			consoleError("HTTP Error "+ fileOpenClient.status + ' - ' + fileOpenClient.statusText);
+		} else {
+			editor.setValue(fileOpenClient.responseText);
+			clearConsole();
+			setEditorClean();
+			unloadGame();
+			compile(["restart"]);
+		}
 	}
 	fileOpenClient.send();
 }

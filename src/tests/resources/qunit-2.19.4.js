@@ -5780,7 +5780,8 @@
       if (!testItem) {
         return;
       }
-      var message = escapeText(details.message) || (details.result ? 'okay' : 'failed');
+      var message = details.message || (details.result ? 'okay' : 'failed');
+      //var message = escapeText(details.message) || (details.result ? 'okay' : 'failed');  -- dmb
       message = "<span class='test-message'>" + message + '</span>';
       message += "<span class='runtime'>@ " + details.runtime + ' ms</span>';
       var expected;

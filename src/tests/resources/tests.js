@@ -2,81 +2,185 @@
 // See https://qunitjs.com/intro/#browser-support
 // Updated to v2.19.4
 
+// start with ?moduleid=xxxx to suppress start up, wait for selection
+
 var inputVals = {0 : "U",1: "L",2:"D",3:"R",4:"A",tick:"T",undo:" UNDO ",restart:" RESTART "};
+const testLookup = {};
+const limit = 10000;			// set this low while testing the testing
+enableCheckErrors = false;
 
 // Pre-configuration as documented does not work, but this way does
-
-QUnit.config.autostart = true;
+QUnit.config.autostart = true;		// gotta call start() but from where?
+QUnit.config.reorder = false;
 QUnit.config.testTimeout = 5000;
+QUnit.config.collapse = false;
+//QUnit.config.module = 'none';   // forced failure!
+QUnit.config.fixture = '<span>zzzzzzzzzzzzzzzzzzz</span>';
+//QUnit.config.showsource = false;
 QUnit.config.urlConfig.push({
-		id: "showsource",
-		label: "Show source",
-		tooltip: "Enabling this will show the source code, if needed."
-	});
+	id: "showsource",
+	label: "Show source",
+	tooltip: "Enabling this will show the source code, if needed."
+});
 
-// allow tests to be run over a range
-const testfirst = 0;
-const testhowmany = 9999;
-const msgfirst = 0;
-const msghowmany = 9999;
+runRuleSuite('PS rules ⚖️', testdata);
+runRuleSuite('PS+ rules ⚖️', plus_testdata);
+runCompileSuite('PS compile 🐛', errormessage_testdata);
+runCompileSuite('PS+ compile 🐛', plus_errormessage_testdata);
+
+// cannot get this to work, spent enough time
+// see https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
+//runFileSuite('Demo files 📃', 'demo_list.txt');
+
+//addStartLink();
 
 // run tests that check for correct result in final level, seed and sound
-QUnit.module('PS execution', function() {
-	for (var i = testfirst; i < testfirst + testhowmany && i < testdata.length; i++) {
-		QUnit.test(
-			testdata[i][0], 
-			function(num){
-				return function(){
-					var td = testdata[num];
-					var testcode = td[1][0];
-					var testinput=td[1][1];
-					var testresult=td[1][2];
-					var targetlevel=td[1][3];
-					var randomseed=td[1][4];
-					var audiooutput=td[1][5];
-					var input="";
-					for (var j=0;j<testinput.length;j++) {
-						if (j%5==0 && j>0) {
-							input+=" ";
-						}
-						input += inputVals[testinput[j]];
-					}
-					var errormessage = "Output did not match. Input: [" + input +"], level ID: "+ td[1][3]+"\nExpected result:\n"+testresult+"\n";
-					errormessage += "\ntargetlevel : "+targetlevel;
-					if (randomseed!==undefined) {
-						errormessage += "\nrandomseed : "+randomseed;
-					}
-					if (audiooutput!==undefined) {
-						errormessage += "\naudioinput : "+audiooutput.join(";");
-					}
-					if (QUnit.config.showsource) errormessage += "\nSource code:\n" + testcode;
-					QUnit.assert.true(runTest(td[1]),errormessage);
-				};
-			}(i)
+function runRuleSuite(module, testDataList) {
+	QUnit.module(module, () => {
+	for (const [testName, testData] of testDataList.slice(0,limit)) 
+		testRule(testName, testData);
+	});
+}
+
+// run compiler tests that check for correct number and text of error messages
+function runCompileSuite(module, testDataList) {
+	QUnit.module(module, () => {
+		for (const [testName, testData] of testDataList.slice(0,limit)) 
+			testCompile(testName, testData);
+	});
+}
+
+// Test that a list of files compile without error or warning
+function runFileSuite(title, filename) {
+	QUnit.module(title, () => {
+		getTextFile(filename, files => files.split('\n')
+			.map(f => f.trim())
+			.filter(f => !['README', 'blank.txt'].includes(f))
+			.slice(0, limit)
+			.forEach(f => {
+				getTextFile(`../demo/${f}`, text => {
+					testCompile(f, [text, []]);
+				});
+			})
 		);
+	});
+}
+
+function testRule(testName, testData) {
+	const [tdCode, tdi, tdResult, tdl, tdSeed, tdSounds] = testData;
+	const tdInput = tdi.map( j => inputVals[j] )
+		.join('')
+		.replaceAll(/([^t\s]{5})(?=[^\s])/gu, '$1 ')
+		.replaceAll(/\s\s+/g, ' ');
+	const tdLevel = tdl || 0;
+	const tdDescription = lineof('Input', `<span style='white-space:pre-wrap;'>${tdInput}</span>`)
+		+ (tdSeed ? lineof('Random seed', tdSeed) : '')
+		+ lineof('Expected level', tdLevel) 
+		+ (tdSounds ? lineof('Expected sounds', tdSounds) : '')
+		+ '<br/>';
+
+	QUnit.test(
+		testName,
+		function(tdat) {
+			return function() {
+				testLookup[QUnit.config.current.testId] = testData;
+				QUnit.assert.true(runTest(tdat),
+					"Passed all tests"
+				+ tdDescription
+				+ (errorStrings.length > 0 ? listify('Actual errors', errorStrings) : '')
+				+ (soundHistory.length > 0 ? lineof('Actual sounds', soundHistory.join()) : '')
+				+ (QUnit.config.showsource ? lineof('Game source', `<pre>${tdCode}</pre>`) : ''));
+			};
+		}(testData)
+	)
+}
+
+function testCompile(testName, testData) {
+	const [tdCode, tdErrors] = testData;
+	//const testerrors = '<b>Expected errors:</b><ul>' + tdErrors.map(m => '<li>'+JSON.stringify(m)+'</li>').join('') + '</ul>';
+	QUnit.test(
+		testName,
+		function(tdat) {
+			return function() {
+				testLookup[QUnit.config.current.testId] = testData;
+				QUnit.assert.true(runCompilationTest(tdat),
+					"Passed compile test<br/>"
+					+ (tdErrors.length > 0 ? listify("Expected errors", tdErrors) : '')
+					+ (errorStrings.length > 0 ? listify('Actual errors', errorStrings) : '')
+					+ (QUnit.config.showsource ? lineof('Game source', `<pre>${tdCode}</pre>`) : ''));
+			}
+		}(testData)
+	);
+}
+
+// QUnit callbacks
+
+QUnit.begin(details => {
+	// nice idea but DOM not built yet
+	//addStartLink();
+});
+
+QUnit.testDone(details => {
+	if (testLookup[details.testId]) {
+		// see https://stackoverflow.com/questions/39281295/add-append-html-to-qunit-output-results-for-specific-tests
+		const testRowSelector = "qunit-test-output-" + details.testId;
+		const ele = document.getElementById(testRowSelector);
+		if (!ele) console.log(`Cannot find selector ID ${testRowSelector}`);
+		else {
+			const eleA = ele.querySelector('a');
+			eleA.insertAdjacentHTML('afterend', `<a id="openClickLink-${details.testId}" href="javascript:void('Open in editor');">Open</a>`);
+			document.getElementById(`openClickLink-${details.testId}`).addEventListener("click", function(e) {
+				openInEditor(testLookup[details.testId][0]);
+			});
+		}
+
+		// todo: from P:S
+		// for (const [i, testdata_name] of this.testData[1].entries())
+		// {
+		// 	c = document.createElement( "a" );
+		// 	c.innerHTML = testdata_name
+		// 	c.href = "javascript:void('Copy "+testdata_name+"');"
+		// 	c.addEventListener("click", () => this.copyTestData(i), false)
+		// 	data_span.appendChild(c)
+		// }
 	}
 });
 
-// run compiler tests that check for correct number and text of error messages
-// allow tests to be run over a range
-QUnit.module('PS compiler', function () {
-	for (var i = msgfirst; i < msgfirst + msghowmany && i < errormessage_testdata.length; i++) {
-		QUnit.test(
-			"🐛" + errormessage_testdata[i][0],
-			function (num) {
-				return function () {
-					var td = errormessage_testdata[num];
-					var testcode = td[1][0];
-					var testerrors = td[1][1];
-					if (td[1].length !== 3) {
-						throw "Error/Warning message testdata has wrong number of fields, invalid. Accidentally pasted in level recording data?" + "\n\n\n" + testcode;
-					}
-					var errormessage = `Desired errors : ${testerrors}`;
-					//var errormessage =  testcode+"\n\n\ndesired errors : "+testerrors;
-					if (QUnit.config.showsource) errormessage += "\nSource code:\n" + testcode;
-					QUnit.assert.true(runCompilationTest(td[1]), errormessage);
-				};
-			}(i)
-		);
+// add a start link
+function addStartLink() {
+	const ele = document.getElementById("qunit-testrunner-toolbar");
+	ele.querySelector('span').insertAdjacentHTML('afterend', `<a id="startLink" href="javascript:void('Start the run');">Start</a>`);
+	document.getElementById(`startLink`).addEventListener("click", function(e) {
+		QUnit.start();;
+	});
+}
+
+// open the test program in the editor
+function openInEditor(code) {
+	// see https://stackoverflow.com/questions/1830347/quickest-way-to-pass-data-to-a-popup-window-i-created-using-window-open/76544014#76544014
+	localStorage.setItem('test_code', code);
+	window.open("/src/editor.html");
+}
+
+function lineof(t,s) {
+	return `<br/><b>${t}: </b>${s}`;
+}
+
+function listify(label, s) {
+	return `<b>${label}:</b><ul>` + s.map(m => '<li>' + JSON.stringify(stripHTMLTags(m)) + '</li>').join('') + '</ul>';
+}
+
+// read a text file and return results via callback
+function getTextFile(filename, callback) {
+	var req = new XMLHttpRequest();
+	req.open('GET', filename);
+	req.onload = event => {
+		callback(req.responseText);
 	}
-});
+	req.onerror = event => {
+		consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
+		callback("");
+	}
+	req.send();
+}
+

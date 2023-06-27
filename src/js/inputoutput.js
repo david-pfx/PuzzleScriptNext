@@ -233,22 +233,22 @@ function printLevel() {
 }
 
 function levelEditorClick(event,click) {
-	if (mouseCoordY<=-2) {
-		var ypos = editorRowCount-(-mouseCoordY-2)-1;
-		var newindex=mouseCoordX+(screenwidth-1)*ypos;
+	// note: screenwidth and screenheight are correct, not inflated by glyph panel
+	const glyphPanelRect = { x: 0, y: -1 - editorRowCount, w: screenwidth + 1, h: editorRowCount };
+	if (mouseCoordY >= glyphPanelRect.y && mouseCoordY < glyphPanelRect.y + glyphPanelRect.h) {
+		var newindex = mouseCoordX + glyphPanelRect.w * (mouseCoordY - glyphPanelRect.y);
 		if (mouseCoordX===-1) {
 			printLevel();
-		} else if (mouseCoordX>=0&&newindex<glyphImages.length) {
-			glyphSelectedIndex=newindex;
+		} else if (mouseCoordX >= 0 && newindex < glyphImages.length) {
+			glyphSelectedIndex = newindex;
 			redraw();
 		}
 
-	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-2&&mouseCoordY<screenheight-2-editorRowCount	) {
+	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
 		var glyphname = glyphImagesCorrespondance[glyphSelectedIndex];
 		var glyph = state.glyphDict[glyphname];
 		var glyphmask = new BitVec(STRIDE_OBJ);
-		for (var i=0;i<glyph.length;i++)
-		{
+		for (var i=0;i<glyph.length;i++) {
 			var id = glyph[i];
 			if (id>=0) {
 				glyphmask.ibitset(id);
@@ -274,20 +274,18 @@ function levelEditorClick(event,click) {
 			level.setCell(coordIndex, glyphmask);
 			redraw();
 		}
-	}
-	else if (click) {
-		if (mouseCoordX===-1) {
-			//add a left row to the map
+	} else {
+		if (mouseCoordX == -1) {
 			addLeftColumn();			
 			canvasResize();
-		} else if (mouseCoordX===screenwidth-2) {
+		} else if (mouseCoordX == screenwidth) {
 			addRightColumn();
 			canvasResize();
 		} 
-		if (mouseCoordY===-1) {
+		if (mouseCoordY == -1) {
 			addTopRow();
 			canvasResize();
-		} else if (mouseCoordY===screenheight-2-editorRowCount) {
+		} else if (mouseCoordY == screenheight) {
 			addBottomRow();
 			canvasResize();
 		}
@@ -300,26 +298,25 @@ function levelEditorRightClick(event,click) {
 			glyphSelectedIndex=mouseCoordX;
 			redraw();
 		}
-	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-2&&mouseCoordY<screenheight-2-editorRowCount	) {
+	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
 		var coordIndex = mouseCoordY + mouseCoordX*level.height;
 		var glyphmask = new BitVec(STRIDE_OBJ);
 		glyphmask.ibitset(state.backgroundid);
 		level.setCell(coordIndex, glyphmask);
 		redraw();
 	}
-	else if (click) {
-		if (mouseCoordX===-1) {
-			//add a left row to the map
+	else {
+		if (mouseCoordX == -1) {
 			removeLeftColumn();			
 			canvasResize();
-		} else if (mouseCoordX===screenwidth-2) {
+		} else if (mouseCoordX == screenwidth) {
 			removeRightColumn();
 			canvasResize();
 		} 
-		if (mouseCoordY===-1) {
+		if (mouseCoordY == -1) {
 			removeTopRow();
 			canvasResize();
-		} else if (mouseCoordY===screenheight-2-editorRowCount) {
+		} else if (mouseCoordY == screenheight) {
 			removeBottomRow();
 			canvasResize();
 		}
@@ -1235,7 +1232,7 @@ function checkKey(e,justPressed) {
         case 90://z
         {
             //undo
-            if (textMode===false) {
+            if (!textMode) {
                 pushInput("undo");
                 DoUndo(false,true);
                 canvasResize(); // calls redraw
@@ -1245,7 +1242,7 @@ function checkKey(e,justPressed) {
         }
         case 82://r
         {
-        	if (textMode===false) {
+        	if (!textMode) {
         		if (justPressed) {
 	        		pushInput("restart");
 	        		DoRestart();
@@ -1261,7 +1258,7 @@ function checkKey(e,justPressed) {
         		stopSolving();
         		break;
         	}
-        	if (titleScreen===false || titleMode > 1) {
+        	if (!titleScreen || titleMode > 1) {
 				if ((timer/1000>0.5 || titleMode > 1) && !quittingTitleScreen && justPressed) {
 
 					titleSelection = 0;

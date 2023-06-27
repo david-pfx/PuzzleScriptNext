@@ -7,7 +7,20 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23f16. It includes the following.
+The latest version is Release v-23f28. A few minor bugs have been fixed, and it includes the following.
+
+### Level editor supports zoomscreen etc
+
+Some PuzzleScript games create very large levels and divide them into 'rooms' or 'caves' using `zoomscreen`. 
+A similar approach for a large open area is to use `flickscreen`.
+Editing as one large area is hard.
+The level editor now respects `zoomscreen`and `flickscreen`, allowing editing of individual 'rooms'.
+
+### Major rework of test suite
+
+The test suite now includes far more programs and provides greater detail about test results.
+A test suite program can now be opened directly in the editor.
+The version of QUnit has been updated to the latest.
 
 ### Sprites can be of any size or width
 

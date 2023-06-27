@@ -3015,6 +3015,10 @@ function loadFile(str) {
 	var processor = new codeMirrorFn();
 	var state = processor.startState();
 
+    if (!str || str.trim().length == 0) {
+        logErrorNoLine('Empty file! Compilation abandoned!', true);
+        return;
+    }
 	var lines = str.split('\n');
 	for (var i = 0; i < lines.length; i++) {
 		var line = lines[i];
