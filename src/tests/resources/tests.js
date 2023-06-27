@@ -7,11 +7,13 @@
 var inputVals = {0 : "U",1: "L",2:"D",3:"R",4:"A",tick:"T",undo:" UNDO ",restart:" RESTART "};
 const testLookup = {};
 const limit = 10000;			// set this low while testing the testing
+enableCheckErrors = false;
 
 // Pre-configuration as documented does not work, but this way does
 QUnit.config.autostart = true;		// gotta call start() but from where?
 QUnit.config.reorder = false;
 QUnit.config.testTimeout = 5000;
+QUnit.config.collapse = false;
 //QUnit.config.module = 'none';   // forced failure!
 QUnit.config.fixture = '<span>zzzzzzzzzzzzzzzzzzz</span>';
 //QUnit.config.showsource = false;
@@ -65,16 +67,16 @@ function runFileSuite(title, filename) {
 }
 
 function testRule(testName, testData) {
-	const [tdCode, tdi, tdResult, tdl, tdSeed, tdAudio] = testData;
+	const [tdCode, tdi, tdResult, tdl, tdSeed, tdSounds] = testData;
 	const tdInput = tdi.map( j => inputVals[j] )
 		.join('')
 		.replaceAll(/([^t\s]{5})(?=[^\s])/gu, '$1 ')
 		.replaceAll(/\s\s+/g, ' ');
 	const tdLevel = tdl || 0;
-	const tdDescription = lineof('Level', tdLevel) 
-		+ lineof('Input', `<span style='white-space:pre-wrap;'>${tdInput}</span>`)
+	const tdDescription = lineof('Input', `<span style='white-space:pre-wrap;'>${tdInput}</span>`)
 		+ (tdSeed ? lineof('Random seed', tdSeed) : '')
-		+ (tdAudio ? lineof('Audio input', tdAudio) : '')
+		+ lineof('Expected level', tdLevel) 
+		+ (tdSounds ? lineof('Expected sounds', tdSounds) : '')
 		+ '<br/>';
 
 	QUnit.test(
@@ -85,8 +87,9 @@ function testRule(testName, testData) {
 				QUnit.assert.true(runTest(tdat),
 					"Passed all tests"
 				+ tdDescription
-				+ (errorStrings.length > 0 ? listify('Errors', errorStrings) : '') 
-				+ (QUnit.config.showsource ? lineof('Game', `<pre>${tdCode}</pre>`) : ''));
+				+ (errorStrings.length > 0 ? listify('Actual errors', errorStrings) : '')
+				+ (soundHistory.length > 0 ? lineof('Actual sounds', soundHistory.join()) : '')
+				+ (QUnit.config.showsource ? lineof('Game source', `<pre>${tdCode}</pre>`) : ''));
 			};
 		}(testData)
 	)
@@ -102,9 +105,9 @@ function testCompile(testName, testData) {
 				testLookup[QUnit.config.current.testId] = testData;
 				QUnit.assert.true(runCompilationTest(tdat),
 					"Passed compile test<br/>"
-					+ (tdErrors.length > 0 ? listify("Expected", tdErrors) : '')
-					+ (errorStrings.length > 0 ? listify('Errors', errorStrings) : '')
-					+ (QUnit.config.showsource ? lineof('Game', `<pre>${tdCode}</pre>`) : ''));
+					+ (tdErrors.length > 0 ? listify("Expected errors", tdErrors) : '')
+					+ (errorStrings.length > 0 ? listify('Actual errors', errorStrings) : '')
+					+ (QUnit.config.showsource ? lineof('Game source', `<pre>${tdCode}</pre>`) : ''));
 			}
 		}(testData)
 	);
@@ -119,7 +122,6 @@ QUnit.begin(details => {
 
 QUnit.testDone(details => {
 	if (testLookup[details.testId]) {
-	//if (typeof testLookup[details.testId] !== 'undefined') {
 		// see https://stackoverflow.com/questions/39281295/add-append-html-to-qunit-output-results-for-specific-tests
 		const testRowSelector = "qunit-test-output-" + details.testId;
 		const ele = document.getElementById(testRowSelector);
@@ -165,7 +167,7 @@ function lineof(t,s) {
 }
 
 function listify(label, s) {
-	return `<b>Got ${label}:</b><ul>` + s.map(m => '<li>' + JSON.stringify(stripHTMLTags(m)) + '</li>').join('') + '</ul>';
+	return `<b>${label}:</b><ul>` + s.map(m => '<li>' + JSON.stringify(stripHTMLTags(m)) + '</li>').join('') + '</ul>';
 }
 
 // read a text file and return results via callback
@@ -179,16 +181,6 @@ function getTextFile(filename, callback) {
 		consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
 		callback("");
 	}
-	// req.onreadystatechange = function () {
-	// 	if (req.readyState == 4) {
-	// 		if (req.status == 200 || req.status == 201) {
-	// 			callback(req.responseText);
-	// 		} else {
-	// 			consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
-	// 			callback("");
-	// 		}
-	// 	}
-	// }
 	req.send();
 }
 

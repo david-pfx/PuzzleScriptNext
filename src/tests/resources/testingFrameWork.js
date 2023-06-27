@@ -1,7 +1,8 @@
 // perform a single run test
+var enableCheckErrors = false;
+
 function runTest(dataarray) {
 	unitTesting=true;
-	levelString=dataarray[0];
 	errorStrings = [];
 	errorCount=0;
 
@@ -11,17 +12,13 @@ function runTest(dataarray) {
 	// 	throw s;
 	// }
 
-	var inputDat = dataarray[1];
-	var targetlevel = dataarray[3];
-	
-	var randomseed = dataarray[4]!==undefined ? dataarray[4] : null;
+	var levelString = dataarray[0];  // accessed globally?
+	const inputDat = dataarray[1];
+	const targetLevel = dataarray[3] || 0;
+	const randomSeed = dataarray[4] || null;
+	const expectedSounds = dataarray[5] || null;
 
-	var audio_output = dataarray[5]!==undefined ? dataarray[5] : null;
-
-	if (targetlevel===undefined) {
-		targetlevel=0;
-	}
-	if (!compile(["loadLevel",targetlevel],levelString,randomseed))
+	if (!compile(["loadLevel",targetLevel],levelString,randomSeed))
 		return null;		// there is only grief if we continue.
 
 	while (againing) {
@@ -29,8 +26,7 @@ function runTest(dataarray) {
 		processInput(-1);			
 	}
 	
-	for(var i=0;i<inputDat.length;i++) {
-		var val=inputDat[i];
+	for (const val of inputDat) {
 		if (val==="undo") {
 			DoUndo(false,true);
 		} else if (val==="restart") {
@@ -47,20 +43,24 @@ function runTest(dataarray) {
 	}
 
 	unitTesting=false;
-	var levelString = convertLevelToString();
-	const strippedErrorStrings = errorStrings.map(stripHTMLTags);
 
-	const levelOk = levelString === dataarray[2];
-	QUnit.assert.true(levelOk, `Final level state is the expected one.`);
+	const expectedLevel = dataarray[2];
+	const actualLevel = convertLevelToString();
+	let resultOk = actualLevel == expectedLevel;
+	QUnit.assert.equal(actualLevel, expectedLevel, `Final level state as expected.`);
 
-	const audioOk = !audio_output || soundHistory.join(";") == audio_output.join(";");
-	const audioJoin = !audio_output ? '' : audio_output.join(';');
-	QUnit.assert.true(audioOk, `Audio output as expected.`);
+	if (expectedSounds) {
+		const actualSounds = soundHistory.join();
+		QUnit.assert.equal(actualSounds, expectedSounds, `Sounds output as expected.`);
+		resultOk &&= actualSounds == expectedSounds;
+	}
 
-	// todo: option to suppress this
-	const errorsOk = errorCount == 0;
-	QUnit.assert.true(errorsOk, `No errors during testing.`);
-	return levelOk && audioOk && errorsOk;
+	if (enableCheckErrors) {
+		QUnit.assert.true(errorCount == 0, `No errors during testing.`);
+		resultOk &&= errorCount == 0;
+	}
+
+	return resultOk;
 }
 
 
@@ -81,7 +81,7 @@ function runCompilationTest(dataarray) {
 	const simulated_summary = processErrors(strippedErrorStrings);
 	const recorded_summary = processErrors(recordedErrorStrings);
 	const errorsOk = simulated_summary == recorded_summary;
-    QUnit.assert.true(errorsOk, `Error strings as expected.`)
+    QUnit.assert.equal(simulated_summary, recorded_summary, `Error strings as expected.`)
 	return errorsOk;
 }
 

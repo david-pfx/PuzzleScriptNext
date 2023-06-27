@@ -4,7 +4,7 @@ homepage www.polyomino.com
 
 ( PS basic with tests for comments )
 
-verbose_logging
+verbose_logging ( test )
 debug
 
 ========

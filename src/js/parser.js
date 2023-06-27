@@ -282,7 +282,7 @@ var codeMirrorFn = function() {
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
         'mouse_clicks'];
-    const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls'];
+    const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
         'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
@@ -290,7 +290,7 @@ var codeMirrorFn = function() {
     const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
         'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        'level_select_solve_symbol', 'text_message_continue', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
+        'level_select_solve_symbol', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
         'puzzlescript_next_version'];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
@@ -329,7 +329,8 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // return true and swallow any kind of comment
+    // return any kind of comment if found, or null if not
+    // updates eol and commentLevel
     function matchComment(stream, state) {
         stream.match(/\s*/);
         if (stream.eol()) 
@@ -339,7 +340,6 @@ var codeMirrorFn = function() {
             if (stream.match(/\//, false)) {
                 state.commentStyle = '//';
                 reg_notcommentstart = /(.(?!\/\/))+/;
-                //reg_notcommentstart = /.+(?=\/\/)?/;
 
             } else {
                 state.commentStyle = '()';
@@ -349,17 +349,14 @@ var codeMirrorFn = function() {
         // handle // comments
         if (state.commentStyle == '//'){
             if (!stream.match('//'))
-                return false;
-            stream.match(/.*/);
-            return true;
+                return null;
+            return stream.match(/.*/)[0];
         }
         // handle () comments
-        if (state.commentLevel == 0) {
-            if(!stream.match('('))
-                return false;
-            state.commentLevel = 1;
-        }
-        while (state.commentLevel > 0) {
+        if (state.commentLevel == 0 && stream.peek() != '(')
+            return null;
+        const pos = stream.pos;
+        do {
             stream.match(/[^\(\)]*/);
             if (stream.eol())
                 break;
@@ -367,9 +364,9 @@ var codeMirrorFn = function() {
                 state.commentLevel++;
             else if (stream.match(')'))
                 state.commentLevel--;
-        }
+        } while (state.commentLevel > 0);
         stream.eatSpace();
-        return true;
+        return stream.string.slice(pos, stream.pos);
     }
 
     function processLegendLine(state, mixedCase){
@@ -569,7 +566,7 @@ var codeMirrorFn = function() {
         if (sectionIndex == 0) {
             state.objects_section = 0;
             if (state.visitedSections.length > 1) {
-                logError(`section "${name_plus}" must be the first section'`, state.lineNumber);
+                logError(`section "${name_plus}" must be the first section`, state.lineNumber);
             }
         } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
             if (sectionIndex===-1) {
@@ -614,25 +611,26 @@ var codeMirrorFn = function() {
             while (!stream.eol()) {
                 let token = '';
                 let kind = 'ERROR'
-                if (tokens.length == 1 && preamble_param_text.includes(tokens[0].text)) {
+                
+                if (token = matchComment(stream, state)) kind = 'comment';
+                else if (tokens.length == 1 && preamble_param_text.includes(tokens[0].text)) {
                     token = matchRegex(stream, /.*/).trim();  // take it all
                     kind = 'METADATATEXT';
-                } else {
-                    token = matchRegex(stream, /[\w-.+#*]+/, true);
-                    if (!token) {
-                        if (matchComment(stream, state)) return tokens;
-                        token = matchRegex(stream, reg_notcommentstart);
-                    } else {
-                        if (tokens.length == 0)  // first in line
-                            kind = preamble_tables.some(t => t.includes(token)) ? 'METADATA' : 'ERROR'
-                        else kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
-                        : (token === "transparent") ? 'COLOR FADECOLOR'
-                        : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
-                        : 'METADATATEXT';
+                } else if (token = matchRegex(stream, /^[\w-.+#*]+/, true)) {
+                    kind = (tokens.length == 0 && preamble_tables.some(t => t.includes(token))) ? 'METADATA' 
+                    : (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
+                    : (token === "transparent") ? 'COLOR FADECOLOR'
+                    : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
+                    : 'ERROR';
+                    if (kind == 'ERROR') {
+                        pushBack(stream);
+                        if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
+                        else token = matchRegex(stream, reg_notcommentstart);
                     }
-                    if (kind == 'ERROR')
-                        logError('Unrecognised stuff in the prelude.', state.lineNumber);
                 }
+
+                if (kind == 'ERROR')
+                    logError(`Unrecognised stuff in the prelude: "${token}".`, state.lineNumber);
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -642,16 +640,16 @@ var codeMirrorFn = function() {
 
         function parseTokens(tokens) {
             const token = tokens[0].text;
-            const args = tokens.slice(1).map(t => t.text);
+            const args = tokens.slice(1).filter(t => t.kind != 'comment').map(t => t.text);
             let value = null;
             if (state.metadata_lines[token]) {
                 var otherline = state.metadata_lines[token];
-                logWarning(`You've already defined a ${token} in the prelude on line <a onclick="jumpToLine(${otherline})>${otherline}</a>.`, state.lineNumber);
+                logWarning(`You've already defined a ${token.toUpperCase()} in the prelude on line <a onclick="jumpToLine(${otherline})">${otherline}</a>.`, state.lineNumber);
             }
             state.metadata_lines[token]=state.lineNumber;                                                                                    
             if (preamble_keywords.includes(token)) {
-                if (tokens.length > 1)
-                    logError(`Keyword requires no parameters but you gave it one.`, state.lineNumber);
+                if (args.length > 1)
+                    logError(`MetaData ${token.toUpperCase()} doesn't take any parameters, but you went and gave it "${tokens[1].text}".`, state.lineNumber);
                 else value = [token, true];
             } else if (preamble_param_number.includes(token)) {
                 if (args.length != 1 || parseFloat(args[0]) == NaN)
@@ -708,10 +706,10 @@ var codeMirrorFn = function() {
                 else if (tokens.length > 0 && (token = matchRegex(stream, /^copy:/u))) kind = 'SPRITEPARENT';
                 else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
                 else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
-                else {
-                    token = stream.match(reg_notcommentstart, true);
-                    logWarning(`Invalid object name in object section: ${token}.`, state.lineNumber);
-                }
+                else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+
+                if (kind == 'ERROR')
+                    logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -808,11 +806,11 @@ var codeMirrorFn = function() {
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
-                } else {                            
-                    token = stream.match(reg_notcommentstart, true);
+                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+
+                if (kind == 'ERROR')
                     logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
-                    break;
-                } 
+
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -888,94 +886,101 @@ var codeMirrorFn = function() {
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        const tokens = buildTokens();
-        if (tokens.length > 0) {
-            parseTokens(tokens);
-            state.sounds.push(...createSoundRows(tokens));
+        const tt = buildTokens();
+        if (tt.length > 0) {
+            const rows = parseTokens(tt.filter(t => t.kind != 'comment'));
+            if (!tt.some(t => t.kind == 'ERROR'))
+                state.sounds.push(...rows);
         }
-        return tokens;
+        return tt;
 
         // build a list of tokens and kinds
         function buildTokens() {
             const tokens = [];
             while (!stream.eol()) {
-                const token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true);
-                if (!token) {
-                    if (!matchComment(stream, state)) {
+                let token = null;
+                let kind = 'ERROR';
+                if (token = matchComment(stream, state)) kind = 'comment';
+                else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
+                    kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
+                        : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                        : token.match(reg_soundseed) ? 'SOUND'
+                        : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
+                        : 'ERROR';
+                    if (kind == 'ERROR') {
+                        pushBack(stream);
+                        if (token = matchRegex(stream, /[\p{L}\p{N}_:]+/u, !state.case_sensitive)) kind = 'NAME';
+                        else token = matchRegex(stream, reg_notcommentstart);
+                    }
+                } else token = matchRegex(stream, reg_notcommentstart);
+                if (kind == 'ERROR') {
+                    if (tokens.length == 0) {
+                        logError(`Unrecognised stuff in the SOUND section: "${token}".`, state.lineNumber);
+                    } else {
                         //depending on whether the verb is directional or not, we log different errors
                         const dirok = peek(tokens) && peek(tokens).text !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.text));
                         const msg = dirok ? "direction or sound seed" : "sound seed";
-                        const token = stream.match(reg_notcommentstart)[0];
                         logError(`Ah I was expecting a ${msg} after ${peek(tokens).text}, but I don't know what to make of "${token}".`, state.lineNumber);
-                        tokens.push({
-                            text: token, kind: 'ERROR', pos: stream.pos
-                        });
                     }
-                    return tokens;
                 }
-                const kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
-                : token.match(reg_soundverbs) ? 'SOUNDVERB' 
-                : token.match(reg_soundseed) ? 'SOUND'
-                : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
-                : token.match(reg_name) ? (wordAlreadyDeclared(state, token) ? 'NAME' : 'ERROR')
-                : 'ERROR';
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
             }
             return tokens;
         }
-
+        
         function parseTokens(tokens) {
-            let tokx = 0;
-            if (tokens[0].kind == 'NAME') {
+            let tobject, tverb, tevent, tdirs = [], tsounds = []
+            let token = tokens.shift();
+            let next = tokens.shift();
+            if (token.kind == 'NAME') {
                 // player move [ up... ] 142315...
-                if (!wordAlreadyDeclared(state, tokens[0].text)) {
-                    logError(`unexpected sound token "${tokens[0].text}".`, state.lineNumber);
-                    tokens[0].kind = 'ERROR';
-                } 
-                if (!(tokens[1] && tokens[1].kind) == 'SOUNDVERB') {
-                    logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                    tokens[1].kind = 'ERROR';
-                } 
-                tokx = 2;
-                const dirok = soundverbs_directional.includes(tokens[1].text);
-                while (dirok && tokens[tokx] && tokens[tokx].kind == 'DIRECTION')
-                    ++tokx;
-                if (tokens[tokx].kind != 'SOUND') {
-                    const msg = dirok ? "direction or sound seed" : "sound seed";
-                    logError(`Ah I was expecting a ${msg} after ${tokens[tokx-1].text}, but I don't know what to make of "${tokens[tokx].text}".`, state.lineNumber);
-                    tokens[tokx].kind = 'ERROR';
-                } 
-            } else if (tokens[0].kind == 'SOUNDEVENT') {
+                if (!wordAlreadyDeclared(state, token.text)) {
+                    logError(`unexpected sound token "${token.text}".`, state.lineNumber);
+                    token.kind = 'ERROR';
+                } else {
+                    tobject = token.text;
+                    if (!(next && next.kind == 'SOUNDVERB')) {
+                        logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
+                        next.kind = 'ERROR';
+                    } else {
+                        tverb = next.text;
+                        const dirok = soundverbs_directional.includes(tverb);  // move/cantmove
+                        next = tokens.shift();
+                        while (dirok && next && next.kind == 'DIRECTION') {
+                            tdirs.push(next.text);
+                            next = tokens.shift();
+                        }
+                        if (next && next.kind != 'SOUND') {
+                            const msg = dirok ? "direction or sound seed" : "sound seed";
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next}".`, state.lineNumber);
+                            next.kind = 'ERROR';
+                        } 
+                    }
+                }
+            } else if (token.kind == 'SOUNDEVENT') {
                 // closemessage 1241234...
-                tokx = 1;
-                if (tokens[tokx].kind != 'SOUND') {
+                tevent = token.text;
+                if (!(next && next.kind == 'SOUND')) {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                    tokens[tokx].kind = 'ERROR';
+                    next.kind = 'ERROR';
                 }
-
             } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
-            for (tokx++ ; tokx < tokens.length; tokx++) {
-                if (tokens[tokx].kind != 'SOUND') {
-                    logError(`I wasn't expecting anything after the sound declaration ${tokens[tokx-1].text} on this line, so I don't know what to do with "${tokens[tokx].text.toUpperCase()}" here.`, state.lineNumber);
-                    tokens[tokx].kind = 'ERROR';
-                    break;
-                }
+
+            while (next && next.kind == 'SOUND') {
+                tsounds.push(next.text);
+                next = tokens.shift();
             }
+            if (next) {
+                logError(`I wasn't expecting anything after the sound declaration ${tsounds[0]} on this line, so I don't know what to do with "${next.text.toUpperCase()}" here.`, state.lineNumber);
+                next.kind = 'ERROR';
+            }
+            if (tobject)
+                return tsounds.map(s => ['SOUND', tobject, tverb, tdirs, s, state.lineNumber]);
+            else return tsounds.map(s => ['SOUNDEVENT', tevent, s, state.lineNumber]);
         }
 
-        function createSoundRows(tokens){
-            const seeds = tokens.filter(s => s.kind == 'SOUND').map(s => s.text);
-            if (tokens[0].kind == 'NAME') {
-                const dirs = tokens.filter(s => s.kind == 'DIRECTION').map(s => s.text);
-                return seeds.map(s => [ 'SOUND', tokens[0].text, tokens[1].text, dirs, s, state.lineNumber ]);
-                //return seeds.map(s => ({ kind: 'SOUND', name: s.text, dirs: dirs, seed: s, line: state.lineNumber }));
-            } else { // 'SOUNDEVENT'
-                return seeds.map(s => [ 'SOUNDEVENT', tokens[0].text, s, state.lineNumber ]);
-                //return seeds.map(s => ({ kind: 'SOUNDEVENT', name: s.text, seed: s, line: state.lineNumber }));
-            }
-        }
     }
 
     // because of all the early-outs in the token function, this is really just right now attached
@@ -1069,7 +1074,7 @@ var codeMirrorFn = function() {
                     state.levels.push([]);
                 } 
             } else if (state.section === 'objects') {
-                if (debugLevel && state.objects_section == 3) 
+                if (debugLevel && state.objects_section == 3 && state.objects_candname) 
                     console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
 
                 state.objects_section = 0;
@@ -1168,7 +1173,7 @@ var codeMirrorFn = function() {
                         state.objects_section = 1;
                     } else if (state.objects_section == 3) {
                         // if not a grid char assume missing blank line and go to next object
-                        if (sol && !stream.match(/^[.\d]/, false) 
+                        if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
                             if (debugLevel) 
                                 console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
@@ -1286,8 +1291,8 @@ var codeMirrorFn = function() {
                 }
 
                 case 'sounds': {
-                    if (sol)
-                        state.current_line_wip_array = parseSounds(stream, state);
+                    stream.string = mixedCase;
+                    state.current_line_wip_array = parseSounds(stream, state);
                     if (state.current_line_wip_array.length > 0) 
                         return flushToken();
                 }
