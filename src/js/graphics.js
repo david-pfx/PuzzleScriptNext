@@ -415,7 +415,9 @@ x = 0;
 y = 0;
 
 function glyphCount(){
-    return state.glyphOrder.length;
+    // The glyphOrder includes all the legend items, including multi-character definitions
+    // The glyphs should only be the ones defined by a single character
+    return state.glyphOrder.filter(g => g.length ==1).length;
 }
 
 function redraw() {
