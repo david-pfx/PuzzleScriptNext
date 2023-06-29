@@ -417,7 +417,7 @@ y = 0;
 function glyphCount(){
     // The glyphOrder includes all the legend items, including multi-character definitions
     // The glyphs should only be the ones defined by a single character
-    return state.glyphOrder.filter(g => g.length ==1).length;
+    return state.glyphOrder.filter(g => g.length==1).length;
 }
 
 function redraw() {
@@ -976,7 +976,9 @@ function canvasResize() {
     }
 
     if (levelEditorOpened) {
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth-1));
+        // Here the screenwidth needs +1 because the glyphs are also drawn
+        // one column wider than the width of the level
+        editorRowCount = Math.ceil(glyphImages.length/(screenwidth+1));
         cellwidth = canvas.width / (screenwidth + 2);
         cellheight = canvas.height / (screenheight + 2 + editorRowCount);
     } else {
