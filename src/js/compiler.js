@@ -2843,7 +2843,9 @@ var soundDirectionMasks = {
     'horizontal': 0xc,
     'vertical':     3,
     'orthogonal': 0xf,
-    '_action_'  :0x10
+    '_action_'  :0x10,
+    '_lclick_'  :0x13,
+    '_rclick_'  :0x14
 };
 
 function generateSoundData(state) {
@@ -2877,9 +2879,9 @@ function generateSoundData(state) {
             if (soundverbs_directional.includes(verb)) {
                 if (directions.length == 0)
                     directions = ['orthogonal'];
-            } else if (verb === 'action') {
+            } else if (soundverbs_movement.includes(verb)) {
+                directions = [ `_${verb}_` ];
                 verb = 'move';
-                directions = ['_action_'];
             } else if (directions.length > 0)
                 logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', line);
 

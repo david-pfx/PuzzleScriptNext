@@ -1662,6 +1662,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
       		var directionMask = fx.directionMask;
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
+    			if (verbose_logging) 
+					consolePrint(`${state.idDict[fx.objId]} has moved, playing seed ${fx.seed}`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -3052,8 +3054,10 @@ function resolveMovements(level, bannedGroup){
 			for (const fx of state.sfx_MovementFailureMasks) {
 				if (cellMask.get(fx.objId)) {
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
+						const object = getObject(fx.objId);
+						if (verbose_logging) 
+							consolePrint(`${state.idDict[object]} can't move, playing seed ${seedsToPlay_CantMove[i]}`)
 						if (fx.seed.startsWith('afx')) {
-							const object = getObject(fx.objId);
 							const move = getLayerMovement(movementMask, object.layer);
 							seedsToAnimate[i+','+fx.objId] = { 
 								kind: 'cant', 
@@ -3443,10 +3447,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxCreateMask.get(entry.objId)) {		// mask for objects created vs mask for sfx create event
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Created ${state.idDict[objid]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   
@@ -3454,10 +3463,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxDestroyMask.get(entry.objId)) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[objid]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   

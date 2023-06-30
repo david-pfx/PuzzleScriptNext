@@ -32,6 +32,8 @@ var errorCount=0;//only counts errors
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
+const soundverbs_other = [ 'create', 'destroy' ];
+let soundverbs_movement = [ 'action' ];  // clicks to be added
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
     'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
@@ -262,7 +264,6 @@ var codeMirrorFn = function() {
     const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
@@ -677,9 +678,10 @@ var codeMirrorFn = function() {
                 if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
-            if (value[0] == 'mouse_clicks') {
+            if (value[0] == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
+                soundverbs_movement.push(...mouse_clicks_table);
             }
         }
     }
@@ -903,7 +905,7 @@ var codeMirrorFn = function() {
                 if (token = matchComment(stream, state)) kind = 'comment';
                 else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
                     kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
-                        : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                        : soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token) ? 'SOUNDVERB' 
                         : token.match(reg_soundseed) ? 'SOUND'
                         : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
                         : 'ERROR';

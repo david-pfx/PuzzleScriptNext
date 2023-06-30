@@ -33,6 +33,14 @@ gbr = g or b or r
 =======
 SOUNDS
 =======
+r move 85101706
+r cantmove 56601502
+r create 189700
+r destroy 11791501
+r move 4491505
+r lclick 6128103
+r rclick 6247303
+
 ================
 COLLISIONLAYERS
 ================
@@ -45,8 +53,9 @@ RULES
 ======
 
 [ > p | r ] -> [ > p | > r ]
+[ action p | r ] -> [ r | p ]
 
-[ k ] -> [ r ]
+[ lclick k ] -> [ r ]
 [ lclick r ] -> [ k ]
 [ rclick rgb ] -> [ ]
 
@@ -62,7 +71,7 @@ LEVELS
 //message first level
 
 ...g......
-....p.r...
+....p.r.k.
 ...b..y...
 
 message second level
