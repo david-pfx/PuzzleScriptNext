@@ -414,8 +414,9 @@ ctx = canvas.getContext('2d');
 x = 0;
 y = 0;
 
+// length of visible row for mouse wheel
 function glyphCount(){
-    return state.glyphOrder.length;
+    return glyphImages.length;
 }
 
 function redraw() {
@@ -974,7 +975,8 @@ function canvasResize() {
     }
 
     if (levelEditorOpened) {
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth-1));
+        // glyph display is level width + 1
+        editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
         cellheight = canvas.height / (screenheight + 2 + editorRowCount);
     } else {
