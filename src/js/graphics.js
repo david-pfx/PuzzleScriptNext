@@ -344,17 +344,7 @@ function generateGlyphImages() {
 
         //make movement glyphs
 
-        /*
-        up:1
-        down:2
-        left:4
-        right:8
-        action:16
-        rigid:32
-        lclick:19
-        rclick:20
-        */
-        const coords = [ // todo:?
+        const coords = [
             //0 up
             [ [3,2],[5,0],[7,2]],
             //1 down
@@ -764,7 +754,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var movementbitvec = curlevel.getMovements(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
+                    var layerMovement = movementbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
                     if (k >= 0) {
                         ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
@@ -779,7 +769,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var rigidbitvec = curlevel.getRigids(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
+                    var layerRigid = rigidbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     if (layerRigid!==0) {
                         ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
                     }
