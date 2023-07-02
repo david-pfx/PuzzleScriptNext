@@ -864,10 +864,10 @@ function drawEditorIcons(mini,minj) {
     const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
     const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
     const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
-    if (debugLevel) {
-        const ele = document.getElementById('debug');
-        ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
-    }
+    // if (debugLevel) {
+    //     const ele = document.getElementById('debug');
+    //     ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
+    // }
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special

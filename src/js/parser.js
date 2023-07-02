@@ -778,7 +778,7 @@ var codeMirrorFn = function() {
         }
 
         function createAlias(alias, candname, lineno) {
-            if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+            //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
             const synonym = [alias, candname];
             synonym.lineNumber = lineno;
             state.legend_synonyms.push(synonym);
@@ -956,7 +956,7 @@ var codeMirrorFn = function() {
                         }
                         if (next && next.kind != 'SOUND') {
                             const msg = dirok ? "direction or sound seed" : "sound seed";
-                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next}".`, state.lineNumber);
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next.text}".`, state.lineNumber);
                             next.kind = 'ERROR';
                         } 
                     }
@@ -1076,9 +1076,7 @@ var codeMirrorFn = function() {
                     state.levels.push([]);
                 } 
             } else if (state.section === 'objects') {
-                if (debugLevel && state.objects_section == 3 && state.objects_candname) 
-                    console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
-
+                //if (debugLevel && state.objects_section == 3 && state.objects_candname) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                 state.objects_section = 0;
             }
         },
@@ -1177,8 +1175,7 @@ var codeMirrorFn = function() {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            if (debugLevel) 
-                                console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            //if (debugLevel) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
                         }
                     }

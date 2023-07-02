@@ -1086,7 +1086,6 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
-			debugLevel = verbose_logging ? 1 : 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
@@ -1649,7 +1648,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     var targetMask = level.getCellInto(targetIndex,_o7);
 	var sourceMask = level.getCellInto(positionIndex,_o8);
 
-    if (layerMask.anyBitsInCommon(targetMask) && (dirMask!=16)) {		// tofix: 16
+    if (layerMask.anyBitsInCommon(targetMask) && (dirMask < 16)) {		// tofix: 16
         return false;
     }
 
@@ -2534,7 +2533,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
-	if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
+	//if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2548,13 +2547,13 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
-		if (debugLevel) {
-			const cro = cellRowMasks[cellRowIndex].format();
-			const crm = cellRowMasks_Movements[cellRowIndex].format();
-			const lvo = level.mapCellContents.format();
-			const lvm = level.mapCellContents_Movements.format();
-			console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
-		}
+		// if (debugLevel == 'rules') {
+		// 	const cro = cellRowMasks[cellRowIndex].format();
+		// 	const crm = cellRowMasks_Movements[cellRowIndex].format();
+		// 	const lvo = level.mapCellContents.format();
+		// 	const lvm = level.mapCellContents_Movements.format();
+		// 	console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
+		// }
         if (match.length===0) {
             return [];
         } else {
@@ -3172,8 +3171,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			playerPositions = startMovement(dirMasks[dirName]);
 		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
 			const mask = level.getCell(coord);
-			//const mask = state.levels[curlevel].getCell(coord);
-			console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
+			//if (debugLevel) console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
 		
@@ -3462,7 +3460,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
 						if (fx.objId == entry.objId) {
-							if (verbose_logging) consolePrint(`Created ${state.idDict[objid]}, playing seed ${entry.seed}`);
+							if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
 						}
 					}
@@ -3478,7 +3476,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
 						if (fx.objId == entry.objId) {
-							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[objid]}, playing seed ${entry.seed}`);
+							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
 						}
 					}
