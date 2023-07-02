@@ -596,7 +596,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse a PRELUDE line, extract parsed information, return array of tokens
     function parsePrelude(stream, state) {
-        const tokens = buildTokens();
+        const tokens = getTokens();
         if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
             const value = parseTokens(tokens);
             if (value)
@@ -607,7 +607,7 @@ var codeMirrorFn = function() {
         // functions
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = '';
@@ -623,11 +623,12 @@ var codeMirrorFn = function() {
                     : (token === "transparent") ? 'COLOR FADECOLOR'
                     : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
                     : 'ERROR';
-                    if (kind == 'ERROR') {
-                        pushBack(stream);
-                        if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
-                        else token = matchRegex(stream, reg_notcommentstart);
-                    }
+                }
+                if (kind == 'ERROR') {
+                    pushBack(stream);
+                    if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
+                    else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                    else throw  'meta';
                 }
 
                 if (kind == 'ERROR')
@@ -709,6 +710,7 @@ var codeMirrorFn = function() {
                 else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
                 else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
                 else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'name';
 
                 if (kind == 'ERROR')
                     logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
@@ -809,6 +811,7 @@ var codeMirrorFn = function() {
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
                 } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'color';
 
                 if (kind == 'ERROR')
                     logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
@@ -849,7 +852,7 @@ var codeMirrorFn = function() {
                 } 
                 else if (token = matchRegex(stream, /^./)) {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
-                }
+                } else throw 'sprite';
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -870,7 +873,7 @@ var codeMirrorFn = function() {
                 const obj = state.objects[state.objects_candname];
                 obj.spriteText = token;
                 kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
-            }
+            } else throw 'text';
             tokens.push({
                 text: token, kind: kind, pos: stream.pos
             });
@@ -888,7 +891,7 @@ var codeMirrorFn = function() {
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        const tt = buildTokens();
+        const tt = getTokens();
         if (tt.length > 0) {
             const rows = parseTokens(tt.filter(t => t.kind != 'comment'));
             if (!tt.some(t => t.kind == 'ERROR'))
@@ -897,7 +900,7 @@ var codeMirrorFn = function() {
         return tt;
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = null;
@@ -914,7 +917,8 @@ var codeMirrorFn = function() {
                         if (token = matchRegex(stream, /[\p{L}\p{N}_:]+/u, !state.case_sensitive)) kind = 'NAME';
                         else token = matchRegex(stream, reg_notcommentstart);
                     }
-                } else token = matchRegex(stream, reg_notcommentstart);
+                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'sound';
                 if (kind == 'ERROR') {
                     if (tokens.length == 0) {
                         logError(`Unrecognised stuff in the SOUND section: "${token}".`, state.lineNumber);
