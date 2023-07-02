@@ -7177,17 +7177,7 @@ function generateGlyphImages() {
 
         //make movement glyphs
 
-        /*
-        up:1
-        down:2
-        left:4
-        right:8
-        action:16
-        rigid:32
-        lclick:19
-        rclick:20
-        */
-        const coords = [ // todo:?
+        const coords = [
             //0 up
             [ [3,2],[5,0],[7,2]],
             //1 down
@@ -7247,8 +7237,9 @@ ctx = canvas.getContext('2d');
 x = 0;
 y = 0;
 
+// length of visible row for mouse wheel
 function glyphCount(){
-    return state.glyphOrder.length;
+    return glyphImages.length;
 }
 
 function redraw() {
@@ -7596,7 +7587,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var movementbitvec = curlevel.getMovements(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
+                    var layerMovement = movementbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
                     if (k >= 0) {
                         ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
@@ -7611,7 +7602,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var rigidbitvec = curlevel.getRigids(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
+                    var layerRigid = rigidbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     if (layerRigid!==0) {
                         ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
                     }
@@ -7706,10 +7697,10 @@ function drawEditorIcons(mini,minj) {
     const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
     const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
     const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
-    if (debugLevel) {
-        const ele = document.getElementById('debug');
-        ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
-    }
+    // if (debugLevel) {
+    //     const ele = document.getElementById('debug');
+    //     ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
+    // }
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special
@@ -7807,7 +7798,8 @@ function canvasResize() {
     }
 
     if (levelEditorOpened) {
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth-1));
+        // glyph display is level width + 1
+        editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
         cellheight = canvas.height / (screenheight + 2 + editorRowCount);
     } else {
@@ -9022,7 +9014,6 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
-			debugLevel = verbose_logging ? 1 : 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
@@ -9455,10 +9446,10 @@ var dirMaskName = {
 	15: '?',
 	16: 'action',
 	18: 'random',
-	19: 'lclick',
-	20: 'rclick',
-	// todo: 21: 'mclick',
-	// todo: 22: 'reaction',
+	32: 'lclick',
+	64: 'rclick',
+	// todo: ??: 'mclick',
+	// todo: ??: 'reaction',
 };
 
 var dirMasks = {
@@ -9471,10 +9462,10 @@ var dirMasks = {
 	'moving': 15,
 	'action': 16,
 	'random': 18,
-	'lclick': 19,
-	'rclick': 20,
-	// todo: 'mclick': 21,
-	// todo: 'reaction': 22,
+	'lclick': 32,
+	'rclick': 64,
+	// todo: 'mclick': ??,
+	// todo: 'reaction': ??,
 	'': 0
 };
 
@@ -9488,9 +9479,8 @@ var dirMasksDelta = {
 	15: [0, 0],
 	16: [0, 0],
 	18: [0, 0],
-	19: [0, 0],
-	20: [0, 0],
-	21: [0, 0]
+	32: [0, 0],
+	64: [0, 0]
 };
 
 // utility functions
@@ -9500,7 +9490,7 @@ function getObject(objid) {
 
 // get movement in layer from movement mask
 function getLayerMovement(movmask, layer) {
-	return movmask.getshiftor(0x1f, 5*layer);
+	return movmask.getshiftor(MOV_MASK, MOV_BITS * layer);
 }
 
 // update position index by x and y
@@ -9539,7 +9529,7 @@ function moveEntitiesAtIndex(positionIndex, entityMask, dirMask) {
 
     var movementMask = level.getMovements(positionIndex);
     for (var i=0;i<layers.length;i++) {
-      movementMask.ishiftor(dirMask, 5 * layers[i]);
+      movementMask.ishiftor(dirMask, MOV_BITS * layers[i]);
     }
     level.setMovements(positionIndex, movementMask);
 
@@ -9586,7 +9576,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     var targetMask = level.getCellInto(targetIndex,_o7);
 	var sourceMask = level.getCellInto(positionIndex,_o8);
 
-    if (layerMask.anyBitsInCommon(targetMask) && (dirMask!=16)) {
+    if (layerMask.anyBitsInCommon(targetMask) && (dirMask < 16)) {		// tofix: 16
         return false;
     }
 
@@ -9598,6 +9588,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
       		var directionMask = fx.directionMask;
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
+    			if (verbose_logging) 
+					consolePrint(`${state.idDict[fx.objId]} has moved, playing seed ${fx.seed}`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -9638,7 +9630,7 @@ function repositionEntitiesAtCell(positionIndex) {
 
     var moved=false;
     for (var layer=0;layer<level.layerCount;layer++) {
-        var layerMovement = movementMask.getshiftor(0x1f, 5*layer);
+        var layerMovement = movementMask.getshiftor(MOV_MASK, MOV_BITS * layer);
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
@@ -9649,7 +9641,7 @@ function repositionEntitiesAtCell(positionIndex) {
 					newMovedEntities["p"+targetIndex+"-l"+layer] = layerMovement;
 				}
 
-                movementMask.ishiftclear(layerMovement, 5*layer);
+                movementMask.ishiftclear(layerMovement, MOV_BITS * layer);
 				moved = true;
             }
         }
@@ -9747,8 +9739,12 @@ Level.prototype.setMovements = function(index, vec) {
 var ellipsisPattern = ['ellipsis'];
 
 function BitVec(init) {
-  this.data = new Int32Array(init);
-  return this;
+	this.data = new Int32Array(init);
+	return this;
+}
+
+BitVec.prototype.format = function() {
+	return '[' + [...this.data].map(d => `${d.toString(16)}h`).join(',') + ']';
 }
 
 BitVec.prototype.cloneInto = function(target) {
@@ -9927,7 +9923,7 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		if (fn in matchCache) {
 			return matchCache[fn];
 		}
-		//console.log(fn.replace(/\s+/g, ' '));
+		//if (debugLevel) console.log(fn.replace(/\s+/g, ' '));
 		return matchCache[fn] = new Function("cellRow","i", 'd', 'objects', 'movements',fn);
 	} else if (ellipsisCount===1){
 		var cr_l = cellRow.length;
@@ -10033,9 +10029,10 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
 
 }
 
-
-var STRIDE_OBJ = 1;
-var STRIDE_MOV = 1;
+let MOV_BITS = 5;		// doc: no of bits to hold movement as mask
+let MOV_MASK = 0x1f;	// doc: bit mask to match
+var STRIDE_OBJ = 1;	    // doc: size of BitVec to hold objects, at 32 bits per
+var STRIDE_MOV = 1;		// doc: size of BitVec to hold movements, at MOV_BITS bits per
 
 function CellPattern(row) {
   this.objectsPresent = row[0];
@@ -10152,13 +10149,13 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
     var o = state.objects[n];
     objectsSet.ibitset(rand);
     objectsClear.ior(state.layerMasks[o.layer]);
-    movementsClear.ishiftor(0x1f, 5 * o.layer);
+    movementsClear.ishiftor(MOV_MASK, MOV_BITS * o.layer);
   }
   if (!replace_RandomDirMask.iszero()) {
     for (var layerIndex=0;layerIndex<level.layerCount;layerIndex++){
-      if (replace_RandomDirMask.get(5*layerIndex)) {
+      if (replace_RandomDirMask.get(MOV_BITS * layerIndex)) {
         var randomDir = Math.floor(RandomGen.uniform()*4);
-        movementsSet.ibitset(randomDir + 5 * layerIndex);
+        movementsSet.ibitset(randomDir + MOV_BITS * layerIndex);
       }
     }
   }
@@ -10183,7 +10180,7 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
     rigidGroupIndex++;//don't forget to -- it when decoding :O
     var rigidMask = new BitVec(STRIDE_MOV);
     for (var layer = 0; layer < level.layerCount; layer++) {
-      rigidMask.ishiftor(rigidGroupIndex, layer * 5);
+      rigidMask.ishiftor(rigidGroupIndex, MOV_BITS * layer);
     }
     rigidMask.iand(replace.movementsLayerMask);
     curRigidGroupIndexMask = level.rigidGroupIndexMask[currentIndex] || new BitVec(STRIDE_MOV);
@@ -10464,6 +10461,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
+	//if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -10477,6 +10475,13 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
+		// if (debugLevel == 'rules') {
+		// 	const cro = cellRowMasks[cellRowIndex].format();
+		// 	const crm = cellRowMasks_Movements[cellRowIndex].format();
+		// 	const lvo = level.mapCellContents.format();
+		// 	const lvm = level.mapCellContents_Movements.format();
+		// 	console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
+		// }
         if (match.length===0) {
             return [];
         } else {
@@ -10967,11 +10972,11 @@ function resolveMovements(level, bannedGroup){
 				if (!movementMask.iszero()) {
 					//find what layer was restricted
 					for (var j=0;j<level.layerCount;j++) {
-						var layerSection = movementMask.getshiftor(0x1f, 5*j);
+						var layerSection = movementMask.getshiftor(MOV_MASK, MOV_BITS * j);
 						if (layerSection!==0) {
 							//this is our layer!
 							var rigidGroupIndexMask = level.rigidGroupIndexMask[i];
-							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(0x1f, 5*j);
+							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(MOV_MASK, MOV_BITS * j);
 							rigidGroupIndex--;//group indices start at zero, but are incremented for storing in the bitfield
 							var groupIndex = state.rigidGroupIndex_to_GroupIndex[rigidGroupIndex];
 							if (bannedGroup[groupIndex]!==true){
@@ -10988,8 +10993,10 @@ function resolveMovements(level, bannedGroup){
 			for (const fx of state.sfx_MovementFailureMasks) {
 				if (cellMask.get(fx.objId)) {
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
+						const object = getObject(fx.objId);
+						if (verbose_logging) 
+							consolePrint(`${state.idDict[object]} can't move, playing seed ${seedsToPlay_CantMove[i]}`)
 						if (fx.seed.startsWith('afx')) {
-							const object = getObject(fx.objId);
 							const move = getLayerMovement(movementMask, object.layer);
 							seedsToAnimate[i+','+fx.objId] = { 
 								kind: 'cant', 
@@ -11091,7 +11098,8 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		if ([ 0,1,2,3,4 ].includes(dir)) {		// arrows plus action go to player 
 			playerPositions = startMovement(dirMasks[dirName]);
 		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
-			const mask = state.levels[curlevel].getCell(coord);
+			const mask = level.getCell(coord);
+			//if (debugLevel) console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
 		
@@ -11379,10 +11387,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxCreateMask.get(entry.objId)) {		// mask for objects created vs mask for sfx create event
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   
@@ -11390,10 +11403,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxDestroyMask.get(entry.objId)) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   
@@ -11906,6 +11924,8 @@ var errorCount=0;//only counts errors
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
+const soundverbs_other = [ 'create', 'destroy' ];
+let soundverbs_movement = [ 'action' ];  // clicks to be added
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
     'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
@@ -12136,7 +12156,6 @@ var codeMirrorFn = function() {
     const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
@@ -12469,7 +12488,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse a PRELUDE line, extract parsed information, return array of tokens
     function parsePrelude(stream, state) {
-        const tokens = buildTokens();
+        const tokens = getTokens();
         if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
             const value = parseTokens(tokens);
             if (value)
@@ -12480,7 +12499,7 @@ var codeMirrorFn = function() {
         // functions
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = '';
@@ -12496,11 +12515,12 @@ var codeMirrorFn = function() {
                     : (token === "transparent") ? 'COLOR FADECOLOR'
                     : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
                     : 'ERROR';
-                    if (kind == 'ERROR') {
-                        pushBack(stream);
-                        if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
-                        else token = matchRegex(stream, reg_notcommentstart);
-                    }
+                }
+                if (kind == 'ERROR') {
+                    pushBack(stream);
+                    if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
+                    else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                    else throw  'meta';
                 }
 
                 if (kind == 'ERROR')
@@ -12551,9 +12571,10 @@ var codeMirrorFn = function() {
                 if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
-            if (value[0] == 'mouse_clicks') {
+            if (value[0] == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
+                soundverbs_movement.push(...mouse_clicks_table);
             }
         }
     }
@@ -12581,6 +12602,7 @@ var codeMirrorFn = function() {
                 else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
                 else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
                 else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'name';
 
                 if (kind == 'ERROR')
                     logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
@@ -12650,7 +12672,7 @@ var codeMirrorFn = function() {
         }
 
         function createAlias(alias, candname, lineno) {
-            if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+            //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
             const synonym = [alias, candname];
             synonym.lineNumber = lineno;
             state.legend_synonyms.push(synonym);
@@ -12681,6 +12703,7 @@ var codeMirrorFn = function() {
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
                 } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'color';
 
                 if (kind == 'ERROR')
                     logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
@@ -12721,7 +12744,7 @@ var codeMirrorFn = function() {
                 } 
                 else if (token = matchRegex(stream, /^./)) {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
-                }
+                } else throw 'sprite';
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -12742,7 +12765,7 @@ var codeMirrorFn = function() {
                 const obj = state.objects[state.objects_candname];
                 obj.spriteText = token;
                 kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
-            }
+            } else throw 'text';
             tokens.push({
                 text: token, kind: kind, pos: stream.pos
             });
@@ -12760,7 +12783,7 @@ var codeMirrorFn = function() {
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        const tt = buildTokens();
+        const tt = getTokens();
         if (tt.length > 0) {
             const rows = parseTokens(tt.filter(t => t.kind != 'comment'));
             if (!tt.some(t => t.kind == 'ERROR'))
@@ -12769,7 +12792,7 @@ var codeMirrorFn = function() {
         return tt;
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = null;
@@ -12777,7 +12800,7 @@ var codeMirrorFn = function() {
                 if (token = matchComment(stream, state)) kind = 'comment';
                 else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
                     kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
-                        : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                        : soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token) ? 'SOUNDVERB' 
                         : token.match(reg_soundseed) ? 'SOUND'
                         : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
                         : 'ERROR';
@@ -12786,7 +12809,8 @@ var codeMirrorFn = function() {
                         if (token = matchRegex(stream, /[\p{L}\p{N}_:]+/u, !state.case_sensitive)) kind = 'NAME';
                         else token = matchRegex(stream, reg_notcommentstart);
                     }
-                } else token = matchRegex(stream, reg_notcommentstart);
+                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'sound';
                 if (kind == 'ERROR') {
                     if (tokens.length == 0) {
                         logError(`Unrecognised stuff in the SOUND section: "${token}".`, state.lineNumber);
@@ -12828,7 +12852,7 @@ var codeMirrorFn = function() {
                         }
                         if (next && next.kind != 'SOUND') {
                             const msg = dirok ? "direction or sound seed" : "sound seed";
-                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next}".`, state.lineNumber);
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next.text}".`, state.lineNumber);
                             next.kind = 'ERROR';
                         } 
                     }
@@ -12948,9 +12972,7 @@ var codeMirrorFn = function() {
                     state.levels.push([]);
                 } 
             } else if (state.section === 'objects') {
-                if (debugLevel && state.objects_section == 3 && state.objects_candname) 
-                    console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
-
+                //if (debugLevel && state.objects_section == 3 && state.objects_candname) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                 state.objects_section = 0;
             }
         },
@@ -13049,8 +13071,7 @@ var codeMirrorFn = function() {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            if (debugLevel) 
-                                console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            //if (debugLevel) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
                         }
                     }
@@ -13659,8 +13680,10 @@ function generateExtraMembers(state) {
     }
 
     // how many words do our bitvecs need to hold?
-    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;     // doc: size of BitVec to hold objects, at 32 bits per
-    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;             // doc: size of BitVec to hold directions, at 5 bits per
+    MOV_BITS = 8;
+    MOV_MASK = 0xff;
+    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;         // doc: size of BitVec to hold objects, at 32 bits per
+    STRIDE_MOV = Math.ceil(layerCount * MOV_BITS / 32) | 0;     // doc: size of BitVec to hold directions, at 5 bits per
     state.STRIDE_OBJ = STRIDE_OBJ;
     state.STRIDE_MOV = STRIDE_MOV;
 
@@ -15434,15 +15457,15 @@ function rulesToMask(state) {
 
                         if (object) {
                             objectsPresent.ior(objectMask);
-                            objectlayers_l.ishiftor(0x1f, 5 * layerIndex);
+                            objectlayers_l.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
                             anyObjectsPresent.push(objectMask);
                         }
 
                         if (object_dir === 'stationary') {
-                            movementsMissing.ishiftor(0x1f, 5 * layerIndex);
+                            movementsMissing.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
-                            movementsPresent.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            movementsPresent.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         }
                     }
                 }
@@ -15569,7 +15592,7 @@ function rulesToMask(state) {
                         layersUsed_r[layerIndex] = object_name;
 
                         if (object_dir.length > 0) {
-                            postMovementsLayerMask_r.ishiftor(0x1f, 5 * layerIndex);
+                            postMovementsLayerMask_r.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         }
 
                         var layerMask = state.layerMasks[layerIndex];
@@ -15577,18 +15600,18 @@ function rulesToMask(state) {
                         if (object) {
                             objectsSet.ibitset(object.id);
                             objectsClear.ior(layerMask);
-                            objectlayers_r.ishiftor(0x1f, 5 * layerIndex);
+                            objectlayers_r.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
                             // shouldn't need to do anything here...
                         }
                         //possibility - if object not present on lhs in same position, clear movement
                         if (object_dir === 'stationary') {
-                            movementsClear.ishiftor(0x1f, 5 * layerIndex);
+                            movementsClear.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         }                
                         if (object_dir === 'randomdir') {
-                            randomDirMask_r.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            randomDirMask_r.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         } else {
-                            movementsSet.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            movementsSet.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         };
                     }
                 }
@@ -15615,7 +15638,7 @@ function rulesToMask(state) {
                     if (layersUsed_l[l] !== null && layersUsed_r[l] === null) {
                         // a layer matched on the lhs, but not on the rhs
                         objectsClear.ior(state.layerMasks[l]);
-                        postMovementsLayerMask_r.ishiftor(0x1f, 5 * l);
+                        postMovementsLayerMask_r.ishiftor(MOV_MASK, MOV_BITS * l);
                     }
                 }
 
@@ -16437,7 +16460,9 @@ var soundDirectionMasks = {
     'horizontal': 0xc,
     'vertical':     3,
     'orthogonal': 0xf,
-    '_action_'  :0x10
+    '_action_'  :0x10,
+    '_lclick_'  :0x20,
+    '_rclick_'  :0x40
 };
 
 function generateSoundData(state) {
@@ -16471,13 +16496,13 @@ function generateSoundData(state) {
             if (soundverbs_directional.includes(verb)) {
                 if (directions.length == 0)
                     directions = ['orthogonal'];
-            } else if (verb === 'action') {
+            } else if (soundverbs_movement.includes(verb)) {
+                directions = [ `_${verb}_` ];
                 verb = 'move';
-                directions = ['_action_'];
             } else if (directions.length > 0)
                 logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', line);
 
-            // construct a 5 bit direction mask
+            // construct a direction mask
             let directionMask = 0;
             for (const dir of directions) {
                 if (!soundDirectionMasks[dir]) 
@@ -16519,7 +16544,7 @@ function generateSoundData(state) {
                 // separate masks for each layer
                 if (verb === 'move' || verb === 'cantmove') {
                     shiftedDirectionMask = new BitVec(STRIDE_MOV);
-                    shiftedDirectionMask.ishiftor(directionMask, 5 * targetLayer);
+                    shiftedDirectionMask.ishiftor(directionMask, MOV_BITS * targetLayer);
                 }
 
                 // doc: sfx/afx seed for target object, movement(s) as mask shifted to target layer
