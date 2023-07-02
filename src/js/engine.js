@@ -1086,7 +1086,6 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
-			debugLevel = verbose_logging ? 1 : 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
@@ -1519,10 +1518,10 @@ var dirMaskName = {
 	15: '?',
 	16: 'action',
 	18: 'random',
-	19: 'lclick',
-	20: 'rclick',
-	// todo: 21: 'mclick',
-	// todo: 22: 'reaction',
+	32: 'lclick',
+	64: 'rclick',
+	// todo: ??: 'mclick',
+	// todo: ??: 'reaction',
 };
 
 var dirMasks = {
@@ -1535,10 +1534,10 @@ var dirMasks = {
 	'moving': 15,
 	'action': 16,
 	'random': 18,
-	'lclick': 19,
-	'rclick': 20,
-	// todo: 'mclick': 21,
-	// todo: 'reaction': 22,
+	'lclick': 32,
+	'rclick': 64,
+	// todo: 'mclick': ??,
+	// todo: 'reaction': ??,
 	'': 0
 };
 
@@ -1552,9 +1551,8 @@ var dirMasksDelta = {
 	15: [0, 0],
 	16: [0, 0],
 	18: [0, 0],
-	19: [0, 0],
-	20: [0, 0],
-	21: [0, 0]
+	32: [0, 0],
+	64: [0, 0]
 };
 
 // utility functions
@@ -1564,7 +1562,7 @@ function getObject(objid) {
 
 // get movement in layer from movement mask
 function getLayerMovement(movmask, layer) {
-	return movmask.getshiftor(0x1f, 5*layer);
+	return movmask.getshiftor(MOV_MASK, MOV_BITS * layer);
 }
 
 // update position index by x and y
@@ -1603,7 +1601,7 @@ function moveEntitiesAtIndex(positionIndex, entityMask, dirMask) {
 
     var movementMask = level.getMovements(positionIndex);
     for (var i=0;i<layers.length;i++) {
-      movementMask.ishiftor(dirMask, 5 * layers[i]);
+      movementMask.ishiftor(dirMask, MOV_BITS * layers[i]);
     }
     level.setMovements(positionIndex, movementMask);
 
@@ -1650,7 +1648,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     var targetMask = level.getCellInto(targetIndex,_o7);
 	var sourceMask = level.getCellInto(positionIndex,_o8);
 
-    if (layerMask.anyBitsInCommon(targetMask) && (dirMask!=16)) {
+    if (layerMask.anyBitsInCommon(targetMask) && (dirMask < 16)) {		// tofix: 16
         return false;
     }
 
@@ -1662,6 +1660,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
       		var directionMask = fx.directionMask;
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
+    			if (verbose_logging) 
+					consolePrint(`${state.idDict[fx.objId]} has moved, playing seed ${fx.seed}`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -1702,7 +1702,7 @@ function repositionEntitiesAtCell(positionIndex) {
 
     var moved=false;
     for (var layer=0;layer<level.layerCount;layer++) {
-        var layerMovement = movementMask.getshiftor(0x1f, 5*layer);
+        var layerMovement = movementMask.getshiftor(MOV_MASK, MOV_BITS * layer);
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
@@ -1713,7 +1713,7 @@ function repositionEntitiesAtCell(positionIndex) {
 					newMovedEntities["p"+targetIndex+"-l"+layer] = layerMovement;
 				}
 
-                movementMask.ishiftclear(layerMovement, 5*layer);
+                movementMask.ishiftclear(layerMovement, MOV_BITS * layer);
 				moved = true;
             }
         }
@@ -1811,8 +1811,12 @@ Level.prototype.setMovements = function(index, vec) {
 var ellipsisPattern = ['ellipsis'];
 
 function BitVec(init) {
-  this.data = new Int32Array(init);
-  return this;
+	this.data = new Int32Array(init);
+	return this;
+}
+
+BitVec.prototype.format = function() {
+	return '[' + [...this.data].map(d => `${d.toString(16)}h`).join(',') + ']';
 }
 
 BitVec.prototype.cloneInto = function(target) {
@@ -1991,7 +1995,7 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		if (fn in matchCache) {
 			return matchCache[fn];
 		}
-		//console.log(fn.replace(/\s+/g, ' '));
+		//if (debugLevel) console.log(fn.replace(/\s+/g, ' '));
 		return matchCache[fn] = new Function("cellRow","i", 'd', 'objects', 'movements',fn);
 	} else if (ellipsisCount===1){
 		var cr_l = cellRow.length;
@@ -2097,9 +2101,10 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
 
 }
 
-
-var STRIDE_OBJ = 1;
-var STRIDE_MOV = 1;
+let MOV_BITS = 5;		// doc: no of bits to hold movement as mask
+let MOV_MASK = 0x1f;	// doc: bit mask to match
+var STRIDE_OBJ = 1;	    // doc: size of BitVec to hold objects, at 32 bits per
+var STRIDE_MOV = 1;		// doc: size of BitVec to hold movements, at MOV_BITS bits per
 
 function CellPattern(row) {
   this.objectsPresent = row[0];
@@ -2216,13 +2221,13 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
     var o = state.objects[n];
     objectsSet.ibitset(rand);
     objectsClear.ior(state.layerMasks[o.layer]);
-    movementsClear.ishiftor(0x1f, 5 * o.layer);
+    movementsClear.ishiftor(MOV_MASK, MOV_BITS * o.layer);
   }
   if (!replace_RandomDirMask.iszero()) {
     for (var layerIndex=0;layerIndex<level.layerCount;layerIndex++){
-      if (replace_RandomDirMask.get(5*layerIndex)) {
+      if (replace_RandomDirMask.get(MOV_BITS * layerIndex)) {
         var randomDir = Math.floor(RandomGen.uniform()*4);
-        movementsSet.ibitset(randomDir + 5 * layerIndex);
+        movementsSet.ibitset(randomDir + MOV_BITS * layerIndex);
       }
     }
   }
@@ -2247,7 +2252,7 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
     rigidGroupIndex++;//don't forget to -- it when decoding :O
     var rigidMask = new BitVec(STRIDE_MOV);
     for (var layer = 0; layer < level.layerCount; layer++) {
-      rigidMask.ishiftor(rigidGroupIndex, layer * 5);
+      rigidMask.ishiftor(rigidGroupIndex, MOV_BITS * layer);
     }
     rigidMask.iand(replace.movementsLayerMask);
     curRigidGroupIndexMask = level.rigidGroupIndexMask[currentIndex] || new BitVec(STRIDE_MOV);
@@ -2528,6 +2533,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
+	//if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2541,6 +2547,13 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
+		// if (debugLevel == 'rules') {
+		// 	const cro = cellRowMasks[cellRowIndex].format();
+		// 	const crm = cellRowMasks_Movements[cellRowIndex].format();
+		// 	const lvo = level.mapCellContents.format();
+		// 	const lvm = level.mapCellContents_Movements.format();
+		// 	console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
+		// }
         if (match.length===0) {
             return [];
         } else {
@@ -3031,11 +3044,11 @@ function resolveMovements(level, bannedGroup){
 				if (!movementMask.iszero()) {
 					//find what layer was restricted
 					for (var j=0;j<level.layerCount;j++) {
-						var layerSection = movementMask.getshiftor(0x1f, 5*j);
+						var layerSection = movementMask.getshiftor(MOV_MASK, MOV_BITS * j);
 						if (layerSection!==0) {
 							//this is our layer!
 							var rigidGroupIndexMask = level.rigidGroupIndexMask[i];
-							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(0x1f, 5*j);
+							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(MOV_MASK, MOV_BITS * j);
 							rigidGroupIndex--;//group indices start at zero, but are incremented for storing in the bitfield
 							var groupIndex = state.rigidGroupIndex_to_GroupIndex[rigidGroupIndex];
 							if (bannedGroup[groupIndex]!==true){
@@ -3052,8 +3065,10 @@ function resolveMovements(level, bannedGroup){
 			for (const fx of state.sfx_MovementFailureMasks) {
 				if (cellMask.get(fx.objId)) {
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
+						const object = getObject(fx.objId);
+						if (verbose_logging) 
+							consolePrint(`${state.idDict[object]} can't move, playing seed ${seedsToPlay_CantMove[i]}`)
 						if (fx.seed.startsWith('afx')) {
-							const object = getObject(fx.objId);
 							const move = getLayerMovement(movementMask, object.layer);
 							seedsToAnimate[i+','+fx.objId] = { 
 								kind: 'cant', 
@@ -3155,7 +3170,8 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		if ([ 0,1,2,3,4 ].includes(dir)) {		// arrows plus action go to player 
 			playerPositions = startMovement(dirMasks[dirName]);
 		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
-			const mask = state.levels[curlevel].getCell(coord);
+			const mask = level.getCell(coord);
+			//if (debugLevel) console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
 		
@@ -3443,10 +3459,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxCreateMask.get(entry.objId)) {		// mask for objects created vs mask for sfx create event
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   
@@ -3454,10 +3475,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxDestroyMask.get(entry.objId)) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   

@@ -65,8 +65,10 @@ function generateExtraMembers(state) {
     }
 
     // how many words do our bitvecs need to hold?
-    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;     // doc: size of BitVec to hold objects, at 32 bits per
-    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;             // doc: size of BitVec to hold directions, at 5 bits per
+    MOV_BITS = 8;
+    MOV_MASK = 0xff;
+    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;         // doc: size of BitVec to hold objects, at 32 bits per
+    STRIDE_MOV = Math.ceil(layerCount * MOV_BITS / 32) | 0;     // doc: size of BitVec to hold directions, at 5 bits per
     state.STRIDE_OBJ = STRIDE_OBJ;
     state.STRIDE_MOV = STRIDE_MOV;
 
@@ -1840,15 +1842,15 @@ function rulesToMask(state) {
 
                         if (object) {
                             objectsPresent.ior(objectMask);
-                            objectlayers_l.ishiftor(0x1f, 5 * layerIndex);
+                            objectlayers_l.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
                             anyObjectsPresent.push(objectMask);
                         }
 
                         if (object_dir === 'stationary') {
-                            movementsMissing.ishiftor(0x1f, 5 * layerIndex);
+                            movementsMissing.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
-                            movementsPresent.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            movementsPresent.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         }
                     }
                 }
@@ -1975,7 +1977,7 @@ function rulesToMask(state) {
                         layersUsed_r[layerIndex] = object_name;
 
                         if (object_dir.length > 0) {
-                            postMovementsLayerMask_r.ishiftor(0x1f, 5 * layerIndex);
+                            postMovementsLayerMask_r.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         }
 
                         var layerMask = state.layerMasks[layerIndex];
@@ -1983,18 +1985,18 @@ function rulesToMask(state) {
                         if (object) {
                             objectsSet.ibitset(object.id);
                             objectsClear.ior(layerMask);
-                            objectlayers_r.ishiftor(0x1f, 5 * layerIndex);
+                            objectlayers_r.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
                             // shouldn't need to do anything here...
                         }
                         //possibility - if object not present on lhs in same position, clear movement
                         if (object_dir === 'stationary') {
-                            movementsClear.ishiftor(0x1f, 5 * layerIndex);
+                            movementsClear.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         }                
                         if (object_dir === 'randomdir') {
-                            randomDirMask_r.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            randomDirMask_r.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         } else {
-                            movementsSet.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            movementsSet.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         };
                     }
                 }
@@ -2021,7 +2023,7 @@ function rulesToMask(state) {
                     if (layersUsed_l[l] !== null && layersUsed_r[l] === null) {
                         // a layer matched on the lhs, but not on the rhs
                         objectsClear.ior(state.layerMasks[l]);
-                        postMovementsLayerMask_r.ishiftor(0x1f, 5 * l);
+                        postMovementsLayerMask_r.ishiftor(MOV_MASK, MOV_BITS * l);
                     }
                 }
 
@@ -2843,7 +2845,9 @@ var soundDirectionMasks = {
     'horizontal': 0xc,
     'vertical':     3,
     'orthogonal': 0xf,
-    '_action_'  :0x10
+    '_action_'  :0x10,
+    '_lclick_'  :0x20,
+    '_rclick_'  :0x40
 };
 
 function generateSoundData(state) {
@@ -2877,13 +2881,13 @@ function generateSoundData(state) {
             if (soundverbs_directional.includes(verb)) {
                 if (directions.length == 0)
                     directions = ['orthogonal'];
-            } else if (verb === 'action') {
+            } else if (soundverbs_movement.includes(verb)) {
+                directions = [ `_${verb}_` ];
                 verb = 'move';
-                directions = ['_action_'];
             } else if (directions.length > 0)
                 logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', line);
 
-            // construct a 5 bit direction mask
+            // construct a direction mask
             let directionMask = 0;
             for (const dir of directions) {
                 if (!soundDirectionMasks[dir]) 
@@ -2925,7 +2929,7 @@ function generateSoundData(state) {
                 // separate masks for each layer
                 if (verb === 'move' || verb === 'cantmove') {
                     shiftedDirectionMask = new BitVec(STRIDE_MOV);
-                    shiftedDirectionMask.ishiftor(directionMask, 5 * targetLayer);
+                    shiftedDirectionMask.ishiftor(directionMask, MOV_BITS * targetLayer);
                 }
 
                 // doc: sfx/afx seed for target object, movement(s) as mask shifted to target layer

@@ -32,6 +32,8 @@ var errorCount=0;//only counts errors
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
+const soundverbs_other = [ 'create', 'destroy' ];
+let soundverbs_movement = [ 'action' ];  // clicks to be added
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
     'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
@@ -262,7 +264,6 @@ var codeMirrorFn = function() {
     const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
@@ -595,7 +596,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse a PRELUDE line, extract parsed information, return array of tokens
     function parsePrelude(stream, state) {
-        const tokens = buildTokens();
+        const tokens = getTokens();
         if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
             const value = parseTokens(tokens);
             if (value)
@@ -606,7 +607,7 @@ var codeMirrorFn = function() {
         // functions
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = '';
@@ -622,11 +623,12 @@ var codeMirrorFn = function() {
                     : (token === "transparent") ? 'COLOR FADECOLOR'
                     : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
                     : 'ERROR';
-                    if (kind == 'ERROR') {
-                        pushBack(stream);
-                        if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
-                        else token = matchRegex(stream, reg_notcommentstart);
-                    }
+                }
+                if (kind == 'ERROR') {
+                    pushBack(stream);
+                    if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
+                    else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                    else throw  'meta';
                 }
 
                 if (kind == 'ERROR')
@@ -677,9 +679,10 @@ var codeMirrorFn = function() {
                 if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
-            if (value[0] == 'mouse_clicks') {
+            if (value[0] == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
+                soundverbs_movement.push(...mouse_clicks_table);
             }
         }
     }
@@ -707,6 +710,7 @@ var codeMirrorFn = function() {
                 else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
                 else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
                 else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'name';
 
                 if (kind == 'ERROR')
                     logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
@@ -776,7 +780,7 @@ var codeMirrorFn = function() {
         }
 
         function createAlias(alias, candname, lineno) {
-            if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+            //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
             const synonym = [alias, candname];
             synonym.lineNumber = lineno;
             state.legend_synonyms.push(synonym);
@@ -807,6 +811,7 @@ var codeMirrorFn = function() {
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
                 } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'color';
 
                 if (kind == 'ERROR')
                     logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
@@ -847,7 +852,7 @@ var codeMirrorFn = function() {
                 } 
                 else if (token = matchRegex(stream, /^./)) {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
-                }
+                } else throw 'sprite';
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -868,7 +873,7 @@ var codeMirrorFn = function() {
                 const obj = state.objects[state.objects_candname];
                 obj.spriteText = token;
                 kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
-            }
+            } else throw 'text';
             tokens.push({
                 text: token, kind: kind, pos: stream.pos
             });
@@ -886,7 +891,7 @@ var codeMirrorFn = function() {
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        const tt = buildTokens();
+        const tt = getTokens();
         if (tt.length > 0) {
             const rows = parseTokens(tt.filter(t => t.kind != 'comment'));
             if (!tt.some(t => t.kind == 'ERROR'))
@@ -895,7 +900,7 @@ var codeMirrorFn = function() {
         return tt;
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = null;
@@ -903,7 +908,7 @@ var codeMirrorFn = function() {
                 if (token = matchComment(stream, state)) kind = 'comment';
                 else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
                     kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
-                        : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                        : soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token) ? 'SOUNDVERB' 
                         : token.match(reg_soundseed) ? 'SOUND'
                         : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
                         : 'ERROR';
@@ -912,7 +917,8 @@ var codeMirrorFn = function() {
                         if (token = matchRegex(stream, /[\p{L}\p{N}_:]+/u, !state.case_sensitive)) kind = 'NAME';
                         else token = matchRegex(stream, reg_notcommentstart);
                     }
-                } else token = matchRegex(stream, reg_notcommentstart);
+                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'sound';
                 if (kind == 'ERROR') {
                     if (tokens.length == 0) {
                         logError(`Unrecognised stuff in the SOUND section: "${token}".`, state.lineNumber);
@@ -954,7 +960,7 @@ var codeMirrorFn = function() {
                         }
                         if (next && next.kind != 'SOUND') {
                             const msg = dirok ? "direction or sound seed" : "sound seed";
-                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next}".`, state.lineNumber);
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next.text}".`, state.lineNumber);
                             next.kind = 'ERROR';
                         } 
                     }
@@ -1074,9 +1080,7 @@ var codeMirrorFn = function() {
                     state.levels.push([]);
                 } 
             } else if (state.section === 'objects') {
-                if (debugLevel && state.objects_section == 3 && state.objects_candname) 
-                    console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
-
+                //if (debugLevel && state.objects_section == 3 && state.objects_candname) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                 state.objects_section = 0;
             }
         },
@@ -1175,8 +1179,7 @@ var codeMirrorFn = function() {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            if (debugLevel) 
-                                console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            //if (debugLevel) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
                         }
                     }

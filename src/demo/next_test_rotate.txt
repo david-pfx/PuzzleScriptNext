@@ -1,0 +1,166 @@
+title Test Rotate
+author polyomino games
+homepage polyomino.org
+
+debug
+verbose_logging
+
+background_color lightblue
+text_color darkbrown
+
+run_rules_on_level_start
+tween_length 0.25
+sprite_size 9
+//nokeyboard 
+mouse_clicks
+
+========
+OBJECTS
+========
+
+edge *
+lightgrey lightblue blue
+012012012
+120120120
+201201201
+012012012
+120120120
+201201201
+012012012
+120120120
+201201201
+
+focus 
+grey
+000000000
+0.......0
+0.......0
+0.......0
+0.......0
+0.......0
+0.......0
+0.......0
+000000000
+
+tileN n
+red
+...000...
+..0.0.0..
+....0....
+....0....
+....0....
+.........
+.........
+.........
+.........
+
+tileE e
+red
+.........
+.........
+.......0.
+........0
+....00000
+........0
+.......0.
+.........
+.........
+
+tileS s
+red
+.........
+.........
+.........
+.........
+....0....
+....0....
+....0....
+..0.0.0..
+...000...
+
+
+tileW w
+red
+.........
+.........
+.0.......
+0........
+00000....
+0........
+.0.......
+.........
+.........
+
+Background .;green
+tileX;transparent  // extra tile for shifts
+
+=======
+LEGEND
+=======
+
+tileNESW = tileN or tileE or tileS or tileW
+player = tileNESW
+// tile rotation
+tileRL0 = tileN or tileE or tileS or tileW or tileX
+tileRL1 = tileX or tileN or tileE or tileS or tileW
+tileRR0 = tileN or tileW or tileS or tileE or tileX
+tileRR1 = tileX or tileN or tileW or tileS or tileE
+tileRX0 = tileN or tileS or tileW or tileE or tileX
+tileRX1 = tileN or tileS or tileX or tileW or tileE
+
+=======
+SOUNDS
+=======
+
+player lclick 32169907 afx:RR
+player rclick 32169907 afx:RL
+sfx0 32169907
+sfx1 16334503
+
+================
+COLLISIONLAYERS
+================
+Background
+edge 
+tileN
+tileE
+tileS
+tileW
+tileX
+focus
+
+======
+RULES
+======
+
+//[ focus ] -> []
+//[ hover clickable ] -> [ clickable focus ]
+
+// accept a user input
+
+  [ lclick tileRL0 ] -> [ lclick tileRL1 ] 
++ [ lclick tileRL0 ] -> [ tileRL0 ]
+  [ rclick tileRR0 ] -> [ rclick tileRR1 ] 
++ [ rclick tileRR0 ] -> [ tileRR0 ]
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+//level Single start 9x9
+***********
+*.........*
+*..n...e..*
+*.........*
+*.........*
+*....s....*
+*.........*
+*.........*
+*....w....*
+*.........*
+***********
+

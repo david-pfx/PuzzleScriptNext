@@ -48,7 +48,7 @@ RULES
 ======
 
 [ > Player | No Trail ] -> [ Trail | Player ] sfx0
-[ > Player | Trail ] -> [  | Player ] sfx1
+[ > Player | Trail ] -> [ | Player ] sfx1
 
 ==============
 WINCONDITIONS

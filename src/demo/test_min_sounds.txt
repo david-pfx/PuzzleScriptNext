@@ -2,7 +2,9 @@ title test min sounds
 author polymino
 homepage www.polyomino.com
 
-// test program for sounds and animations
+// test program for sounds
+
+enable_clicks
 
 verbose_logging
 debug
@@ -16,6 +18,7 @@ B;BLUE
 g;green
 y;yellow
 k;pink
+m;purple
 
 =======
 LEGEND
@@ -31,43 +34,44 @@ gbr = g or b or r
 SOUNDS
 =======
 
-player move 85101706
-player cantmove 56601502
-g destroy fxfade 85101706
-sfx99 64217903 
+player move up 85101706
+player cantmove up 56601502
+player action 89294300
+
+r move 89294300
+r cantmove 56601502
+y destroy 45101706
+y create 55101706
+
+m lclick 11111106
+m rclick 11111106
+sfx1 64217903 
 
 ================
 COLLISIONLAYERS
 ================
 Background
-y
 Player, R, B, G
+y
 k
+m
 ======
 RULES
 ======
 
-[ > p | r ] -> [ > p | > r ] sfx99 cancel
-[ > p | g ] -> [ > p | ]
+[ > p | rgb ] -> [ > p | > rgb ]
+[ > p | k ] -> [ p | y ]
+[ > p | y ] -> [ p | k ]
 
 ==============
 WINCONDITIONS
 ==============
-all r on y
 
 =======
 LEVELS
 =======
 
-//message first level
-
-...g......
-....p.r.y.
-...b......
-
-message second level
-
-..........
-....pry...
-..........
+.k...r.
+.y.p.g.
+.m...b.
 

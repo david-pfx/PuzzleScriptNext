@@ -13,7 +13,8 @@ mouse_clicks
 OBJECTS
 ========
 Background;grey
-PLAYER P;white
+P;black
+W;white
 R;RED
 B;BLUE
 g;green
@@ -24,36 +25,46 @@ k;pink
 LEGEND
 =======
 . = Background
-a = b and k
-o = b or g
-ork = r or k
-rgb = r or g or b
-gbr = g or b or r
+player = P or W
+//a = b and k
+//o = b or g
+//ork = r or k
+//rgb = r or g or b
+//gbr = g or b or r
 
 =======
 SOUNDS
 =======
+r move 85101706
+r cantmove 56601502
+r create 189700
+r destroy 11791501
+r move 4491505
+r lclick 6128103
+r rclick 6247303
+
 ================
 COLLISIONLAYERS
 ================
 Background
+Player, R, B, G, K
 y
-Player, R, B, G
-k
 ======
 RULES
 ======
 
-[ > p | r ] -> [ > p | > r ]
-
-[ k ] -> [ r ]
+[ action p ] -> [ w ]
+[ action w ] -> [ p ]
+[ lclick k ] -> [ r ]
 [ lclick r ] -> [ k ]
-[ rclick rgb ] -> [ ]
+//[ > p | r ] -> [ > p | > r ]
+//[ action p | r ] -> [ r | p ]
+//[ rclick rgb ] -> [ ]
 
 ==============
 WINCONDITIONS
 ==============
-all p on y
+//all p on y
 
 =======
 LEVELS
@@ -62,7 +73,7 @@ LEVELS
 //message first level
 
 ...g......
-....p.r...
+....p.r.k.
 ...b..y...
 
 message second level

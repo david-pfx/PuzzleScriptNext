@@ -6,7 +6,7 @@ homepage www.puzzlescript.net
 OBJECTS
 ========
 
-Background  (special, automatically placed in its own layer)
+Background (special, automatically placed in its own layer)
 green darkgreen
 11111
 01111
@@ -14,15 +14,15 @@ green darkgreen
 11111
 10111
 
-Spawner  (Name)
+Spawner (Name)
 yellow 	(Color)
-..... (Sprite)
+..... 	(Sprite)
 ..0..
 .000.
 ..0..
 .....
 
-Player    (Required by game)
+Player (Required by game)
 pink
 ..0..
 00000

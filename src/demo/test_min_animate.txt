@@ -19,6 +19,7 @@ B;BLUE
 g;green
 y;yellow
 k;pink
+m;purple
 
 =======
 LEGEND
@@ -34,56 +35,48 @@ gbr = g or b or r
 SOUNDS
 =======
 
-player move 85101706 afx:ease=13:xlate
-g move left down 85101706
-g move right up 64217903
-player cantmove horizontal 64217903 afx:xlate=-.5
-player cantmove vertical 64217903 afx:xlate=-1
-player action 64217903 afx:xlate
-g create 47877305 afx:scale
-g destroy 85101706 afx:alpha
-b create 47877305 afx:angle=180
-b destroy 85101706 afx:alpha
-r create 47877305 afx:alpha
-r destroy 85101706 afx:alpha
+player move up 85101706 afx:ease=13:xlate
+player cantmove up 56601502 afx:xlate=-.5
+player cantmove horizontal 64217903 afx:xlate=-1
+player action 64217903 afx:angle
+
+r move 89294300
+r cantmove 56601502
+
+y create 47877305 afx:scale
+y destroy 85101706 afx:alpha
+
+m lclick 11111106 afx:angle=45
+m rclick 11111106 afx:angle=-45
+sfx1 64217903 
+
 sfx99 64217903 
 
 ================
 COLLISIONLAYERS
 ================
 Background
-y
 Player, R, B, G
+y
 k
+m
 ======
 RULES
 ======
 
-[ > p | r ] -> [ r | p ]
-[ > p | g | ] -> [ p | | g ]
-[ > p | b ] -> [ p | y ]
-[ > p | y ] -> [ p | b ]
-right [ lclick b | ] -> [ | b ]
-right [ | rclick b ] -> [ b | ]
+[ > p | rgb ] -> [ > p | > rgb ]
+[ > p | k ] -> [ p | y ]
+[ > p | y ] -> [ p | k ]
 
 ==============
 WINCONDITIONS
 ==============
-all r on y
 
 =======
 LEVELS
 =======
 
-//message first level
-
-.pg......
-....r.y..
-..b......
-
-message second level
-
-..........
-....pry...
-..........
+.k...r.
+.y.p.g.
+.m...b.
 

@@ -14,6 +14,8 @@ sprite_size 9
 nokeyboard 
 mouse_clicks
 
+// port/rewrite from Tatham collection
+
 ========
 OBJECTS
 ========
@@ -122,7 +124,7 @@ m = mix and edge
 t = test and background
 tileNESW = tileN or tileE or tileS or tileW
 active = start or tileNESW
-clickable = tileNESW
+player = tileNESW
 // tile rotation
 tileRL0 = tileN or tileE or tileS or tileW or tileX
 tileRL1 = tileX or tileN or tileE or tileS or tileW
@@ -141,8 +143,8 @@ tempobj = r0 or init or mix
 SOUNDS
 =======
 
-player lclick 32169907 afxRR
-player rclick 32169907 afxRL
+player lclick 32169907 afx:angle=-90
+player rclick 32169907 afx:angle=90
 sfx0 32169907
 sfx1 16334503
 
@@ -215,18 +217,23 @@ endloop
 //  [ rclick tileRR0 ] -> [ rclick tileRR1 ] 
 //+ [ rclick tileRR0 ] -> [ tileRR0 ]
 
+  [ lclick TileNESW ] -> [ lclick tileNESW temp ]
   [ lclick TileN ] -> [ lclick TileX ]
 + [ lclick TileE ] -> [ lclick TileN ]
 + [ lclick TileS ] -> [ lclick TileE ]
 + [ lclick TileW ] -> [ lclick TileS ]
 + [ lclick TileX ] -> [ lclick TileW ]
 + [ lclick TileNESW ] -> [ TileNESW ]
+  [ temp TileNESW ] -> [ lclick tileNESW ]
+
+  [ rclick TileNESW ] -> [ rclick tileNESW temp ]
   [ rclick TileN ] -> [ rclick TileX ]
 + [ rclick TileW ] -> [ rclick TileN ]
 + [ rclick TileS ] -> [ rclick TileW ]
 + [ rclick TileE ] -> [ rclick TileS ]
 + [ rclick TileX ] -> [ rclick TileE ]
 + [ rclick TileNESW ] -> [ TileNESW ]
+  [ temp TileNESW ] -> [ rclick tileNESW ]
 
 [ lit ] -> []
 [ start ] -> [ start lit ]
@@ -238,7 +245,7 @@ startloop
 endloop
 
 [ start ] -> [ start done ]
-[ done ][ clickable no lit ] -> [][ clickable ]
+[ done ][ player no lit ] -> [][ player ]
 [ done ] -> sfx1
 //[ done ] -> status You win! Press R to play again, or Esc to change level.
 

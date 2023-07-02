@@ -7,7 +7,13 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23f28. A few minor bugs have been fixed, and it includes the following.
+The latest version is Release v-23g03. 
+This one is mainly a bug fix, including:
+* the editor hangs on cut and paste
+* mouse clicks and animation not working correctly
+* level editor layout and mouse wheel behaviour
+
+It includes the following features.
 
 ### Level editor supports zoomscreen etc
 

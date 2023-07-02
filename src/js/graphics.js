@@ -344,17 +344,7 @@ function generateGlyphImages() {
 
         //make movement glyphs
 
-        /*
-        up:1
-        down:2
-        left:4
-        right:8
-        action:16
-        rigid:32
-        lclick:19
-        rclick:20
-        */
-        const coords = [ // todo:?
+        const coords = [
             //0 up
             [ [3,2],[5,0],[7,2]],
             //1 down
@@ -414,8 +404,9 @@ ctx = canvas.getContext('2d');
 x = 0;
 y = 0;
 
+// length of visible row for mouse wheel
 function glyphCount(){
-    return state.glyphOrder.length;
+    return glyphImages.length;
 }
 
 function redraw() {
@@ -763,7 +754,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var movementbitvec = curlevel.getMovements(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
+                    var layerMovement = movementbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
                     if (k >= 0) {
                         ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
@@ -778,7 +769,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var rigidbitvec = curlevel.getRigids(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
+                    var layerRigid = rigidbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     if (layerRigid!==0) {
                         ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
                     }
@@ -873,10 +864,10 @@ function drawEditorIcons(mini,minj) {
     const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
     const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
     const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
-    if (debugLevel) {
-        const ele = document.getElementById('debug');
-        ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
-    }
+    // if (debugLevel) {
+    //     const ele = document.getElementById('debug');
+    //     ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
+    // }
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special
@@ -974,7 +965,8 @@ function canvasResize() {
     }
 
     if (levelEditorOpened) {
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth-1));
+        // glyph display is level width + 1
+        editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
         cellheight = canvas.height / (screenheight + 2 + editorRowCount);
     } else {
