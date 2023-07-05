@@ -126,7 +126,7 @@ function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
     }
 }
 
-
+// draw a line of text with the loaded custom font, one centred character per cell
 function drawTextWithCustomFont(txt, ctx, x, y) {
     ctx.fillStyle = state.fgcolor;
     ctx.textBaseline = "middle";
@@ -405,8 +405,8 @@ x = 0;
 y = 0;
 
 // length of visible row for mouse wheel
-function glyphCount(){
-    return glyphImages.length;
+function glyphCount() {
+    return state.glyphOrder.filter(g => g.length == 1).length;
 }
 
 function redraw() {
@@ -864,10 +864,6 @@ function drawEditorIcons(mini,minj) {
     const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
     const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
     const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
-    // if (debugLevel) {
-    //     const ele = document.getElementById('debug');
-    //     ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
-    // }
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special
@@ -905,8 +901,8 @@ function drawEditorIcons(mini,minj) {
     // show tooltip
     if (tooltip_string) {
         ctx.fillStyle = state.fgcolor;
-        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
-        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.4*cellheight);
+        ctx.font = `${cellheight/2}px Monospace`;
+        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.3*cellheight);
     }
 
 
@@ -966,7 +962,8 @@ function canvasResize() {
 
     if (levelEditorOpened) {
         // glyph display is level width + 1
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
+        editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
+        //editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
         cellheight = canvas.height / (screenheight + 2 + editorRowCount);
     } else {
@@ -1020,6 +1017,10 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
+    // debugLevel
+    const ele = document.getElementById('debug');
+    ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
     	forceRegenImages=false;
     	regenSpriteImages();

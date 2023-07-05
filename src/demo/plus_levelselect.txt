@@ -5,7 +5,7 @@ homepage www.sneezingtiger.com/sokoban/levels/microbanText.html
 level_select
 level_select_lock
 level_select_unlocked_ahead 3
-level_select_solve_symbol V
+level_select_solve_symbol ✓
 continue_is_level_select
 
 (

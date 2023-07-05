@@ -2533,7 +2533,7 @@ function twiddleMetaData(state, update = false) {
         let easing = newmetadata.tween_easing;
         if (easing) {
             easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
-            if (EasingFunctions(easing)) 
+            if (EasingFunctions[easing]) 
                 newmetadata.tween_easing = easing;
             else {
                 logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);

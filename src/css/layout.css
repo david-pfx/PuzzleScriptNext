@@ -82,7 +82,7 @@ HTML, BODY
 	background-color:#555555;
 	height: 100%;
 	float: left;
-	width: 3px;
+	width: 5px;
 	cursor: col-resize;
 }
 #horizontaldragbar {
@@ -92,7 +92,7 @@ HTML, BODY
 	left: 50%;
 	right: 0;
 	float: right;
-	height: 3px;
+	height: 5px;
 	cursor: row-resize;
 }
 
