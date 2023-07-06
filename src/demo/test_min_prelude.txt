@@ -1,4 +1,4 @@
-title test min
+title test min prelude
 author polymino
 homepage www.polyomino.com
 
@@ -24,11 +24,11 @@ runtime_metadata_twiddling
 runtime_metadata_twiddling_debug
 settings
 //smoothscreen_debug
-skip_title_screen
+//skip_title_screen
 //throttle_movement
 
 // param single
-background_color lightblue
+background_color darkblue
 color_palette amstrad
 //flickscreen 9x9
 level_select_solve_symbol ✓
@@ -42,7 +42,7 @@ mouse_rup m
 //puzzlescript_next_version
 sitelock_origin_whitelist asdf
 sitelock_hostname_whitelist asdf
-text_color #123
+text_color #def
 tween_easing easeInQuad
 youtube asdf
 //zoomscreen 9x9
@@ -54,10 +54,10 @@ youtube asdf
 // param text
 //author
 // Based on the information found here: https://fonts.googleapis.com/css2?family=VT323&display=swap
-custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
-//custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+//custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 //homepage
-text_controls asdfasdfdsasdff
+text_controls This is a text control...
 text_message_continue Please continue at your leisure...
 //title
 
@@ -95,7 +95,7 @@ LEVELS
 
 section Level 1
 
-message This is a rather long message specifically to see the result of specifying a custom font with some strange characters "大 ⚐"
+message This is a rather long message designed to see the result of specifying a custom font with some strange single "✓ ☑ ☛ ⦿" and double characters "大 ⚐"
 
 .k...r.
 .y.p.g.
