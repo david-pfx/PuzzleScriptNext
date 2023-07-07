@@ -886,7 +886,7 @@ function relMouseCoords(event){
 HTMLCanvasElement.prototype.relMouseCoords = relMouseCoords;
 
 function onKeyUp(event) {
-	event = event || window.event;
+	//event = event || window.event;
 	var index=keybuffer.indexOf(event.keyCode);
 	if (index>=0){
     	keybuffer.splice(index,1);
@@ -1556,6 +1556,9 @@ var prevTimestamp;
 var loop = function(timestamp){
 	if (prevTimestamp !== undefined) {
 		deltatime = timestamp - prevTimestamp
+		// debugLevel
+		//const ele = document.getElementById('debug');
+		//ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 	}
 	prevTimestamp = timestamp
 	try {
