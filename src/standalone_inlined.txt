@@ -6887,91 +6887,90 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
 
 // draw font characters from the text sheet into the sprite sheet.
 // fix: these are bitmaps, low res. :-(
-function renderTextBad(spritectx, text, colors, padding, x, y) {
-    colors = colors || ['#00000000', state.fgcolor];
+// function renderTextBad(spritectx, text, colors, padding, x, y) {
+//     colors = colors || ['#00000000', state.fgcolor];
 
-    var ch = text.charAt(0);
-    if (ch in font) {
-        var index = fontIndex[ch];
-        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
-        var textX = (index % textsheetSize) | 0;
-        var textY = (index / textsheetSize) | 0;
-        spritectx.imageSmoothingEnabled = false;
-        spritectx.fillStyle = colors[0];  // does nothing :-(
-        spritectx.drawImage(
-            textsheetCanvas,
-            textX * textcellwidth,
-            textY * textcellheight,
-            textcellwidth, textcellheight,
-            x * cellwidth,
-            y * cellheight,
-            cellwidth, cellheight
-        );
-        spritectx.imageSmoothingEnabled = true;
-    }
-}
+//     var ch = text.charAt(0);
+//     if (ch in font) {
+//         var index = fontIndex[ch];
+//         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+//         var textX = (index % textsheetSize) | 0;
+//         var textY = (index / textsheetSize) | 0;
+//         spritectx.imageSmoothingEnabled = false;
+//         spritectx.fillStyle = colors[0];  // does nothing :-(
+//         spritectx.drawImage(
+//             textsheetCanvas,
+//             textX * textcellwidth,
+//             textY * textcellheight,
+//             textcellwidth, textcellheight,
+//             x * cellwidth,
+//             y * cellheight,
+//             cellwidth, cellheight
+//         );
+//         spritectx.imageSmoothingEnabled = true;
+//     }
+// }
 
-// draw a string of text into a cell, scaling and centring as needed
-function renderText(spritectx, text, colors, cellx, celly) {
-    const scale = [ 0.8, 1 ];
-    // location of first character, centred vertically
-    const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
-                   w: cellwidth / text.length, h: cellheight / text.length };
-    function resize(rc, x, y) {
-        return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
-    };
-    function rescale(rc, s) { 
-        return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
-    };
-    function translate(rc, x, y) {
-        return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
-    };
-    for (let i = 0; i < text.length; i++) {
-        const ch = text.charAt(i);
-        if (ch in font) {
-            const fontstr = font[ch]
-                .split('\n')
-                .map(a => a.trim().split('').map(t => parseInt(t)));
-            fontstr.shift();
-            const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
-            renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
-        }
-    }
-}
+// // draw a string of text into a cell, scaling and centring as needed
+// function renderText(spritectx, text, colors, cellx, celly) {
+//     const scale = [ 0.8, 1 ];
+//     // location of first character, centred vertically
+//     const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
+//                    w: cellwidth / text.length, h: cellheight / text.length };
+//     function resize(rc, x, y) {
+//         return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
+//     };
+//     function rescale(rc, s) { 
+//         return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
+//     };
+//     function translate(rc, x, y) {
+//         return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
+//     };
+//     for (let i = 0; i < text.length; i++) {
+//         const ch = text.charAt(i);
+//         if (ch in font) {
+//             const fontstr = font[ch]
+//                 .split('\n')
+//                 .map(a => a.trim().split('').map(t => parseInt(t)));
+//             fontstr.shift();
+//             const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
+//             renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
+//         }
+//     }
+// }
 
-// draw grid into a defined rectangle with a colour
-function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
-    ctx.clearRect(rectx, recty, rectw, recth);
+// // draw grid into a defined rectangle with a colour
+// function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
+//     ctx.clearRect(rectx, recty, rectw, recth);
 
-    const gridw = grid[0].length;
-    const dw = rectw / gridw;
-    const gridh = grid.length;
-    const dh = recth / gridh;
-    ctx.fillStyle = colors[1];
-    for (let y = 0; y < gridh; y++) {
-        for (let x = 0; x < gridw; x++) {
-            const val = grid[y][x];
-            if (val >= 0) {
-                ctx.fillStyle = colors[val];
-                ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
-            }
-        }
-    }
-}
+//     const gridw = grid[0].length;
+//     const dw = rectw / gridw;
+//     const gridh = grid.length;
+//     const dh = recth / gridh;
+//     ctx.fillStyle = colors[1];
+//     for (let y = 0; y < gridh; y++) {
+//         for (let x = 0; x < gridw; x++) {
+//             const val = grid[y][x];
+//             if (val >= 0) {
+//                 ctx.fillStyle = colors[val];
+//                 ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
+//             }
+//         }
+//     }
+// }
 
-
-function drawTextWithCustomFont(txt, ctx, x, y) {
-    ctx.fillStyle = state.fgcolor;
+function drawTextWithFont(ctx, text, color, x, y, height) {
+    const fontSize = state.metadata.font_size ? Math.max(0, parseFloat(state.metadata.font_size)) : 1;
+    const pixelsize = height * fontSize;
+    const fontname = (state.metadata.custom_font && loadedCustomFont) ? "PuzzleCustomFont" : "Monospace";
+    ctx.font = `${pixelsize}px ${fontname}`;
+    ctx.fillStyle = color;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    var fontSize = 1;
-    if (state.metadata.font_size !== undefined) {
-        fontSize = Math.max(parseFloat(state.metadata.font_size), 0)
-    }
-    ctx.font = (cellheight * fontSize) + "px PuzzleCustomFont";
-    ctx.fillText(txt, x, y);
-}
+    //ctx.imageSmoothingEnabled = false;
+    ctx.fillText(text, x, y);
 
+}
 var textsheetCanvas = null;
 
 function regenText(spritecanvas,spritectx) {
@@ -7044,7 +7043,8 @@ function regenSpriteImages() {
             spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
         }            
         if (obj.spriteText) {
-            renderText(spritesheetContext, obj.spriteText, sprites[i].colors, spriteX, spriteY);
+            drawTextWithFont(spritesheetContext, obj.spriteText, sprites[i].colors, 
+                (spriteX + 0.5) * cellwidth, (spriteY + 0.5) * cellheight, cellheight / obj.spriteText.length);
         } else {
             renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
         }
@@ -7177,17 +7177,7 @@ function generateGlyphImages() {
 
         //make movement glyphs
 
-        /*
-        up:1
-        down:2
-        left:4
-        right:8
-        action:16
-        rigid:32
-        lclick:19
-        rclick:20
-        */
-        const coords = [ // todo:?
+        const coords = [
             //0 up
             [ [3,2],[5,0],[7,2]],
             //1 down
@@ -7247,8 +7237,9 @@ ctx = canvas.getContext('2d');
 x = 0;
 y = 0;
 
-function glyphCount(){
-    return state.glyphOrder.length;
+// length of visible row for mouse wheel
+function glyphCount() {
+    return state.glyphOrder.filter(g => g.length == 1).length;
 }
 
 function redraw() {
@@ -7261,12 +7252,15 @@ function redraw() {
     else redrawCellGrid();
 }
 
+// option to draw custom font text in cells could be a prelude setting if desired
+const textModeLine = true;
+
 function redrawTextMode() {
-    const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
     ctx.fillStyle = state.bgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
+        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
         for (var i = 0; i < titleWidth; i++) {
             for (var j = 0; j < titleHeight; j++) {
                 var ch = titleImage[j].charAt(i);
@@ -7288,14 +7282,17 @@ function redrawTextMode() {
                 }
             }
         }
-    } else {
-        if (spritesheetCanvas===null) {
-            regenSpriteImages();
+    } else if (textModeLine) {
+        for(let j = 0; j < titleHeight; j++) {
+            drawTextWithFont(ctx, titleImage[j], state.fgcolor, 
+                xoffset + (titleWidth/2+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
         }
-        
-        for(var i = 0; i < titleHeight; i++) {
-            var row = titleImage[i];
-            drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
+    } else {
+        for (var i = 0; i < titleWidth; i++) {
+            for(let j = 0; j < titleHeight; j++) {
+                drawTextWithFont(ctx, titleImage[j].slice(i, i+1), state.fgcolor, 
+                    xoffset + (i+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
+            }
         }
     }
 }
@@ -7404,6 +7401,10 @@ function redrawCellGrid() {
 
     if (tweening) drawObjectsTweening(iter);
     else drawObjects(iter);
+
+    if (state.metadata.status_line)
+        drawTextWithFont(ctx, statusText, state.fgcolor, 
+            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight);
 
     if (diffToVisualize)
         drawDiffToVisualize();
@@ -7596,7 +7597,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var movementbitvec = curlevel.getMovements(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerMovement = movementbitvec.getshiftor(0x1f, 5*layer);
+                    var layerMovement = movementbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     const k = [ 1, 2, 4, 8, 16, -1, 19, 20 ].indexOf(layerMovement);
                     if (k >= 0) {
                         ctx.drawImage(editorGlyphMovements[k], xoffset + (i - minMaxIJ[0]) * cellwidth, yoffset + (j - minMaxIJ[1]) * cellheight);
@@ -7611,7 +7612,7 @@ function redrawCellGrid() {
                 var posIndex = j + i * curlevel.height;
                 var rigidbitvec = curlevel.getRigids(posIndex);
                 for (var layer=0;layer<curlevel.layerCount;layer++) {
-                    var layerRigid = rigidbitvec.getshiftor(0x1f, 5*layer);
+                    var layerRigid = rigidbitvec.getshiftor(MOV_MASK, MOV_BITS * layer);
                     if (layerRigid!==0) {
                         ctx.drawImage(editorGlyphMovements[5], xoffset + (i-minMaxIJ[0]) * cellwidth, yoffset + (j-minMaxIJ[1]) * cellheight);                            
                     }
@@ -7706,10 +7707,6 @@ function drawEditorIcons(mini,minj) {
     const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
     const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
     const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
-    if (debugLevel) {
-        const ele = document.getElementById('debug');
-        ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
-    }
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special
@@ -7747,8 +7744,8 @@ function drawEditorIcons(mini,minj) {
     // show tooltip
     if (tooltip_string) {
         ctx.fillStyle = state.fgcolor;
-        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
-        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.4*cellheight);
+        ctx.font = `${cellheight/2}px Monospace`;
+        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.3*cellheight);
     }
 
 
@@ -7806,13 +7803,17 @@ function canvasResize() {
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
 
+    // If we need a status line, this will reduce the cell height to allow room
+    const statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
     if (levelEditorOpened) {
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth-1));
+        // glyph display is level width + 1
+        editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
+        //editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
-        cellheight = canvas.height / (screenheight + 2 + editorRowCount);
+        cellheight = (canvas.height - statusLineHeight) / (screenheight + 2 + editorRowCount);
     } else {
         cellwidth = canvas.width / screenwidth;
-        cellheight = canvas.height / screenheight;
+        cellheight = (canvas.height - statusLineHeight) / screenheight;
     }
 
     // round the cell size as a multiple of sprite size
@@ -7842,12 +7843,12 @@ function canvasResize() {
 
     if (levelEditorOpened && !textMode) {
         xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
-        yoffset = (canvas.height - cellheight * (screenheight + 2 + editorRowCount)) / 2;
+        yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
     	xoffset+=cellwidth;
     	yoffset+=cellheight*(1+editorRowCount);
     } else {
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
-        yoffset = (canvas.height - cellheight * screenheight) / 2;
+        yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     }
 
     // tidy up for export to globals
@@ -7861,6 +7862,10 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
+    // debugLevel
+    const ele = document.getElementById('debug');
+    ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
     	forceRegenImages=false;
     	regenSpriteImages();
@@ -9022,7 +9027,6 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 		    messageselected=false;
 		    titleMode = 0;
-			debugLevel = verbose_logging ? 1 : 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
 		    }
@@ -9187,6 +9191,7 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
+let statusText="";
 var currentMovedEntities = {};
 var newMovedEntities = {};
 
@@ -9455,10 +9460,10 @@ var dirMaskName = {
 	15: '?',
 	16: 'action',
 	18: 'random',
-	19: 'lclick',
-	20: 'rclick',
-	// todo: 21: 'mclick',
-	// todo: 22: 'reaction',
+	32: 'lclick',
+	64: 'rclick',
+	// todo: ??: 'mclick',
+	// todo: ??: 'reaction',
 };
 
 var dirMasks = {
@@ -9471,10 +9476,10 @@ var dirMasks = {
 	'moving': 15,
 	'action': 16,
 	'random': 18,
-	'lclick': 19,
-	'rclick': 20,
-	// todo: 'mclick': 21,
-	// todo: 'reaction': 22,
+	'lclick': 32,
+	'rclick': 64,
+	// todo: 'mclick': ??,
+	// todo: 'reaction': ??,
 	'': 0
 };
 
@@ -9488,9 +9493,8 @@ var dirMasksDelta = {
 	15: [0, 0],
 	16: [0, 0],
 	18: [0, 0],
-	19: [0, 0],
-	20: [0, 0],
-	21: [0, 0]
+	32: [0, 0],
+	64: [0, 0]
 };
 
 // utility functions
@@ -9500,7 +9504,7 @@ function getObject(objid) {
 
 // get movement in layer from movement mask
 function getLayerMovement(movmask, layer) {
-	return movmask.getshiftor(0x1f, 5*layer);
+	return movmask.getshiftor(MOV_MASK, MOV_BITS * layer);
 }
 
 // update position index by x and y
@@ -9539,7 +9543,7 @@ function moveEntitiesAtIndex(positionIndex, entityMask, dirMask) {
 
     var movementMask = level.getMovements(positionIndex);
     for (var i=0;i<layers.length;i++) {
-      movementMask.ishiftor(dirMask, 5 * layers[i]);
+      movementMask.ishiftor(dirMask, MOV_BITS * layers[i]);
     }
     level.setMovements(positionIndex, movementMask);
 
@@ -9586,7 +9590,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     var targetMask = level.getCellInto(targetIndex,_o7);
 	var sourceMask = level.getCellInto(positionIndex,_o8);
 
-    if (layerMask.anyBitsInCommon(targetMask) && (dirMask!=16)) {
+    if (layerMask.anyBitsInCommon(targetMask) && (dirMask < 16)) {		// tofix: 16
         return false;
     }
 
@@ -9598,6 +9602,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
       		var directionMask = fx.directionMask;
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
+    			if (verbose_logging) 
+					consolePrint(`${state.idDict[fx.objId]} has moved, playing seed ${fx.seed}`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -9638,7 +9644,7 @@ function repositionEntitiesAtCell(positionIndex) {
 
     var moved=false;
     for (var layer=0;layer<level.layerCount;layer++) {
-        var layerMovement = movementMask.getshiftor(0x1f, 5*layer);
+        var layerMovement = movementMask.getshiftor(MOV_MASK, MOV_BITS * layer);
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
@@ -9649,7 +9655,7 @@ function repositionEntitiesAtCell(positionIndex) {
 					newMovedEntities["p"+targetIndex+"-l"+layer] = layerMovement;
 				}
 
-                movementMask.ishiftclear(layerMovement, 5*layer);
+                movementMask.ishiftclear(layerMovement, MOV_BITS * layer);
 				moved = true;
             }
         }
@@ -9747,8 +9753,12 @@ Level.prototype.setMovements = function(index, vec) {
 var ellipsisPattern = ['ellipsis'];
 
 function BitVec(init) {
-  this.data = new Int32Array(init);
-  return this;
+	this.data = new Int32Array(init);
+	return this;
+}
+
+BitVec.prototype.format = function() {
+	return '[' + [...this.data].map(d => `${d.toString(16)}h`).join(',') + ']';
 }
 
 BitVec.prototype.cloneInto = function(target) {
@@ -9927,7 +9937,7 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		if (fn in matchCache) {
 			return matchCache[fn];
 		}
-		//console.log(fn.replace(/\s+/g, ' '));
+		//if (debugLevel) console.log(fn.replace(/\s+/g, ' '));
 		return matchCache[fn] = new Function("cellRow","i", 'd', 'objects', 'movements',fn);
 	} else if (ellipsisCount===1){
 		var cr_l = cellRow.length;
@@ -10033,9 +10043,10 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
 
 }
 
-
-var STRIDE_OBJ = 1;
-var STRIDE_MOV = 1;
+let MOV_BITS = 5;		// doc: no of bits to hold movement as mask
+let MOV_MASK = 0x1f;	// doc: bit mask to match
+var STRIDE_OBJ = 1;	    // doc: size of BitVec to hold objects, at 32 bits per
+var STRIDE_MOV = 1;		// doc: size of BitVec to hold movements, at MOV_BITS bits per
 
 function CellPattern(row) {
   this.objectsPresent = row[0];
@@ -10152,13 +10163,13 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
     var o = state.objects[n];
     objectsSet.ibitset(rand);
     objectsClear.ior(state.layerMasks[o.layer]);
-    movementsClear.ishiftor(0x1f, 5 * o.layer);
+    movementsClear.ishiftor(MOV_MASK, MOV_BITS * o.layer);
   }
   if (!replace_RandomDirMask.iszero()) {
     for (var layerIndex=0;layerIndex<level.layerCount;layerIndex++){
-      if (replace_RandomDirMask.get(5*layerIndex)) {
+      if (replace_RandomDirMask.get(MOV_BITS * layerIndex)) {
         var randomDir = Math.floor(RandomGen.uniform()*4);
-        movementsSet.ibitset(randomDir + 5 * layerIndex);
+        movementsSet.ibitset(randomDir + MOV_BITS * layerIndex);
       }
     }
   }
@@ -10183,7 +10194,7 @@ CellPattern.prototype.replace = function(rule, currentIndex) {
     rigidGroupIndex++;//don't forget to -- it when decoding :O
     var rigidMask = new BitVec(STRIDE_MOV);
     for (var layer = 0; layer < level.layerCount; layer++) {
-      rigidMask.ishiftor(rigidGroupIndex, layer * 5);
+      rigidMask.ishiftor(rigidGroupIndex, MOV_BITS * layer);
     }
     rigidMask.iand(replace.movementsLayerMask);
     curRigidGroupIndexMask = level.rigidGroupIndexMask[currentIndex] || new BitVec(STRIDE_MOV);
@@ -10464,6 +10475,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
+	//if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -10477,6 +10489,13 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
+		// if (debugLevel == 'rules') {
+		// 	const cro = cellRowMasks[cellRowIndex].format();
+		// 	const crm = cellRowMasks_Movements[cellRowIndex].format();
+		// 	const lvo = level.mapCellContents.format();
+		// 	const lvm = level.mapCellContents_Movements.format();
+		// 	console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
+		// }
         if (match.length===0) {
             return [];
         } else {
@@ -10691,13 +10710,17 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString,false,lineNumber,null);
 		}
 
-    if (command[0]==='message') {     
-      messagetext=command[1];
-    }
-	
-    if (command[0]==='goto') {
-      gotoLevel(command[1]);
-    }
+		if (command[0]==='message') {     
+			messagetext=command[1];
+		}
+		
+		if (command[0]==='goto') {
+			gotoLevel(command[1]);
+		}
+
+		if (command[0]==='status') {
+			statusText = command[1];
+		}
 
     if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
 
@@ -10967,11 +10990,11 @@ function resolveMovements(level, bannedGroup){
 				if (!movementMask.iszero()) {
 					//find what layer was restricted
 					for (var j=0;j<level.layerCount;j++) {
-						var layerSection = movementMask.getshiftor(0x1f, 5*j);
+						var layerSection = movementMask.getshiftor(MOV_MASK, MOV_BITS * j);
 						if (layerSection!==0) {
 							//this is our layer!
 							var rigidGroupIndexMask = level.rigidGroupIndexMask[i];
-							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(0x1f, 5*j);
+							var rigidGroupIndex = rigidGroupIndexMask.getshiftor(MOV_MASK, MOV_BITS * j);
 							rigidGroupIndex--;//group indices start at zero, but are incremented for storing in the bitfield
 							var groupIndex = state.rigidGroupIndex_to_GroupIndex[rigidGroupIndex];
 							if (bannedGroup[groupIndex]!==true){
@@ -10988,8 +11011,10 @@ function resolveMovements(level, bannedGroup){
 			for (const fx of state.sfx_MovementFailureMasks) {
 				if (cellMask.get(fx.objId)) {
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
+						const object = getObject(fx.objId);
+						if (verbose_logging) 
+							consolePrint(`${state.idDict[object]} can't move, playing seed ${seedsToPlay_CantMove[i]}`)
 						if (fx.seed.startsWith('afx')) {
-							const object = getObject(fx.objId);
 							const move = getLayerMovement(movementMask, object.layer);
 							seedsToAnimate[i+','+fx.objId] = { 
 								kind: 'cant', 
@@ -11091,7 +11116,8 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		if ([ 0,1,2,3,4 ].includes(dir)) {		// arrows plus action go to player 
 			playerPositions = startMovement(dirMasks[dirName]);
 		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
-			const mask = state.levels[curlevel].getCell(coord);
+			const mask = level.getCell(coord);
+			//if (debugLevel) console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
 		
@@ -11134,6 +11160,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		calculateRowColMasks();
 
 		var alreadyResolved=[];
+		statusText = "";
 
         var i=0;
         do {
@@ -11379,10 +11406,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxCreateMask.get(entry.objId)) {		// mask for objects created vs mask for sfx create event
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   
@@ -11390,10 +11422,15 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			if (sfxDestroyMask.get(entry.objId)) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
-						if (fx.objId == entry.objId)
+						if (fx.objId == entry.objId) {
+							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
+						}
 					}
-				} else playSeed(entry.seed);
+				} else {
+					if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					playSeed(entry.seed);
+				}
 			}
 		}
   
@@ -11903,9 +11940,11 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
+const soundverbs_other = [ 'create', 'destroy' ];
+let soundverbs_movement = [ 'action' ];  // clicks to be added
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
     'moving', 'stationary', 'parallel', 'perpendicular', 'horizontal', 'orthogonal', 'vertical', 'no', 'randomdir', 'random'];
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
@@ -11980,7 +12019,7 @@ function logWarning(str, lineNumber, urgent) {
     }
 }
 
-function logWarningNoLine(str, urgent, increaseErrorCount = true) {
+function logWarningNoLine(str, urgent, increaseErrorCount = false) {
     if (compiling||urgent) {
         var errorString = '<span class="warningText">' + str + '</span>';
          if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
@@ -12136,7 +12175,6 @@ var codeMirrorFn = function() {
     const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundverbs = /^(move|action|create|destroy|cantmove)\b[\p{Z}\s]*/u;    // todo:reaction
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
@@ -12155,18 +12193,18 @@ var codeMirrorFn = function() {
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
-        'mouse_clicks'];
+        'mouse_clicks', 'status_line'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
         'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
         'animate_interval'];
-    const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
+    const preamble_param_single = ['color_palette', 'background_color', 'text_color',
         'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
         'level_select_solve_symbol', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
         'puzzlescript_next_version'];
-    const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
+    const preamble_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
@@ -12469,7 +12507,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse a PRELUDE line, extract parsed information, return array of tokens
     function parsePrelude(stream, state) {
-        const tokens = buildTokens();
+        const tokens = getTokens();
         if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
             const value = parseTokens(tokens);
             if (value)
@@ -12480,7 +12518,7 @@ var codeMirrorFn = function() {
         // functions
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = '';
@@ -12496,11 +12534,12 @@ var codeMirrorFn = function() {
                     : (token === "transparent") ? 'COLOR FADECOLOR'
                     : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
                     : 'ERROR';
-                    if (kind == 'ERROR') {
-                        pushBack(stream);
-                        if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
-                        else token = matchRegex(stream, reg_notcommentstart);
-                    }
+                }
+                if (kind == 'ERROR') {
+                    pushBack(stream);
+                    if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
+                    else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                    else throw  'meta';
                 }
 
                 if (kind == 'ERROR')
@@ -12543,18 +12582,25 @@ var codeMirrorFn = function() {
         }
 
         function setState(state, value) {
-            state.metadata.push(...value);
-            if (value[0] == 'sprite_size')
+            const token = value[0];
+            if (token == 'sprite_size')
                 state.sprite_size = Math.round(value[1]);
-            if (value[0] == 'case_sensitive') {
+            if (token == 'case_sensitive') {
                 state.case_sensitive = true;
                 if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
-            if (value[0] == 'mouse_clicks') {
+            if (token == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
+                soundverbs_movement.push(...mouse_clicks_table);
             }
+            if (token == 'youtube') {
+                logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
+                return;
+            }
+            state.metadata.push(...value);
+
         }
     }
 
@@ -12581,6 +12627,7 @@ var codeMirrorFn = function() {
                 else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
                 else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
                 else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'name';
 
                 if (kind == 'ERROR')
                     logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
@@ -12650,7 +12697,7 @@ var codeMirrorFn = function() {
         }
 
         function createAlias(alias, candname, lineno) {
-            if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+            //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
             const synonym = [alias, candname];
             synonym.lineNumber = lineno;
             state.legend_synonyms.push(synonym);
@@ -12681,6 +12728,7 @@ var codeMirrorFn = function() {
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
                 } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'color';
 
                 if (kind == 'ERROR')
                     logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
@@ -12721,7 +12769,7 @@ var codeMirrorFn = function() {
                 } 
                 else if (token = matchRegex(stream, /^./)) {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
-                }
+                } else throw 'sprite';
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -12742,7 +12790,7 @@ var codeMirrorFn = function() {
                 const obj = state.objects[state.objects_candname];
                 obj.spriteText = token;
                 kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
-            }
+            } else throw 'text';
             tokens.push({
                 text: token, kind: kind, pos: stream.pos
             });
@@ -12760,7 +12808,7 @@ var codeMirrorFn = function() {
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        const tt = buildTokens();
+        const tt = getTokens();
         if (tt.length > 0) {
             const rows = parseTokens(tt.filter(t => t.kind != 'comment'));
             if (!tt.some(t => t.kind == 'ERROR'))
@@ -12769,7 +12817,7 @@ var codeMirrorFn = function() {
         return tt;
 
         // build a list of tokens and kinds
-        function buildTokens() {
+        function getTokens() {
             const tokens = [];
             while (!stream.eol()) {
                 let token = null;
@@ -12777,7 +12825,7 @@ var codeMirrorFn = function() {
                 if (token = matchComment(stream, state)) kind = 'comment';
                 else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
                     kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
-                        : token.match(reg_soundverbs) ? 'SOUNDVERB' 
+                        : soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token) ? 'SOUNDVERB' 
                         : token.match(reg_soundseed) ? 'SOUND'
                         : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
                         : 'ERROR';
@@ -12786,7 +12834,8 @@ var codeMirrorFn = function() {
                         if (token = matchRegex(stream, /[\p{L}\p{N}_:]+/u, !state.case_sensitive)) kind = 'NAME';
                         else token = matchRegex(stream, reg_notcommentstart);
                     }
-                } else token = matchRegex(stream, reg_notcommentstart);
+                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
+                else throw 'sound';
                 if (kind == 'ERROR') {
                     if (tokens.length == 0) {
                         logError(`Unrecognised stuff in the SOUND section: "${token}".`, state.lineNumber);
@@ -12828,7 +12877,7 @@ var codeMirrorFn = function() {
                         }
                         if (next && next.kind != 'SOUND') {
                             const msg = dirok ? "direction or sound seed" : "sound seed";
-                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next}".`, state.lineNumber);
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next.text}".`, state.lineNumber);
                             next.kind = 'ERROR';
                         } 
                     }
@@ -12948,9 +12997,7 @@ var codeMirrorFn = function() {
                     state.levels.push([]);
                 } 
             } else if (state.section === 'objects') {
-                if (debugLevel && state.objects_section == 3 && state.objects_candname) 
-                    console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
-
+                //if (debugLevel && state.objects_section == 3 && state.objects_candname) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                 state.objects_section = 0;
             }
         },
@@ -13049,8 +13096,7 @@ var codeMirrorFn = function() {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            if (debugLevel) 
-                                console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            //if (debugLevel) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
                         }
                     }
@@ -13659,8 +13705,10 @@ function generateExtraMembers(state) {
     }
 
     // how many words do our bitvecs need to hold?
-    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;     // doc: size of BitVec to hold objects, at 32 bits per
-    STRIDE_MOV = Math.ceil(layerCount / 5) | 0;             // doc: size of BitVec to hold directions, at 5 bits per
+    MOV_BITS = 8;
+    MOV_MASK = 0xff;
+    STRIDE_OBJ = Math.ceil(state.objectCount / 32) | 0;         // doc: size of BitVec to hold objects, at 32 bits per
+    STRIDE_MOV = Math.ceil(layerCount * MOV_BITS / 32) | 0;     // doc: size of BitVec to hold directions, at 5 bits per
     state.STRIDE_OBJ = STRIDE_OBJ;
     state.STRIDE_MOV = STRIDE_MOV;
 
@@ -14536,41 +14584,23 @@ if (tokens.indexOf('->') == -1) {
                 } else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
                     logWarning("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 }
-                if (token.toLowerCase()==='message') {
-                    var messageIndex = findIndexAfterToken(origLine,tokens,i);
-                    var messageStr = origLine.substring(messageIndex).trim();
-                    if (messageStr===""){
-                        messageStr=" ";
-                        //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
-                    }
-                    commands.push([token.toLowerCase(), messageStr]);
-                    i=tokens.length;
-                }else if (token.toLowerCase()==='goto') {
-                    var messageIndex = findIndexAfterToken(origLine,tokens,i);
-                    var messageStr = origLine.substring(messageIndex).trim();
-                    if (messageStr===""){
-                        messageStr=" ";
-                        //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
-                    }
-                    commands.push([token.toLowerCase(), messageStr]);
-                    i=tokens.length;
-                } else if (twiddleable_params.includes(token.toLowerCase())) {
-                    //} else if (token.match(reg_twiddleable_params)) {
-                    if (!state.metadata.includes('runtime_metadata_twiddling')) {
+                const tok = token.toLowerCase();
+                const needarg = ['message', 'goto', 'status'].includes(tok);
+                const twid = twiddleable_params.includes(tok);
+                if (needarg || twid) {
+                    if (twid && !state.metadata.includes('runtime_metadata_twiddling')) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
-                        var messageIndex = findIndexAfterToken(origLine,tokens,i);
-                        var messageStr = origLine.substring(messageIndex).trim();
-                        if (messageStr===""){
+                        const index = findIndexAfterToken(origLine,tokens,i);
+                        const str = origLine.substring(index).trim();
+                        if (twid && str == "")
                             logError('[PS+] You included a twiddleable property, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
-                            messageStr=" ";
-                            //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
-                        }
-                        commands.push([token.toLowerCase(), messageStr]);
+                        //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
+                        commands.push([tok, str == "" ? " " : str]);
                     }
                     i=tokens.length;
-                }  else {
-                    commands.push([token.toLowerCase()]);
+            }  else {
+                    commands.push([tok]);
                 }
             } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
@@ -15434,15 +15464,15 @@ function rulesToMask(state) {
 
                         if (object) {
                             objectsPresent.ior(objectMask);
-                            objectlayers_l.ishiftor(0x1f, 5 * layerIndex);
+                            objectlayers_l.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
                             anyObjectsPresent.push(objectMask);
                         }
 
                         if (object_dir === 'stationary') {
-                            movementsMissing.ishiftor(0x1f, 5 * layerIndex);
+                            movementsMissing.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
-                            movementsPresent.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            movementsPresent.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         }
                     }
                 }
@@ -15569,7 +15599,7 @@ function rulesToMask(state) {
                         layersUsed_r[layerIndex] = object_name;
 
                         if (object_dir.length > 0) {
-                            postMovementsLayerMask_r.ishiftor(0x1f, 5 * layerIndex);
+                            postMovementsLayerMask_r.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         }
 
                         var layerMask = state.layerMasks[layerIndex];
@@ -15577,18 +15607,18 @@ function rulesToMask(state) {
                         if (object) {
                             objectsSet.ibitset(object.id);
                             objectsClear.ior(layerMask);
-                            objectlayers_r.ishiftor(0x1f, 5 * layerIndex);
+                            objectlayers_r.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         } else {
                             // shouldn't need to do anything here...
                         }
                         //possibility - if object not present on lhs in same position, clear movement
                         if (object_dir === 'stationary') {
-                            movementsClear.ishiftor(0x1f, 5 * layerIndex);
+                            movementsClear.ishiftor(MOV_MASK, MOV_BITS * layerIndex);
                         }                
                         if (object_dir === 'randomdir') {
-                            randomDirMask_r.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            randomDirMask_r.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         } else {
-                            movementsSet.ishiftor(dirMasks[object_dir], 5 * layerIndex);
+                            movementsSet.ishiftor(dirMasks[object_dir], MOV_BITS * layerIndex);
                         };
                     }
                 }
@@ -15615,7 +15645,7 @@ function rulesToMask(state) {
                     if (layersUsed_l[l] !== null && layersUsed_r[l] === null) {
                         // a layer matched on the lhs, but not on the rhs
                         objectsClear.ior(state.layerMasks[l]);
-                        postMovementsLayerMask_r.ishiftor(0x1f, 5 * l);
+                        postMovementsLayerMask_r.ishiftor(MOV_MASK, MOV_BITS * l);
                     }
                 }
 
@@ -16125,7 +16155,7 @@ function twiddleMetaData(state, update = false) {
         let easing = newmetadata.tween_easing;
         if (easing) {
             easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
-            if (EasingFunctions(easing)) 
+            if (EasingFunctions[easing]) 
                 newmetadata.tween_easing = easing;
             else {
                 logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);
@@ -16437,7 +16467,9 @@ var soundDirectionMasks = {
     'horizontal': 0xc,
     'vertical':     3,
     'orthogonal': 0xf,
-    '_action_'  :0x10
+    '_action_'  :0x10,
+    '_lclick_'  :0x20,
+    '_rclick_'  :0x40
 };
 
 function generateSoundData(state) {
@@ -16471,13 +16503,13 @@ function generateSoundData(state) {
             if (soundverbs_directional.includes(verb)) {
                 if (directions.length == 0)
                     directions = ['orthogonal'];
-            } else if (verb === 'action') {
+            } else if (soundverbs_movement.includes(verb)) {
+                directions = [ `_${verb}_` ];
                 verb = 'move';
-                directions = ['_action_'];
             } else if (directions.length > 0)
                 logError('Incorrect sound declaration - cannot have directions (UP/DOWN/etc.) attached to non-directional sound verbs (CREATE is not directional, but MOVE is directional).', line);
 
-            // construct a 5 bit direction mask
+            // construct a direction mask
             let directionMask = 0;
             for (const dir of directions) {
                 if (!soundDirectionMasks[dir]) 
@@ -16519,7 +16551,7 @@ function generateSoundData(state) {
                 // separate masks for each layer
                 if (verb === 'move' || verb === 'cantmove') {
                     shiftedDirectionMask = new BitVec(STRIDE_MOV);
-                    shiftedDirectionMask.ishiftor(directionMask, 5 * targetLayer);
+                    shiftedDirectionMask.ishiftor(directionMask, MOV_BITS * targetLayer);
                 }
 
                 // doc: sfx/afx seed for target object, movement(s) as mask shifted to target layer
