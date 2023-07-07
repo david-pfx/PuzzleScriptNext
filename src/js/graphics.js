@@ -54,91 +54,90 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
 
 // draw font characters from the text sheet into the sprite sheet.
 // fix: these are bitmaps, low res. :-(
-function renderTextBad(spritectx, text, colors, padding, x, y) {
-    colors = colors || ['#00000000', state.fgcolor];
+// function renderTextBad(spritectx, text, colors, padding, x, y) {
+//     colors = colors || ['#00000000', state.fgcolor];
 
-    var ch = text.charAt(0);
-    if (ch in font) {
-        var index = fontIndex[ch];
-        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
-        var textX = (index % textsheetSize) | 0;
-        var textY = (index / textsheetSize) | 0;
-        spritectx.imageSmoothingEnabled = false;
-        spritectx.fillStyle = colors[0];  // does nothing :-(
-        spritectx.drawImage(
-            textsheetCanvas,
-            textX * textcellwidth,
-            textY * textcellheight,
-            textcellwidth, textcellheight,
-            x * cellwidth,
-            y * cellheight,
-            cellwidth, cellheight
-        );
-        spritectx.imageSmoothingEnabled = true;
-    }
-}
+//     var ch = text.charAt(0);
+//     if (ch in font) {
+//         var index = fontIndex[ch];
+//         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+//         var textX = (index % textsheetSize) | 0;
+//         var textY = (index / textsheetSize) | 0;
+//         spritectx.imageSmoothingEnabled = false;
+//         spritectx.fillStyle = colors[0];  // does nothing :-(
+//         spritectx.drawImage(
+//             textsheetCanvas,
+//             textX * textcellwidth,
+//             textY * textcellheight,
+//             textcellwidth, textcellheight,
+//             x * cellwidth,
+//             y * cellheight,
+//             cellwidth, cellheight
+//         );
+//         spritectx.imageSmoothingEnabled = true;
+//     }
+// }
 
-// draw a string of text into a cell, scaling and centring as needed
-function renderText(spritectx, text, colors, cellx, celly) {
-    const scale = [ 0.8, 1 ];
-    // location of first character, centred vertically
-    const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
-                   w: cellwidth / text.length, h: cellheight / text.length };
-    function resize(rc, x, y) {
-        return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
-    };
-    function rescale(rc, s) { 
-        return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
-    };
-    function translate(rc, x, y) {
-        return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
-    };
-    for (let i = 0; i < text.length; i++) {
-        const ch = text.charAt(i);
-        if (ch in font) {
-            const fontstr = font[ch]
-                .split('\n')
-                .map(a => a.trim().split('').map(t => parseInt(t)));
-            fontstr.shift();
-            const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
-            renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
-        }
-    }
-}
+// // draw a string of text into a cell, scaling and centring as needed
+// function renderText(spritectx, text, colors, cellx, celly) {
+//     const scale = [ 0.8, 1 ];
+//     // location of first character, centred vertically
+//     const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
+//                    w: cellwidth / text.length, h: cellheight / text.length };
+//     function resize(rc, x, y) {
+//         return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
+//     };
+//     function rescale(rc, s) { 
+//         return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
+//     };
+//     function translate(rc, x, y) {
+//         return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
+//     };
+//     for (let i = 0; i < text.length; i++) {
+//         const ch = text.charAt(i);
+//         if (ch in font) {
+//             const fontstr = font[ch]
+//                 .split('\n')
+//                 .map(a => a.trim().split('').map(t => parseInt(t)));
+//             fontstr.shift();
+//             const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
+//             renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
+//         }
+//     }
+// }
 
-// draw grid into a defined rectangle with a colour
-function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
-    ctx.clearRect(rectx, recty, rectw, recth);
+// // draw grid into a defined rectangle with a colour
+// function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
+//     ctx.clearRect(rectx, recty, rectw, recth);
 
-    const gridw = grid[0].length;
-    const dw = rectw / gridw;
-    const gridh = grid.length;
-    const dh = recth / gridh;
-    ctx.fillStyle = colors[1];
-    for (let y = 0; y < gridh; y++) {
-        for (let x = 0; x < gridw; x++) {
-            const val = grid[y][x];
-            if (val >= 0) {
-                ctx.fillStyle = colors[val];
-                ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
-            }
-        }
-    }
-}
+//     const gridw = grid[0].length;
+//     const dw = rectw / gridw;
+//     const gridh = grid.length;
+//     const dh = recth / gridh;
+//     ctx.fillStyle = colors[1];
+//     for (let y = 0; y < gridh; y++) {
+//         for (let x = 0; x < gridw; x++) {
+//             const val = grid[y][x];
+//             if (val >= 0) {
+//                 ctx.fillStyle = colors[val];
+//                 ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
+//             }
+//         }
+//     }
+// }
 
-
-function drawTextWithCustomFont(txt, ctx, x, y) {
-    ctx.fillStyle = state.fgcolor;
+function drawTextWithFont(ctx, text, color, x, y, height) {
+    const fontSize = state.metadata.font_size ? Math.max(0, parseFloat(state.metadata.font_size)) : 1;
+    const pixelsize = height * fontSize;
+    const fontname = (state.metadata.custom_font && loadedCustomFont) ? "PuzzleCustomFont" : "Monospace";
+    ctx.font = `${pixelsize}px ${fontname}`;
+    ctx.fillStyle = color;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    var fontSize = 1;
-    if (state.metadata.font_size !== undefined) {
-        fontSize = Math.max(parseFloat(state.metadata.font_size), 0)
-    }
-    ctx.font = (cellheight * fontSize) + "px PuzzleCustomFont";
-    ctx.fillText(txt, x, y);
-}
+    //ctx.imageSmoothingEnabled = false;
+    ctx.fillText(text, x, y);
 
+}
 var textsheetCanvas = null;
 
 function regenText(spritecanvas,spritectx) {
@@ -211,7 +210,8 @@ function regenSpriteImages() {
             spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
         }            
         if (obj.spriteText) {
-            renderText(spritesheetContext, obj.spriteText, sprites[i].colors, spriteX, spriteY);
+            drawTextWithFont(spritesheetContext, obj.spriteText, sprites[i].colors, 
+                (spriteX + 0.5) * cellwidth, (spriteY + 0.5) * cellheight, cellheight / obj.spriteText.length);
         } else {
             renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
         }
@@ -405,8 +405,8 @@ x = 0;
 y = 0;
 
 // length of visible row for mouse wheel
-function glyphCount(){
-    return glyphImages.length;
+function glyphCount() {
+    return state.glyphOrder.filter(g => g.length == 1).length;
 }
 
 function redraw() {
@@ -419,12 +419,15 @@ function redraw() {
     else redrawCellGrid();
 }
 
+// option to draw custom font text in cells could be a prelude setting if desired
+const textModeLine = true;
+
 function redrawTextMode() {
-    const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
     ctx.fillStyle = state.bgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
+        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
         for (var i = 0; i < titleWidth; i++) {
             for (var j = 0; j < titleHeight; j++) {
                 var ch = titleImage[j].charAt(i);
@@ -446,14 +449,17 @@ function redrawTextMode() {
                 }
             }
         }
-    } else {
-        if (spritesheetCanvas===null) {
-            regenSpriteImages();
+    } else if (textModeLine) {
+        for(let j = 0; j < titleHeight; j++) {
+            drawTextWithFont(ctx, titleImage[j], state.fgcolor, 
+                xoffset + (titleWidth/2+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
         }
-        
-        for(var i = 0; i < titleHeight; i++) {
-            var row = titleImage[i];
-            drawTextWithCustomFont(row, ctx, xoffset + titleWidth * cellwidth / 2, yoffset + i * cellheight + cellheight/2);           
+    } else {
+        for (var i = 0; i < titleWidth; i++) {
+            for(let j = 0; j < titleHeight; j++) {
+                drawTextWithFont(ctx, titleImage[j].slice(i, i+1), state.fgcolor, 
+                    xoffset + (i+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
+            }
         }
     }
 }
@@ -562,6 +568,10 @@ function redrawCellGrid() {
 
     if (tweening) drawObjectsTweening(iter);
     else drawObjects(iter);
+
+    if (state.metadata.status_line)
+        drawTextWithFont(ctx, statusText, state.fgcolor, 
+            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight);
 
     if (diffToVisualize)
         drawDiffToVisualize();
@@ -864,10 +874,6 @@ function drawEditorIcons(mini,minj) {
     const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
     const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
     const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
-    // if (debugLevel) {
-    //     const ele = document.getElementById('debug');
-    //     ele.innerHTML = `pos=${mousePos.x},${mousePos.y} panelpos=${mousePanelPos.x},${mousePanelPos.y} index=${mouseIndex}`;
-    // }
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special
@@ -905,8 +911,8 @@ function drawEditorIcons(mini,minj) {
     // show tooltip
     if (tooltip_string) {
         ctx.fillStyle = state.fgcolor;
-        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
-        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.4*cellheight);
+        ctx.font = `${cellheight/2}px Monospace`;
+        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.3*cellheight);
     }
 
 
@@ -964,14 +970,17 @@ function canvasResize() {
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
 
+    // If we need a status line, this will reduce the cell height to allow room
+    const statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
     if (levelEditorOpened) {
         // glyph display is level width + 1
-        editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
+        editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
+        //editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
-        cellheight = canvas.height / (screenheight + 2 + editorRowCount);
+        cellheight = (canvas.height - statusLineHeight) / (screenheight + 2 + editorRowCount);
     } else {
         cellwidth = canvas.width / screenwidth;
-        cellheight = canvas.height / screenheight;
+        cellheight = (canvas.height - statusLineHeight) / screenheight;
     }
 
     // round the cell size as a multiple of sprite size
@@ -1001,12 +1010,12 @@ function canvasResize() {
 
     if (levelEditorOpened && !textMode) {
         xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
-        yoffset = (canvas.height - cellheight * (screenheight + 2 + editorRowCount)) / 2;
+        yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
     	xoffset+=cellwidth;
     	yoffset+=cellheight*(1+editorRowCount);
     } else {
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
-        yoffset = (canvas.height - cellheight * screenheight) / 2;
+        yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     }
 
     // tidy up for export to globals
@@ -1020,6 +1029,10 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
+    // debugLevel
+    const ele = document.getElementById('debug');
+    ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
     	forceRegenImages=false;
     	regenSpriteImages();

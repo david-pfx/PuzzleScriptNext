@@ -7,20 +7,56 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23g03. 
-This one is mainly a bug fix, including:
-* the editor hangs on cut and paste
-* mouse clicks and animation not working correctly
-* level editor layout and mouse wheel behaviour
+The latest version is Release v-23g07. 
+* A bug in the level editor has been fixed.
+* The `youtube` warning from PuzzleScript has been merged.
 
 It includes the following features.
 
+### Custom font can load dynamically
+The custom font setting can be a link to a font file on the Web, preferably of type `woff2`.
+You can find font files that are freely accessible in various places, including Google Fonts.
+* Search for VT323 and you will find https://fonts.google.com/specimen/VT323. 
+* Then search a bit more and find this link: https://fonts.googleapis.com/css2?family=VT323.
+* On this page there is (finally) this link to the font file: https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+
+Use it like this.
+See `test_min_prelude` for a small example.
+```
+custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+```
+Note that text pages like the title screen and message text are displayed as full lines of text.
+This means that there will be a variation in character widths, and even in a Monospace font wide characters like `大 ⚐` will display at full width.
+### TEXT objects now use the custom font, or Monospace fallback
+This change greatly improves the visual appearance and usability of TEXT sprites.
+Use it like this:
+```
+OBJECTS
+number7
+red
+TEXT 7
+```
+
+### New STATUS_LINE setting and STATUS command
+This prelude setting reserves some space at the bottom of the screen for displaying a status line.
+
+Use it like this.
+See `test_min_prelude` for a small example.
+
+```
+status_line
+RULES
+[ right p ] -> status You just moved the player to the right!
+
+```
 ### Level editor supports zoomscreen etc
 
 Some PuzzleScript games create very large levels and divide them into 'rooms' or 'caves' using `zoomscreen`. 
 A similar approach for a large open area is to use `flickscreen`.
 Editing as one large area is hard.
-The level editor now respects `zoomscreen`and `flickscreen`, allowing editing of individual 'rooms'.
+The level editor now respects `zoomscreen` and `flickscreen`, allowing editing of individual 'rooms'.
 
 ### Major rework of test suite
 

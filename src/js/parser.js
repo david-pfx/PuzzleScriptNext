@@ -29,7 +29,7 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
@@ -108,7 +108,7 @@ function logWarning(str, lineNumber, urgent) {
     }
 }
 
-function logWarningNoLine(str, urgent, increaseErrorCount = true) {
+function logWarningNoLine(str, urgent, increaseErrorCount = false) {
     if (compiling||urgent) {
         var errorString = '<span class="warningText">' + str + '</span>';
          if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
@@ -282,18 +282,18 @@ var codeMirrorFn = function() {
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
-        'mouse_clicks'];
+        'mouse_clicks', 'status_line'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
         'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
         'animate_interval'];
-    const preamble_param_single = ['color_palette', 'youtube', 'background_color', 'text_color',
+    const preamble_param_single = ['color_palette', 'background_color', 'text_color',
         'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
         'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
         'level_select_solve_symbol', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
         'puzzlescript_next_version'];
-    const preamble_param_multi = ['smoothscreen', 'puzzlescript'];
+    const preamble_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
@@ -671,19 +671,25 @@ var codeMirrorFn = function() {
         }
 
         function setState(state, value) {
-            state.metadata.push(...value);
-            if (value[0] == 'sprite_size')
+            const token = value[0];
+            if (token == 'sprite_size')
                 state.sprite_size = Math.round(value[1]);
-            if (value[0] == 'case_sensitive') {
+            if (token == 'case_sensitive') {
                 state.case_sensitive = true;
                 if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
             }
-            if (value[0] == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
+            if (token == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
             }
+            if (token == 'youtube') {
+                logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
+                return;
+            }
+            state.metadata.push(...value);
+
         }
     }
 

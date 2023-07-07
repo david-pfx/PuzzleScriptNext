@@ -1250,6 +1250,7 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
+let statusText="";
 var currentMovedEntities = {};
 var newMovedEntities = {};
 
@@ -2768,13 +2769,17 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString,false,lineNumber,null);
 		}
 
-    if (command[0]==='message') {     
-      messagetext=command[1];
-    }
-	
-    if (command[0]==='goto') {
-      gotoLevel(command[1]);
-    }
+		if (command[0]==='message') {     
+			messagetext=command[1];
+		}
+		
+		if (command[0]==='goto') {
+			gotoLevel(command[1]);
+		}
+
+		if (command[0]==='status') {
+			statusText = command[1];
+		}
 
     if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
 
@@ -3214,6 +3219,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		calculateRowColMasks();
 
 		var alreadyResolved=[];
+		statusText = "";
 
         var i=0;
         do {

@@ -1,0 +1,117 @@
+title test min prelude
+author polymino
+homepage www.polyomino.com
+
+// minimal program with prelude tests
+
+// keywords
+debug 
+//scanline
+//case_sensitive
+level_select
+level_select_lock
+continue_is_level_select
+run_rules_on_level_start
+require_player_movement
+verbose_logging
+mouse_clicks
+noaction
+nokeyboard
+norestart
+norepeat_action
+noundo
+runtime_metadata_twiddling
+runtime_metadata_twiddling_debug
+settings
+//smoothscreen_debug
+//skip_title_screen
+status_line
+//throttle_movement
+
+// param single
+background_color darkblue
+color_palette amstrad
+//flickscreen 9x9
+level_select_solve_symbol ✓
+message_text_align asdf
+mouse_drag k
+mouse_left y
+mouse_rdrag y
+mouse_right m
+mouse_up k
+mouse_rup m
+//puzzlescript_next_version
+sitelock_origin_whitelist asdf
+sitelock_hostname_whitelist asdf
+text_color #def
+tween_easing easeInQuad
+youtube asdf
+//zoomscreen 9x9
+
+// param multi
+//smoothscreen 9x9
+//puzzlescript
+    
+// param text
+//author
+// Based on the information found here: https://fonts.googleapis.com/css2?family=VT323&display=swap
+//custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+//homepage
+text_controls This is a text control...
+text_message_continue Please continue at your leisure...
+//title
+
+========
+OBJECTS
+========
+Background;grey
+P;black
+W;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+m;purple
+
+LEGEND
+. = Background
+player = P or W
+
+SOUNDS
+COLLISIONLAYERS
+Background
+y
+Player, R, B, G
+k
+m
+
+RULES
+[ right p ] -> status You just moved the player to the right
+[ action p ] -> win
+
+WINCONDITIONS
+
+LEVELS
+
+section Level 1
+
+message This is a rather long message designed to see the result of specifying a custom font with some strange single "✓ ☑ ☛ ⦿" and double characters "大 ⚐"
+
+.k...r.
+.y.p.g.
+.m...b.
+
+section Level 2
+
+.....
+..p..
+.....
+
+section Level 3
+
+.....
+..p..
+.....
+
