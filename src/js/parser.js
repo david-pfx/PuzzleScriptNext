@@ -29,7 +29,7 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status)$/u;
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
@@ -282,7 +282,7 @@ var codeMirrorFn = function() {
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
         'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
-        'mouse_clicks'];
+        'mouse_clicks', 'status_line'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
     const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
         'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 

@@ -944,41 +944,23 @@ if (tokens.indexOf('->') == -1) {
                 } else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
                     logWarning("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 }
-                if (token.toLowerCase()==='message') {
-                    var messageIndex = findIndexAfterToken(origLine,tokens,i);
-                    var messageStr = origLine.substring(messageIndex).trim();
-                    if (messageStr===""){
-                        messageStr=" ";
-                        //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
-                    }
-                    commands.push([token.toLowerCase(), messageStr]);
-                    i=tokens.length;
-                }else if (token.toLowerCase()==='goto') {
-                    var messageIndex = findIndexAfterToken(origLine,tokens,i);
-                    var messageStr = origLine.substring(messageIndex).trim();
-                    if (messageStr===""){
-                        messageStr=" ";
-                        //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
-                    }
-                    commands.push([token.toLowerCase(), messageStr]);
-                    i=tokens.length;
-                } else if (twiddleable_params.includes(token.toLowerCase())) {
-                    //} else if (token.match(reg_twiddleable_params)) {
-                    if (!state.metadata.includes('runtime_metadata_twiddling')) {
+                const tok = token.toLowerCase();
+                const needarg = ['message', 'goto', 'status'].includes(tok);
+                const twid = twiddleable_params.includes(tok);
+                if (needarg || twid) {
+                    if (twid && !state.metadata.includes('runtime_metadata_twiddling')) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
-                        var messageIndex = findIndexAfterToken(origLine,tokens,i);
-                        var messageStr = origLine.substring(messageIndex).trim();
-                        if (messageStr===""){
+                        const index = findIndexAfterToken(origLine,tokens,i);
+                        const str = origLine.substring(index).trim();
+                        if (twid && str == "")
                             logError('[PS+] You included a twiddleable property, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
-                            messageStr=" ";
-                            //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
-                        }
-                        commands.push([token.toLowerCase(), messageStr]);
+                        //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
+                        commands.push([tok, str == "" ? " " : str]);
                     }
                     i=tokens.length;
-                }  else {
-                    commands.push([token.toLowerCase()]);
+            }  else {
+                    commands.push([tok]);
                 }
             } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);

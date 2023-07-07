@@ -126,10 +126,9 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
 //     }
 // }
 
-function drawTextWithFont(ctx, text, color, x, y) {
+function drawTextWithFont(ctx, text, color, x, y, height) {
     const fontSize = state.metadata.font_size ? Math.max(0, parseFloat(state.metadata.font_size)) : 1;
-    const pixelsize = cellheight * fontSize / text.length;
-    //const pixelsize = ~~(cellheight * fontSize / text.length /6) * 6;
+    const pixelsize = height * fontSize;
     const fontname = (state.metadata.custom_font && loadedCustomFont) ? "PuzzleCustomFont" : "Monospace";
     ctx.font = `${pixelsize}px ${fontname}`;
     ctx.fillStyle = color;
@@ -212,8 +211,7 @@ function regenSpriteImages() {
         }            
         if (obj.spriteText) {
             drawTextWithFont(spritesheetContext, obj.spriteText, sprites[i].colors, 
-                (spriteX + 0.5) * cellwidth, 
-                (spriteY + 0.5) * cellheight);
+                (spriteX + 0.5) * cellwidth, (spriteY + 0.5) * cellheight, cellheight / obj.spriteText.length);
         } else {
             renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
         }
@@ -421,12 +419,15 @@ function redraw() {
     else redrawCellGrid();
 }
 
+// option to draw custom font text in cells could be a prelude setting if desired
+const textModeLine = true;
+
 function redrawTextMode() {
-    const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
     ctx.fillStyle = state.bgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
+        const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
         for (var i = 0; i < titleWidth; i++) {
             for (var j = 0; j < titleHeight; j++) {
                 var ch = titleImage[j].charAt(i);
@@ -448,12 +449,16 @@ function redrawTextMode() {
                 }
             }
         }
+    } else if (textModeLine) {
+        for(let j = 0; j < titleHeight; j++) {
+            drawTextWithFont(ctx, titleImage[j], state.fgcolor, 
+                xoffset + (titleWidth/2+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
+        }
     } else {
         for (var i = 0; i < titleWidth; i++) {
             for(let j = 0; j < titleHeight; j++) {
                 drawTextWithFont(ctx, titleImage[j].slice(i, i+1), state.fgcolor, 
-                    xoffset + (i+0.5) * cellwidth, 
-                    yoffset + (j+0.5) * cellheight);           
+                    xoffset + (i+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
             }
         }
     }
@@ -563,6 +568,10 @@ function redrawCellGrid() {
 
     if (tweening) drawObjectsTweening(iter);
     else drawObjects(iter);
+
+    if (state.metadata.status_line)
+        drawTextWithFont(ctx, statusText, state.fgcolor, 
+            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight);
 
     if (diffToVisualize)
         drawDiffToVisualize();
@@ -961,15 +970,17 @@ function canvasResize() {
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
 
+    // If we need a status line, this will reduce the cell height to allow room
+    const statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
     if (levelEditorOpened) {
         // glyph display is level width + 1
         editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
         //editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
         cellwidth = canvas.width / (screenwidth + 2);
-        cellheight = canvas.height / (screenheight + 2 + editorRowCount);
+        cellheight = (canvas.height - statusLineHeight) / (screenheight + 2 + editorRowCount);
     } else {
         cellwidth = canvas.width / screenwidth;
-        cellheight = canvas.height / screenheight;
+        cellheight = (canvas.height - statusLineHeight) / screenheight;
     }
 
     // round the cell size as a multiple of sprite size
@@ -999,12 +1010,12 @@ function canvasResize() {
 
     if (levelEditorOpened && !textMode) {
         xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
-        yoffset = (canvas.height - cellheight * (screenheight + 2 + editorRowCount)) / 2;
+        yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
     	xoffset+=cellwidth;
     	yoffset+=cellheight*(1+editorRowCount);
     } else {
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
-        yoffset = (canvas.height - cellheight * screenheight) / 2;
+        yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     }
 
     // tidy up for export to globals

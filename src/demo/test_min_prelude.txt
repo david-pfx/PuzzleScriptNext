@@ -25,6 +25,7 @@ runtime_metadata_twiddling_debug
 settings
 //smoothscreen_debug
 //skip_title_screen
+status_line
 //throttle_movement
 
 // param single
@@ -87,6 +88,7 @@ k
 m
 
 RULES
+[ right p ] -> status You just moved the player to the right
 [ action p ] -> win
 
 WINCONDITIONS
