@@ -12,17 +12,16 @@ level_select
 level_select_lock
 continue_is_level_select
 run_rules_on_level_start
-require_player_movement
 verbose_logging
 mouse_clicks
-noaction
+//noaction
 nokeyboard
 norestart
 norepeat_action
 noundo
+//require_player_movement
 runtime_metadata_twiddling
 runtime_metadata_twiddling_debug
-settings
 //smoothscreen_debug
 //skip_title_screen
 status_line
@@ -88,8 +87,8 @@ k
 m
 
 RULES
-[ right p ] -> status You just moved the player to the right
-[ action p ] -> win
+[ right player ] -> status You just moved the player to the right!
+[ action player ] -> win
 
 WINCONDITIONS
 
@@ -106,12 +105,12 @@ message This is a rather long message designed to see the result of specifying a
 section Level 2
 
 .....
-..p..
+..w..
 .....
 
 section Level 3
 
 .....
-..p..
+..pw.
 .....
 

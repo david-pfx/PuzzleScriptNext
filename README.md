@@ -7,8 +7,12 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23g07. 
-* A bug in the level editor has been fixed.
+The latest version is Release v-23g08, mainly bug fixes. 
+
+* The parsing of the new STATUS command now works correctly.
+* The parsing of some end of line situations now works correctly.
+* The ACTION key in `test_min_prelude` now triggers a win.
+* The level editor now counts glyphs correctly.
 * The `youtube` warning from PuzzleScript has been merged.
 
 It includes the following features.
@@ -43,7 +47,7 @@ TEXT 7
 This prelude setting reserves some space at the bottom of the screen for displaying a status line.
 
 Use it like this.
-See `test_min_prelude` for a small example.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prerlude) for a small example.
 
 ```
 status_line

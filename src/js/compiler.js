@@ -945,7 +945,7 @@ if (tokens.indexOf('->') == -1) {
                     logWarning("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 }
                 const tok = token.toLowerCase();
-                const needarg = ['message', 'goto', 'status'].includes(tok);
+                const needarg = commandargs_table.includes(tok);
                 const twid = twiddleable_params.includes(tok);
                 if (needarg || twid) {
                     if (twid && !state.metadata.includes('runtime_metadata_twiddling')) {
@@ -959,7 +959,7 @@ if (tokens.indexOf('->') == -1) {
                         commands.push([tok, str == "" ? " " : str]);
                     }
                     i=tokens.length;
-            }  else {
+                }  else {
                     commands.push([tok]);
                 }
             } else {

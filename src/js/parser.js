@@ -30,6 +30,9 @@ var errorCount=0;//only counts errors
 
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status)$/u;
+const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
+    'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status'];
+const commandargs_table = ['message', 'goto', 'status'];
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
@@ -280,7 +283,7 @@ var codeMirrorFn = function() {
     const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
         'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
         'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
-        'settings', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
+        'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
         'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
         'mouse_clicks', 'status_line'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
@@ -335,7 +338,7 @@ var codeMirrorFn = function() {
     function matchComment(stream, state) {
         stream.match(/\s*/);
         if (stream.eol()) 
-            return state.commentLevel > 0;
+            return (state.commentLevel > 0) ? '' : null;
         // set comment style if first time
         if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
             if (stream.match(/\//, false)) {
@@ -613,7 +616,7 @@ var codeMirrorFn = function() {
                 let token = '';
                 let kind = 'ERROR'
                 
-                if (token = matchComment(stream, state)) kind = 'comment';
+                if (token = matchComment(stream, state) != null) kind = 'comment';
                 else if (tokens.length == 1 && preamble_param_text.includes(tokens[0].text)) {
                     token = matchRegex(stream, /.*/).trim();  // take it all
                     kind = 'METADATATEXT';
@@ -710,7 +713,7 @@ var codeMirrorFn = function() {
             while (!stream.eol()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = matchComment(stream,state)) kind = 'comment';   
+                if (token = matchComment(stream,state) != null) kind = 'comment';   
                 else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
                 else if (tokens.length > 0 && (token = matchRegex(stream, /^copy:/u))) kind = 'SPRITEPARENT';
                 else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
@@ -807,7 +810,7 @@ var codeMirrorFn = function() {
             while (!stream.eol()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = matchComment(stream,state)) kind = 'comment';
+                if (token = matchComment(stream,state) != null) kind = 'comment';
                 else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
                 else if (token = matchRegex(stream, /^[#\w]+/, true)) {
                     if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
@@ -911,7 +914,7 @@ var codeMirrorFn = function() {
             while (!stream.eol()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = matchComment(stream, state)) kind = 'comment';
+                if (token = matchComment(stream, state) != null) kind = 'comment';
                 else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
                     kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
                         : soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token) ? 'SOUNDVERB' 
@@ -1115,7 +1118,7 @@ var codeMirrorFn = function() {
                 state.sol_after_comment = false;
             }
 
-            if (state.tokenIndex !== -4 && matchComment(stream, state)) {
+            if (state.tokenIndex !== -4 && matchComment(stream, state) != null) {
                 state.sol_after_comment = state.sol_after_comment  || sol;
                 if (stream.eol())
                     endOfLineProcessing(state, mixedCase);  
@@ -1482,7 +1485,7 @@ var codeMirrorFn = function() {
                                 } else if (m==='global') {
                                     return 'DIRECTION';
                                 }else if (m.match(reg_commandwords)) {
-                                    if (m==='message' || m==='goto' || twiddleable_params.includes(m)) {
+                                    if (commandargs_table.includes(m) || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
                                     }                                	
                                     return 'COMMAND';
