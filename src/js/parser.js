@@ -280,22 +280,19 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
-        'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
-        'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
-        'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
-        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
-        'mouse_clicks', 'status_line'];
+    const preamble_keywords = ['case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+        'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
+        'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
+        'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
-    const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
-        'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
-        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
-        'animate_interval'];
-    const preamble_param_single = ['color_palette', 'background_color', 'text_color',
-        'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
-        'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        'level_select_solve_symbol', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
-        'puzzlescript_next_version'];
+    const preamble_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
+        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
+        'sprite_size', 'tween_length', 'tween_snap'];
+    const preamble_param_single = [
+        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
+        'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
+        'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'text_color', 'tween_easing', 'zoomscreen'
+    ];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];

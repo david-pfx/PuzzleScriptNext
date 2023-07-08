@@ -1062,10 +1062,8 @@ function setGameState(_state, command, randomseed) {
       autotickinterval=0;
     }
 
-	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval * 1000 : 150;
-	tweeninterval = state.metadata.tween_length ? state.metadata.tween_length * 1000 : 0;
-	againinterval = state.metadata.again_interval ? state.metadata.again_interval * 1000 : 150;
-	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval * 1000 : 250;
+	// set defaults and stay DRY
+	twiddleMetadataExtras();
     
 	if (throttle_movement && autotickinterval===0) {
       logWarning("throttle_movement is designed for use in conjunction with realtime_interval. Using it in other situations makes games gross and unresponsive, broadly speaking.  Please don't.");
@@ -2850,8 +2848,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
   if (state.metadata.key_repeat_interval!==undefined) {
     repeatinterval=state.metadata.key_repeat_interval*1000;
   } else {
-    repeatinterval=500;
-    //repeatinterval=150;
+    repeatinterval=300; // was 150, makes for key bounce
   }
 
   if ('background_color' in state.metadata) {

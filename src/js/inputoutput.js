@@ -8,7 +8,6 @@ var rightdragging=false;
 var columnAdded=false;
 
 function selectText(containerid,e) {
-	e = e || window.event;
 	var myspan = document.getElementById(containerid);
 	if (e&&(e.ctrlKey || e.metaKey)) {
 		if(solving) return;
@@ -1169,7 +1168,13 @@ function pollGamepads() {
 	clear();
 }
 
+let debugTimestamp
 function checkKey(e,justPressed) {
+	// debugLevel
+	const ele = document.getElementById('debug');
+	ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+	debugTimestamp = prevTimestamp;
+	// debugLevel
 	ULBS();
 	
     if (winning) {
@@ -1527,9 +1532,14 @@ function update() {
 	    keyRepeatTimer+=deltatime;
 	    var ticklength = throttle_movement ? repeatinterval : repeatinterval/(Math.sqrt(keybuffer.length));
 	    if (keyRepeatTimer>ticklength) {
-	    	keyRepeatTimer=0;	
+			keyRepeatTimer=0;	
 	    	keyRepeatIndex = (keyRepeatIndex+1)%keybuffer.length;
 	    	var key = keybuffer[keyRepeatIndex];
+			// debugLevel
+			// const ele = document.getElementById('debug');
+			// ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+			// debugTimestamp = prevTimestamp;
+			// debugLevel
 	        checkKey({keyCode:key},false);
 	    }
 	}
@@ -1559,6 +1569,7 @@ var loop = function(timestamp){
 		// debugLevel
 		//const ele = document.getElementById('debug');
 		//ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+		// debugLevel
 	}
 	prevTimestamp = timestamp
 	try {

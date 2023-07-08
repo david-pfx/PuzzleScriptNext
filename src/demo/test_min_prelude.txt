@@ -5,29 +5,30 @@ homepage www.polyomino.com
 // minimal program with prelude tests
 
 // keywords
-debug 
-//scanline
-//case_sensitive
+
+//--- case_sensitive
+continue_is_level_select
+debug
 level_select
 level_select_lock
-continue_is_level_select
-run_rules_on_level_start
-verbose_logging
 mouse_clicks
 //noaction
-nokeyboard
-norestart
+nokeyboard,
 norepeat_action
+norestart
 noundo
 //require_player_movement
+run_rules_on_level_start
 runtime_metadata_twiddling
 runtime_metadata_twiddling_debug
-//smoothscreen_debug
+//scanline,
 //skip_title_screen
+//smoothscreen_debug
 status_line
 //throttle_movement
+verbose_logging
 
-// param single
+//--- param single
 background_color darkblue
 color_palette amstrad
 //flickscreen 9x9
@@ -44,18 +45,32 @@ sitelock_origin_whitelist asdf
 sitelock_hostname_whitelist asdf
 text_color #def
 tween_easing easeInQuad
-youtube asdf
 //zoomscreen 9x9
 
-// param multi
+//--- param number
+again_interval 0.5
+animate_interval 0.3
+//font_size 1
+key_repeat_interval 0.3
+//level_select_unlocked_ahead
+//level_select_unlocked_rollover
+local_radius 10
+//realtime_interval 0.2
+sprite_size 5
+//tween_length 0.5
+tween_snap 0
+
+//--- param multi
 //smoothscreen 9x9
 //puzzlescript
+youtube asdf
     
-// param text
+//--- param text
 //author
 // Based on the information found here: https://fonts.googleapis.com/css2?family=VT323&display=swap
-//custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
-custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+// and another for testing
+//custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 //homepage
 text_controls This is a text control...
 text_message_continue Please continue at your leisure...
