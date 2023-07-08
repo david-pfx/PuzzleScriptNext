@@ -25,7 +25,7 @@ You can find font files that are freely accessible in various places, including 
 * On this page there is (finally) this link to the font file: https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 
 Use it like this.
-See `test_min_prelude` for a small example.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prelude) for a small example.
 ```
 custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 
@@ -47,7 +47,7 @@ TEXT 7
 This prelude setting reserves some space at the bottom of the screen for displaying a status line.
 
 Use it like this.
-See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prerlude) for a small example.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prelude) for a small example.
 
 ```
 status_line
