@@ -127,10 +127,11 @@ The parameters are:
  Feel free to experiment.
 
  All animations take place in a single period of time, set by in the prelude by `animate_interval`. 
- The default is 0.25 sec.
+ The default is 0.25 sec. Note that if you enable tweening by setting `tween_length`, animation is disabled.
 
  ```
- animate_interval 0.4 //  set animations to run in 0.4 secs
+ animate_interval 0.4   // set animations to run in 0.4 secs
+ // tween_length = 0.4  // tweening must not be set
  ```
 
 ### Comment styles

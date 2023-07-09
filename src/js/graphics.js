@@ -665,7 +665,7 @@ function redrawCellGrid() {
                 p.x = p.y = 0.5 - tween / 2 * (a || 1);
             },
             alpha: (p,a) => { p.alpha = tween * (a || 1); },
-            angle: (p,a) => { p.angle = tween * (a || 360); },
+            angle: (p,a) => { p.angle = -tween * (a || 360); },
             ease: (p,a) => { tween = easingFunction(a)(tween); },
             tween: (p,a) => { tween = tween * (a || 1); },
         }

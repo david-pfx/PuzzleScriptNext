@@ -2822,46 +2822,17 @@ Rule.prototype.queueCommands = function() {
   }
 };
 
+// despite its name, this function exists to establish default values for prelude settings
 function twiddleMetadataExtras(resetAutoTick = true) {
-  if (state.metadata.realtime_interval!==undefined) {
-	if (resetAutoTick) {
-		autotick=0;
-	}
-    autotickinterval=state.metadata.realtime_interval*1000;
-  } else {
-    autotick=0;
-    autotickinterval=0;
-  }
-
-  if (state.metadata.again_interval!==undefined) {
-    againinterval=state.metadata.again_interval*1000;
-  } else {
-    againinterval=150;
-  }
-
-  if (state.metadata.tween_length!==undefined) {
-	tweeninterval=Math.max(state.metadata.tween_length*1000, 0);
-	} else {
-		tweeninterval = 0;
-	}
-
-  if (state.metadata.key_repeat_interval!==undefined) {
-    repeatinterval=state.metadata.key_repeat_interval*1000;
-  } else {
-    repeatinterval=300; // was 150, makes for key bounce
-  }
-
-  if ('background_color' in state.metadata) {
-    state.bgcolor=colorToHex(colorPalette,state.metadata.background_color);
-  } else {
-    state.bgcolor="#000000";
-  }
-
-  if ('text_color' in state.metadata) {
-    state.fgcolor=colorToHex(colorPalette,state.metadata.text_color);
-  } else {
-    state.fgcolor="#FFFFFF";
-  }
+	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
+	if (resetAutoTick || !state.metadata.realtime_interval)
+    	autotick=0;
+	againinterval = state.metadata.again_interval?state.metadata.again_interval*1000 : 150;
+	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
+	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 300; // was 150, makes for key bounce
+	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
+	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
+	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
 }
 
 function showTempMessage() {

@@ -1171,9 +1171,9 @@ function pollGamepads() {
 let debugTimestamp
 function checkKey(e,justPressed) {
 	// debugLevel
-	const ele = document.getElementById('debug');
-	ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
-	debugTimestamp = prevTimestamp;
+	// const ele = document.getElementById('debug');
+	// ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+	// debugTimestamp = prevTimestamp;
 	// debugLevel
 	ULBS();
 	

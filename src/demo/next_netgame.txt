@@ -2,6 +2,9 @@ title Net Game
 author polyomino games
 homepage polyomino.org
 
+// turn the tiles until they all light up
+// port/rewrite from Tatham collection
+
 debug
 verbose_logging
 
@@ -9,12 +12,13 @@ background_color lightblue
 text_color darkbrown
 
 run_rules_on_level_start
-tween_length 0.25
+//animation_length 0.25
 sprite_size 9
 nokeyboard 
 mouse_clicks
-
-// port/rewrite from Tatham collection
+status_line
+level_select
+custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 
 ========
 OBJECTS
@@ -130,10 +134,6 @@ tileRL0 = tileN or tileE or tileS or tileW or tileX
 tileRL1 = tileX or tileN or tileE or tileS or tileW
 tileRR0 = tileN or tileW or tileS or tileE or tileX
 tileRR1 = tileX or tileN or tileW or tileS or tileE
-tileRX0 = tileN or tileS or tileW or tileE or tileX
-tileRX1 = tileN or tileS or tileX or tileW or tileE
-//tileRX0 = tileN or tileS or tileX or tileW or tileE or tileX
-//tileRX1 = tileX or tileN or tileS or tileX or tileW or tileE
 queues = temp or q1 or q2 or q3 or q4
 rotation = r0 or r90 or r180 or r270
 rr = r90 or r180 or r270
@@ -198,12 +198,7 @@ startloop
   [ r180 ] -> [ r90 ]
   [ r270 ] -> [ r180 ]
 endloop
-//[ r0 ] -> []
-//[ init ] -> []
-//[ mix ] -> []
 [ tempobj ] -> []
-
-//[ test clickable ] -> [ lclick clickable ]
 
 //[ focus ] -> []
 //[ hover clickable ] -> [ clickable focus ]
@@ -211,29 +206,13 @@ endloop
 //[ init ][ tileE | tileE | tileE ] -> [ init ][ lclick tileE | tileE | tileE ]
 // accept a user input
 
-// PuzzleFab way
-//  [ lclick tileRL0 ] -> [ lclick tileRL1 ] 
-//+ [ lclick tileRL0 ] -> [ tileRL0 ]
-//  [ rclick tileRR0 ] -> [ rclick tileRR1 ] 
-//+ [ rclick tileRR0 ] -> [ tileRR0 ]
+  [ lclick tileRL0 ] -> [ action tileRL0 ] 
+  [ action tileRL0 ] -> [ action tileRL1 ] 
++ [ action tileRL0 ] -> [ lclick tileRL0 ]
 
-  [ lclick TileNESW ] -> [ lclick tileNESW temp ]
-  [ lclick TileN ] -> [ lclick TileX ]
-+ [ lclick TileE ] -> [ lclick TileN ]
-+ [ lclick TileS ] -> [ lclick TileE ]
-+ [ lclick TileW ] -> [ lclick TileS ]
-+ [ lclick TileX ] -> [ lclick TileW ]
-+ [ lclick TileNESW ] -> [ TileNESW ]
-  [ temp TileNESW ] -> [ lclick tileNESW ]
-
-  [ rclick TileNESW ] -> [ rclick tileNESW temp ]
-  [ rclick TileN ] -> [ rclick TileX ]
-+ [ rclick TileW ] -> [ rclick TileN ]
-+ [ rclick TileS ] -> [ rclick TileW ]
-+ [ rclick TileE ] -> [ rclick TileS ]
-+ [ rclick TileX ] -> [ rclick TileE ]
-+ [ rclick TileNESW ] -> [ TileNESW ]
-  [ temp TileNESW ] -> [ rclick tileNESW ]
+  [ rclick tileRR0 ] -> [ action tileRR0 ] 
+  [ action tileRR0 ] -> [ action tileRR1 ] 
++ [ action tileRR0 ] -> [ rclick tileRR0 ]
 
 [ lit ] -> []
 [ start ] -> [ start lit ]
@@ -247,7 +226,7 @@ endloop
 [ start ] -> [ start done ]
 [ done ][ player no lit ] -> [][ player ]
 [ done ] -> sfx1
-//[ done ] -> status You win! Press R to play again, or Esc to change level.
+[ done ] -> status You win! Press R to play again, or Esc to change level.
 
 ==============
 WINCONDITIONS
@@ -259,7 +238,7 @@ LEVELS
 
 message The aim is to light up the whole board
 
-//level Single start 9x9
+section Single start 9x9
 i*********m
 *.........*
 *.........*
@@ -272,7 +251,7 @@ i*********m
 *.........*
 ***********
 
-//level Single start 13x11
+section Single start 13x11
 i*************m
 *.............*
 *.............*
@@ -289,7 +268,7 @@ i*************m
 
 // test levels
 
-//level Single start 13x11 no mix
+section Single start 13x11 no mix
 i**************
 *t............*
 *.............*
@@ -304,27 +283,27 @@ i**************
 *.............*
 ***************
 
-//level Single start 1x1
+section Single start 1x1
 i*m
 *s*
 *.*
 ***
 
-//level Single start 3x3 no mix
+section Single start 3x3 no mix
 i****
 *...*
 *.s.*
 *...*
 *****
 
-//level Single start 3x3
+section Single start 3x3
 i***m
 *...*
 *.s.*
 *...*
 *****
 
-//level Single start 5x5
+section Single start 5x5
 i*****m
 *.....*
 *.....*
@@ -333,7 +312,7 @@ i*****m
 *.....*
 *******
 
-//level Single start 8x8 no mix
+section Single start 8x8 no mix
 i*********
 *........*
 *........*
