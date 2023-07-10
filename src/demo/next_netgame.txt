@@ -5,8 +5,8 @@ homepage polyomino.org
 // turn the tiles until they all light up
 // port/rewrite from Tatham collection
 
-debug
-verbose_logging
+//debug
+//verbose_logging
 
 background_color lightblue
 text_color darkbrown
@@ -18,7 +18,8 @@ nokeyboard
 mouse_clicks
 status_line
 level_select
-custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+//custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 
 ========
 OBJECTS
@@ -238,6 +239,33 @@ LEVELS
 
 message The aim is to light up the whole board
 
+section Single start 3x3
+i***m
+*...*
+*.s.*
+*...*
+*****
+
+section Single start 5x5
+i*****m
+*.....*
+*.....*
+*..s..*
+*.....*
+*.....*
+*******
+
+section Single start 8x8
+i********m
+*........*
+*........*
+*....s...*
+*........*
+*........*
+*........*
+*........*
+**********
+
 section Single start 9x9
 i*********m
 *.........*
@@ -268,6 +296,19 @@ i*************m
 
 // test levels
 
+section Single start 1x1
+i*m
+*s*
+*.*
+***
+
+section Single start 3x3 no mix
+i****
+*...*
+*.s.*
+*...*
+*****
+
 section Single start 13x11 no mix
 i**************
 *t............*
@@ -282,44 +323,4 @@ i**************
 *.............*
 *.............*
 ***************
-
-section Single start 1x1
-i*m
-*s*
-*.*
-***
-
-section Single start 3x3 no mix
-i****
-*...*
-*.s.*
-*...*
-*****
-
-section Single start 3x3
-i***m
-*...*
-*.s.*
-*...*
-*****
-
-section Single start 5x5
-i*****m
-*.....*
-*.....*
-*..s..*
-*.....*
-*.....*
-*******
-
-section Single start 8x8 no mix
-i*********
-*........*
-*........*
-*....s...*
-*........*
-*........*
-*........*
-*........*
-**********
 

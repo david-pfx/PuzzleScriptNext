@@ -7498,7 +7498,7 @@ function redrawCellGrid() {
                 p.x = p.y = 0.5 - tween / 2 * (a || 1);
             },
             alpha: (p,a) => { p.alpha = tween * (a || 1); },
-            angle: (p,a) => { p.angle = tween * (a || 360); },
+            angle: (p,a) => { p.angle = -tween * (a || 360); },
             ease: (p,a) => { tween = easingFunction(a)(tween); },
             tween: (p,a) => { tween = tween * (a || 1); },
         }
@@ -9003,10 +9003,8 @@ function setGameState(_state, command, randomseed) {
       autotickinterval=0;
     }
 
-	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval * 1000 : 150;
-	tweeninterval = state.metadata.tween_length ? state.metadata.tween_length * 1000 : 0;
-	againinterval = state.metadata.again_interval ? state.metadata.again_interval * 1000 : 150;
-	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval * 1000 : 250;
+	// set defaults and stay DRY
+	twiddleMetadataExtras();
     
 	if (throttle_movement && autotickinterval===0) {
       logWarning("throttle_movement is designed for use in conjunction with realtime_interval. Using it in other situations makes games gross and unresponsive, broadly speaking.  Please don't.");
@@ -10765,47 +10763,17 @@ Rule.prototype.queueCommands = function() {
   }
 };
 
+// despite its name, this function exists to establish default values for prelude settings
 function twiddleMetadataExtras(resetAutoTick = true) {
-  if (state.metadata.realtime_interval!==undefined) {
-	if (resetAutoTick) {
-		autotick=0;
-	}
-    autotickinterval=state.metadata.realtime_interval*1000;
-  } else {
-    autotick=0;
-    autotickinterval=0;
-  }
-
-  if (state.metadata.again_interval!==undefined) {
-    againinterval=state.metadata.again_interval*1000;
-  } else {
-    againinterval=150;
-  }
-
-  if (state.metadata.tween_length!==undefined) {
-	tweeninterval=Math.max(state.metadata.tween_length*1000, 0);
-	} else {
-		tweeninterval = 0;
-	}
-
-  if (state.metadata.key_repeat_interval!==undefined) {
-    repeatinterval=state.metadata.key_repeat_interval*1000;
-  } else {
-    repeatinterval=500;
-    //repeatinterval=150;
-  }
-
-  if ('background_color' in state.metadata) {
-    state.bgcolor=colorToHex(colorPalette,state.metadata.background_color);
-  } else {
-    state.bgcolor="#000000";
-  }
-
-  if ('text_color' in state.metadata) {
-    state.fgcolor=colorToHex(colorPalette,state.metadata.text_color);
-  } else {
-    state.fgcolor="#FFFFFF";
-  }
+	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
+	if (resetAutoTick || !state.metadata.realtime_interval)
+    	autotick=0;
+	againinterval = state.metadata.again_interval?state.metadata.again_interval*1000 : 150;
+	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
+	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 300; // was 150, makes for key bounce
+	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
+	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
+	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
 }
 
 function showTempMessage() {
@@ -12191,22 +12159,19 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const preamble_keywords = ['run_rules_on_level_start', 'require_player_movement', 'debug', 
-        'verbose_logging', 'throttle_movement', 'noundo', 'noaction', 'norestart', 'norepeat_action', 'scanline',
-        'case_sensitive', 'level_select', 'continue_is_level_select', 'level_select_lock', 
-        'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 
-        'smoothscreen_debug', 'skip_title_screen', 'nokeyboard',
-        'mouse_clicks', 'status_line'];
+    const preamble_keywords = ['case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+        'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
+        'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
+        'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
     const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
-    const preamble_param_number = ['key_repeat_interval', 'realtime_interval', 'again_interval', 
-        'tween_length', 'local_radius', 'tween_snap', 'local_radius', 'font_size', 'sprite_size', 
-        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 
-        'animate_interval'];
-    const preamble_param_single = ['color_palette', 'background_color', 'text_color',
-        'flickscreen', 'zoomscreen', 'tween_easing', 'message_text_align', 
-        'mouse_left', 'mouse_drag', 'mouse_right', 'mouse_rdrag', 'mouse_up', 'mouse_rup', 
-        'level_select_solve_symbol', 'sitelock_origin_whitelist', 'sitelock_hostname_whitelist',
-        'puzzlescript_next_version'];
+    const preamble_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
+        'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
+        'sprite_size', 'tween_length', 'tween_snap'];
+    const preamble_param_single = [
+        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
+        'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
+        'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'text_color', 'tween_easing', 'zoomscreen'
+    ];
     const preamble_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
         preamble_param_single, preamble_param_multi];
@@ -16905,7 +16870,6 @@ var rightdragging=false;
 var columnAdded=false;
 
 function selectText(containerid,e) {
-	e = e || window.event;
 	var myspan = document.getElementById(containerid);
 	if (e&&(e.ctrlKey || e.metaKey)) {
 		if(solving) return;
@@ -18066,7 +18030,13 @@ function pollGamepads() {
 	clear();
 }
 
+let debugTimestamp
 function checkKey(e,justPressed) {
+	// debugLevel
+	// const ele = document.getElementById('debug');
+	// ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+	// debugTimestamp = prevTimestamp;
+	// debugLevel
 	ULBS();
 	
     if (winning) {
@@ -18424,9 +18394,14 @@ function update() {
 	    keyRepeatTimer+=deltatime;
 	    var ticklength = throttle_movement ? repeatinterval : repeatinterval/(Math.sqrt(keybuffer.length));
 	    if (keyRepeatTimer>ticklength) {
-	    	keyRepeatTimer=0;	
+			keyRepeatTimer=0;	
 	    	keyRepeatIndex = (keyRepeatIndex+1)%keybuffer.length;
 	    	var key = keybuffer[keyRepeatIndex];
+			// debugLevel
+			// const ele = document.getElementById('debug');
+			// ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+			// debugTimestamp = prevTimestamp;
+			// debugLevel
 	        checkKey({keyCode:key},false);
 	    }
 	}
@@ -18456,6 +18431,7 @@ var loop = function(timestamp){
 		// debugLevel
 		//const ele = document.getElementById('debug');
 		//ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+		// debugLevel
 	}
 	prevTimestamp = timestamp
 	try {
