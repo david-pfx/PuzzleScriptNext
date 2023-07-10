@@ -70,8 +70,8 @@ span.cm-SOUND {
 }
 .cm-s-midnight span.cm-SOUNDVERB {color: #AE81FF;}
 .cm-s-midnight span.cm-SOUNDEVENT {color: #AE81FF;}
-
 .cm-s-midnight span.cm-SPRITEPARENT {color: #813cff; font-weight:bold;}
+.cm-s-midnight span.cm-KEYWORD {color: #AE81FF; font-weight:bold;}
 
 .systemMessage {
 	color:white;

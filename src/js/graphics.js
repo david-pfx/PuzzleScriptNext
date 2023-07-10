@@ -614,7 +614,9 @@ function redrawCellGrid() {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
                             continue;
-                        const spriteScale = spriteScaler ? Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size : 1;
+                        let spriteScale = 1;
+                        if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size;
+                        if (obj.size) spriteScale *= obj.size;
                         const drawpos = {
                             x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth,
                             y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight
@@ -629,7 +631,10 @@ function redrawCellGrid() {
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
-                        const csz = { x: params.scalex * cellwidth * spriteScale, y: params.scaley * cellheight * spriteScale };
+                        const csz = { 
+                            x: params.scalex * cellwidth * spriteScale, 
+                            y: params.scaley * cellheight * spriteScale 
+                        };
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
                             y: Math.floor(drawpos.y + params.y * cellheight),

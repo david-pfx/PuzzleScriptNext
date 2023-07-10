@@ -308,7 +308,7 @@ var codeMirrorFn = function() {
 
     // match by regex, eat white space, optional return tolower
     let matchPos = 0;
-    function matchRegex(stream, regex, tolower, testFunc) {
+    function matchRegex(stream, regex, tolower) {
         matchPos = stream.pos;
         const match = stream.match(regex);
         if (match) stream.eatSpace();
@@ -699,7 +699,7 @@ var codeMirrorFn = function() {
         const tokens = [];
         const symbols = {};
         const aliases = [];
-        if (getTokens() && checkTokens())
+        if (getTokens() && !tokens.some(t => t.kind == 'ERROR'))
             setState();
         return tokens;
 
@@ -712,14 +712,52 @@ var codeMirrorFn = function() {
                 let kind = 'ERROR';
                 if (token = matchComment(stream,state) != null) kind = 'comment';   
                 else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
-                else if (tokens.length > 0 && (token = matchRegex(stream, /^copy:/u))) kind = 'SPRITEPARENT';
-                else if (token = matchRegex(stream, /^[\p{L}\p{N}_:]+/u)) kind = 'NAME';  // Unicode letters and numbers
-                else if (token = matchRegex(stream, /^[^\s]/)) kind = 'NAME';
-                else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
-                else throw 'name';
-
-                if (kind == 'ERROR')
+                else if (token = matchRegex(stream, /^copy:/u)) {
+                    tokens.push({
+                        text: token, kind: 'KEYWORD', pos: stream.pos
+                    });
+                    if (tokens.length == 0)
+                        logError(`Must define a sprite to copy first`, state.lineNumber);
+                    else if (!(token = matchRegex(stream, /^\w+:[\p{L}\p{N}_$.]+/u, true)))
+                        logError(`Missing sprite parent.`, state.lineNumber);
+                    else if (symbols.token) 
+                        logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                    else if (token == symbols.candname) 
+                        logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
+                    else {
+                        symbols.parent = token;
+                        kind = 'NAME';
+                    }
+                } else if (token = matchRegex(stream, /^size:/u)) {
+                    tokens.push({
+                        text: token, kind: 'KEYWORD', pos: stream.pos
+                    });
+                    token = matchRegex(stream, /^[0-9.]+/);
+                    const size = parseFloat(token);
+                    if (size == NaN)
+                        logError(`Size requires a numeric argument.`, state.lineNumber);
+                    else {
+                        symbols.size = size;
+                        kind = 'METADATATEXT';  //???
+                    }
+                } else if ((token = matchRegex(stream, /^[\p{L}\p{N}_$]+/u) 
+                    || (token = matchRegex(stream, /^\S/)))) {
+                    if (keyword_array.includes(token)) 
+                        logWarning(`You named an object "${token}", but this is a keyword. Don't do that!`, state.lineNumber);
+                    else if (state.objects[token])
+                        logError(`Object "${token}" defined multiple times.`, state.lineNumber);
+                    else if (state.legend_synonyms.some(s => s[0] == token))
+                        logError(`Name "${token}" already in use.`, state.lineNumber);
+                    else {
+                        kind = 'NAME';  
+                        if (tokens.length == 0) symbols.candname = token;
+                        else aliases.push(token);
+                    }
+                } else if (token = matchRegex(stream, reg_notcommentstart)) {
                     logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
+                    kind = 'ERROR';
+                } else throw 'name';
+
                 tokens.push({
                     text: token, kind: kind, pos: stream.pos
                 });
@@ -728,42 +766,6 @@ var codeMirrorFn = function() {
             return tokens.length;
         }
 
-        function checkTokens() {
-            for (let x = 0; x < tokens.length; x++) {
-                let t = tokens[x];
-                let error = false;
-                if (t.kind == 'NAME') {
-                    if (keyword_array.includes(t.text)) {
-                        logWarning(`You named an object "${t.text}", but this is a keyword. Don't do that!`, state.lineNumber);
-                    }
-                    if (state.objects[t.text]) {
-                        logError(`Object "${t.text}" defined multiple times.`, state.lineNumber);
-                        error = true;
-                    } else if (state.legend_synonyms.some(s => s[0] == t.text)) {
-                        logError(`Name "${t.text}" already in use.`, state.lineNumber);
-                        error = true;
-                    } else {
-                        if (x == 0) symbols.candname = t.text;
-                        else aliases.push(t.text);
-                    }
-                } else if (t.kind == 'SPRITEPARENT') {
-                    t = tokens[++x];
-                    if (t.kind != 'NAME') {
-                        logError(`Missing sprite parent.`, state.lineNumber);
-                        error = true;
-                    } else if (symbols.parent) {
-                        logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
-                        error = true;
-                    } else if (t.text == symbols.candname) {
-                        logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
-                        error = true;
-                    } else symbols.parent = t.text;
-                }
-                if (error) tokens[x].kind = 'ERROR';
-            }
-            return (!tokens.some(t => t.kind == 'ERROR'));
-        }
-    
         function setState() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
@@ -772,13 +774,12 @@ var codeMirrorFn = function() {
                 colors: [],
                 spritematrix: [],
                 cloneSprite: symbols.parent || "",
-                spriteText: null
+                spriteText: null,
+                size: symbols.size
             };
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
                 createAlias(cnlc, candname, state.lineNumber);
-            //if (candname != candname.toLowerCase() && candname.match(/^(background|player)$/u))
-            //  createAlias(candname, candname.toLowerCase(), state.lineNumber);
             for (const alias of aliases) {
                 registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
                 createAlias(alias, candname, state.lineNumber);
@@ -1210,6 +1211,7 @@ var codeMirrorFn = function() {
                             if (stream.match(/^text:/u, false)) {
                                 stream.string = mixedCase;
                                 state.current_line_wip_array.push(...parseObjectText(stream, state));
+                                state.objects_section = 1;
                             } else state.current_line_wip_array.push(...parseObjectSprite(stream, state));
                             return flushToken();
                         }
