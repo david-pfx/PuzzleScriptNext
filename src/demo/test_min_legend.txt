@@ -1,0 +1,105 @@
+title test min legend
+author polymino
+homepage www.polyomino.com
+
+// test program for the LEGEND
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+
+Player P; Yellow Green Red Black
+...........
+....222....
+...03030...
+....000....
+.011111110.
+.011111110.
+...11111...
+...22.22...
+...22.22...
+..333.333..
+...........
+
+Background;grey
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+m;purple
+s; purple; text: S
+t; orange; text: t
+u; pink;   text: Ab3
+
+a0; transparent;
+a1; transparent;
+a2; transparent;
+a3; transparent;
+a4; transparent;
+a5; transparent;
+a6; transparent;
+a7; transparent;
+a8; transparent;
+a9; transparent;
+
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+aaa = a0 or a1 or a2 or a3 or a4 or a5 or a6 or a7 or a8 or a9
+b0 = a0
+b1 = a0 or a1
+b2 = a2 or a3
+b3 = b1 or b2 or a4
+b4 = b1 or b2 or b3 or a5 or a6 or a7 or a8 or a9
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+s
+t
+u
+m
+aaa
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+[ action p ] -> win
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+//message first level
+
+.k...r.
+.y.p.g.
+.m...b.
+
+message second level
+
+..........
+....pry...
+..........
+

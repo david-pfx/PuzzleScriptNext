@@ -159,32 +159,20 @@ function blankLineHandle(state) {
 
 //returns null if not delcared, otherwise declaration
 //note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
-function wordAlreadyDeclared(state,n) {
-    if (!state.case_sensitive) {
-        n = n.toLowerCase();
-    }
-    if (n in state.objects) {
-        return state.objects[n];
-    } 
-    for (var i=0;i<state.legend_aggregates.length;i++) {
-        var a = state.legend_aggregates[i];
-        if (a[0]===n) {                                			
-            return state.legend_aggregates[i];
-        }
-    }
-    for (var i=0;i<state.legend_properties.length;i++) {
-        var a = state.legend_properties[i];
-        if (a[0]===n) {  
-            return state.legend_properties[i];
-        }
-    }
-    for (var i=0;i<state.legend_synonyms.length;i++) {
-        var a = state.legend_synonyms[i];
-        if (a[0]===n) {  
-            return state.legend_synonyms[i];
-        }
-    }
-    return null;
+function wordAlreadyDeclared(state, name) {
+    // if (!state.case_sensitive) {
+    //     name = name.toLowerCase();
+    // }
+    let def
+    if (name in state.objects) 
+        return state.objects[name];
+    else if (def = state.legend_synonyms.find(s => s[0] == name))
+        return def;
+    else if (def = state.legend_aggregates.find(s => s[0] == name))
+        return def;
+    else if (def = state.legend_properties.find(s => s[0] == name))
+        return def;
+    else return null;
 }
 
 //for IE support
@@ -217,33 +205,7 @@ if (typeof Object.assign != 'function') {
 var codeMirrorFn = function() {
     'use strict';
 
-    function checkNameDefined(state,candname) {
-        if (state.objects[candname] !== undefined) {
-            return;
-        }
-        for (var i=0;i<state.legend_synonyms.length;i++) {
-            var entry = state.legend_synonyms[i];
-            if (entry[0]==candname) {
-                return;                                       
-            }
-        }
-        for (var i=0;i<state.legend_aggregates.length;i++) {
-            var entry = state.legend_aggregates[i];
-            if (entry[0]==candname) {
-                return;                                                                          
-            }
-        }
-        for (var i=0;i<state.legend_properties.length;i++) {
-            var entry = state.legend_properties[i];
-            if (entry[0]==candname) {
-                return;                                    
-            }
-        }
-
-        logError(`You're talking about ${candname.toUpperCase()} but it's not defined anywhere.`, state.lineNumber);
-    }
-
-    function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
+function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
 
         function escapeRegExp(str) {
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
@@ -260,6 +222,13 @@ var codeMirrorFn = function() {
             state.original_case_names[candname] = match[0];
             state.original_line_numbers[candname] = lineNumber;
         }
+    }
+
+    function createAlias(state, alias, candname, lineno) {
+        //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+        const synonym = [alias, candname];
+        synonym.lineNumber = lineno;
+        state.legend_synonyms.push(synonym);
     }
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
@@ -319,6 +288,15 @@ var codeMirrorFn = function() {
         stream.pos = matchPos;
     }
 
+    function matchName(stream, tolower) {
+        return matchRegex(stream, /^[\p{L}\p{N}_$]+/u, tolower);
+    }
+
+    function matchNameOrGlyph(stream, tolower) {
+        return matchRegex(stream, /^[\p{L}\p{N}_$]+/u, tolower) || matchRegex(stream, /^\S/, tolower);
+    }
+
+
     function errorFallbackMatchToken(stream){
         var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
         if (match===null){
@@ -368,180 +346,6 @@ var codeMirrorFn = function() {
         } while (state.commentLevel > 0);
         stream.eatSpace();
         return stream.string.slice(pos, stream.pos);
-    }
-
-    function processLegendLine(state, mixedCase){
-        var ok=true;
-        var splits = state.current_line_wip_array;
-        if (splits.length===0){
-            return;
-        }
-
-        if (splits.length === 1) {
-            logError('Incorrect format of legend - should be one of "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".', state.lineNumber);
-            ok=false;
-        } else if (splits.length%2===0){
-            logError(`Incorrect format of legend - should be one of "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]", but it looks like you have a dangling "${state.current_line_wip_array[state.current_line_wip_array.length-1].toUpperCase()}"?`, state.lineNumber);
-            ok=false;
-        } else {
-            var candname = splits[0];
-
-            var alreadyDefined = wordAlreadyDeclared(state,candname);
-            if (alreadyDefined!==null){
-                logError(`Name "${candname.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${alreadyDefined.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${alreadyDefined.lineNumber}</span></a>).`, state.lineNumber);
-                ok=false;
-            }
-
-            if (keyword_array.includes(candname)) {
-                logWarning('You named an object "' + candname.toUpperCase() + '", but this is a keyword. Don\'t do that!', state.lineNumber);
-            }
-
-
-            for (var i=2; i<splits.length; i+=2){
-                var nname = splits[i];
-                if (nname===candname){
-                    logError("You can't define object " + candname.toUpperCase() + " in terms of itself!", state.lineNumber);
-                    ok=false;
-                    var idx = splits.indexOf(candname, 2);
-                    while (idx >=2){
-                        if (idx>=4){
-                            splits.splice(idx-1, 2);
-                        } else {
-                            splits.splice(idx, 2);
-                        }
-                        idx = splits.indexOf(candname, 2);
-                    }          
-                }   
-                for (var j=2;j<i;j+=2){
-                    var oname = splits[j];
-                    if(oname===nname){
-                        logWarning("You're repeating the object " + oname.toUpperCase() + " here multiple times on the RHS.  This makes no sense.  Don't do that.", state.lineNumber);                        
-                    }
-                }                       
-            } 
-
-            //for every other word, check if it's a valid name
-            for (var i=2;i<splits.length;i+=2){
-                var defname = splits[i];
-                if (defname!==candname){//we already have an error message for that just above.
-                    checkNameDefined(state,defname);
-                }
-            }
-
-            if (splits.length === 3) {
-                //SYNONYM
-                var synonym = [splits[0], splits[2]];
-                synonym.lineNumber = state.lineNumber;
-                registerOriginalCaseName(state,splits[0],mixedCase,state.lineNumber);
-                state.legend_synonyms.push(synonym);
-            } else if (splits[3]==='and') {
-                //AGGREGATE
-                var substitutor = function(n) {
-                    if (!state.case_sensitive) {
-                        n = n.toLowerCase();
-                    }
-                    if (n in state.objects) {
-                        return [n];
-                    }
-                    for (var i = 0; i < state.legend_synonyms.length; i++) {
-                        var a = state.legend_synonyms[i];
-                        if (a[0] === n) {
-                            return substitutor(a[1]);
-                        }
-                    }
-                    for (var i = 0; i < state.legend_aggregates.length; i++) {
-                        var a = state.legend_aggregates[i];
-                        if (a[0] === n) {
-                            return [].concat.apply([], a.slice(1).map(substitutor));
-                        }
-                    }
-                    for (var i = 0; i < state.legend_properties.length; i++) {
-                        var a = state.legend_properties[i];
-                        if (a[0] === n) {
-                            logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber);
-                            ok = false;
-                            return [n];
-                        }
-                    }
-                    return [n];
-                };
-
-                var newlegend = [splits[0]].concat(substitutor(splits[2])).concat(substitutor(splits[4]));
-                for (var i = 6; i < splits.length; i += 2) {
-                    newlegend = newlegend.concat(substitutor(splits[i]));
-                }
-                newlegend.lineNumber = state.lineNumber;
-
-                registerOriginalCaseName(state,newlegend[0],mixedCase,state.lineNumber);
-                state.legend_aggregates.push(newlegend);
-
-            } else if (splits[3]==='or'){
-                var malformed=true;
-
-                var substitutor = function(n) {
-
-                    if (!state.case_sensitive) {
-                        n = n.toLowerCase();
-                    }
-                    if (n in state.objects) {
-                        return [n];
-                    }
-
-                    for (var i=0;i<state.legend_synonyms.length;i++) {
-                        var a = state.legend_synonyms[i];
-                        if (a[0]===n) {   
-                            return substitutor(a[1]);
-                        }
-                    }
-                    for (var i=0;i<state.legend_aggregates.length;i++) {
-                        var a = state.legend_aggregates[i];
-                        if (a[0]===n) {           
-                            logError("Cannot define a property (something defined in terms of 'or') in terms of aggregates (something that uses 'and').", state.lineNumber);
-                            malformed=false;          
-                        }
-                    }
-                    for (var i=0;i<state.legend_properties.length;i++) {
-                        var a = state.legend_properties[i];
-                        if (a[0]===n) {  
-                            var result = [];
-                            for (var j=1;j<a.length;j++){
-                                if (a[j]===n){
-                                    //error here superfluous, also detected elsewhere (cf 'You can't define object' / #789)
-                                    //logError('Error, recursive definition found for '+n+'.', state.lineNumber);                                
-                                } else {
-                                    result = result.concat(substitutor(a[j]));
-                                }
-                            }
-                            return result;
-                        }
-                    }
-                    return [n];
-                };
-
-                for (var i = 5; i < splits.length; i += 2) {
-                    if (splits[i].toLowerCase() !== 'or') {
-                        malformed = false;
-                        break;
-                    }
-                }
-                if (malformed) {
-                    var newlegend = [splits[0]].concat(substitutor(splits[2])).concat(substitutor(splits[4]));
-                    for (var i = 6; i < splits.length; i += 2) {
-                        newlegend.push(state.case_sensitive ? splits[i] : splits[i].toLowerCase());
-                    }
-                    newlegend.lineNumber = state.lineNumber;
-
-                    registerOriginalCaseName(state,newlegend[0],mixedCase,state.lineNumber);
-                    state.legend_properties.push(newlegend);
-                }
-            } else {
-                if (ok){
-                    //no it's not ok but we don't know why
-                    logError('This legend-entry is incorrectly-formatted - it should be one of A = B, A = B or C ( or D ...), A = B and C (and D ...)', state.lineNumber);
-                    ok=false;
-                }
-            }
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -693,6 +497,7 @@ var codeMirrorFn = function() {
         }
     }
 
+
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token token list
     function parseObjectName(stream, mixedCase, state) {
@@ -718,7 +523,7 @@ var codeMirrorFn = function() {
                     });
                     if (tokens.length == 0)
                         logError(`Must define a sprite to copy first`, state.lineNumber);
-                    else if (!(token = matchRegex(stream, /^\w+:[\p{L}\p{N}_$.]+/u, true)))
+                    else if (!(token = matchNameOrGlyph(stream, true)))
                         logError(`Missing sprite parent.`, state.lineNumber);
                     else if (symbols.token) 
                         logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
@@ -740,21 +545,20 @@ var codeMirrorFn = function() {
                         symbols.size = size;
                         kind = 'METADATATEXT';  //???
                     }
-                } else if ((token = matchRegex(stream, /^[\p{L}\p{N}_$]+/u) 
-                    || (token = matchRegex(stream, /^\S/)))) {
-                    if (keyword_array.includes(token)) 
-                        logWarning(`You named an object "${token}", but this is a keyword. Don't do that!`, state.lineNumber);
+                } else if (token = matchNameOrGlyph(stream)) {
+                    if (state.legend_synonyms.some(s => s[0] == token))
+                        logError(`Name "${token}" already in use.`, state.lineNumber);
                     else if (state.objects[token])
                         logError(`Object "${token}" defined multiple times.`, state.lineNumber);
-                    else if (state.legend_synonyms.some(s => s[0] == token))
-                        logError(`Name "${token}" already in use.`, state.lineNumber);
                     else {
+                        if (keyword_array.includes(token)) 
+                            logWarning(`You named an object "${token}", but this is a keyword. Don't do that!`, state.lineNumber);
                         kind = 'NAME';  
                         if (tokens.length == 0) symbols.candname = token;
                         else aliases.push(token);
                     }
                 } else if (token = matchRegex(stream, reg_notcommentstart)) {
-                    logWarning(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
+                    logError(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
                     kind = 'ERROR';
                 } else throw 'name';
 
@@ -779,19 +583,13 @@ var codeMirrorFn = function() {
             };
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
-                createAlias(cnlc, candname, state.lineNumber);
+                createAlias(state, cnlc, candname, state.lineNumber);
             for (const alias of aliases) {
                 registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
-                createAlias(alias, candname, state.lineNumber);
+                createAlias(state, alias, candname, state.lineNumber);
             }
         }
 
-        function createAlias(alias, candname, lineno) {
-            //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
-            const synonym = [alias, candname];
-            synonym.lineNumber = lineno;
-            state.legend_synonyms.push(synonym);
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -900,7 +698,7 @@ var codeMirrorFn = function() {
     function parseSounds(stream, state) {
         const tt = getTokens();
         if (tt.length > 0) {
-            const rows = parseTokens(tt.filter(t => t.kind != 'comment'));
+            const rows = checkTokens(tt.filter(t => t.kind != 'comment'));
             if (!tt.some(t => t.kind == 'ERROR'))
                 state.sounds.push(...rows);
         }
@@ -921,7 +719,7 @@ var codeMirrorFn = function() {
                         : 'ERROR';
                     if (kind == 'ERROR') {
                         pushBack(stream);
-                        if (token = matchRegex(stream, /[\p{L}\p{N}_:]+/u, !state.case_sensitive)) kind = 'NAME';
+                        if (token = matchName(stream, !state.case_sensitive)) kind = 'NAME';
                         else token = matchRegex(stream, reg_notcommentstart);
                     }
                 } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
@@ -943,7 +741,7 @@ var codeMirrorFn = function() {
             return tokens;
         }
         
-        function parseTokens(tokens) {
+        function checkTokens(tokens) {
             let tobject, tverb, tevent, tdirs = [], tsounds = []
             let token = tokens.shift();
             let next = tokens.shift();
@@ -996,16 +794,140 @@ var codeMirrorFn = function() {
 
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    function parseLegendLine(stream, mixedCase, state) {
+        const tokens = [];
+        const names = [];
+        const symbols = {};
+
+        getTokens();
+        if (!tokens.some(t => t.kind == 'ERROR'))
+            setState();
+        return tokens;
+
+        function pushToken(token, kind) {
+            tokens.push({ text: token, kind: kind, pos: stream.pos });
+        }
+        function checkComment() {
+            const token = matchComment(stream, state);
+            if (token != null)
+                pushToken(token, 'comment');
+        }
+        function checkEol() { 
+            checkComment();
+            return stream.eol(); 
+        }
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            // start of parse
+            if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+                symbols.newname = token;
+                const defname = wordAlreadyDeclared(state, token);
+                if (defname)
+                    logError(`Name "${token.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${defname.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${defname.lineNumber}</span></a>).`, state.lineNumber);
+                else if (keyword_array.includes(token))
+                    logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
+                pushToken(token, defname ? 'ERROR' : 'NAME');
+            }
+            checkComment();
+
+            if (token = matchRegex(stream, /^=/)) {
+                pushToken(token, 'ASSIGNMENT');
+            } else {
+                token = matchRegex(stream, reg_notcommentstart);
+                logError(`Equals sign "=" expected, found ${token}`, state.lineNumber);
+                pushToken(token, 'ERROR');
+                return;
+            }
+            checkComment();
+
+            while (true) {
+                if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+                    const defname = wordAlreadyDeclared(state, token);
+                    const ownname = (token == symbols.newname);
+                    if (!defname)
+                        logError(`You're talking about "${token.toUpperCase()}" but it's not defined anywhere.`, state.lineNumber);
+                    else if (ownname)
+                        logError(`You can't define object "${token.toUpperCase()}" in terms of itself!`, state.lineNumber);
+                    else if (names.includes(token))
+                        logWarning(`You're repeating the object "${token.toUpperCase()}" here multiple times on the RHS.  This makes no sense.  Don't do that.`, state.lineNumber);                        
+                    names.push(token);
+                    pushToken(token, defname && !ownname ? 'NAME' : 'ERROR');
+                } else {
+                    token = matchRegex(stream, reg_notcommentstart);
+                    logError(`Object name expected, found ${token}`, state.lineNumber);
+                    pushToken(token, 'ERROR');
+                    return;
+                }
+
+                if (checkEol()) break;
+                if (token = matchRegex(stream, /^(and|or)\b/, true)) {
+                    if (!symbols.andor)
+                        symbols.andor = token;
+                    else if (symbols.andor != token)
+                        logError(`Cannot mix AND and OR`, state.lineNumber);
+                    pushToken(token, token == symbols.andor ? 'LOGICWORD' : 'ERROR' );
+                } else {
+                    token = matchRegex(stream, reg_notcommentstart);
+                    logError(`AND or OR expected, found ${token}`, state.lineNumber);
+                    pushToken(token, 'ERROR');
+                    return;
+                }
+            }
+        }
+
+        function treeWalk(name, isand) {
+            if (name in state.objects) 
+                return [name];
+            for (const sym of state.legend_synonyms)
+                if (sym[0] == name) 
+                    return treeWalk(sym[1], isand);
+            for (const sym of state.legend_aggregates) {
+                if (sym[0] == name) {
+                    if (!isand)
+                        logError("Cannot define a property (something defined in terms of 'or') in terms of aggregates (something that uses 'and').", state.lineNumber);
+                    return sym.slice(1).flatMap(s => treeWalk(s, false));
+                }
+            }
+            for (const sym of state.legend_properties) {
+                if (sym[0] == name) {
+                    if (isand)
+                        logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber);
+                    return sym.slice(1).flatMap(s => treeWalk(s, true));
+                }
+            }
+        }
+
+        function setState() {
+            if (names.length == 1) {
+                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);  // tofix:
+                createAlias(state, symbols.newname, names[0], state.lineNumber);
+            } else if (symbols.andor == 'and') {
+                const newlegend = [ symbols.newname, ...names.flatMap(n => treeWalk(n, true)) ];
+                newlegend.lineNumber = state.lineNumber;
+                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
+                state.legend_aggregates.push(newlegend);
+            } else { // == 'or'
+                const newlegend = [ symbols.newname, ...names.flatMap(n => treeWalk(n, false)) ];
+                newlegend.lineNumber = state.lineNumber;
+                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
+                state.legend_properties.push(newlegend);
+            }
+        }
+    }
+
     // because of all the early-outs in the token function, this is really just right now attached
     // too places where we can early out during the legend. To make it more versatile we'd have to change 
     // all the early-outs in the token function to flag-assignment for returning outside the case 
     // statement.
     function endOfLineProcessing(state, mixedCase){
-        if (state.section==='legend'){
-            processLegendLine(state,mixedCase);
+        // if (state.section==='legend'){
+        //     processLegendLine(state,mixedCase);
         // } else if (state.section ==='sounds'){
         //     processSoundsLine(state);
-        }
+        //}
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1095,7 +1017,7 @@ var codeMirrorFn = function() {
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
-            if (['', 'prelude', 'objects', 'sounds'].includes(state.section) && state.current_line_wip_array.length > 0)
+            if (['', 'prelude', 'objects', 'sounds', 'legend'].includes(state.section) && state.current_line_wip_array.length > 0)
                 return flushToken();
 
            	var mixedCase = stream.string;
@@ -1147,7 +1069,7 @@ var codeMirrorFn = function() {
             }            
 
             //MATCH '==="s AT START OF LINE
-            if (sol && stream.match(reg_equalsrow, true)) {
+            if (sol && stream.match(reg_equalsrow, true)) {  // todo: not if we're in a level
                 state.line_should_end = true;
                 state.line_should_end_because = 'a bunch of equals signs (\'===\')';
                 return 'EQUALSBIT';
@@ -1155,15 +1077,9 @@ var codeMirrorFn = function() {
 
             if (sol && parseSection(stream, state))
                 return 'HEADER';
-            // bug: can never happen
-            // } else {
-            //     if (state.section === undefined) {
-            //     logError('must start with section "OBJECTS"', state.lineNumber);
-            //     }
-            // }
 
             if (stream.eol()) {
-                endOfLineProcessing(state,mixedCase);  
+                //endOfLineProcessing(state,mixedCase);  
                 return null;
             }
 
@@ -1220,92 +1136,14 @@ var codeMirrorFn = function() {
                 }
 
                 case 'legend': {
-                    var resultToken="";
-                    var match_name=null;
-                    if (state.tokenIndex === 0) {
-                        match_name=stream.match(/[^=\p{Z}\s\(]*(\p{Z}\s)*/u, true);
-                        var new_name=match_name[0].trim();
-                        
-                        if (wordAlreadyDeclared(state,new_name))
-                        {
-                            resultToken =  'ERROR';
-                        } else {
-                            resultToken =  'NAME';    
-                            }
-
-                        //if name already declared, we have a problem                            
-                        state.tokenIndex++;
-                    } else if (state.tokenIndex === 1) {
-                        match_name = stream.match(/=/u,true);                              
-                        if (match_name===null||match_name[0].trim()!=="="){
-                            logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
-                            stream.match(reg_notcommentstart, true);
-                            resultToken = 'ERROR';
-                            match_name=["ERROR"];//just to reduce the chance of crashes
-                            }
-                        stream.match(/[\p{Z}\s]*/u, true);
-                        state.tokenIndex++;
-                        resultToken = 'ASSSIGNMENT';
-                    } else if (state.tokenIndex >= 3 && ((state.tokenIndex % 2) === 1)) {
-                        //matches AND/OR
-                        match_name = stream.match(reg_name, true);
-                        if (match_name === null) {
-                            logError("Something bad's happening in the LEGEND", state.lineNumber);
-                            match=stream.match(reg_notcommentstart, true);
-                            resultToken = 'ERROR';
-                        } else {
-                            var candname = match_name[0].trim();
-                            if (candname === "and" || candname === "or"){                                             
-                                resultToken =  'LOGICWORD';
-                                if (state.tokenIndex>=5){
-                                    if (candname !== state.current_line_wip_array[3]){
-                                        logError("Hey! You can't go mixing ANDs and ORs in a single legend entry.", state.lineNumber);
-                                        resultToken = 'ERROR';
-                            }
-                                }
-                            } else {
-                                logError(`Expected and 'AND' or an 'OR' here, but got ${candname.toUpperCase()} instead. In the legend, define new items using the equals symbol - declarations must look like 'A = B' or 'A = B and C' or 'A = B or C'.`, state.lineNumber);
-                                resultToken = 'ERROR';
-                                // match_name=["and"];//just to reduce the chance of crashes
-                            }
-                        }
-                        state.tokenIndex++;
-                    } else {
-                        match_name = stream.match(reg_name, true);
-                        if (match_name === null) {
-                            logError("Something bad's happening in the LEGEND", state.lineNumber);
-                            match=stream.match(reg_notcommentstart, true);
-                            resultToken = 'ERROR';
-                        } else {
-                            var candname = match_name[0].trim();
-                            if (wordAlreadyDeclared(state,candname))
-                            {
-                                resultToken =  'NAME';    
-                            } else {
-                                resultToken =  'ERROR';
-                            }
-                                state.tokenIndex++;
-
-                        }
-                    }
-
-                    if (match_name!==null) {
-                        state.current_line_wip_array.push(match_name[0].trim());
-                    }
-                    
-                    if (stream.eol()) {
-                        processLegendLine(state,mixedCase);
-                    } 
-
-                    return resultToken;
-                    break;
+                    state.current_line_wip_array = parseLegendLine(stream, mixedCase, state);
+                    return flushToken();
                 }
 
                 case 'sounds': {
                     stream.string = mixedCase;
                     state.current_line_wip_array = parseSounds(stream, state);
-                    if (state.current_line_wip_array.length > 0) 
-                        return flushToken();
+                    return flushToken();
                 }
 
                 case 'collisionlayers': {
@@ -1370,7 +1208,7 @@ var codeMirrorFn = function() {
                                 }
                             }
                         // PS+ to fix
-                        logError('Cannot add "' + candname.toUpperCase() + '" to a collision layer; it has not been declared.', state.lineNumber);                                
+                        logError(`Cannot add "${candname.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);                                
                         //logError('Cannot add "' + candname + '" to a collision layer; it has not been declared.', state.lineNumber);                                
                             return [];
                         };
