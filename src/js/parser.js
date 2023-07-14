@@ -175,6 +175,29 @@ function wordAlreadyDeclared(state, name) {
     else return null;
 }
 
+// recursively expand a symbol into its ultimate constituents of objects
+function expandSymbol(state, name, isand, cbError) {
+    if (name in state.objects) 
+        return [name];
+    for (const sym of state.legend_synonyms)
+        if (sym[0] == name) 
+            return expandSymbol(state, sym[1], isand);
+    for (const sym of state.legend_aggregates) {
+        if (sym[0] == name) {
+            if (!isand)
+                cbError(name);
+            return sym.slice(1).flatMap(s => expandSymbol(state, s, false));
+        }
+    }
+    for (const sym of state.legend_properties) {
+        if (sym[0] == name) {
+            if (isand)
+                cbError(name);
+            return sym.slice(1).flatMap(s => expandSymbol(state, s, true));
+        }
+    }
+}
+
 //for IE support
 if (typeof Object.assign != 'function') {
   (function () {
@@ -912,39 +935,21 @@ var codeMirrorFn = function() {
             }
         }
 
-        function treeWalk(name, isand) {
-            if (name in state.objects) 
-                return [name];
-            for (const sym of state.legend_synonyms)
-                if (sym[0] == name) 
-                    return treeWalk(sym[1], isand);
-            for (const sym of state.legend_aggregates) {
-                if (sym[0] == name) {
-                    if (!isand)
-                        logError("Cannot define a property (something defined in terms of 'or') in terms of aggregates (something that uses 'and').", state.lineNumber);
-                    return sym.slice(1).flatMap(s => treeWalk(s, false));
-                }
-            }
-            for (const sym of state.legend_properties) {
-                if (sym[0] == name) {
-                    if (isand)
-                        logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber);
-                    return sym.slice(1).flatMap(s => treeWalk(s, true));
-                }
-            }
-        }
-
         function setState() {
             if (names.length == 1) {
                 registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);  // tofix:
                 createAlias(state, symbols.newname, names[0], state.lineNumber);
             } else if (symbols.andor == 'and') {
-                const newlegend = [ symbols.newname, ...names.flatMap(n => treeWalk(n, true)) ];
+                const newlegend = [ symbols.newname, ...names
+                    .flatMap(n => expandSymbol(state, n, true, 
+                        () => logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber))) ];
                 newlegend.lineNumber = state.lineNumber;
                 registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
                 state.legend_aggregates.push(newlegend);
             } else { // == 'or'
-                const newlegend = [ symbols.newname, ...names.flatMap(n => treeWalk(n, false)) ];
+                const newlegend = [ symbols.newname, ...names
+                    .flatMap(n => expandSymbol(state, n, false,
+                        () => logError("Cannot define a property (something defined in terms of 'or') in terms of aggregates (something that uses 'and').", state.lineNumber))) ];
                 newlegend.lineNumber = state.lineNumber;
                 registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
                 state.legend_properties.push(newlegend);
@@ -998,30 +1003,8 @@ var codeMirrorFn = function() {
             }
         }
 
-        function treeWalk(name, isand, cbError) {
-            if (name in state.objects) 
-                return [name];
-            for (const sym of state.legend_synonyms)
-                if (sym[0] == name) 
-                    return treeWalk(sym[1], isand);
-            for (const sym of state.legend_aggregates) {
-                if (sym[0] == name) {
-                    if (!isand)
-                        cbError(name);
-                    return sym.slice(1).flatMap(s => treeWalk(s, false));
-                }
-            }
-            for (const sym of state.legend_properties) {
-                if (sym[0] == name) {
-                    if (isand)
-                        cbError(name);
-                    return sym.slice(1).flatMap(s => treeWalk(s, true));
-                }
-            }
-        }
-
         function setState() {
-            const objs = names.flatMap(name => treeWalk(name, false, n => logError(
+            const objs = names.flatMap(name => expandSymbol(state, name, false, n => logError(
                 `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber)));
 
             const dups = {};
