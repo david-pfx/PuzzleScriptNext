@@ -205,7 +205,7 @@ if (typeof Object.assign != 'function') {
 var codeMirrorFn = function() {
     'use strict';
 
-function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
+    function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
 
         function escapeRegExp(str) {
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
@@ -216,7 +216,7 @@ function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
             nameFinder = new RegExp("\\b" + escapeRegExp(candname) + "\\b");
         } else {
             nameFinder = new RegExp("\\b" + escapeRegExp(candname) + "\\b", "i");
-            }
+        }
         var match = mixedCase.match(nameFinder);
         if (match!=null){
             state.original_case_names[candname] = match[0];
@@ -274,6 +274,52 @@ function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
     let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
 
     // lexer functions
+
+    // class Lexer
+    class Lexer {
+        tokens = [];
+
+        constructor(stream) {
+            this.stream = stream;
+        }
+
+        pushToken(token, kind) {
+            this.tokens.push({ 
+                text: token, 
+                kind: kind, 
+                pos: this.stream.pos 
+            });
+        }
+
+        get tokens() {
+            return this.tokens;
+        }
+
+        checkComment(state) {
+            const token = matchComment(this.stream, state);
+            if (token != null)
+                this.pushToken(token, 'comment');
+        }
+        
+        checkEol(state) { 
+            this.checkComment(state);
+            return this.stream.eol(); 
+        }
+
+        match(regex, tolower = false) {
+            return matchRegex(this.stream, regex, tolower);
+        }
+
+        matchAll() {
+            return this.match(reg_notcommentstart);
+        }
+
+        pushBack() {
+            this.pushBack(this.stream);
+        }
+
+    }
+
 
     // match by regex, eat white space, optional return tolower
     let matchPos = 0;
@@ -796,27 +842,14 @@ function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
 
     ////////////////////////////////////////////////////////////////////////////
     function parseLegendLine(stream, mixedCase, state) {
-        const tokens = [];
+        const lexer = new Lexer(stream);
         const names = [];
         const symbols = {};
 
         getTokens();
-        if (!tokens.some(t => t.kind == 'ERROR'))
+        if (!lexer.tokens.some(t => t.kind == 'ERROR'))
             setState();
-        return tokens;
-
-        function pushToken(token, kind) {
-            tokens.push({ text: token, kind: kind, pos: stream.pos });
-        }
-        function checkComment() {
-            const token = matchComment(stream, state);
-            if (token != null)
-                pushToken(token, 'comment');
-        }
-        function checkEol() { 
-            checkComment();
-            return stream.eol(); 
-        }
+        return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
@@ -829,19 +862,19 @@ function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
                     logError(`Name "${token.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${defname.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${defname.lineNumber}</span></a>).`, state.lineNumber);
                 else if (keyword_array.includes(token))
                     logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
-                pushToken(token, defname ? 'ERROR' : 'NAME');
+                lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
             }
-            checkComment();
+            lexer.checkComment(state);
 
-            if (token = matchRegex(stream, /^=/)) {
-                pushToken(token, 'ASSIGNMENT');
+            if (token = lexer.match(/^=/)) {
+                lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = matchRegex(stream, reg_notcommentstart);
+                token = lexer.match(reg_notcommentstart);
                 logError(`Equals sign "=" expected, found ${token}`, state.lineNumber);
-                pushToken(token, 'ERROR');
+                lexer.pushToken(token, 'ERROR');
                 return;
             }
-            checkComment();
+            lexer.checkComment(state);
 
             while (true) {
                 if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
@@ -854,25 +887,26 @@ function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
                     else if (names.includes(token))
                         logWarning(`You're repeating the object "${token.toUpperCase()}" here multiple times on the RHS.  This makes no sense.  Don't do that.`, state.lineNumber);                        
                     names.push(token);
-                    pushToken(token, defname && !ownname ? 'NAME' : 'ERROR');
+                    lexer.pushToken(token, defname && !ownname ? 'NAME' : 'ERROR');
                 } else {
-                    token = matchRegex(stream, reg_notcommentstart);
+                    token = lexer.match(reg_notcommentstart);
                     logError(`Object name expected, found ${token}`, state.lineNumber);
-                    pushToken(token, 'ERROR');
+                    lexer.pushToken(token, 'ERROR');
                     return;
                 }
 
-                if (checkEol()) break;
-                if (token = matchRegex(stream, /^(and|or)\b/, true)) {
+                if (lexer.checkEol(state)) break;
+
+                if (token = lexer.match(/^(and|or)\b/, true)) {
                     if (!symbols.andor)
                         symbols.andor = token;
                     else if (symbols.andor != token)
                         logError(`Cannot mix AND and OR`, state.lineNumber);
-                    pushToken(token, token == symbols.andor ? 'LOGICWORD' : 'ERROR' );
+                        lexer.pushToken(token, token == symbols.andor ? 'LOGICWORD' : 'ERROR' );
                 } else {
-                    token = matchRegex(stream, reg_notcommentstart);
+                    token = lexer.match(reg_notcommentstart);
                     logError(`AND or OR expected, found ${token}`, state.lineNumber);
-                    pushToken(token, 'ERROR');
+                    lexer.pushToken(token, 'ERROR');
                     return;
                 }
             }
