@@ -952,6 +952,94 @@ var codeMirrorFn = function() {
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    function parseCollisionLayers(stream, mixedCase, state) {
+        const lexer = new Lexer(stream);
+        const names = [];
+
+        getTokens();
+        if (!lexer.tokens.some(t => t.kind == 'ERROR'))
+            setState();
+        return lexer.tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            // start of parse
+            while (true) {
+                if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+                    let kind = 'ERROR';
+                    if (!wordAlreadyDeclared(state, token))
+                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
+                    else if (token == 'background' && names.length != 0)
+                        logError("Background must be in a layer by itself.",state.lineNumber);
+                    else {
+                        if (names.includes(token))
+                            logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
+                        names.push(token);
+                        kind = 'NAME';
+                    }
+                    lexer.pushToken(token, kind);
+                } else {
+                    token = lexer.match(reg_notcommentstart);
+                    logError(`Object name expected, found ${token}`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
+                }
+
+                if (lexer.checkEol(state)) break;
+
+                // treat the comma as optional (as PS seems to do). Trailing comma is OK too
+                if (token = lexer.match(/^,/)) {
+                    lexer.pushToken(token, 'LOGICWORD');
+                    if (lexer.checkEol(state)) break;
+                } 
+
+            }
+        }
+
+        function treeWalk(name, isand, cbError) {
+            if (name in state.objects) 
+                return [name];
+            for (const sym of state.legend_synonyms)
+                if (sym[0] == name) 
+                    return treeWalk(sym[1], isand);
+            for (const sym of state.legend_aggregates) {
+                if (sym[0] == name) {
+                    if (!isand)
+                        cbError(name);
+                    return sym.slice(1).flatMap(s => treeWalk(s, false));
+                }
+            }
+            for (const sym of state.legend_properties) {
+                if (sym[0] == name) {
+                    if (isand)
+                        cbError(name);
+                    return sym.slice(1).flatMap(s => treeWalk(s, true));
+                }
+            }
+        }
+
+        function setState() {
+            const objs = names.flatMap(name => treeWalk(name, false, n => logError(
+                `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber)));
+
+            const dups = {};
+            state.collisionLayers.forEach((layer, layerno) => {
+                for (const obj in objs) {
+                    if (layer.includes(obj))
+                        dups[obj] == (dups[obj] || []).push(obj);
+                }
+            });
+            for (dup in dups) {
+                const joins = dups[dup].map(s => `#s`).join(', ');
+                logWarning(`Object "${dup.toUpperCase()}" included in multiple collision layers ( layers ${joins}). You should fix this!`, state.lineNumber);                               
+            }
+            state.collisionLayers.push(objs);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // because of all the early-outs in the token function, this is really just right now attached
     // too places where we can early out during the legend. To make it more versatile we'd have to change 
     // all the early-outs in the token function to flag-assignment for returning outside the case 
@@ -1051,7 +1139,7 @@ var codeMirrorFn = function() {
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
-            if (['', 'prelude', 'objects', 'sounds', 'legend'].includes(state.section) && state.current_line_wip_array.length > 0)
+            if (['', 'prelude', 'objects', 'sounds', 'legend', 'collisionlayers'].includes(state.section) && state.current_line_wip_array.length > 0)
                 return flushToken();
 
            	var mixedCase = stream.string;
@@ -1181,126 +1269,8 @@ var codeMirrorFn = function() {
                 }
 
                 case 'collisionlayers': {
-                    if (sol) {
-                        //create new collision layer
-                        state.collisionLayers.push([]);
-                        //empty current_line_wip_array
-                        state.current_line_wip_array = [];
-                        state.tokenIndex=0;
-                    }
-
-                    var match_name = stream.match(reg_name, true);
-                    if (match_name === null) {
-                        //then strip spaces and commas
-                        var prepos=stream.pos;
-                        stream.match(reg_csv_separators, true);
-                        if (stream.pos==prepos) {
-                            logError("error detected - unexpected character " + stream.peek(),state.lineNumber);
-                            stream.next();
-                        }
-                        return null;
-                    } else {
-                        //have a name: let's see if it's valid
-                        var candname = match_name[0].trim();
-
-                        var substitutor = function(n) {
-                        if (!state.case_sensitive) {
-                                n = n.toLowerCase();
-                            }
-                            if (n in state.objects) {
-                                return [n];
-                            } 
-
-
-                            for (var i=0;i<state.legend_synonyms.length;i++) {
-                                var a = state.legend_synonyms[i];
-                                if (a[0]===n) {           
-                                    return substitutor(a[1]);
-                                }
-                            }
-
-                            for (var i=0;i<state.legend_aggregates.length;i++) {
-                                var a = state.legend_aggregates[i];
-                                if (a[0]===n) {           
-                                    logError('"'+n+'" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.', state.lineNumber);
-                                    return [];         
-                                }
-                            }
-                            for (var i=0;i<state.legend_properties.length;i++) {
-                                var a = state.legend_properties[i];
-                                if (a[0]===n) {  
-                                    var result = [];
-                                    for (var j=1;j<a.length;j++){
-                                        if (a[j]===n){
-                                            //error here superfluous, also detected elsewhere (cf 'You can't define object' / #789)
-                                            //logError('Error, recursive definition found for '+n+'.', state.lineNumber);                                
-                                        } else {
-                                            result = result.concat(substitutor(a[j]));
-                                        }
-                                    }
-                                    return result;
-                                }
-                            }
-                        // PS+ to fix
-                        logError(`Cannot add "${candname.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);                                
-                        //logError('Cannot add "' + candname + '" to a collision layer; it has not been declared.', state.lineNumber);                                
-                            return [];
-                        };
-                        if (candname.toLowerCase()==='background' ) {
-                            if (state.collisionLayers.length>0&&state.collisionLayers[state.collisionLayers.length-1].length>0) {
-                                logError("Background must be in a layer by itself.",state.lineNumber);
-                            }
-                            state.tokenIndex=1;
-                        } else if (state.tokenIndex!==0) {
-                            logError("Background must be in a layer by itself.",state.lineNumber);
-                        }
-
-                        var ar = substitutor(candname);
-
-                        if (state.collisionLayers.length===0) {
-                            logError("no layers found.",state.lineNumber);
-                            return 'ERROR';
-                        }
-                        
-                        var foundOthers=[];
-                    var foundSelves=[];
-                        for (var i=0;i<ar.length;i++){
-                        var tcandname = ar[i];
-                            for (var j=0;j<=state.collisionLayers.length-1;j++){
-                                var clj = state.collisionLayers[j];
-                            if (clj.indexOf(tcandname)>=0){
-                                if (j!==state.collisionLayers.length-1){
-                                        foundOthers.push(j);
-                                } else {
-                                    foundSelves.push(j);
-                                    }
-                                }
-                            }
-                        }
-                        if (foundOthers.length>0){
-                        // PS+ to fix for case_sensitive
-                        var warningStr = 'Object "'+candname.toUpperCase()+'" included in multiple collision layers ( layers ';
-                            for (var i=0;i<foundOthers.length;i++){
-                                warningStr+="#"+(foundOthers[i]+1)+", ";
-                            }
-                            warningStr+="#"+state.collisionLayers.length;
-                            logWarning(warningStr +' ). You should fix this!',state.lineNumber);                                        
-                        }
-
-                if (state.current_line_wip_array.indexOf(candname)>=0){
-                    var warningStr = 'Object "'+candname.toUpperCase()+'" included explicitly multiple times in the same layer. Don\'t do that innit.';
-                    logWarning(warningStr,state.lineNumber);         
-                }
-                state.current_line_wip_array.push(candname);
-
-                        state.collisionLayers[state.collisionLayers.length - 1] = state.collisionLayers[state.collisionLayers.length - 1].concat(ar);
-                        if (ar.length>0) {
-                            return 'NAME';                            
-                        } else {
-                            return 'ERROR';
-                        }
-                    }
-                    break;
+                    state.current_line_wip_array = parseCollisionLayers(stream, mixedCase, state);
+                    return flushToken();
                 }
                 case 'rules': {                    	
                         if (sol) {
