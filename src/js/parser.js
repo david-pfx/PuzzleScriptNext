@@ -136,17 +136,6 @@ function logErrorNoLine(str,urgent) {
     }
 }
 
-function blankLineHandle(state) {
-    if (state.section === 'levels') {
-            if (state.levels[state.levels.length - 1].length > 0)
-            {
-                state.levels.push([]);
-            }
-    } else if (state.section === 'objects') {
-        state.objects_section = 0;
-    }
-}
-
 //for IE support
 if (typeof Object.assign != 'function') {
   (function () {
@@ -325,6 +314,11 @@ var codeMirrorFn = function() {
         }
 
         matchAll() {
+            const token = this.match(/.*/);
+            return token ? token.trim() : '';
+        }
+        
+        matchNotComment() {
             return this.match(reg_notcommentstart);
         }
 
@@ -405,6 +399,16 @@ var codeMirrorFn = function() {
         return stream.string.slice(pos, stream.pos);
     }
 
+    function blankLineHandle(state) {
+        if (state.section == 'levels') {
+            const toplevel = peek(state.levels);
+            if (toplevel && toplevel.length > 0)
+                state.levels.push([]);
+        } else if (state.section == 'objects') {
+            state.objects_section = 0;
+        }
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
     // parse a SECTION line, validate order etc
     function parseSection(stream, state) {
@@ -908,7 +912,7 @@ var codeMirrorFn = function() {
 
                 if (lexer.checkEol(state)) break;
 
-                if (token = lexer.match(/^(and|or)\b/, true)) {
+                if (token = lexer.match(/^(and|or)\b/i, true)) {
                     if (!symbols.andor)
                         symbols.andor = token;
                     else if (symbols.andor != token)
@@ -1027,7 +1031,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(all|any|no|some)\b/u, true)) {
+            if (token = lexer.match(/^(all|any|no|some)\b/i, true)) {
                 symbols.start = token;
                 lexer.pushToken(token, 'LOGICWORD');
             } else {
@@ -1072,7 +1076,7 @@ var codeMirrorFn = function() {
                 }
                 lexer.pushToken(token, kind);
             } else {
-                token = lexer.match(reg_notcommentstart);
+                token = lexer.matchAll();
                 logError(`Object name expected, found ${token}`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -1083,6 +1087,71 @@ var codeMirrorFn = function() {
             state.winconditions.push((names.length == 1) 
                 ? [ symbols.start, names[0], state.lineNumber ]
                 : [ symbols.start, names[0], 'on', names[1], state.lineNumber ]);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  line ::= MESSAGE <text>
+    //         | SECTION <text>
+    //         | GOTO <text>
+    //         | ( <levelchar>+ [ WS comment ] )+
+    function parseLevel(stream, state) {
+        const lexer = new Lexer(stream);
+        const names = [];
+        const symbols = {};
+
+        if (getTokens())
+            setState();
+        return lexer.tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            // start of parse
+            if (token = lexer.match(/^(message|section|goto)\b/i, true)) {
+                symbols.start = token;
+                lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
+                symbols.text = lexer.matchAll();
+                lexer.pushToken(symbols.text, `METADATATEXT`);  //???
+            } else {
+                symbols.gridline = '';
+                while (token = lexer.match(/^\S/, !state.case_sensitive)) {
+                    symbols.gridline += token;
+                    const kind = state.abbrevNames.includes(token) ? 'LEVEL' : 'ERROR';
+                    if (kind == 'ERROR')
+                        logError(`Key "${token.toUpperCase()}" not found. Do you need to add it to the legend, or define a new object?`, state.lineNumber);
+                    lexer.pushToken(token, kind);                        
+                }
+            }
+
+            lexer.checkEol(state);
+            return true;
+        }
+
+        function setState() {
+            if (symbols.start == 'section')
+                state.currentSection = symbols.text;
+            else {
+                // look for marker level that says a blank line has been seen
+                let toplevel = peek(state.levels);
+                if (toplevel && toplevel.length == 0) {
+                    state.levels.pop();
+                    toplevel = null;
+                }
+                if (symbols.start == 'message')
+                    state.levels.push([ '\n', symbols.text, state.lineNumber, state.currentSection ]);
+                else if (symbols.start == 'goto')
+                    state.levels.push([ 'goto', symbols.text, state.lineNumber, state.currentSection ]);
+                else {
+                    if (toplevel == null || [ '\n', 'goto' ].includes(toplevel[0]))
+                        state.levels.push([ state.lineNumber, state.currentSection, symbols.gridline ]);
+                    else {
+                        if (symbols.gridline.length != toplevel[2].length)
+                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
+                        toplevel.push(symbols.gridline);
+                    }
+                }
+            }
         }
     }
 
@@ -1173,20 +1242,14 @@ var codeMirrorFn = function() {
             });
         },
         blankLine: function(state) {
-            if (state.section === 'levels') {
-                if (state.levels[state.levels.length - 1].length > 0) {
-                    state.levels.push([]);
-                } 
-            } else if (state.section === 'objects') {
-                //if (debugLevel && state.objects_section == 3 && state.objects_candname) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
-                state.objects_section = 0;
-            }
+            blankLineHandle(state);
         },
         // function is called to successively find tokens and return a token type in a source code line
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
-            if (['', 'prelude', 'objects', 'sounds', 'legend', 'collisionlayers', 'winconditions'].includes(state.section) && state.current_line_wip_array.length > 0)
+            if (state.current_line_wip_array.length > 0 
+                && ['', 'prelude', 'objects', 'sounds', 'legend', 'collisionlayers', 'winconditions', 'levels'].includes(state.section))
                 return flushToken();
 
            	var mixedCase = stream.string;
@@ -1391,100 +1454,9 @@ var codeMirrorFn = function() {
                     return flushToken();
                 }
                 case 'levels': {
-                    if (sol) {
-                        if (stream.match(/[\p{Z}\s]*message\b[\p{Z}\s]*/ui, true)) {
-                        // PS+ -4/2/3/4 = message/level/section/goto ???
-                        state.tokenIndex = -4;//-4/2 = message/level
-                        var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
-                            if (state.levels[state.levels.length - 1].length == 0) {
-                                state.levels.splice(state.levels.length - 1, 0, newdat);
-                            } else {
-                                state.levels.push(newdat);
-                            }
-                            return 'MESSAGE_VERB';//a duplicate of the previous section as a legacy thing for #589 
-                        } else if (stream.match(/[\p{Z}\s]*message[\p{Z}\s]*/ui, true)) {//duplicating previous section because of #589
-                            logWarning("You probably meant to put a space after 'message' innit.  That's ok, I'll still interpret it as a message, but you probably want to put a space there.",state.lineNumber);
-                        // PS+ //1/2/3/4 = message/level/section/goto???
-                        state.tokenIndex = -4;//-4/2 = message/level
-                        var newdat = ['\n', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
-                            if (state.levels[state.levels.length - 1].length == 0) {
-                                state.levels.splice(state.levels.length - 1, 0, newdat);
-                            } else {
-                                state.levels.push(newdat);
-                            }
-                            return 'MESSAGE_VERB';
-                    // PS+
-                        } else if (stream.match(/\s*section\s*/i, true)) {
-                            state.tokenIndex = 3;//1/2/3/4 = message/level/section/goto
-                            state.currentSection = mixedCase.slice(stream.pos).trim();
-                            return 'SECTION_VERB';
-                        } else if (stream.match(/\s*goto\s*/i, true)) {
-                            state.tokenIndex = 4;//1/2/3/4 = message/level/section/goto
-                            var newdat = ['goto', mixedCase.slice(stream.pos).trim(), state.lineNumber, state.currentSection];
-                            if (state.levels[state.levels.length - 1].length == 0) {
-                                state.levels.splice(state.levels.length - 1, 0, newdat);
-                            } else {
-                                state.levels.push(newdat);
-                            }
-                            return 'GOTO_VERB';
-                        } else {
-                            var matches = stream.match(reg_notcommentstart, false);
-                            if (matches===null || matches.length===0){
-                                logError("Detected a comment where I was expecting a level. Oh gosh; if this is to do with you using '(' as a character in the legend, please don't do that ^^",state.lineNumber);
-                                state.commentLevel++;
-                                stream.skipToEnd();
-                                return 'comment';
-                            } else {
-                                var line = matches[0].trim();
-                                state.tokenIndex = 2;
-                                var lastlevel = state.levels[state.levels.length - 1];
-                            // PS+ this change still on borrowed time
-                                if (lastlevel[0] == '\n') {
-                                    state.levels.push([state.lineNumber, state.currentSection, line]);
-                                } else {
-                                    if (lastlevel.length==0)
-                                    {
-                                        lastlevel.push(state.lineNumber);
-                                    // PS+
-                                        lastlevel.push(state.currentSection);
-                                }
-                                    lastlevel.push(line);
-
-                                // PS+
-                                if (lastlevel.length>2) 
-                                    {
-                                        if (line.length!=lastlevel[2].length) {
-                                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).",state.lineNumber);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (state.tokenIndex == -4) {
-                                stream.skipToEnd();
-                                return 'MESSAGE';
-                        } else if (state.tokenIndex == 3) {
-                            stream.skipToEnd();
-                            return 'SECTION';
-                        } else if (state.tokenIndex == 4) {
-                            stream.skipToEnd();
-                            return 'GOTO';
-                        }
-                    }
-
-                    if (state.tokenIndex === 2 && !stream.eol()) {
-                        var ch = stream.peek();
-                        stream.next();
-                        if (state.abbrevNames.indexOf(ch) >= 0) {
-                            return 'LEVEL';
-                        } else {
-                        // PS+ case
-                        logError('Key "' + ch.toUpperCase() + '" not found. Do you need to add it to the legend, or define a new object?', state.lineNumber);
-                            return 'ERROR';
-                        }
-                    }
-                    break;
+                    stream.string = mixedCase;
+                    state.current_line_wip_array = parseLevel(stream, state);
+                    return flushToken();
                 }
                         
                 default: { 
@@ -1502,8 +1474,7 @@ var codeMirrorFn = function() {
                 return null;
             }
 
-            // flush token and kind list back to code mirror
-
+            // flush token and kind list back to caller
             function flushToken() {
                 if (state.current_line_wip_array.length > 0) {
                     const token = state.current_line_wip_array.shift();
