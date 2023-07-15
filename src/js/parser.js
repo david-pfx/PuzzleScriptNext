@@ -1,26 +1,24 @@
 /*
-credits
+Credits
 
-brunt of the work by increpare (www.increpare.com)
+Brunt of the work by increpare (www.increpare.com), with many contributions by others over the years
 
-all open source mit license blah blah
+This code comes from the PuzzleScriptPlus fork, with major features added by Auroriax, gathered from forks by many others.
 
-testers:
-none, yet
+This version is PuzzleScriptNext, by Davidus of Polyomino Games.
 
-code used
-
-colors used
-color values for named colours from arne, mostly (and a couple from a 32-colour palette attributed to him)
+Color values for named colours from arne, mostly (and a couple from a 32-colour palette attributed to him)
 http://androidarts.com/palette/16pal.htm
 
-the editor is a slight modification of codemirro (codemirror.net), which is crazy awesome.
+The editor is a slight modification of codemirror (codemirror.net), which is crazy awesome.
+Testing is based on Qunit
 
-for post-launch credits, check out activty on github.com/increpare/PuzzleScript
+For more information see:
+    github.com/increpare/PuzzleScript
+    github.com/Auroriax/PuzzleScriptNext
+    github.com/david-pfx/PuzzleScriptNext
 
 */
-
-// PS+ merge as at 23c05
 
 const MAX_ERRORS_FOR_REAL=100;
 
@@ -42,13 +40,6 @@ let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', 
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
-
-// utility functions
-
-// return last element in array, or null
-function peek(a) {
-    return a && a.length > 0 ? a[a.length - 1] : null;
-}
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -129,7 +120,6 @@ function logWarningNoLine(str, urgent, increaseErrorCount = false) {
     }
 }
 
-
 function logErrorNoLine(str,urgent) {
     if (compiling||urgent) {
         var errorString = '<span class="errorText">' + str + '</span>';
@@ -154,47 +144,6 @@ function blankLineHandle(state) {
             }
     } else if (state.section === 'objects') {
         state.objects_section = 0;
-    }
-}
-
-//returns null if not delcared, otherwise declaration
-//note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
-function wordAlreadyDeclared(state, name) {
-    // if (!state.case_sensitive) {
-    //     name = name.toLowerCase();
-    // }
-    let def
-    if (name in state.objects) 
-        return state.objects[name];
-    else if (def = state.legend_synonyms.find(s => s[0] == name))
-        return def;
-    else if (def = state.legend_aggregates.find(s => s[0] == name))
-        return def;
-    else if (def = state.legend_properties.find(s => s[0] == name))
-        return def;
-    else return null;
-}
-
-// recursively expand a symbol into its ultimate constituents of objects
-function expandSymbol(state, name, isand, cbError) {
-    if (name in state.objects) 
-        return [name];
-    for (const sym of state.legend_synonyms)
-        if (sym[0] == name) 
-            return expandSymbol(state, sym[1], isand);
-    for (const sym of state.legend_aggregates) {
-        if (sym[0] == name) {
-            if (!isand)
-                cbError(name);
-            return sym.slice(1).flatMap(s => expandSymbol(state, s, false));
-        }
-    }
-    for (const sym of state.legend_properties) {
-        if (sym[0] == name) {
-            if (isand)
-                cbError(name);
-            return sym.slice(1).flatMap(s => expandSymbol(state, s, true));
-        }
     }
 }
 
@@ -227,32 +176,6 @@ if (typeof Object.assign != 'function') {
 
 var codeMirrorFn = function() {
     'use strict';
-
-    function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
-
-        function escapeRegExp(str) {
-            return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-        }
-
-        var nameFinder;
-        if (state.case_sensitive) {
-            nameFinder = new RegExp("\\b" + escapeRegExp(candname) + "\\b");
-        } else {
-            nameFinder = new RegExp("\\b" + escapeRegExp(candname) + "\\b", "i");
-        }
-        var match = mixedCase.match(nameFinder);
-        if (match!=null){
-            state.original_case_names[candname] = match[0];
-            state.original_line_numbers[candname] = lineNumber;
-        }
-    }
-
-    function createAlias(state, alias, candname, lineno) {
-        //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
-        const synonym = [alias, candname];
-        synonym.lineNumber = lineno;
-        state.legend_synonyms.push(synonym);
-    }
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
@@ -296,7 +219,75 @@ var codeMirrorFn = function() {
     let reg_notcommentstart = /[^\(]+/;
     let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
 
-    // lexer functions
+    // utility functions used by parser
+
+    // return last element in array, or null
+    function peek(a) {
+        return a && a.length > 0 ? a[a.length - 1] : null;
+    }
+
+    //returns null if not delcared, otherwise declaration
+    //note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
+    function wordAlreadyDeclared(state, name) {
+        let def
+        if (name in state.objects) 
+            return state.objects[name];
+        else if (def = state.legend_synonyms.find(s => s[0] == name))
+            return def;
+        else if (def = state.legend_aggregates.find(s => s[0] == name))
+            return def;
+        else if (def = state.legend_properties.find(s => s[0] == name))
+            return def;
+        else return null;
+    }
+
+    // recursively expand a symbol into its ultimate constituents of objects
+    // callback to handle error
+    function expandSymbol(state, name, isand, cbError) {
+        if (name in state.objects) 
+            return [name];
+        for (const sym of state.legend_synonyms)
+            if (sym[0] == name) 
+                return expandSymbol(state, sym[1], isand);
+        for (const sym of state.legend_aggregates) {
+            if (sym[0] == name) {
+                if (!isand)
+                    cbError(name);
+                return sym.slice(1).flatMap(s => expandSymbol(state, s, false));
+            }
+        }
+        for (const sym of state.legend_properties) {
+            if (sym[0] == name) {
+                if (isand)
+                    cbError(name);
+                return sym.slice(1).flatMap(s => expandSymbol(state, s, true));
+            }
+        }
+    }
+
+    function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
+        function escapeRegExp(str) {
+            return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+        }
+
+        const nameFinder = state.case_sensitive 
+            ? new RegExp("\\b" + escapeRegExp(candname) + "\\b")
+            : new RegExp("\\b" + escapeRegExp(candname) + "\\b", "i");
+        var match = mixedCase.match(nameFinder);
+        if (match!=null){
+            state.original_case_names[candname] = match[0];
+            state.original_line_numbers[candname] = lineNumber;
+        }
+    }
+
+    function createAlias(state, alias, candname, lineno) {
+        //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+        const synonym = [alias, candname];
+        synonym.lineNumber = lineno;
+        state.legend_synonyms.push(synonym);
+    }
+
+    //----- lexer functions -----
 
     // class Lexer
     class Lexer {
@@ -340,11 +331,9 @@ var codeMirrorFn = function() {
         pushBack() {
             this.pushBack(this.stream);
         }
-
     }
 
-
-    // match by regex, eat white space, optional return tolower
+    // match by regex, eat white space, optional return tolower, with pushback
     let matchPos = 0;
     function matchRegex(stream, regex, tolower) {
         matchPos = stream.pos;
@@ -365,16 +354,15 @@ var codeMirrorFn = function() {
         return matchRegex(stream, /^[\p{L}\p{N}_$]+/u, tolower) || matchRegex(stream, /^\S/, tolower);
     }
 
-
-    function errorFallbackMatchToken(stream){
-        var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
-        if (match===null){
-            //just in case, I don't know for sure if it can happen but, just in case I don't 
-            //understand unicode and the above doesn't match anything, force some match progress.
-            match=stream.match(reg_notcommentstart, true);                                    
-        }
-        return match;
-    }
+    // function errorFallbackMatchToken(stream){
+    //     var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
+    //     if (match===null){
+    //         //just in case, I don't know for sure if it can happen but, just in case I don't 
+    //         //understand unicode and the above doesn't match anything, force some match progress.
+    //         match=stream.match(reg_notcommentstart, true);                                    
+    //     }
+    //     return match;
+    // }
 
     ////////////////////////////////////////////////////////////////////////////
     // return any kind of comment if found, or null if not
@@ -1023,6 +1011,82 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    //  [ ALL | ANY | NO | SOME ] <object> [ ON <object> ]?
+    //
+    function parseWinCondition(stream, state) {
+        const lexer = new Lexer(stream);
+        const names = [];
+        const symbols = {};
+
+        getTokens();
+        if (!lexer.tokens.some(t => t.kind == 'ERROR'))
+            setState();
+        return lexer.tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            // start of parse
+            if (token = lexer.match(/^(all|any|no|some)\b/u, true)) {
+                symbols.start = token;
+                lexer.pushToken(token, 'LOGICWORD');
+            } else {
+                token = lexer.match(reg_notcommentstart);
+                logError(`Expecting the start of a win condition ("ALL","SOME","NO") but got "${token.toUpperCase()}".`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            lexer.checkComment(state);
+            getGlyph();
+            if (lexer.checkEol(state)) return;
+            
+            if (token = lexer.match(/^(on)\b/u, true)) {
+                symbols.kind = token;
+                lexer.pushToken(token, 'LOGICWORD');
+            } else {
+                token = lexer.match(reg_notcommentstart);
+                logError(`Expecting the word "ON" but got "${token.toUpperCase()}".`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            lexer.checkComment(state);
+            getGlyph();
+            if (!lexer.checkEol(state)) {
+                token = lexer.match(reg_notcommentstart);
+                logError(`Error in win condition: I don't know what to do with "${token.toUpperCase()}".`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+            }
+        }
+
+        function getGlyph() {
+            let token
+            if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+                let kind = 'ERROR';
+                if (!wordAlreadyDeclared(state, token))
+                    logError(`Error in win condition: "${token.toUpperCase()}" is not a valid object name.`, state.lineNumber);
+                else {
+                    names.push(token);
+                    kind = 'NAME';
+                }
+                lexer.pushToken(token, kind);
+            } else {
+                token = lexer.match(reg_notcommentstart);
+                logError(`Object name expected, found ${token}`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+        }
+
+        function setState() {
+            state.winconditions.push((names.length == 1) 
+                ? [ symbols.start, names[0], state.lineNumber ]
+                : [ symbols.start, names[0], 'on', names[1], state.lineNumber ]);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // because of all the early-outs in the token function, this is really just right now attached
     // too places where we can early out during the legend. To make it more versatile we'd have to change 
     // all the early-outs in the token function to flag-assignment for returning outside the case 
@@ -1122,7 +1186,7 @@ var codeMirrorFn = function() {
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
-            if (['', 'prelude', 'objects', 'sounds', 'legend', 'collisionlayers'].includes(state.section) && state.current_line_wip_array.length > 0)
+            if (['', 'prelude', 'objects', 'sounds', 'legend', 'collisionlayers', 'winconditions'].includes(state.section) && state.current_line_wip_array.length > 0)
                 return flushToken();
 
            	var mixedCase = stream.string;
@@ -1323,53 +1387,8 @@ var codeMirrorFn = function() {
                         break;
                     }
                 case 'winconditions': {
-                    if (sol) {
-                        var tokenized = reg_notcommentstart.exec(stream.string);
-                        var splitted = tokenized[0].split(/[\p{Z}\s]/u);
-                        var filtered = splitted.filter(function(v) {return v !== ''});
-                        filtered.push(state.lineNumber);
-                        
-                        state.winconditions.push(filtered);
-                        state.tokenIndex = -1;
-                    }
-                    state.tokenIndex++;
-
-                    var match = stream.match(/[\p{Z}\s]*[\p{L}\p{N}_]+[\p{Z}\s]*/u);
-                    if (match === null) {
-                        logError('incorrect format of win condition.', state.lineNumber);
-                        stream.match(reg_notcommentstart, true);
-                        return 'ERROR';
-                    } else {
-                        var candword = match[0].trim();
-                        if (state.tokenIndex === 0) {
-                            if (reg_winconditionquantifiers.exec(candword)) {
-                                return 'LOGICWORD';
-                            } else {
-                                logError('Expecting the start of a win condition ("ALL","SOME","NO") but got "' + candword.toUpperCase() + "'.", state.lineNumber);
-                                return 'ERROR';
-                            }
-                        } else if (state.tokenIndex === 2) {
-                            // PS+ to fix 
-                            if (candword != 'on') {
-                                logError('Expecting the word "ON" but got "' + candword.toUpperCase() + "\".", state.lineNumber);
-                                return 'ERROR';
-                            } else {
-                                return 'LOGICWORD';
-                            }
-                        } else if (state.tokenIndex === 1 || state.tokenIndex === 3) {
-                            if (state.names.indexOf(candword) === -1) {
-                                // PS+ to fix
-                                logError('Error in win condition: "' + candword.toUpperCase() + '" is not a valid object name.', state.lineNumber);
-                                return 'ERROR';
-                            } else {
-                                return 'NAME';
-                            }
-                        } else {
-                            logError("Error in win condition: I don't know what to do with "+candword.toUpperCase()+".", state.lineNumber);
-                            return 'ERROR';
-                        }
-                    }
-                    break;
+                    state.current_line_wip_array = parseWinCondition(stream, state);
+                    return flushToken();
                 }
                 case 'levels': {
                     if (sol) {
