@@ -282,8 +282,9 @@ var codeMirrorFn = function() {
     class Lexer {
         tokens = [];
 
-        constructor(stream) {
+        constructor(stream, state) {
             this.stream = stream;
+            this.state = state;
         }
 
         pushToken(token, kind) {
@@ -298,14 +299,27 @@ var codeMirrorFn = function() {
             return this.tokens;
         }
 
-        checkComment(state) {
-            const token = matchComment(this.stream, state);
+        pushBack() {
+            this.pushBack(this.stream);
+        }
+
+        checkComment() {
+            const token = matchComment(this.stream, this.state);
             if (token != null)
                 this.pushToken(token, 'comment');
         }
         
-        checkEol(state) { 
-            this.checkComment(state);
+        checkEol() { 
+            this.checkComment();
+            return this.stream.eol(); 
+        }
+
+        checkEolSemi() { 
+            this.checkComment();
+            if (this.state.commentStyle == '//' && this.match(/^;/)) {
+                this.pushToken(';', 'SEMICOLON');
+                return true;
+            }
             return this.stream.eol(); 
         }
 
@@ -314,17 +328,25 @@ var codeMirrorFn = function() {
         }
 
         matchAll() {
-            const token = this.match(/.*/);
-            return token ? token.trim() : '';
+            return this.stream.eol() ? '' : this.match(/.*/);
         }
         
         matchNotComment() {
-            return this.match(reg_notcommentstart);
+            return this.stream.eol() ? '' : this.match(reg_notcommentstart).trim();
         }
 
-        pushBack() {
-            this.pushBack(this.stream);
+        matchToken(tolower) {
+            return this.match(/^\S+/, tolower);
         }
+    
+        matchName(tolower) {
+            return this.match(/^[\p{L}\p{N}_$]+/u, tolower);
+        }
+    
+        matchNameOrGlyph(tolower) {
+            return this.match(/^[\p{L}\p{N}_$]+/u, tolower) || this.match(/^\S/, tolower);
+        }
+    
     }
 
     // match by regex, eat white space, optional return tolower, with pushback
@@ -561,44 +583,53 @@ var codeMirrorFn = function() {
 
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token token list
-    function parseObjectName(stream, mixedCase, state) {
-        const tokens = [];
+    // nameline ::= symbol { symbol | glyph | COPY: symbol | SIZE: number }... 
+    function parseObjectName(stream, state, mixedCase) {
+        const lexer = new Lexer(stream, state);
         const symbols = {};
         const aliases = [];
-        if (getTokens() && !tokens.some(t => t.kind == 'ERROR'))
+        if (getTokens())
             setState();
-        return tokens;
+        return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
             if (state.case_sensitive)
                 stream.string = mixedCase;
-            while (!stream.eol()) {
+
+            while (true) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = matchComment(stream,state) != null) kind = 'comment';   
-                else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
-                else if (token = matchRegex(stream, /^copy:/u)) {
-                    tokens.push({
-                        text: token, kind: 'KEYWORD', pos: stream.pos
-                    });
-                    if (tokens.length == 0)
+                if (token = lexer.match(/^copy:/i)) {
+                    if (!symbols.candname)
                         logError(`Must define a sprite to copy first`, state.lineNumber);
-                    else if (!(token = matchNameOrGlyph(stream, true)))
-                        logError(`Missing sprite parent.`, state.lineNumber);
-                    else if (symbols.token) 
+                    else if (symbols.parent) 
                         logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                    else kind = 'KEYWORD';
+                    lexer.pushToken(token, kind);
+                    lexer.checkComment(state);
+
+                    kind = 'ERROR';
+                    if (!(token = lexer.matchNameOrGlyph(!state.case_sensitive)))
+                        logError(`Missing sprite parent.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
                     else {
-                        symbols.parent = token;
                         kind = 'NAME';
+                        symbols.parent = token;
                     }
-                } else if (token = matchRegex(stream, /^size:/u)) {
-                    tokens.push({
-                        text: token, kind: 'KEYWORD', pos: stream.pos
-                    });
-                    token = matchRegex(stream, /^[0-9.]+/);
+                    lexer.pushToken(token, kind);
+                    if (lexer.checkEolSemi()) break;
+
+                } else if (token = lexer.match(/^size:/i)) {
+                    if (!symbols.candname)
+                        logError(`Must define a sprite first`, state.lineNumber);
+                    else kind = 'KEYWORD';
+                    lexer.pushToken(token, kind);
+                    lexer.checkComment(state);
+
+                    kind = 'ERROR';
+                    token = lexer.match(/^[0-9.]+/);
                     const size = parseFloat(token);
                     if (size == NaN)
                         logError(`Size requires a numeric argument.`, state.lineNumber);
@@ -606,7 +637,11 @@ var codeMirrorFn = function() {
                         symbols.size = size;
                         kind = 'METADATATEXT';  //???
                     }
-                } else if (token = matchNameOrGlyph(stream)) {
+                    lexer.pushToken(token, kind);
+                    if (lexer.checkEolSemi()) break;
+
+                    // first name must be an object, glyph allowed after that
+                } else if ((token = !symbols.candname ? lexer.matchName(!state.case_sensitive) : lexer.matchNameOrGlyph(!state.case_sensitive))) {
                     if (state.legend_synonyms.some(s => s[0] == token))
                         logError(`Name "${token}" already in use.`, state.lineNumber);
                     else if (state.objects[token])
@@ -615,20 +650,20 @@ var codeMirrorFn = function() {
                         if (keyword_array.includes(token)) 
                             logWarning(`You named an object "${token}", but this is a keyword. Don't do that!`, state.lineNumber);
                         kind = 'NAME';  
-                        if (tokens.length == 0) symbols.candname = token;
+                        if (!symbols.candname) symbols.candname = token;
                         else aliases.push(token);
                     }
-                } else if (token = matchRegex(stream, reg_notcommentstart)) {
-                    logError(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
-                    kind = 'ERROR';
-                } else throw 'name';
+                    lexer.pushToken(token, kind);
+                    if (lexer.checkEolSemi()) break;
 
-                tokens.push({
-                    text: token, kind: kind, pos: stream.pos
-                });
-                if (kind == 'SEMICOLON') break;
+                } else if (token = lexer.matchToken()) {
+                    logError(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    lexer.matchNotComment();
+                    break;
+                } else throw 'name';
             }
-            return tokens.length;
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
 
         function setState() {
@@ -638,7 +673,7 @@ var codeMirrorFn = function() {
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
-                cloneSprite: symbols.parent || "",
+                cloneSprite: symbols.parent || '',
                 spriteText: null,
                 size: symbols.size
             };
@@ -650,102 +685,93 @@ var codeMirrorFn = function() {
                 createAlias(state, alias, candname, state.lineNumber);
             }
         }
-
     }
 
     ////////////////////////////////////////////////////////////////////////////
     function parseObjectColors(stream, state) {
-        const tokens = [];
+        const lexer = new Lexer(stream, state);
         const colours = [];
+
         if (getTokens())
             state.objects[state.objects_candname].colors = colours;
-            //state.objects[state.objects_candname].colors.push(...colours);
-        return tokens;
+        return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
-            while (!stream.eol()) {
+            while (true) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = matchComment(stream,state) != null) kind = 'comment';
-                else if (state.commentStyle == '//' && matchRegex(stream, /^;\s*/)) kind = 'SEMICOLON';
-                else if (token = matchRegex(stream, /^[#\w]+/, true)) {
+                if (token = lexer.match(/^[#\w]+/, true)) {
                     if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
                         colours.push(token);
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
-                    } else logWarning(`Invalid color in object section: ${token}.`, state.lineNumber);
-                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
-                else throw 'color';
+                    } else logWarning(`Invalid color in object section: "${token}".`, state.lineNumber);
+                } else if (token = lexer.matchToken()) {
+                    logError(`Was looking for color for object "${state.objects_candname.toUpperCase()}", got "${token}" instead.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    lexer.matchNotComment();
+                } else throw 'color';
+                lexer.pushToken(token, kind);
 
-                if (kind == 'ERROR')
-                    logError(`Was looking for color for object ${state.objects_candname}, got "${token}" instead.`, state.lineNumber);
-
-                tokens.push({
-                    text: token, kind: kind, pos: stream.pos
-                });
-                if (kind == 'SEMICOLON') break;
+                if (lexer.checkEolSemi()) break;
             }
-            return tokens.length;
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
     }
     
     ////////////////////////////////////////////////////////////////////////////
     // parse sprite grid, one cell at a time (to show them coloured)
+    // grid ::= anychar... [ white [ comment ] ]
+    // text ::= TEXT: anychar...
     function parseObjectSprite(stream, state) {
-        const tokens = [];
+        const lexer = new Lexer(stream, state);
         const values = [];
         const obj = state.objects[state.objects_candname];
+        
+        if (getTokens()) {
+            if (values.text)
+                obj.spriteText = values.text;
+            else obj.spritematrix = (obj.spritematrix || []).concat([values]);
+        }
+        return lexer.tokens;
 
-        if (getTokens())
-            obj.spritematrix = (obj.spritematrix || []).concat([values]);
-        return tokens;
-
-        // build a list of tokens and kinds
+        // build a list of tokens and kinds, and extract values
         function getTokens() {
+            let token = lexer.match(/^text:/i);
+            if (token) {
+                lexer.pushToken(token, 'LOGICWORD');
+
+                token = lexer.matchAll();
+                lexer.pushToken(token, `COLOR COLOR-${obj.colors[0].toUpperCase()}`);
+                values.text = token;
+                return true;
+            }    
+
             while (!stream.eol()) {
-                if (matchRegex(stream, /^\s+/)) break; // stop on whitespace, rest is comment or junk
+                if (lexer.match(/^\s+/)) break; // stop on whitespace, rest is comment or junk
                 let token = null;
                 let kind = 'ERROR';
                 let value = -1;
-                if (token = matchRegex(stream, /^\./)) kind = 'COLOR FADECOLOR';
-                else if (token = matchRegex(stream, /^[0-9a-zA-Z]/, true)) {
+                if (token = lexer.match(/^\./)) kind = 'COLOR FADECOLOR';
+                else if (token = lexer.match(/^[0-9a-zA-Z]/, true)) {
                     value = token <= '9' ? +token : 10 + token.charCodeAt(0) - 97;  // letter 'a'
                     if (!obj.colors[value]) 
                         logError(`Trying to access color number ${value + 1} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
                     else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[value].toUpperCase();
                 } 
-                else if (token = matchRegex(stream, /^./)) {
+                else if (token = lexer.match(/^./)) {
                     logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
                 } else throw 'sprite';
-                tokens.push({
-                    text: token, kind: kind, pos: stream.pos
-                });
+                lexer.pushToken(token, kind);
                 values.push(value);
             }
-            return tokens.length;
+            lexer.checkEol();
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
     }
 
-    // parse text object
-    function parseObjectText(stream, state) {
-        const tokens = [];
-        while (!stream.eol()) {
-            let token = null;
-            let kind = 'ERROR';
-            if (token = matchRegex(stream, /text:/u)) kind = 'LOGICWORD';
-            else if (token = matchRegex(stream, /.*/).trim()) {
-                const obj = state.objects[state.objects_candname];
-                obj.spriteText = token;
-                kind = `COLOR COLOR-${obj.colors[0].toUpperCase()}`;
-            } else throw 'text';
-            tokens.push({
-                text: token, kind: kind, pos: stream.pos
-            });
-        }
-        return tokens;
-    }
 
     ////////////////////////////////////////////////////////////////////////////
     // SOUND DEFINITION:
@@ -856,8 +882,8 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    function parseLegendLine(stream, mixedCase, state) {
-        const lexer = new Lexer(stream);
+    function parseLegendLine(stream, state, mixedCase) {
+        const lexer = new Lexer(stream, state);
         const names = [];
         const symbols = {};
 
@@ -950,8 +976,8 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    function parseCollisionLayers(stream, mixedCase, state) {
-        const lexer = new Lexer(stream);
+    function parseCollisionLayers(stream, state) {
+        const lexer = new Lexer(stream, state);
         const names = [];
 
         getTokens();
@@ -1018,7 +1044,7 @@ var codeMirrorFn = function() {
     //  [ ALL | ANY | NO | SOME ] <object> [ ON <object> ]?
     //
     function parseWinCondition(stream, state) {
-        const lexer = new Lexer(stream);
+        const lexer = new Lexer(stream, state);
         const names = [];
         const symbols = {};
 
@@ -1096,7 +1122,7 @@ var codeMirrorFn = function() {
     //         | GOTO <text>
     //         | ( <levelchar>+ [ WS comment ] )+
     function parseLevel(stream, state) {
-        const lexer = new Lexer(stream);
+        const lexer = new Lexer(stream, state);
         const names = [];
         const symbols = {};
 
@@ -1346,7 +1372,7 @@ var codeMirrorFn = function() {
                     //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
                     case 1: { 
-                            state.current_line_wip_array.push(...parseObjectName(stream, mixedCase, state));
+                            state.current_line_wip_array.push(...parseObjectName(stream, state, mixedCase));
                             state.objects_section++;
                             return flushToken();
                         }
@@ -1356,11 +1382,8 @@ var codeMirrorFn = function() {
                             return flushToken();
                         }
                     case 3: {
-                            if (stream.match(/^text:/u, false)) {
-                                stream.string = mixedCase;
-                                state.current_line_wip_array.push(...parseObjectText(stream, state));
-                                state.objects_section = 1;
-                            } else state.current_line_wip_array.push(...parseObjectSprite(stream, state));
+                            stream.string = mixedCase;
+                            state.current_line_wip_array.push(...parseObjectSprite(stream, state));
                             return flushToken();
                         }
                     }
@@ -1368,7 +1391,7 @@ var codeMirrorFn = function() {
                 }
 
                 case 'legend': {
-                    state.current_line_wip_array = parseLegendLine(stream, mixedCase, state);
+                    state.current_line_wip_array = parseLegendLine(stream, state, mixedCase);
                     return flushToken();
                 }
 
@@ -1379,7 +1402,7 @@ var codeMirrorFn = function() {
                 }
 
                 case 'collisionlayers': {
-                    state.current_line_wip_array = parseCollisionLayers(stream, mixedCase, state);
+                    state.current_line_wip_array = parseCollisionLayers(stream, state);
                     return flushToken();
                 }
                 case 'rules': {                    	
