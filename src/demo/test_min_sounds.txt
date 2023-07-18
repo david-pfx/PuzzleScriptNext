@@ -4,7 +4,7 @@ homepage www.polyomino.com
 
 // test program for sounds
 
-enable_clicks
+mouse_clicks
 
 verbose_logging
 debug
@@ -42,9 +42,8 @@ r move 89294300
 r cantmove 56601502
 y destroy 45101706
 y create 55101706
-
 m lclick 11111106
-m rclick 11111106
+m rclick 36701906
 sfx1 64217903 
 
 ================

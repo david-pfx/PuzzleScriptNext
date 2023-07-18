@@ -55,6 +55,8 @@ O = Target
 SOUNDS
 =======
 
+player cantmove 85101706
+
 ================
 COLLISIONLAYERS
 ================

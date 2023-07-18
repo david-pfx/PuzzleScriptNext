@@ -168,14 +168,14 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b\s*/u;
+    const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b/i;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
-    const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b[\p{Z}\s]*/u;
+    const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
-    const reg_sounddirectionindicators = /^[\p{Z}\s]*(up|down|left|right|horizontal|vertical|orthogonal)(?![\p{L}\p{N}_])[\p{Z}\s]*/u;
+    const reg_sounddirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal)\b/i;
     const reg_winconditionquantifiers = /^(all|any|no|some)$/;
 
     const keyword_array = [ 'checkpoint', 'objects', 'collisionlayers', 'legend', 'sounds', 'rules', 'winconditions', 'levels',
@@ -293,6 +293,7 @@ var codeMirrorFn = function() {
                 kind: kind, 
                 pos: this.stream.pos 
             });
+            this.matchPos = this.stream.pos;
         }
 
         get tokens() {
@@ -300,7 +301,7 @@ var codeMirrorFn = function() {
         }
 
         pushBack() {
-            this.pushBack(this.stream);
+            this.stream.pos = this.matchPos;
         }
 
         checkComment() {
@@ -324,15 +325,18 @@ var codeMirrorFn = function() {
         }
 
         match(regex, tolower = false) {
-            return matchRegex(this.stream, regex, tolower);
+            this.matchPos = this.stream.pos;
+            const token = this.stream.match(regex);
+            if (token) this.stream.eatSpace();
+            return !token ? null : tolower ? token[0].toLowerCase() : token[0];
         }
 
         matchAll() {
-            return this.stream.eol() ? '' : this.match(/.*/);
+            return this.match(/.*/) || '';
         }
         
         matchNotComment() {
-            return this.stream.eol() ? '' : this.match(reg_notcommentstart).trim();
+            return (this.match(reg_notcommentstart) || '').trim();
         }
 
         matchToken(tolower) {
@@ -369,16 +373,6 @@ var codeMirrorFn = function() {
     function matchNameOrGlyph(stream, tolower) {
         return matchRegex(stream, /^[\p{L}\p{N}_$]+/u, tolower) || matchRegex(stream, /^\S/, tolower);
     }
-
-    // function errorFallbackMatchToken(stream){
-    //     var match=stream.match(reg_match_until_commentstart_or_whitespace, true);
-    //     if (match===null){
-    //         //just in case, I don't know for sure if it can happen but, just in case I don't 
-    //         //understand unicode and the above doesn't match anything, force some match progress.
-    //         match=stream.match(reg_notcommentstart, true);                                    
-    //     }
-    //     return match;
-    // }
 
     ////////////////////////////////////////////////////////////////////////////
     // return any kind of comment if found, or null if not
@@ -783,102 +777,86 @@ var codeMirrorFn = function() {
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
     function parseSounds(stream, state) {
-        const tt = getTokens();
-        if (tt.length > 0) {
-            const rows = checkTokens(tt.filter(t => t.kind != 'comment'));
-            if (!tt.some(t => t.kind == 'ERROR'))
-                state.sounds.push(...rows);
-        }
-        return tt;
+        const lexer = new Lexer(stream, state);
+        const rows = [];
+        const symbols = {};
+        
+        if (getTokens()) 
+            state.sounds.push(...rows);
+        return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
-            const tokens = [];
-            while (!stream.eol()) {
-                let token = null;
-                let kind = 'ERROR';
-                if (token = matchComment(stream, state) != null) kind = 'comment';
-                else if (token = matchRegex(stream, /[A-Za-z0-9_:=+-.]+/, true)) {
-                    kind = token.match(reg_soundevents) ? 'SOUNDEVENT'
-                        : soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token) ? 'SOUNDVERB' 
-                        : token.match(reg_soundseed) ? 'SOUND'
-                        : token.match(reg_sounddirectionindicators) ? 'DIRECTION'
-                        : 'ERROR';
-                    if (kind == 'ERROR') {
-                        pushBack(stream);
-                        if (token = matchName(stream, !state.case_sensitive)) kind = 'NAME';
-                        else token = matchRegex(stream, reg_notcommentstart);
-                    }
-                } else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
-                else throw 'sound';
-                if (kind == 'ERROR') {
-                    if (tokens.length == 0) {
-                        logError(`Unrecognised stuff in the SOUND section: "${token}".`, state.lineNumber);
-                    } else {
-                        //depending on whether the verb is directional or not, we log different errors
-                        const dirok = peek(tokens) && peek(tokens).text !== 'SOUND' && tokens.some(p => soundverbs_directional.includes(p.text));
-                        const msg = dirok ? "direction or sound seed" : "sound seed";
-                        logError(`Ah I was expecting a ${msg} after ${peek(tokens).text}, but I don't know what to make of "${token}".`, state.lineNumber);
-                    }
-                }
-                tokens.push({
-                    text: token, kind: kind, pos: stream.pos
-                });
-            }
-            return tokens;
-        }
-        
-        function checkTokens(tokens) {
-            let tobject, tverb, tevent, tdirs = [], tsounds = []
-            let token = tokens.shift();
-            let next = tokens.shift();
-            if (token.kind == 'NAME') {
-                // player move [ up... ] 142315...
-                if (!wordAlreadyDeclared(state, token.text)) {
-                    logError(`unexpected sound token "${token.text}".`, state.lineNumber);
-                    token.kind = 'ERROR';
-                } else {
-                    tobject = token.text;
-                    if (!(next && next.kind == 'SOUNDVERB')) {
-                        logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);                                
-                        next.kind = 'ERROR';
-                    } else {
-                        tverb = next.text;
-                        const dirok = soundverbs_directional.includes(tverb);  // move/cantmove
-                        next = tokens.shift();
-                        while (dirok && next && next.kind == 'DIRECTION') {
-                            tdirs.push(next.text);
-                            next = tokens.shift();
-                        }
-                        if (next && next.kind != 'SOUND') {
-                            const msg = dirok ? "direction or sound seed" : "sound seed";
-                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${next.text}".`, state.lineNumber);
-                            next.kind = 'ERROR';
-                        } 
-                    }
-                }
-            } else if (token.kind == 'SOUNDEVENT') {
+            let token = null;
+            let kind = 'ERROR';
+            if (token = lexer.match(reg_soundevents, true)) {
                 // closemessage 1241234...
-                tevent = token.text;
-                if (!(next && next.kind == 'SOUND')) {
+                lexer.pushToken(token, 'SOUNDEVENT');
+                lexer.checkComment();
+                const tevent = token;
+
+                const tsounds = parseSoundSeedsTail();
+                if (tsounds) {
+                    rows.push(...tsounds.map(s => ['SOUNDEVENT', tevent, s, state.lineNumber]));
+                    return true;
+                } else {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
-                    next.kind = 'ERROR';
+                }
+            } else if (token = lexer.matchName(!state.case_sensitive)) {
+                // player move [ up... ] 142315...
+                lexer.pushToken(token, 'NAME');
+                const tobject = token;
+
+                let tverb = null;
+                if ((token = lexer.match(/^[a-z]+/i, true))) {
+                    if (soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token)) {
+                        lexer.pushToken(token, 'SOUNDVERB');
+                        tverb = token;
+                        lexer.checkComment();
+                    } else lexer.pushBack();
+                }
+
+                if (!tverb) {
+                    logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);
+                } else {
+                    const tdirs = [];
+                    while (token = lexer.match(reg_sounddirectionindicators, true)) {
+                        lexer.pushToken(token, 'DIRECTION');
+                        tdirs.push(token);
+                        lexer.checkComment();
+                    }
+
+                    const tsounds = parseSoundSeedsTail();
+                    if (tsounds) {
+                        rows.push(...tsounds.map(s => ['SOUND', tobject, tverb, tdirs, s, state.lineNumber]));
+                        return true;
+                    } else if (token == lexer.matchNotComment()) {
+                        const dirok = soundverbs_directional.includes(tverb);
+                        const msg = dirok ? "direction or sound seed" : "sound seed";
+                        logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${token}".`, state.lineNumber);
+                    }
                 }
             } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
 
-            while (next && next.kind == 'SOUND') {
-                tsounds.push(next.text);
-                next = tokens.shift();
-            }
-            if (next) {
-                logError(`I wasn't expecting anything after the sound declaration ${tsounds[0]} on this line, so I don't know what to do with "${next.text.toUpperCase()}" here.`, state.lineNumber);
-                next.kind = 'ERROR';
-            }
-            if (tobject)
-                return tsounds.map(s => ['SOUND', tobject, tverb, tdirs, s, state.lineNumber]);
-            else return tsounds.map(s => ['SOUNDEVENT', tevent, s, state.lineNumber]);
+            if (token == lexer.matchNotComment())
+                lexer.pushToken(token, 'ERROR');
+            return false;
         }
-
+        
+        // parse list of at least one sound seeds, check for eol
+        function parseSoundSeedsTail() {
+            const tsounds = [];
+            let token = null;
+            while (token = lexer.match(reg_soundseed, true)) {
+                lexer.pushToken(token, 'SOUND');
+                tsounds.push(token);
+                lexer.checkComment();
+            }
+            if (token = lexer.matchNotComment()) {
+                logError(`I wasn't expecting anything after the sound declaration ${peek(tsounds)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);
+                return null;
+            } else return tsounds;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
