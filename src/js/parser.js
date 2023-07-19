@@ -184,22 +184,22 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const preamble_keywords = ['case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+    const prelude_keywords = ['case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
-    const preamble_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
-    const preamble_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
+    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
+    const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'sprite_size', 'tween_length', 'tween_snap'];
-    const preamble_param_single = [
+    const prelude_param_single = [
         'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
         'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'text_color', 'tween_easing', 'zoomscreen'
     ];
-    const preamble_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
-    const preamble_tables = [preamble_keywords, preamble_param_text, preamble_param_number, 
-        preamble_param_single, preamble_param_multi];
+    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
+    const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
+        prelude_param_single, prelude_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
         'red', 'darkred', 'lightred', 'brown', 'darkbrown', 'lightbrown', 'orange', 'yellow', 'green', 'darkgreen',
         'lightgreen', 'blue', 'lightblue', 'darkblue', 'purple', 'pink', 'transparent'];
@@ -332,7 +332,7 @@ var codeMirrorFn = function() {
         }
 
         matchAll() {
-            return this.match(/.*/) || '';
+            return (this.match(/.*/) || '').trim();
         }
         
         matchNotComment() {
@@ -477,103 +477,97 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse a PRELUDE line, extract parsed information, return array of tokens
     function parsePrelude(stream, state) {
-        const tokens = getTokens();
-        if (tokens.length > 0 && !tokens.some(t => t.kind == 'ERROR')) {
-            const value = parseTokens(tokens);
-            if (value)
-                setState(state, value);
-        }
-        return tokens;
+        const lexer = new Lexer(stream, state);
+        let value = null;
+        
+        if (value = getTokens()) 
+            setState(state, value);
+        return lexer.tokens;
 
-        // functions
-
-        // build a list of tokens and kinds
+        // extract and validate tokens
         function getTokens() {
-            const tokens = [];
-            while (!stream.eol()) {
-                let token = '';
-                let kind = 'ERROR'
-                
-                if (token = matchComment(stream, state) != null) kind = 'comment';
-                else if (tokens.length == 1 && preamble_param_text.includes(tokens[0].text)) {
-                    token = matchRegex(stream, /.*/).trim();  // take it all
-                    kind = 'METADATATEXT';
-                } else if (token = matchRegex(stream, /^[\w-.+#*]+/, true)) {
-                    kind = (tokens.length == 0 && preamble_tables.some(t => t.includes(token))) ? 'METADATA' 
-                    : (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
-                    : (token === "transparent") ? 'COLOR FADECOLOR'
-                    : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
-                    : 'ERROR';
-                }
-                if (kind == 'ERROR') {
-                    pushBack(stream);
-                    if (token = matchRegex(stream, /[\S]+/, true)) kind = 'METADATATEXT';
-                    else if (token = matchRegex(stream, reg_notcommentstart)) kind = 'ERROR';
-                    else throw  'meta';
-                }
+            let token = null;
+            let kind = 'ERROR';
+            let ident = null;
+            const args = [];
+            if (token = lexer.match(/^[a-z_]+/i, true)) {
+                ident = token;
+                if (prelude_param_text.includes(token)) {
+                    lexer.pushToken(token, 'METADATA');
+                    token = lexer.matchAll();
+                    lexer.pushToken(token, 'METADATATEXT');
+                    args.push(token);
+                } else if (prelude_tables.some(t => t.includes(token))) {
+                    lexer.pushToken(token, 'METADATA');
 
-                if (kind == 'ERROR')
-                    logError(`Unrecognised stuff in the prelude: "${token}".`, state.lineNumber);
-                tokens.push({
-                    text: token, kind: kind, pos: stream.pos
-                });
+                    while (!lexer.checkEol()) {
+                        if (token = lexer.match(/^\S+/, true)) {
+                            kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
+                                : (token === "transparent") ? 'COLOR FADECOLOR'
+                                : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
+                                : 'METADATATEXT';
+                            lexer.pushToken(token, kind);
+                            args.push(token);
+                        } else break;
+                    }
+                } else lexer.pushBack();
+            } 
+            if (lexer.checkEol()) {
+                return checkArguments(ident, args);
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Unrecognised stuff in the prelude: "${token}".`, state.lineNumber);
+                return null;
             }
-            return tokens;
         }
 
-        function parseTokens(tokens) {
-            const token = tokens[0].text;
-            const args = tokens.slice(1).filter(t => t.kind != 'comment').map(t => t.text);
-            let value = null;
-            if (state.metadata_lines[token]) {
-                var otherline = state.metadata_lines[token];
-                logWarning(`You've already defined a ${token.toUpperCase()} in the prelude on line <a onclick="jumpToLine(${otherline})">${otherline}</a>.`, state.lineNumber);
+        function checkArguments(ident, args) {
+            if (state.metadata_lines[ident]) {
+                var otherline = state.metadata_lines[ident];
+                logWarning(`You've already defined a "${ident.toUpperCase()}" in the prelude on line <a onclick="jumpToLine(${otherline})">${otherline}</a>.`, state.lineNumber);
             }
-            state.metadata_lines[token]=state.lineNumber;                                                                                    
-            if (preamble_keywords.includes(token)) {
+            state.metadata_lines[ident] = state.lineNumber;                                                                                    
+            if (prelude_keywords.includes(ident)) {
                 if (args.length > 1)
-                    logError(`MetaData ${token.toUpperCase()} doesn't take any parameters, but you went and gave it "${tokens[1].text}".`, state.lineNumber);
-                else value = [token, true];
-            } else if (preamble_param_number.includes(token)) {
+                    logError(`MetaData ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
+                else value = [ident, true];
+            } else if (prelude_param_number.includes(ident)) {
                 if (args.length != 1 || parseFloat(args[0]) == NaN)
-                    logError(`MetaData ${token} requires one numeric argument.`, state.lineNumber);
-                else value = [token, parseFloat(args[0])];
-            } else if (preamble_param_single.includes(token) || preamble_param_text.includes(token)) {
+                    logError(`MetaData ${ident.toUpperCase()} requires one numeric argument.`, state.lineNumber);
+                else value = [ident, parseFloat(args[0])];
+            } else if (prelude_param_single.includes(ident) || prelude_param_text.includes(ident)) {
                 if (args.length != 1)
-                    logError(`MetaData ${token} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
-                else value = [token, args[0]];
-            } else if (preamble_param_multi.includes(token)) {
+                    logError(`MetaData ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                else value = [ident, args[0]];
+            } else if (prelude_param_multi.includes(ident)) {
                 if (args.length < 1)
-                    logError(`MetaData ${token} has no parameters, but it needs at least one.`, state.lineNumber);
-                else value = [token, args.join(' ')];
-            } else 
-                logError('Unrecognised stuff in the prelude.', state.lineNumber);
+                    logError(`MetaData ${ident.toUpperCase()} has no arguments, but it needs at least one.`, state.lineNumber);
+                else value = [ident, args.join(' ')];
+            } else throw 'args';
             return value;
         }
 
         function setState(state, value) {
-            const token = value[0];
-            if (token == 'sprite_size')
+            const ident = value[0];
+            if (ident == 'sprite_size')
                 state.sprite_size = Math.round(value[1]);
-            if (token == 'case_sensitive') {
+            if (ident == 'case_sensitive') {
                 state.case_sensitive = true;
-                if (Object.keys(state.metadata).some(k => preamble_param_text.includes(k)))
-                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false)
+                if (Object.keys(state.metadata).some(k => prelude_param_text.includes(k)))
+                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
             }
-            if (token == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
+            if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
             }
-            if (token == 'youtube') {
+            if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
             }
             state.metadata.push(...value);
-
         }
     }
-
 
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token token list
@@ -776,7 +770,7 @@ var codeMirrorFn = function() {
     //         INT
     //         DIR+ ~ INT
     // parse a SOUNDS line, extract parsed information, return array of tokens
-    function parseSounds(stream, state) {
+    function parseSoundLine(stream, state) {
         const lexer = new Lexer(stream, state);
         const rows = [];
         const symbols = {};
@@ -865,8 +859,7 @@ var codeMirrorFn = function() {
         const names = [];
         const symbols = {};
 
-        getTokens();
-        if (!lexer.tokens.some(t => t.kind == 'ERROR'))
+        if (getTokens())
             setState();
         return lexer.tokens;
 
@@ -929,6 +922,7 @@ var codeMirrorFn = function() {
                     return;
                 }
             }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
 
         function setState() {
@@ -954,18 +948,17 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    function parseCollisionLayers(stream, state) {
+    function parseCollisionLayer(stream, state) {
         const lexer = new Lexer(stream, state);
         const names = [];
 
-        getTokens();
-        if (!lexer.tokens.some(t => t.kind == 'ERROR'))
+        if (getTokens())
             setState();
         return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
-            let token
+            let token = null;
             // start of parse
             while (true) {
                 if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
@@ -995,8 +988,8 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'LOGICWORD');
                     if (lexer.checkEol(state)) break;
                 } 
-
             }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
 
         function setState() {
@@ -1026,8 +1019,7 @@ var codeMirrorFn = function() {
         const names = [];
         const symbols = {};
 
-        getTokens();
-        if (!lexer.tokens.some(t => t.kind == 'ERROR'))
+        if (getTokens())
             setState();
         return lexer.tokens;
 
@@ -1046,29 +1038,30 @@ var codeMirrorFn = function() {
             }
 
             lexer.checkComment(state);
-            getGlyph();
-            if (lexer.checkEol(state)) return;
-            
-            if (token = lexer.match(/^(on)\b/u, true)) {
-                symbols.kind = token;
-                lexer.pushToken(token, 'LOGICWORD');
-            } else {
-                token = lexer.match(reg_notcommentstart);
-                logError(`Expecting the word "ON" but got "${token.toUpperCase()}".`, state.lineNumber);
-                lexer.pushToken(token, 'ERROR');
-                return;
-            }
-
-            lexer.checkComment(state);
-            getGlyph();
+            getIdent();
             if (!lexer.checkEol(state)) {
-                token = lexer.match(reg_notcommentstart);
-                logError(`Error in win condition: I don't know what to do with "${token.toUpperCase()}".`, state.lineNumber);
-                lexer.pushToken(token, 'ERROR');
+                if (token = lexer.match(/^(on)\b/u, true)) {
+                    symbols.kind = token;
+                    lexer.pushToken(token, 'LOGICWORD');
+                } else {
+                    token = lexer.matchNotComment();
+                    logError(`Expecting the word "ON" but got "${token.toUpperCase()}".`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
+                }
+
+                lexer.checkComment(state);
+                getIdent();
+                if (!lexer.checkEol(state)) {
+                    token = lexer.matchNotComment();
+                    logError(`Error in win condition: I don't know what to do with "${token.toUpperCase()}".`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                }
             }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
 
-        function getGlyph() {
+        function getIdent() {
             let token
             if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
                 let kind = 'ERROR';
@@ -1080,7 +1073,7 @@ var codeMirrorFn = function() {
                 }
                 lexer.pushToken(token, kind);
             } else {
-                token = lexer.matchAll();
+                token = lexer.matchNotComment();
                 logError(`Object name expected, found ${token}`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -1375,12 +1368,12 @@ var codeMirrorFn = function() {
 
                 case 'sounds': {
                     stream.string = mixedCase;
-                    state.current_line_wip_array = parseSounds(stream, state);
+                    state.current_line_wip_array = parseSoundLine(stream, state);
                     return flushToken();
                 }
 
                 case 'collisionlayers': {
-                    state.current_line_wip_array = parseCollisionLayers(stream, state);
+                    state.current_line_wip_array = parseCollisionLayer(stream, state);
                     return flushToken();
                 }
                 case 'rules': {                    	
