@@ -324,6 +324,10 @@ var codeMirrorFn = function() {
             return this.stream.eol(); 
         }
 
+        next() {
+            return this.stream.next();
+        }
+
         match(regex, tolower = false) {
             this.matchPos = this.stream.pos;
             const token = this.stream.match(regex);
@@ -631,12 +635,12 @@ var codeMirrorFn = function() {
                     // first name must be an object, glyph allowed after that
                 } else if ((token = !symbols.candname ? lexer.matchName(!state.case_sensitive) : lexer.matchNameOrGlyph(!state.case_sensitive))) {
                     if (state.legend_synonyms.some(s => s[0] == token))
-                        logError(`Name "${token}" already in use.`, state.lineNumber);
+                        logError(`Name "${token.toUpperCase()}" already in use.`, state.lineNumber);
                     else if (state.objects[token])
-                        logError(`Object "${token}" defined multiple times.`, state.lineNumber);
+                        logError(`Object "${token.toUpperCase()}" defined multiple times.`, state.lineNumber);
                     else {
                         if (keyword_array.includes(token)) 
-                            logWarning(`You named an object "${token}", but this is a keyword. Don't do that!`, state.lineNumber);
+                            logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
                         kind = 'NAME';  
                         if (!symbols.candname) symbols.candname = token;
                         else aliases.push(token);
@@ -645,7 +649,7 @@ var codeMirrorFn = function() {
                     if (lexer.checkEolSemi()) break;
 
                 } else if (token = lexer.matchToken()) {
-                    logError(`Invalid object name in OBJECT section: ${token}.`, state.lineNumber);
+                    logError(`Invalid object name in OBJECT section: "${token}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     lexer.matchNotComment();
                     break;
@@ -738,20 +742,17 @@ var codeMirrorFn = function() {
             }    
 
             while (!stream.eol()) {
-                if (lexer.match(/^\s+/)) break; // stop on whitespace, rest is comment or junk
-                let token = null;
+                let token = lexer.next();
                 let kind = 'ERROR';
                 let value = -1;
-                if (token = lexer.match(/^\./)) kind = 'COLOR FADECOLOR';
-                else if (token = lexer.match(/^[0-9a-zA-Z]/, true)) {
-                    value = token <= '9' ? +token : 10 + token.charCodeAt(0) - 97;  // letter 'a'
+                if (token.match(/\s/)) break; // stop on whitespace, rest is comment or junk
+                if (token == '.') kind = 'COLOR FADECOLOR';
+                else if (token.match(/[0-9a-zA-Z]/)) {
+                    value = token <= '9' ? +token : 10 + token.toLowerCase().charCodeAt(0) - 97;  // letter 'a'
                     if (!obj.colors[value]) 
                         logError(`Trying to access color number ${value + 1} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
                     else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[value].toUpperCase();
-                } 
-                else if (token = lexer.match(/^./)) {
-                    logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
-                } else throw 'sprite';
+                } else logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
                 lexer.pushToken(token, kind);
                 values.push(value);
             }
@@ -798,38 +799,40 @@ var codeMirrorFn = function() {
                 }
             } else if (token = lexer.matchName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
-                lexer.pushToken(token, 'NAME');
-                const tobject = token;
+                if (wordAlreadyDeclared(state, token)) {
+                    lexer.pushToken(token, 'NAME');
+                    const tobject = token;
 
-                let tverb = null;
-                if ((token = lexer.match(/^[a-z]+/i, true))) {
-                    if (soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token)) {
-                        lexer.pushToken(token, 'SOUNDVERB');
-                        tverb = token;
-                        lexer.checkComment();
-                    } else lexer.pushBack();
-                }
-
-                if (!tverb) {
-                    logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);
-                } else {
-                    const tdirs = [];
-                    while (token = lexer.match(reg_sounddirectionindicators, true)) {
-                        lexer.pushToken(token, 'DIRECTION');
-                        tdirs.push(token);
-                        lexer.checkComment();
+                    let tverb = null;
+                    if ((token = lexer.match(/^[a-z]+/i, true))) {
+                        if (soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token)) {
+                            lexer.pushToken(token, 'SOUNDVERB');
+                            tverb = token;
+                            lexer.checkComment();
+                        } else lexer.pushBack();
                     }
 
-                    const tsounds = parseSoundSeedsTail();
-                    if (tsounds) {
-                        rows.push(...tsounds.map(s => ['SOUND', tobject, tverb, tdirs, s, state.lineNumber]));
-                        return true;
-                    } else if (token == lexer.matchNotComment()) {
-                        const dirok = soundverbs_directional.includes(tverb);
-                        const msg = dirok ? "direction or sound seed" : "sound seed";
-                        logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${token}".`, state.lineNumber);
+                    if (!tverb) {
+                        logError("Was expecting a soundverb here (MOVE, DESTROY, CANTMOVE, or the like), but found something else.", state.lineNumber);
+                    } else {
+                        const tdirs = [];
+                        while (token = lexer.match(reg_sounddirectionindicators, true)) {
+                            lexer.pushToken(token, 'DIRECTION');
+                            tdirs.push(token);
+                            lexer.checkComment();
+                        }
+
+                        const tsounds = parseSoundSeedsTail();
+                        if (tsounds) {
+                            rows.push(...tsounds.map(s => ['SOUND', tobject, tverb, tdirs, s, state.lineNumber]));
+                            return true;
+                        } else if (token == lexer.matchNotComment()) {
+                            const dirok = soundverbs_directional.includes(tverb);
+                            const msg = dirok ? "direction or sound seed" : "sound seed";
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${token}".`, state.lineNumber);
+                        }
                     }
-                }
+                } else logError(`unexpected sound token "${token}".`, state.lineNumber);
             } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
 
             if (token == lexer.matchNotComment())
@@ -881,9 +884,11 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^=/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.match(reg_notcommentstart);
-                logError(`Equals sign "=" expected, found ${token}`, state.lineNumber);
-                lexer.pushToken(token, 'ERROR');
+                logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
+                lexer.matchNotComment();
+                // token = lexer.match(reg_notcommentstart);
+                // logError(`Equals sign "=" expected, found ${token}`, state.lineNumber);
+                // lexer.pushToken(token, 'ERROR');
                 return;
             }
             lexer.checkComment(state);
@@ -901,9 +906,9 @@ var codeMirrorFn = function() {
                     names.push(token);
                     lexer.pushToken(token, defname && !ownname ? 'NAME' : 'ERROR');
                 } else {
-                    token = lexer.match(reg_notcommentstart);
-                    logError(`Object name expected, found ${token}`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
+                    lexer.matchNotComment();
+                    logError(`Something bad's happening in the LEGEND`, state.lineNumber);
+                    //lexer.pushToken(token, 'ERROR');
                     return;
                 }
 
@@ -950,7 +955,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     function parseCollisionLayer(stream, state) {
         const lexer = new Lexer(stream, state);
-        const names = [];
+        const idents = [];
 
         if (getTokens())
             setState();
@@ -965,12 +970,12 @@ var codeMirrorFn = function() {
                     let kind = 'ERROR';
                     if (!wordAlreadyDeclared(state, token))
                         logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
-                    else if (token == 'background' && names.length != 0)
+                    else if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
                     else {
-                        if (names.includes(token))
+                        if (idents.includes(token))
                             logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
-                        names.push(token);
+                        else idents.push(token);
                         kind = 'NAME';
                     }
                     lexer.pushToken(token, kind);
@@ -993,21 +998,26 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            const objs = names.flatMap(name => expandSymbol(state, name, false, n => logError(
-                `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber)));
+            const allobjs = [];
+            for (const ident of idents) {
+                const objs = expandSymbol(state, ident, false, n => logError(
+                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
+                allobjs.push(...objs);     // do we care about possible in-layer duplicates?
 
-            const dups = {};
-            state.collisionLayers.forEach((layer, layerno) => {
-                for (const obj in objs) {
-                    if (layer.includes(obj))
-                        dups[obj] == (dups[obj] || []).push(obj);
+                const dups = new Set();
+                state.collisionLayers.forEach((layer, layerno) => {
+                    for (const obj of objs) {
+                        if (layer.includes(obj))
+                            dups.add(layerno + 1);
+                    }
+                });
+                if (dups.size != 0) {
+                    const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
+                    logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                 }
-            });
-            for (dup in dups) {
-                const joins = dups[dup].map(s => `#s`).join(', ');
-                logWarning(`Object "${dup.toUpperCase()}" included in multiple collision layers ( layers ${joins}). You should fix this!`, state.lineNumber);                               
             }
-            state.collisionLayers.push(objs);
+
+            state.collisionLayers.push(allobjs);
         }
     }
 
@@ -1105,11 +1115,12 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(message|section|goto)\b/i, true)) {
+            if (token = lexer.match(/^(message|section|goto)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
                 symbols.text = lexer.matchAll();
-                lexer.pushToken(symbols.text, `METADATATEXT`);  //???
+                if (symbols.text.length > 0)
+                    lexer.pushToken(symbols.text, `METADATATEXT`);  // empty causes havoc
             } else {
                 symbols.gridline = '';
                 while (token = lexer.match(/^\S/, !state.case_sensitive)) {
@@ -1319,8 +1330,7 @@ var codeMirrorFn = function() {
                         stream.string = mixedCase;  // put it back, for now!
                         state.current_line_wip_array = parsePrelude(stream, state);
                     }
-                    if (state.current_line_wip_array.length > 0)
-                        return flushToken();
+                    return flushToken();
 
                 }
                 case 'objects': {
@@ -1454,7 +1464,7 @@ var codeMirrorFn = function() {
                 }
                         
                 default: { 
-                    throw 'oops!';
+                    throw 'case!';
                 }
 	        }
             // end of switch
