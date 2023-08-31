@@ -656,31 +656,45 @@ function redrawCellGrid() {
         }
     } 
 
-    // calculate animation for this object
-    // todo: pre-compute for performance reasons?
+    // update animation parameters based on kind and dir, based on tween curve
     function calcAnimate(afx, kind, dir, params, tween) {
-        const funcs = {
-            xlate: (p,a) => { 
-                const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
-                p.x = -tween * delta[0] * (a || 1); 
-                p.y = -tween * delta[1] * (a || 1); 
-            },
-            scale: (p,a) => { 
-                p.scalex = p.scaley = tween; 
-                p.x = p.y = 0.5 - tween / 2 * (a || 1);
-            },
-            alpha: (p,a) => { p.alpha = tween * (a || 1); },
-            angle: (p,a) => { p.angle = -tween * (a || 360); },
-            ease: (p,a) => { tween = easingFunction(a)(tween); },
-            tween: (p,a) => { tween = tween * (a || 1); },
+        const tween_table = {
+            move:   { xlate: [-1,0],    scale: [0,1],       angle: [0,.25],       alpha: [0,1] },
+            cant:   { xlate: [0,.2,0],  scale: [1,1.2,1],   angle: [0,.1,0],      alpha: [1,.5,1] },
+            hit:    { xlate: [0,.2,0],  scale: [1,1.2,1],   angle: [0,-.1,.1,0],  alpha: [1,.5,1] },
+            create: { xlate: [1,0],     scale: [0,1],       angle: [-.125,0],     alpha: [0,1] },
+            destroy:{ xlate: [0,1],     scale: [1,0],       angle: [0,.125],      alpha: [1,0] },
         }
-        if (kind == 'create') tween = 1 - tween;
-        else if (kind == 'cant') tween = (tween > 0.5) ? 1 - tween : tween;
+    
+        const funcs = {
+            xlate: (p,a,t) => { 
+                const delta = [1,2,4,8].includes(dir) ? dirMasksDelta[dir] : [ 0, -1 ]; // up
+                p.x = t * delta[0] * (a || 1); 
+                p.y = t * delta[1] * (a || 1); 
+            },
+            scale: (p,a,t) => { 
+                p.scalex = p.scaley = t * (a || 1); 
+                p.x = p.y = 0.5 - p.scalex/2;  
+            },
+            alpha: (p,a,t) => { p.alpha = t * (a || 1); },
+            angle: (p,a,t) => { p.angle = t * 360 * (a || 1); },
+            ease: (p,a,t) => { tween = easingFunction(a)(tween); },
+            tween: (p,a,t) => { tween = t * (a || 1); },  // wrong!?
+        }
 
+        
         for (x of afx) {
             const xs = x.split('=');
-            if (funcs[xs[0]])
-                funcs[xs[0]](params, xs[1]);
+            if (funcs[xs[0]]) {
+                if (kind == 'move' && ![1,2,4,8].includes(dir))
+                    kind = 'hit';
+                const tweens = tween_table[kind][xs[0]];
+                const twx = (1 - tween) * (tweens.length - 1);
+                const tdiv = ~~twx;
+                const tmod = twx - tdiv;
+                const t = tweens[tdiv] + (tweens[tdiv + 1] - tweens[tdiv]) * tmod;
+                funcs[xs[0]](params, xs[1], t);
+            }
         }
         return params;
     }

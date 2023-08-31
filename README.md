@@ -105,12 +105,18 @@ The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScrip
 Use it like this. 
 
 ```
-player move 85101706 afx:ease=13:xlate
-player cantmove horizontal 64217903 afx:xlate=-.5
-player cantmove vertical 64217903 afx:xlate=-1
-g create 47877305 afx:scale
-b create 47877305 afx:angle=180
-b destroy 85101706 afx:alpha
+player move up afx:xlate
+player cantmove up afx:xlate
+player move left afx:scale
+player cantmove left afx:scale
+
+m lclick afx:angle
+w lclick afx:alpha
+
+b create  afx:angle
+b destroy afx:angle
+y create  afx:alpha:scale
+y destroy afx:alpha:
 ```
 
 All animations start with `afx` and have one or more parameters separated by `:`. 
