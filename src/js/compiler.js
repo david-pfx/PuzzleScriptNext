@@ -1784,7 +1784,7 @@ function rulesToMask(state) {
                         objectsPresent = ellipsisPattern;
                         if (cell_l.length !== 2) {
                             logError("You can't have anything in with an ellipsis. Sorry.", rule.lineNumber);
-                            throw 'aborting compilation';//throwing here because I was getting infinite loops in the compiler otherwise
+                            //throw 'aborting compilation';//throwing here because I was getting infinite loops in the compiler otherwise
                         } else if ((k === 0) || (k === cellrow_l.length - 1)) {
                             logError("There's no point in putting an ellipsis at the very start or the end of a rule", rule.lineNumber);
                         } else if (rule.rhs.length > 0) {
