@@ -2921,7 +2921,7 @@ function generateSoundData(state) {
                     layer:targetLayer,
                     seed: seed
                 };
-                if (debugLevel) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
+                if (debugLevel.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
 
                 if (verb === 'move')
                     sfx_MovementMasks[targetLayer].push(o);

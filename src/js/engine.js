@@ -1994,7 +1994,6 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		if (fn in matchCache) {
 			return matchCache[fn];
 		}
-		//if (debugLevel) console.log(fn.replace(/\s+/g, ' '));
 		return matchCache[fn] = new Function("cellRow","i", 'd', 'objects', 'movements',fn);
 	} else if (ellipsisCount===1){
 		var cr_l = cellRow.length;
@@ -2532,7 +2531,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
-	//if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
+	if (debugLevel.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2546,13 +2545,13 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
-		// if (debugLevel == 'rules') {
-		// 	const cro = cellRowMasks[cellRowIndex].format();
-		// 	const crm = cellRowMasks_Movements[cellRowIndex].format();
-		// 	const lvo = level.mapCellContents.format();
-		// 	const lvm = level.mapCellContents_Movements.format();
-		// 	console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
-		// }
+		if (debugLevel.includes('masks')) {
+			const cro = cellRowMasks[cellRowIndex].format();
+			const crm = cellRowMasks_Movements[cellRowIndex].format();
+			const lvo = level.mapCellContents.format();
+			const lvm = level.mapCellContents_Movements.format();
+			console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
+		}
         if (match.length===0) {
             return [];
         } else {
@@ -2687,21 +2686,26 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 };
 
 Rule.prototype.tryApply = function(level) {
+	perfCounters.rules++;
 	const delta = level.delta_index(this.direction);
 
     //get all cellrow matches
     var matches = this.findMatches();
+	perfCounters.matches += matches.length;
     if (matches.length===0) {
       return false;
     }
+	perfCounters.matched++;
 
     var result=false;	
 	if (this.hasReplacements) {
-	    var tuples = generateTuples(matches);
+	perfCounters.replaces++;
+	var tuples = generateTuples(matches);
 	    for (var tupleIndex=0;tupleIndex<tuples.length;tupleIndex++) {
 	        var tuple = tuples[tupleIndex];
 	        var shouldCheck=tupleIndex>0;
 	        var success = this.applyAt(level,tuple,shouldCheck,delta);
+			if (success) perfCounters.replaced++;
 	        result = success || result;
 	    }
 	}
@@ -2714,7 +2718,7 @@ Rule.prototype.tryApply = function(level) {
 
 Rule.prototype.queueCommands = function() {
 	var commands = this.commands;
-	
+	perfCounters.commands += commands.length;	
 	if (commands.length==0){
 		return;
 	}
@@ -2864,6 +2868,7 @@ function processOutputCommands(commands) {
 }
 
 function applyRandomRuleGroup(level,ruleGroup) {
+	perfCounters.randoms++;
 	var propagated=false;
 
 	var matches=[];
@@ -2899,6 +2904,7 @@ function applyRandomRuleGroup(level,ruleGroup) {
 
 
 function applyRuleGroup(ruleGroup) {
+	perfCounters.groups++;
 	if (ruleGroup[0].isRandom) {
 		return applyRandomRuleGroup(level,ruleGroup);
 	}
@@ -2941,6 +2947,7 @@ function applyRuleGroup(ruleGroup) {
 }
 
 function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
+	perfCounters.tries++;
     //for each rule
     //try to match it
 
@@ -3113,8 +3120,27 @@ var playerPositionsAtTurnStart;
 // acceptable input directions, used here and in inputoutput
 var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'lclick', 'rclick'];  // todo: reaction, mclick
 
+var perfCounters = {};
+
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak,coord) {
+	perfCounters = {
+		start: Date.now(),
+		rules: 0,
+		matched: 0,
+		matches: 0,
+		replaces: 0,
+		replaced: 0,
+		commands: 0,
+		randoms : 0,
+		groups: 0,
+		tries: 0,		
+	}
+	const ret = procInp(dir, dontDoWin, dontModify, bak, coord);
+	perfCounters.elapsed = Date.now() - perfCounters.start;
+	return ret;
+}
+function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	if (!dontModify) {
 		newMovedEntities = {};
 	}
@@ -3144,7 +3170,6 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			playerPositions = startMovement(dirMasks[dirName]);
 		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
 			const mask = level.getCell(coord);
-			//if (debugLevel) console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
 		
@@ -3195,7 +3220,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
         //after each iteration
         	rigidloop=false;
         	i++;
-        	
+
 			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
         	var shouldUndo = resolveMovements(level, bannedGroup);
 
@@ -3525,7 +3550,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
-		if (debugLevel) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
+		if (debugLevel.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 

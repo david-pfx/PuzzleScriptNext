@@ -413,6 +413,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
+    if (debugLevel.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -1048,9 +1049,10 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
-    // debugLevel
-    // const ele = document.getElementById('debug');
-    // ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    if (debugLevel.includes('cell')) {
+        const ele = document.getElementById('debug');
+        ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    }
     
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
     	forceRegenImages=false;

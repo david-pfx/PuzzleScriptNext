@@ -1170,11 +1170,11 @@ function pollGamepads() {
 
 let debugTimestamp
 function checkKey(e,justPressed) {
-	// debugLevel
-	// const ele = document.getElementById('debug');
-	// ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
-	// debugTimestamp = prevTimestamp;
-	// debugLevel
+    if (debugLevel.includes('key')) {
+		const ele = document.getElementById('debug');
+		ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+		debugTimestamp = prevTimestamp;
+	}
 	ULBS();
 	
     if (winning) {
@@ -1535,11 +1535,11 @@ function update() {
 			keyRepeatTimer=0;	
 	    	keyRepeatIndex = (keyRepeatIndex+1)%keybuffer.length;
 	    	var key = keybuffer[keyRepeatIndex];
-			// debugLevel
-			// const ele = document.getElementById('debug');
-			// ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
-			// debugTimestamp = prevTimestamp;
-			// debugLevel
+			if (debugLevel.includes('key')) {
+				const ele = document.getElementById('debug');
+				ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+				debugTimestamp = prevTimestamp;
+			}
 	        checkKey({keyCode:key},false);
 	    }
 	}
@@ -1566,10 +1566,10 @@ var prevTimestamp;
 var loop = function(timestamp){
 	if (prevTimestamp !== undefined) {
 		deltatime = timestamp - prevTimestamp
-		// debugLevel
-		//const ele = document.getElementById('debug');
-		//ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
-		// debugLevel
+		if (debugLevel.includes('key')) {
+			const ele = document.getElementById('debug');
+			ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+		}
 	}
 	prevTimestamp = timestamp
 	try {

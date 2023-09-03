@@ -270,7 +270,7 @@ var codeMirrorFn = function() {
     }
 
     function createAlias(state, alias, candname, lineno) {
-        //if (debugLevel) console.log(`Create '${alias}' as alias for '${candname}'`);
+        if (debugLevel.includes('alias')) console.log(`Create '${alias}' as alias for '${candname}'`);
         const synonym = [alias, candname];
         synonym.lineNumber = lineno;
         state.legend_synonyms.push(synonym);
@@ -326,6 +326,10 @@ var codeMirrorFn = function() {
 
         next() {
             return this.stream.next();
+        }
+
+        peek() {
+            return this.stream.peek();
         }
 
         match(regex, tolower = false) {
@@ -1123,12 +1127,17 @@ var codeMirrorFn = function() {
                     lexer.pushToken(symbols.text, `METADATATEXT`);  // empty causes havoc
             } else {
                 symbols.gridline = '';
-                while (token = lexer.match(/^\S/, !state.case_sensitive)) {
-                    symbols.gridline += token;
-                    const kind = state.abbrevNames.includes(token) ? 'LEVEL' : 'ERROR';
-                    if (kind == 'ERROR')
-                        logError(`Key "${token.toUpperCase()}" not found. Do you need to add it to the legend, or define a new object?`, state.lineNumber);
-                    lexer.pushToken(token, kind);                        
+                // allow comments in level grid, per Selene's Labyrinth
+                while (true) {
+                    if (state.commentStyle == '()' && lexer.peek() == '(') 
+                        break;
+                    if (token = lexer.match(/^\S/, !state.case_sensitive)) {
+                        symbols.gridline += token;
+                        const kind = state.abbrevNames.includes(token) ? 'LEVEL' : 'ERROR';
+                        if (kind == 'ERROR')
+                            logError(`Key "${token.toUpperCase()}" not found. Do you need to add it to the legend, or define a new object?`, state.lineNumber);
+                        lexer.pushToken(token, kind);
+                    } else break;
                 }
             }
 
@@ -1341,7 +1350,7 @@ var codeMirrorFn = function() {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            //if (debugLevel) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            if (debugLevel.includes('obj')) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
                         }
                     }
