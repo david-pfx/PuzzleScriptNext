@@ -1,6 +1,6 @@
 // main entry point for editor
 
-const starterCodeFile = "next_starter.txt";
+const starterCodeFile = "next/starter.txt";
 
 // note: this returns the main editor window and any pre-loaded content
 var code = document.getElementById('code');
