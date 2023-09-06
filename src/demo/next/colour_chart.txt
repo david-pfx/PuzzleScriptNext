@@ -1,0 +1,123 @@
+title Colour Chart
+author polyomino games
+homepage polyomino.org
+
+comment //
+endline ;
+
+background_color white
+text_color black
+
+// color_palette mastersystem  
+// color_palette gameboycolour 
+color_palette amiga         
+// color_palette arnecolors    
+// color_palette famicom       
+// color_palette atari         
+// color_palette pastel        
+// color_palette ega           
+// color_palette amstrad       
+// color_palette proteus_mellow
+// color_palette proteus_rich  
+// color_palette proteus_night 
+// color_palette c64           
+// color_palette whitingjp     
+
+========
+OBJECTS
+========
+Background .;white
+Player P;red
+
+// colour patches
+C0;Black
+C1;White
+C2;Grey
+C3;DarkGrey
+C4;LightGrey
+C5;Red
+C6;DarkRed
+C7;LightRed
+C8;Brown
+C9;DarkBrown
+CA;LightBrown
+CB;Orange
+CC;Yellow
+CD;Green
+CE;DarkGreen
+CF;LightGreen
+CG;Blue
+CH;LightBlue
+CI;DarkBlue
+CJ;Purple
+CK;Pink
+
+// text overlay
+T0;White;resize  0.18;text Black
+T1;Black;resize  0.18;text White
+T2;Black;resize  0.18;text Grey
+T3;White;resize  0.18;text DarkGrey
+T4;Black;resize  0.18;text LightGrey
+T5;Black;resize  0.18;text Red
+T6;White;resize  0.18;text DarkRed
+T7;Black;resize  0.18;text LightRed
+T8;Black;resize  0.18;text Brown
+T9;White;resize  0.18;text DarkBrown
+TA;Black;resize  0.18;text LightBrown
+TB;Black;resize  0.18;text Orange
+TC;Black;resize  0.18;text Yellow
+TD;Black;resize  0.18;text Green
+TE;White;resize  0.18;text DarkGreen
+TF;Black;resize  0.18;text LightGreen
+TG;Black;resize  0.18;text Blue
+TH;Black;resize  0.18;text LightBlue
+TI;White;resize  0.18;text DarkBlue
+TJ;Black;resize  0.18;text Purple
+TK;Black;resize  0.18;text Pink
+
+=======
+LEGEND
+=======
+
+0 = C0 and T0
+1 = C1 and T1
+2 = C2 and T2
+3 = C3 and T3
+4 = C4 and T4
+5 = C5 and T5
+6 = C6 and T6
+7 = C7 and T7
+8 = C8 and T8
+9 = C9 and T9
+A = CA and TA
+B = CB and TB
+C = CC and TC
+D = CD and TD
+E = CE and TE
+F = CF and TF
+G = CG and TG
+H = CH and TH
+I = CI and TI
+J = CJ and TJ
+K = CK and TK
+Colours = C0 or C1 or C2 or C3 or C4 or C5 or C6 or C7 or C8 or C9 or CA or CB or CC or CD or CE or CF or CG or CH or CI or CJ or CK
+Texts   = T0 or T1 or T2 or T3 or T4 or T5 or T6 or T7 or T8 or T9 or TA or TB or TC or TD or TE or TF or TG or TH or TI or TJ or TK
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player
+Colours
+Texts
+
+=======
+LEVELS
+=======
+
+.......
+0123456
+789ABCD
+EFGHIJK
+.......

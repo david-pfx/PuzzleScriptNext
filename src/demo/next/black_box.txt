@@ -1,0 +1,314 @@
+title Black Box
+author polyomino games
+homepage polyomino.org
+
+comment //
+endline ;
+background_color lightbrown
+text_color darkblue
+run_rules_on_level_start
+noarrows
+noaction
+clicks
+//hove«r
+
+========
+OBJECTS
+========
+focus // for hover
+lightgrey
+000000000000
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+000000000000
+
+grid
+darkgrey
+000000000000
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+0..........0
+000000000000
+
+ball
+black grey
+.....00.....
+...100001...
+..00000000..
+.0000000000.
+100000000001
+000000000000
+000000000000
+100000000001
+.0000000000.
+..00000000..
+...100001...
+.....00.....
+
+//FAB extension: text objects
+// numbers to show on edge
+N1 ; blue; scale 0.8; text 1
+N2 ; blue; scale 0.8; text 2
+N3 ; blue; scale 0.7; text 3
+N4 ; blue; scale 0.7; text 4
+N5 ; blue; scale 0.7; text 5
+N6 ; blue; scale 0.7; text 6
+N7 ; blue; scale 0.7; text 7
+N8 ; blue; scale 0.7; text 8
+N9 ; blue; scale 0.7; text 9
+N10; blue; scale 0.7; text 10
+N11; blue; scale 0.7; text 11
+N12; blue; scale 0.7; text 12
+NR ; blue; scale 0.7; text R
+NH ; blue; scale 0.7; text H
+
+target; transparent
+
+// testing
+//target; transparent grey
+//0000110000
+//0000110000
+
+Background .; lightgreen
+edge *; orange
+cover C; blue
+
+// click this to check solution
+done; black; text ?
+lit; yellow
+
+noball; transparent   // space when not a ball
+nonum; transparent    // space when not a number
+mark; grey            // visible marker, does nothing
+wrong; red            // mark wrong balls
+iswin; green          // marker for win
+temp; transparent     // just a temporary marker
+
+// paths components
+// PS ... PQ PP:? ... Pend
+PS; red; text @
+PQ; red; text q
+pend; red; text e
+
+// path probes in four directions, not seen
+PPup; red; text u
+PPdown; red; text d
+PPleft; red; text l
+PPright; red; text r
+
+=======
+LEGEND
+=======
+
+D = done and edge
+E = nonum and edge
+T = target and noball and grid
+X = noball and grid
+S = cover and target // for setup
+B = cover and ball // for ball placing
+
+player = done or nonum or ball or noball or grid
+nums = N1 or N2 or N3 or N4 or N5 or N6 or N7 or N8 or N9 or N10 or N11 or N12 or NH or NR 
+paths = PS or PQ or pend or PPup or PPdown or PPright or PPleft
+
+=======
+SOUNDS
+=======
+
+ball create 97204707
+iswin create 89109903
+nums create 66048707
+wrong create 72684102
+
+================
+COLLISIONLAYERS
+================
+Background
+edge 
+target lit
+wrong iswin
+done nonum nums ball noball
+paths temp cover
+mark
+grid
+focus 
+
+======
+RULES
+======
+
+[ iswin ] -> cancel
+[ wrong ] -> []
+
+[ cover target ] -> call initialise
+[ player ] -> call user input
+[ click1 done lit ] -> call check for win
+[ player ] -> call update display
+
+////////////////////////////////////////////////////////////////////////////////
+segment initialise
+
+// place one target at random for each S in the level
+startloop
+  random [ cover target ][ grid no target ] -> [ cover nonum ][ grid target ]
+endloop
+
+////////////////////////////////////////////////////////////////////////////////
+segment user input
+
+// manage focus
+
+// place or remove a solution ball on the grid
+[ click1 noball ][ ball cover ] -> [ ball ][ noball cover ]
+[ click1 ball ][ noball cover ] -> [ noball ][ ball cover ]
+
+// place or remove a marker on the grid
+[ click2 grid no mark ] -> [ grid mark ]
+[ click2 grid mark ] -> [ grid no mark ]
+
+// light up if no balls left to place
+[ done ] -> [ done lit ]
+[ done lit ][ ball cover ] -> [ done ][ ball cover ]
+
+////////////////////////////////////////////////////////////////////////////////
+segment update display
+
+//FAB extension: expand relative directions with token pasting
+// so [ PP:> ] becomes [ PP:right ] etc x4
+
+// accept a trial ray click on edge
+[ done no lit ][ click1 nonum ] -> [ done ][ PS ]
+[ ps | target ] -> [ nh | target ]      // target ahead blocked immediately
+[ ps | x ] -> [ ps | x PP:> ]       // start path
+
+// first set of tests, at edge
+// test sides (R) first, ahead (H) last
+[ ps ][ PP:^ | target ]       -> [ nr ][ | target ]
+[ ps ][ PP:v | target ]       -> [ nr ][ | target ]
+[ ps | PP:> | target ]        -> [ nh | | target ]
+[ ps | PP:> | x no target ]   -> [ ps | pq | x PP:> ]
+
+// Maintain ray as [ ps ][ pq | PP:? ] where PP points the way ahead
+// again test sides (R) first, ahead (H) last
+startloop
+  [ ps ][ pq ][ target | PP:^ | target ]  -> [ nr ][ ][ target | | target ]
++ [ ps ][ pq ][ PP:^ | target ]           -> [ ps ][ PP:< ][ | target ]
++ [ ps ][ pq ][ PP:v | target ]           -> [ ps ][ PP:< ][ | target ]
++ [ ps ][ pq | PP:> | target ]            -> [ nh ][ | | target ]
++ [ ps ][ pq | PP:> | x no target ]       -> [ ps ][ | pq | x PP:> ]
+
+  // check for edge, else continue
+  [ ps ][ PP:> | edge ] -> [ pend ][ | pend edge ]
+  [ ps ][ no pq | PP:> ] -> [ ps ][ pq | PP:> ]
+endloop
+
+// found a path edge to edge
+[ pq ] -> [ ]
+
+//FAB: expand step through OR list
+//FAB: expand iterate with token pasting
+
+[ pend ][ N12 ] -> [     ][ N12 ] status Too many tries!
+[ pend ][ N11 ] -> [ N12 ][ N11 ]
+[ pend ][ N10 ] -> [ N11 ][ N10 ]
+[ pend ][ N9 ] -> [ N10 ][ N9 ]
+[ pend ][ N8 ] -> [ N9 ][ N8 ]
+[ pend ][ N7 ] -> [ N8 ][ N7 ]
+[ pend ][ N6 ] -> [ N7 ][ N6 ]
+[ pend ][ N5 ] -> [ N6 ][ N5 ]
+[ pend ][ N4 ] -> [ N5 ][ N4 ]
+[ pend ][ N3 ] -> [ N4 ][ N3 ]
+[ pend ][ N2 ] -> [ N3 ][ N2 ]
+[ pend ][ N1 ] -> [ N2 ][ N1 ]
+[ pend ]       -> [ N1 ]
+
+================================================================================
+segment check for win
+
+// check for win
+[ click1 done lit ] -> [ done lit temp ]
+[ lit temp ][ ball no target ] -> [ lit temp ][ ball wrong ]
+[ lit temp ][ wrong ] -> [ lit temp wrong ][ wrong ]
+[ lit temp no wrong ] -> [ lit temp iswin ]
+
+[ iswin ] -> status You win! Hit R to play again or Esc for a different level
+[ wrong ] -> status Not this time buster!
+[ lit no iswin no wrong ] -> status Click on ? to see if you're right!
+
+==============
+WINCONDITIONS
+==============
+
+//all ball on target
+
+=======
+LEVELS
+=======
+
+message Click on the edge to send rays bouncing off hidden targets
+
+
+level 10x10, 5 balls
+SDEEEEEEEEEE*B
+SExxxxxxxxxxEB
+SExxxxxxxxxxEB
+SExxxxxxxxxxEB
+SExxxxxxxxxxEB
+CExxxxxxxxxxEC
+CExxxxxxxxxxEC
+CExxxxxxxxxxEC
+CExxxxxxxxxxEC
+CExxxxxxxxxxEC
+CExxxxxxxxxxEC
+C*EEEEEEEEEE*C
+
+level 8x8, 5 balls
+SDEEEEEEEE*B
+SExxxxxxxxEB
+SExxxxxxxxEB
+SExxxxxxxxEB
+SExxxxxxxxEB
+CExxxxxxxxEC
+CExxxxxxxxEC
+CExxxxxxxxEC
+CExxxxxxxxEC
+C*EEEEEEEE*C
+
+level 5x5, 3 balls
+SDEEEEE*B
+SExxxxxEB
+SExxxxxEB
+CExxxxxEC
+CExxxxxEC
+CExxxxxEC
+C*EEEEE*C
+
+(level test 10x10, 5 balls
+DEEEEEEEEEE*B
+ExxxxxxxxxTEB
+ExxxxxxxxTxEB
+ExxxxxxxxxxEB
+ExxxxxxxxxxEB
+ExxxxxTxxxxEC
+ExxxxxxxxxxEC
+ExxxxxxxxxxEC
+ExxxxxxxxxxEC
+ExTxxxxxxxxEC
+ETxxxxxxxxxEC
+*EEEEEEEEEE*C)
+
