@@ -7,15 +7,60 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23g08, mainly bug fixes. 
-
-* The parsing of the new STATUS command now works correctly.
-* The parsing of some end of line situations now works correctly.
-* The ACTION key in `test_min_prelude` now triggers a win.
-* The level editor now counts glyphs correctly.
-* The `youtube` warning from PuzzleScript has been merged.
+The latest version is Release v-23i08, which includes a significant upgrade to the animation system, as well as:
+* Several new games to demonstrate text sprites and animation.
+* Key repeat interval default 200 (from 150) to reduce key bounce.
+* The lexer has been reimplemented as a class, and several parsing sections rewritten to use it.
+* Performance counters to gather timing statistics (`set debugLevel='perf'``).
+* Updated to latest version of jquery.
 
 It includes the following features.
+
+### Object animation
+
+The SOUNDS section is enhanced by the ability for an object to have an animation instead of or as well as a sound.
+The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_animate) and the demo is [`next_yasban`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next_yasban).
+Use it like this. 
+
+```
+player move up afx:slide
+player cantmove up afx:slide
+player move left afx:zoom
+player cantmove left afx:zoom
+
+m lclick afx:turn
+w lclick afx:fade
+
+b create  afx:turn
+b destroy afx:turn
+y create  afx:fade:scale
+y destroy afx:fade:
+
+player lclick 32169907 afx:turn=.25,0      // anticlockwise 90
+player rclick 32169907 afx:turn=-.25,0     // clockwise 90
+```
+
+All animations start with `afx` and have one or more parameters separated by `:`. 
+Each parameter may have an argument separated by `=`.
+The parameters are:
+ * `slide[=n,m...]` animates a sliding movement of an object
+ * `zoom[=n,m...]` animates zooming in or out (resizing) of an object
+ * `fade[=n,m...]` animates fading (alpha, transparency) of an object
+ * `turn[=n,m...]` animates turning (rotation) of an object
+ * `ease[=function]` applies an easing `function` (non-linear tweening), as per `tween_easing` in the prelude
+
+ An argument of `n,m...` is a comma-separated list of values that define the animation, how the value changes over time.
+ Default values are defined in a table in the source code and will be documented here once stable.
+ Meanwhile feel free to experiment.
+
+ All animations take place in a single period of time, set by in the prelude by `animate_interval`. 
+ Multiple animations may be applied to an object.
+ The default is 0.25 sec. Note that if you enable tweening by setting `tween_length`, animation is disabled.
+
+ ```
+ animate_interval 0.4   // set animations to run in 0.4 secs
+ // tween_length = 0.4  // tweening must not be set
+ ```
 
 ### Custom font can load dynamically
 The custom font setting can be a link to a font file on the Web, preferably of type `woff2`.
@@ -97,52 +142,6 @@ The point is to make it easy to to use the mouse to clear the console and then c
  The editor has a new button to show a single layer of a running game.
  The PgUp and PgDn keys move through the layers.
  This is a work in progress.
-
-### Object animation
-
-The SOUNDS section is enhanced by the ability for an object to have an animation instead of or as well as a sound.
-The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_animate) and the demo is [`next_yasban`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next_yasban).
-Use it like this. 
-
-```
-player move up afx:slide
-player cantmove up afx:slide
-player move left afx:zoom
-player cantmove left afx:zoom
-
-m lclick afx:turn
-w lclick afx:fade
-
-b create  afx:turn
-b destroy afx:turn
-y create  afx:fade:scale
-y destroy afx:fade:
-
-player lclick 32169907 afx:turn=.25,0      // anticlockwise 90
-player rclick 32169907 afx:turn=-.25,0     // clockwise 90
-```
-
-All animations start with `afx` and have one or more parameters separated by `:`. 
-Each parameter may have an argument separated by `=`.
-The parameters are:
- * `slide[=n,m...]` animates a sliding movement of an object
- * `zoom[=n,m...]` animates zooming in or out (resizing) of an object
- * `fade[=n,m...]` animates fading (alpha, transparency) of an object
- * `turn[=n,m...]` animates turning (rotation) of an object
- * `ease[=function]` applies an easing `function` (non-linear tweening), as per `tween_easing` in the prelude
-
- An argument of `n,m...` is a comma-separated list of values that define the animation, how the value changes over time.
- Default values are defined in a table in the source code and will be documented here once stable.
- Meanwhile feel free to experiment.
-
- All animations take place in a single period of time, set by in the prelude by `animate_interval`. 
- Multiple animations may be applied to an object.
- The default is 0.25 sec. Note that if you enable tweening by setting `tween_length`, animation is disabled.
-
- ```
- animate_interval 0.4   // set animations to run in 0.4 secs
- // tween_length = 0.4  // tweening must not be set
- ```
 
 ### Comment styles
 Like this:
