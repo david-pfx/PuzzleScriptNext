@@ -19,7 +19,7 @@ It includes the following features.
 ### Object animation
 
 The SOUNDS section is enhanced by the ability for an object to have an animation instead of or as well as a sound.
-The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_animate) and the demo is [`next_yasban`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next_yasban).
+The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_animate) and the demo is [`next_yasban`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/next_yasban).
 Use it like this. 
 
 ```
@@ -70,7 +70,7 @@ You can find font files that are freely accessible in various places, including 
 * On this page there is (finally) this link to the font file: https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 
 Use it like this.
-See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prelude) for a small example.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_prelude) for a small example.
 ```
 custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 
@@ -92,7 +92,7 @@ TEXT 7
 This prelude setting reserves some space at the bottom of the screen for displaying a status line.
 
 Use it like this.
-See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prelude) for a small example.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_prelude) for a small example.
 
 ```
 status_line
@@ -124,7 +124,7 @@ That is, all sprites are sized to fit in and fill a cell.
 * If sprite_size __is__ specified, sprites are scaled so that a sprite of that size fills a cell. 
 Smaller sprites are smaller and larger sprites are larger, and will overlap adjacent cells.
 
-The test program is [`test_min_spritesize`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_spritesize).
+The test program is [`test_min_spritesize`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_spritesize).
 Use it like this. 
 ```
 sprite_size 8
@@ -170,7 +170,7 @@ See the starter for how it looks.
 ### Mouse click movements
 
 This feature is enabled by prelude setting `mouse_clicks`.
-The test program is [`test_min_click`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_click).
+The test program is [`test_min_click`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_click).
 Use it like this. 
 ```
 mouse_clicks
@@ -186,7 +186,7 @@ These movements are also displayed in the editor to show where the click happene
 
 Instead of a sprite matrix, use `text:` followed by a string of one or more characters. 
 The rest of the line is the text in the sprite (trimmed).
-The test program is [`test_min_text`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_text).
+The test program is [`test_min_text`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_text).
 Use it like this. 
 ```
 s; purple; text S
@@ -203,7 +203,7 @@ A future release may offer a better font.
 Property objects work as maps, to move objects in corresponding positions within the definition.
 There must be at least one on each side and all must be the same size.
 
-Use it like this. The test program is [`test_min_move_corr`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_move_corr).
+Use it like this. The test program is [`test_min_move_corr`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_move_corr).
 ```
 rgb = r or g or b
 gbr = g or b or r
