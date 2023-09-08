@@ -19,7 +19,7 @@ It includes the following features.
 ### Object animation
 
 The SOUNDS section is enhanced by the ability for an object to have an animation instead of or as well as a sound.
-The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_animate) and the demo is [`next_yasban`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/next_yasban).
+The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_animate) and the demos are Yet Another Sokoban, Net Game and Fifteen in the editor examples dropdown.
 Use it like this. 
 
 ```
