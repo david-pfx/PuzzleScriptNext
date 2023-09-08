@@ -1062,10 +1062,8 @@ function setGameState(_state, command, randomseed) {
       autotickinterval=0;
     }
 
-	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval * 1000 : 150;
-	tweeninterval = state.metadata.tween_length ? state.metadata.tween_length * 1000 : 0;
-	againinterval = state.metadata.again_interval ? state.metadata.again_interval * 1000 : 150;
-	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval * 1000 : 250;
+	// set defaults and stay DRY
+	twiddleMetadataExtras();
     
 	if (throttle_movement && autotickinterval===0) {
       logWarning("throttle_movement is designed for use in conjunction with realtime_interval. Using it in other situations makes games gross and unresponsive, broadly speaking.  Please don't.");
@@ -1996,7 +1994,6 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		if (fn in matchCache) {
 			return matchCache[fn];
 		}
-		//if (debugLevel) console.log(fn.replace(/\s+/g, ' '));
 		return matchCache[fn] = new Function("cellRow","i", 'd', 'objects', 'movements',fn);
 	} else if (ellipsisCount===1){
 		var cr_l = cellRow.length;
@@ -2534,7 +2531,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
-	//if (debugLevel) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
+	if (debugLevel.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2548,13 +2545,13 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
-		// if (debugLevel == 'rules') {
-		// 	const cro = cellRowMasks[cellRowIndex].format();
-		// 	const crm = cellRowMasks_Movements[cellRowIndex].format();
-		// 	const lvo = level.mapCellContents.format();
-		// 	const lvm = level.mapCellContents_Movements.format();
-		// 	console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
-		// }
+		if (debugLevel.includes('masks')) {
+			const cro = cellRowMasks[cellRowIndex].format();
+			const crm = cellRowMasks_Movements[cellRowIndex].format();
+			const lvo = level.mapCellContents.format();
+			const lvm = level.mapCellContents_Movements.format();
+			console.log(`cro=${cro} crm=${crm} lvo=${lvo} lvm=${lvm} => ${match}`);
+		}
         if (match.length===0) {
             return [];
         } else {
@@ -2689,21 +2686,26 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 };
 
 Rule.prototype.tryApply = function(level) {
+	perfCounters.rules++;
 	const delta = level.delta_index(this.direction);
 
     //get all cellrow matches
     var matches = this.findMatches();
+	perfCounters.matches += matches.length;
     if (matches.length===0) {
       return false;
     }
+	perfCounters.matched++;
 
     var result=false;	
 	if (this.hasReplacements) {
-	    var tuples = generateTuples(matches);
+	perfCounters.replaces++;
+	var tuples = generateTuples(matches);
 	    for (var tupleIndex=0;tupleIndex<tuples.length;tupleIndex++) {
 	        var tuple = tuples[tupleIndex];
 	        var shouldCheck=tupleIndex>0;
 	        var success = this.applyAt(level,tuple,shouldCheck,delta);
+			if (success) perfCounters.replaced++;
 	        result = success || result;
 	    }
 	}
@@ -2716,7 +2718,7 @@ Rule.prototype.tryApply = function(level) {
 
 Rule.prototype.queueCommands = function() {
 	var commands = this.commands;
-	
+	perfCounters.commands += commands.length;	
 	if (commands.length==0){
 		return;
 	}
@@ -2824,47 +2826,17 @@ Rule.prototype.queueCommands = function() {
   }
 };
 
+// despite its name, this function exists to establish default values for prelude settings
 function twiddleMetadataExtras(resetAutoTick = true) {
-  if (state.metadata.realtime_interval!==undefined) {
-	if (resetAutoTick) {
-		autotick=0;
-	}
-    autotickinterval=state.metadata.realtime_interval*1000;
-  } else {
-    autotick=0;
-    autotickinterval=0;
-  }
-
-  if (state.metadata.again_interval!==undefined) {
-    againinterval=state.metadata.again_interval*1000;
-  } else {
-    againinterval=150;
-  }
-
-  if (state.metadata.tween_length!==undefined) {
-	tweeninterval=Math.max(state.metadata.tween_length*1000, 0);
-	} else {
-		tweeninterval = 0;
-	}
-
-  if (state.metadata.key_repeat_interval!==undefined) {
-    repeatinterval=state.metadata.key_repeat_interval*1000;
-  } else {
-    repeatinterval=500;
-    //repeatinterval=150;
-  }
-
-  if ('background_color' in state.metadata) {
-    state.bgcolor=colorToHex(colorPalette,state.metadata.background_color);
-  } else {
-    state.bgcolor="#000000";
-  }
-
-  if ('text_color' in state.metadata) {
-    state.fgcolor=colorToHex(colorPalette,state.metadata.text_color);
-  } else {
-    state.fgcolor="#FFFFFF";
-  }
+	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
+	if (resetAutoTick || !state.metadata.realtime_interval)
+    	autotick=0;
+	againinterval = state.metadata.again_interval?state.metadata.again_interval*1000 : 150;
+	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
+	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
+	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
+	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
+	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
 }
 
 function showTempMessage() {
@@ -2896,6 +2868,7 @@ function processOutputCommands(commands) {
 }
 
 function applyRandomRuleGroup(level,ruleGroup) {
+	perfCounters.randoms++;
 	var propagated=false;
 
 	var matches=[];
@@ -2931,6 +2904,7 @@ function applyRandomRuleGroup(level,ruleGroup) {
 
 
 function applyRuleGroup(ruleGroup) {
+	perfCounters.groups++;
 	if (ruleGroup[0].isRandom) {
 		return applyRandomRuleGroup(level,ruleGroup);
 	}
@@ -2973,6 +2947,7 @@ function applyRuleGroup(ruleGroup) {
 }
 
 function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
+	perfCounters.tries++;
     //for each rule
     //try to match it
 
@@ -3145,8 +3120,27 @@ var playerPositionsAtTurnStart;
 // acceptable input directions, used here and in inputoutput
 var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'lclick', 'rclick'];  // todo: reaction, mclick
 
+var perfCounters = {};
+
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak,coord) {
+	perfCounters = {
+		start: Date.now(),
+		rules: 0,
+		matched: 0,
+		matches: 0,
+		replaces: 0,
+		replaced: 0,
+		commands: 0,
+		randoms : 0,
+		groups: 0,
+		tries: 0,		
+	}
+	const ret = procInp(dir, dontDoWin, dontModify, bak, coord);
+	perfCounters.elapsed = Date.now() - perfCounters.start;
+	return ret;
+}
+function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	if (!dontModify) {
 		newMovedEntities = {};
 	}
@@ -3176,7 +3170,6 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 			playerPositions = startMovement(dirMasks[dirName]);
 		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
 			const mask = level.getCell(coord);
-			//if (debugLevel) console.log(`click dir=${dir} ${dirName} coord=${coord} mask=${mask.format()}`);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
 		
@@ -3227,7 +3220,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
         //after each iteration
         	rigidloop=false;
         	i++;
-        	
+
 			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
         	var shouldUndo = resolveMovements(level, bannedGroup);
 
@@ -3557,7 +3550,7 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
-		if (debugLevel) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
+		if (debugLevel.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 

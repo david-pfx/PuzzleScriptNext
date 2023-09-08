@@ -1,0 +1,172 @@
+title Picross
+author polymino
+homepage www.polyomino.com
+
+// Otherwise known as nonogram
+
+background_color darkblue
+text_color yellow
+mouse_clicks
+
+========
+OBJECTS
+========
+
+0;transparent
+
+1 scale: 0.8; blue;text: 1
+2 scale: 0.8; blue;text: 2
+3 scale: 0.7; blue;text: 3
+4 scale: 0.7; blue;text: 4
+5 scale: 0.7; blue;text: 5
+6 scale: 0.7; blue;text: 6
+7 scale: 0.7; blue;text: 7
+8 scale: 0.7; blue;text: 8
+9 scale: 0.7; blue;text: 9
+A scale: 0.4; blue;text: 10
+B scale: 0.4; blue;text: 11
+C scale: 0.4; blue;text: 12
+
+unknown u
+grey
+00000000
+0......0
+0......0
+0......0
+0......0
+0......0
+0......0
+00000000
+
+Background .;green
+Player P;red
+edge *;darkgreen
+black x;black
+white o;white
+temp t;transparent
+lit;yellow
+
+=======
+LEGEND
+=======
+
+clickable = black or white or unknown
+digit = 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or A or B or C
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+Background
+edge lit player
+black white unknown temp
+0 digit
+
+======
+RULES
+======
+
+[ lclick unknown ] -> [ black ]
+[ lclick black ] -> [ white ]
+[ lclick white ] -> [ unknown ]
+[ rclick unknown ] -> [ white ]
+[ rclick black ] -> [ unknown ]
+[ rclick white ] -> [ black ]
+
+[ lit ] -> [ ]
+left [ no x | x | no x | ... | no lit 1 ]                                 -> [ no x | t | no x | ... | lit 1 ]
+left [ no x | x | x | no x | ... | no lit 2 ]                             -> [ no x | t | t | no x | ... | lit 2 ]
+left [ no x | x | x | x | no x | ... | no lit 3 ]                         -> [ no x | t | t | t | no x | ... | lit 3 ]
+left [ no x | x | x | x | x | no x | ... | no lit 4 ]                     -> [ no x | t | t | t | t | no x | ... | lit 4 ]
+left [ no x | x | x | x | x | x | no x | ... | no lit 5 ]                 -> [ no x | t | t | t | t | t | no x | ... | lit 5 ]
+left [ no x | x | x | x | x | x | x | no x | ... | no lit 6 ]             -> [ no x | t | t | t | t | t | t | no x | ... | lit 6 ]
+left [ no x | x | x | x | x | x | x | x | no x | ... | no lit 7 ]         -> [ no x | t | t | t | t | t | t | t | no x | ... | lit 7 ]
+left [ no x | x | x | x | x | x | x | x | x | no x | ... | no lit 8 ]     -> [ no x | t | t | t | t | t | t | t | t | no x | ... | lit 8 ]
+left [ no x | x | x | x | x | x | x | x | x | x | no x | ... | no lit 9 ] -> [ no x | t | t | t | t | t | t | t | t | t | no x | ... | lit 9 ]
+[ t ] -> [ x ]
+up [ no x | x | no x | ... | no lit 1 ]                                 -> [ no x | t | no x | ... | lit 1 ]
+up [ no x | x | x | no x | ... | no lit 2 ]                             -> [ no x | t | t | no x | ... | lit 2 ]
+up [ no x | x | x | x | no x | ... | no lit 3 ]                         -> [ no x | t | t | t | no x | ... | lit 3 ]
+up [ no x | x | x | x | x | no x | ... | no lit 4 ]                     -> [ no x | t | t | t | t | no x | ... | lit 4 ]
+up [ no x | x | x | x | x | x | no x | ... | no lit 5 ]                 -> [ no x | t | t | t | t | t | no x | ... | lit 5 ]
+up [ no x | x | x | x | x | x | x | no x | ... | no lit 6 ]             -> [ no x | t | t | t | t | t | t | no x | ... | lit 6 ]
+up [ no x | x | x | x | x | x | x | x | no x | ... | no lit 7 ]         -> [ no x | t | t | t | t | t | t | t | no x | ... | lit 7 ]
+up [ no x | x | x | x | x | x | x | x | x | no x | ... | no lit 8 ]     -> [ no x | t | t | t | t | t | t | t | t | no x | ... | lit 8 ]
+up [ no x | x | x | x | x | x | x | x | x | x | no x | ... | no lit 9 ] -> [ no x | t | t | t | t | t | t | t | t | t | no x | ... | lit 9 ]
+[ t ] -> [ x ]
+
+==============
+WINCONDITIONS
+==============
+
+all digit on lit
+ 
+=======
+LEVELS
+=======
+
+*********
+***10001*
+***15551*
+*********
+*5*uuuuu*
+*3*uuuuu*
+*3*uuuuu*
+*3*uuuuu*
+*5*uuuuu*
+*********
+
+***********
+****443223*
+***********
+*01*uuuuuu*
+*01*uuuuuu*
+*21*uuuuuu*
+*03*uuuuuu*
+*05*uuuuuu*
+*05*uuuuuu*
+***********
+
+****************
+*****0100000002*
+*****0110000303*
+*****2267764131*
+****************
+*021*uuuuuuuuuu*
+*031*uuuuuuuuuu*
+*023*uuuuuuuuuu*
+*007*uuuuuuuuuu*
+*009*uuuuuuuuuu*
+*043*uuuuuuuuuu*
+*003*uuuuuuuuuu*
+*002*uuuuuuuuuu*
+*004*uuuuuuuuuu*
+*411*uuuuuuuuuu*
+****************
+
+***********************
+*******000000000000000*
+*******000000000000060*
+*******004320000320216*
+*******131165132331336*
+*******313614443115411*
+***********************
+*00053*uuuuuuuuuuuuuuu*
+*00043*uuuuuuuuuuuuuuu*
+*00032*uuuuuuuuuuuuuuu*
+*00123*uuuuuuuuuuuuuuu*
+*01143*uuuuuuuuuuuuuuu*
+*00218*uuuuuuuuuuuuuuu*
+*01111*uuuuuuuuuuuuuuu*
+*00042*uuuuuuuuuuuuuuu*
+*01121*uuuuuuuuuuuuuuu*
+*000a1*uuuuuuuuuuuuuuu*
+*0000c*uuuuuuuuuuuuuuu*
+*00055*uuuuuuuuuuuuuuu*
+*00414*uuuuuuuuuuuuuuu*
+*00023*uuuuuuuuuuuuuuu*
+*00032*uuuuuuuuuuuuuuu*
+***********************
+

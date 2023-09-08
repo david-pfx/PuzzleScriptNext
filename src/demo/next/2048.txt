@@ -1,0 +1,269 @@
+title 2048
+author polyomino games
+homepage polyomino.org
+
+// This is an implementation of the 2048 game designed to show off Puzzlang extensions
+// Text objects using TEXT 
+// Icons of any size with definable scaling factor
+// End of line comments using //
+// Line breaks using ;
+// Program structure using rule subroutines -- TBD
+
+background_color blue
+text_color yellow
+run_rules_on_level_start
+
+========
+OBJECTS
+========
+
+1; white; text: 2
+2; white; text: 4
+3; white; text: 8
+4; white; text: 16
+5; white; text: 32
+6; white; text: 64
+7; white; text: 128
+8; white; text: 256
+9; white; text: 512
+a; white; text: 1024
+b; white; text: 2048
+
+border #; lightbrown yellow orange red
+0123
+3012
+2301
+1230
+
+grid; grey
+0000000000000000
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0000000000000000
+
+Background .; green;
+edge *      ; green;
+spot @      ; green;    // one extra player as place to put flags
+
+over ; transparent;     // game over
+idle ; transparent;     // did not make any move
+
+// temporaries
+live ; pink;
+orig ; pink;     // mark original position of tile
+seed ; pink;     // initial random number, one for each
+
+empty; lightgrey  ;
+bg1  ; lightbrown ;
+bg2  ; yellow     ;
+bg3  ; orange     ;
+bg4  ; red        ;
+score; transparent;
+
+=======
+LEGEND
+=======
+
+number = 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or a or b 
+player = number or spot
+rx = 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or a
+bg = bg1 or bg2 or bg3 or bg4
+
+x = grid and empty
+S = edge and score
+? = seed and edge
+
+================
+COLLISIONLAYERS
+================
+Background
+edge border spot 
+bg 
+empty number
+grid score
+over
+idle
+orig
+live 
+seed
+
+======
+SOUNDS
+======
+
+number create 74380707
+cancel 42189302
+sfx0 51579108 // win
+sfx1 65275902 // lose
+
+======
+RULES
+======
+
+[ over ] -> cancel
+[ b ] -> cancel
+[ stationary spot ] -> call Startup
+[ > spot ] -> call Move Tiles
+[ idle ] -> cancel
+[ > spot ] -> call Drop New Tile
+[ spot ] -> call Check Move
+[ spot ] -> call Finish
+[ over ] -> sfx1 status Game Over! R to play again.
+[ b ] -> sfx0 status You win! R to play again.
+
+////////////////////////////////////////////////////////////////////////////////
+segment Startup
+
+startloop
+  random [ seed ][ empty ] -> [] [ 1 ]
+endloop
+
+////////////////////////////////////////////////////////////////////////////////
+segment Drop New Tile
+
+random [ empty ] -> [ random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 2 ]
+
+////////////////////////////////////////////////////////////////////////////////
+segment Move Tiles
+
+// mark all tiles as live (combinable) and original position
+[ orig ] -> []
+[ > number ] -> [ > number live orig ]
+
+// loop needed to just keep sliding
+startloop
+  // kludge because cannot flag objects directly
+  [ > number live    | empty ] -> [ empty | > number live ]
+  [ > number no live | empty ] -> [ empty | > number no live ]
+
+  // tiles stop at the edge
+  [ > number | edge ] -> [ number | edge ]
+  // combine moving tile with stationary working back from edge if both uncombined
+  [ > 1 live | stationary 1 live ] -> [ empty | 2 ]
+  [ > 2 live | stationary 2 live ] -> [ empty | 3 ]
+  [ > 3 live | stationary 3 live ] -> [ empty | 4 ]
+  [ > 4 live | stationary 4 live ] -> [ empty | 5 ]
+  [ > 5 live | stationary 5 live ] -> [ empty | 6 ]
+  [ > 6 live | stationary 6 live ] -> [ empty | 7 ]
+  [ > 7 live | stationary 7 live ] -> [ empty | 8 ]
+  [ > 8 live | stationary 8 live ] -> [ empty | 9 ]
+  [ > 9 live | stationary 9 live ] -> [ empty | a ]
+  [ > a live | stationary a live ] -> [ empty | b ]
+  // kludge to kill movement just once
+  [ > number | stationary number ] -> [ > number | action number ]
+  [ > number | action number ] -> [ number | number ]
+endloop
+
+[ > number ] -> [ number ]
+[ live ] -> [ ]
+
+// set idle if all mark on number, no move was made
+// b will be set if win
+[ > spot ] -> [ > spot idle]
+[ idle ] [ number no orig ] -> [ ] [ number ]
+[ idle ] [ orig no number ] -> [ ] [ ] 
+
+////////////////////////////////////////////////////////////////////////////////
+segment Check Move
+
+// check for can move, set over if not
+[ > spot ] -> [ > spot live]
+[ live ] [ empty ] -> [ ] [ empty ]
+[ live ] [ 1 | 1 ] -> [ ] [ 1 | 1 ]
+[ live ] [ 2 | 2 ] -> [ ] [ 2 | 2 ]
+[ live ] [ 3 | 3 ] -> [ ] [ 3 | 3 ]
+[ live ] [ 4 | 4 ] -> [ ] [ 4 | 4 ]
+[ live ] [ 5 | 5 ] -> [ ] [ 5 | 5 ]
+[ live ] [ 6 | 6 ] -> [ ] [ 6 | 6 ]
+[ live ] [ 7 | 7 ] -> [ ] [ 7 | 7 ]
+[ live ] [ 8 | 8 ] -> [ ] [ 8 | 8 ]
+[ live ] [ 9 | 9 ] -> [ ] [ 9 | 9 ]
+[ live ] [ a | a ] -> [ ] [ a | a ]
+[ > spot live ] -> [ spot over ]
+
+////////////////////////////////////////////////////////////////////////////////
+segment Finish
+
+// finished, add backgrounds
+[ bg ] -> [ ]
+[ 1 ] -> [ grid bg1 1 ]
+[ 2 ] -> [ grid bg1 2 ]
+[ 3 ] -> [ grid bg2 3 ]
+[ 4 ] -> [ grid bg2 4 ]
+[ 5 ] -> [ grid bg2 5 ]
+[ 6 ] -> [ grid bg3 6 ]
+[ 7 ] -> [ grid bg3 7 ]
+[ 8 ] -> [ grid bg3 8 ]
+[ 9 ] -> [ grid bg4 9 ]
+[ a ] -> [ grid bg4 a ]
+[ b ] -> [ grid bg4 b ]
+
+// clear temps, movement
+[ live ] -> []
+[ orig ] -> []
+[ > spot ] -> [ spot ]
+
+==============
+WINCONDITIONS
+==============
+
+//some b
+ 
+=======
+LEVELS
+=======
+
+message The aim is to reach 2048. Good luck!
+
+level Regular 4x4 puzzle
+#@??*S*#
+#*xxxx*#
+#*xxxx*#
+#*xxxx*#
+#*xxxx*#
+#******#
+
+level Test 4x4 puzzle
+#@??*S*#
+#*11xx*#
+#*xxxx*#
+#*xxxx*#
+#*xxxx*#
+#******#
+
+level Test puzzle full no move
+#@***S*#
+#*x3x3*#
+#*2424*#
+#*1313*#
+#*2424*#
+#******#
+
+level Test puzzle no move up
+#@***S*#
+#*1353*#
+#*xxxx*#
+#*xxxx*#
+#*xxxx*#
+#******#
+
+level Test puzzle one move to win
+#@***S*#
+#*99aa*#
+#*5678*#
+#*3344*#
+#*1122*#
+#******#
+

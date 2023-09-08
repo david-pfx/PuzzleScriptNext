@@ -1,0 +1,295 @@
+title 333
+author polyomino games
+homepage polyomino.org
+
+background_color blue
+text_color yellow
+run_rules_on_level_start
+level_select
+// cannot use require player movement because we kill off movement before move phase
+
+//debug
+//verbose_logging
+
+========
+OBJECTS
+========
+
+trim #;lightbrown yellow orange lightred lightgrey
+014012
+231240
+013423
+140132
+234201
+423012
+
+grid;grey;
+0000000000000000
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0..............0
+0000000000000000
+
+1 scale: 0.7; black; text: 1
+2 scale: 0.7; black; text: 2
+3 scale: 0.7; black; text: 3
+4 scale: 0.7; black; text: 6
+5 scale: 0.6; black; text: 12
+6 scale: 0.6; black; text: 24
+7 scale: 0.6; black; text: 48
+8 scale: 0.6; black; text: 96
+9 scale: 0.45; black; text: 192
+a scale: 0.45; black; text: 384
+b scale: 0.45; black; text: 768
+c scale: 0.35; black; text: 1536
+d scale: 0.35; black; text: 3072
+e scale: 0.35; black; text: 6144
+
+Background .; green;
+edge *;     green;
+empty;      lightgrey;        // empty square, where a number is not
+stack s;    lightbrown        // array of values for next
+bonus u;    darkbrown         // array of values for bonus
+init i;     darkblue          // array of markers for initial seed
+next n;     transparent       // next tile
+mover M;    transparent       // player used to record input direction for next
+bg1;        blue;
+bg2;        red;
+bg3;        white;
+
+over;       transparent       // marker for game over (with d is won)
+
+// temporary marker objects
+T1; pink;
+T2; pink;
+T3; pink;
+
+=======
+LEGEND
+=======
+
+number = 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or a or b or c or d or e
+player = number or mover
+bg = bg1 or bg2 or bg3
+x = grid and empty
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+Background
+T1 
+T2 
+T3
+mover
+edge stack bonus next init 
+bg 
+empty number 
+grid trim
+over
+
+======
+RULES
+======
+
+[ over ] -> cancel
+
+// clear flags
+[ T1 ] -> []
+[ T2 ] -> []
+[ T3 ] -> []
+
+// statics
+[ number no stack no next no bonus ] -> [ number grid ]
+[ M ] -> [ M Edge ]
+[ S ] -> [ S Trim ]
+[ U ] -> [ U Trim ]
+[ I ] -> [ I Trim ]
+
+// set up tile stack, seeds and bonus
+startloop
+    [ Init no number ] -> [ Init random 1 random 2 random 3 ]
+    random [ Init number ][ grid empty ] -> [ ][ grid number ]
+endloop
+
+// fill up the stack: 12 across, filled in groups of 3
+[ M ] [ S number ] -> [ M T1 ] [ S number ]
+right [ M no T1 ] [ S no number | S no number | S no number ] -> [ M ][ S 1 | S 2 | S 3 ]
+[ T1 ] -> [ ]
+
+// set up bonus block, 8 across
+// fill from left in the range of 3 to max block/8
+// threes says range is 6 to lesser of 96 and max block/8
+right       [ U | U | U | U | U | U | U | U ] ->       [ U 3 | U   | U   | U   | U   | U   | U   | U   ]
+right [ 7 ] [ U | U | U | U | U | U | U | U ] -> [ 7 ] [ U 3 | U 4 | U   | U   | U   | U   | U   | U   ]
+right [ 8 ] [ U | U | U | U | U | U | U | U ] -> [ 8 ] [ U 3 | U 4 | U 5 | U   | U   | U   | U   | U   ]
+right [ 9 ] [ U | U | U | U | U | U | U | U ] -> [ 9 ] [ U 3 | U 4 | U 5 | U 6 | U   | U   | U   | U   ]
+right [ a ] [ U | U | U | U | U | U | U | U ] -> [ a ] [ U 3 | U 4 | U 5 | U 6 | U 7 | U   | U   | U   ]
+right [ b ] [ U | U | U | U | U | U | U | U ] -> [ b ] [ U 3 | U 4 | U 5 | U 6 | U 7 | U 8 | U   | U   ]
+right [ c ] [ U | U | U | U | U | U | U | U ] -> [ c ] [ U 3 | U 4 | U 5 | U 6 | U 7 | U 8 | U 9 | U   ]
+right [ d ] [ U | U | U | U | U | U | U | U ] -> [ d ] [ U 3 | U 4 | U 5 | U 6 | U 7 | U 8 | U 9 | U a ]
+
+// filter out all input moves other than merges
+[ > number stack ] -> [ number stack ]
+[ > number bonus ] -> [ number bonus ]
+[ > number next ] -> [ number next ]
+[ > number | edge ] -> [ number | edge ]
+
+// do the moves that cannot merge, kill off movement
+[ > number | empty ] -> [ empty T1 | number ]
+
+// loop until all merged -- set T1 if anything moved
+startloop
+    // merge moving onto stationary, kill mover
+    // [ > nn:3 | stationary nn ] -> [ empty | !next nn number ]
+    [ > 1 | stationary 2 ] -> [ T1 empty | 3 ]
+    [ > 2 | stationary 1 ] -> [ T1 empty | 3 ]
+    //TODO: [ > $:num3to13 | stationary $ ] -> [ empty | ?inc $ num3to13 ]
+    [ > 3 | stationary 3 ] -> [ T1 empty | 4 ]
+    [ > 4 | stationary 4 ] -> [ T1 empty | 5 ]
+    [ > 5 | stationary 5 ] -> [ T1 empty | 6 ]
+    [ > 6 | stationary 6 ] -> [ T1 empty | 7 ]
+    [ > 7 | stationary 7 ] -> [ T1 empty | 8 ]
+    [ > 8 | stationary 8 ] -> [ T1 empty | 9 ]
+    [ > 9 | stationary 9 ] -> [ T1 empty | a ]
+    [ > a | stationary a ] -> [ T1 empty | b ]
+    [ > b | stationary b ] -> [ T1 empty | c ]
+    [ > c | stationary c ] -> [ T1 empty | d ]
+    [ > d | stationary d ] -> [ T1 empty | e ]
+
+    // numbers won't merge, so kill one mover then loop
+    // once [ > a:number | stationary b:number ] -> [ a | b ]
+    [ > number | stationary number ] -> [ > number | action number ]
+    [ > number | action number ] -> [ number | number ]
+endloop
+
+// scrunch up all the spaces, kill movers
+[ > number | empty ] -> [ empty T1 | number ]
+[ > number ] -> [ number ]
+
+[ M ][ d ] -> [ over ][ d ] status You win! R to play another?
+
+// set T3 if nothing moved, but first check if can move
+[ > M ] -> [ > M T3 ]
+[ T3 ][ T1 ] -> [ ][ ]
+
+// check for end of game - kill off M if so
+// set T1 if found empty space or possible move
+[ empty ] [ M ] -> [ empty ] [ M T1 ]
+[ grid 1 | 2 ] [ M ] -> [ grid 1 | 2 ] [ M T1 ] 
+[ grid 2 | 1 ] [ M ] -> [ grid 2 | 1 ] [ M T1 ] 
+//[ grid $:n3tod | $ ] [ M ] -> [ grid $ | $ ] [ M T1 ] 
+[ grid 3 | 3 ] [ M ] -> [ grid 3 | 3 ] [ M T1 ] 
+[ grid 4 | 4 ] [ M ] -> [ grid 4 | 4 ] [ M T1 ] 
+[ grid 5 | 5 ] [ M ] -> [ grid 5 | 5 ] [ M T1 ] 
+[ grid 6 | 6 ] [ M ] -> [ grid 6 | 6 ] [ M T1 ] 
+[ grid 7 | 7 ] [ M ] -> [ grid 7 | 7 ] [ M T1 ] 
+[ grid 8 | 8 ] [ M ] -> [ grid 8 | 8 ] [ M T1 ] 
+[ grid 9 | 9 ] [ M ] -> [ grid 9 | 9 ] [ M T1 ] 
+[ grid a | a ] [ M ] -> [ grid a | a ] [ M T1 ] 
+[ grid b | b ] [ M ] -> [ grid b | b ] [ M T1 ] 
+[ grid c | c ] [ M ] -> [ grid c | c ] [ M T1 ] 
+[ grid d | d ] [ M ] -> [ grid d | d ] [ M T1 ] 
+[ M no T1 ] [ next ] -> [ M ][ ]
+
+// no move possible
+[ M no T1 ] -> [ over ] status Game over! R to play another?
+[ T1 ] -> []
+
+// didn't lose but didn't move so cancel
+[ M T3 ] -> cancel
+
+// move Next to an available square
+[ > M ] [ edge | empty ] -> [ > M ] [ edge | T2 ]
+random [ next number ] [ T2 ] -> [ next ] [ number ]
+[ T2 ] -> [ empty ]
+[ > M ] -> [ M ]
+
+// pick a random tile from stack or bonus and move to next
+[ next ] -> [ next T1 ]
+[ T1 ] -> [ random T2 random T3 random T3 random T3 random T3 random T3 random T3 random T3 random T3 random T3 random T3 random T3 random T3 ]
+random [ bonus number ][ next T2 ] -> [ bonus ][ next number ]
+random [ stack number ][ next T3 ] -> [ stack ][ next number ]
+[ T1 ] -> [ ]
+[ T3 ] -> [ ]
+
+// colour the numbers
+[ bg ] -> [ ]
+[ number ] -> [ bg3 number ]
+[ 1 ]      -> [ bg1 1 ]
+[ 2 ]      -> [ bg2 2 ]
+
+==============
+WINCONDITIONS
+==============
+
+//some d
+ 
+=======
+LEVELS
+=======
+
+section Regular puzzle 6 seeds
+UUUUUUUU##ii
+###N*****#ii
+###*xxxx*#ii
+###*xxxx*###
+###*xxxx*###
+###*xxxx*###
+###M*****###
+SSSSSSSSSSSS
+
+section Regular puzzle 1 seed
+UUUUUUUU###i
+###N*****###
+###*xxxx*###
+###*xxxx*###
+###*xxxx*###
+###*xxxx*###
+###M*****###
+SSSSSSSSSSSS
+
+section Test puzzle no move to left
+UUUUUUUU####
+###N*****###
+###*3xxx*###
+###*11xx*###
+###*222x*###
+###*378x*###
+###M*****###
+SSSSSSSSSSSS
+
+section Test puzzle full no move
+UUUUUUUU####
+###N*****###
+###*5455*###
+###*4544*###
+###*5455*###
+###*454x*###
+###M*****###
+SSSSSSSSSSSS
+
+section Test puzzle one move to win
+UUUUUUUU####
+###N*****###
+###*cccc*###
+###*9abc*###
+###*5678*###
+###*1234*###
+###M*****###
+SSSSSSSSSSSS
+

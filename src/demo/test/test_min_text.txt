@@ -9,8 +9,21 @@ debug
 ========
 OBJECTS
 ========
+
+Player P; Yellow Green Red Black
+...........
+....222....
+...03030...
+....000....
+.011111110.
+.011111110.
+...11111...
+...22.22...
+...22.22...
+..333.333..
+...........
+
 Background;grey
-PLAYER P;white
 R;RED
 B;BLUE
 g;green
@@ -20,6 +33,19 @@ k;pink
 s; purple; text: S
 t; orange; text: t
 u; pink;   text: Ab3
+0         ; blue; text: 0
+1 size:1  ; blue; text: 1
+2 size:1.1; blue; text: 2
+3 size:0.9; blue; text: 3
+4 size:0.8; blue; text: 4
+5 size:0.7; blue; text: 5
+6 size:0.6; blue; text: 6
+7 size:0.5; blue; text: 7
+8 size:0.4; blue; text: 8
+9 size:0.3; blue; text: 9
+x size:1  ; blue; text: 99
+w size:1  ; blue; text: 999
+z size:1  ; blue; text: 9999
 
 =======
 LEGEND
@@ -30,6 +56,7 @@ o = b or g
 ork = r or k
 rgb = r or g or b
 gbr = g or b or r
+numbers = 0 or 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or x or w or z
 
 =======
 SOUNDS
@@ -44,16 +71,16 @@ k
 s
 t
 u
+numbers
 ======
 RULES
 ======
 
 [ > p | r ] -> [ > p | > r ]
-
+[ action p ] -> win
 ==============
 WINCONDITIONS
 ==============
-all r on y
 
 =======
 LEVELS
@@ -61,9 +88,10 @@ LEVELS
 
 //message first level
 
-...g..stu.
-....p.r.y.
-...b......
+............
+.0123456789.
+..p..r......
+..x.w.z.....
 
 message second level
 

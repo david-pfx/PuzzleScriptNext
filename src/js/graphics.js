@@ -134,8 +134,8 @@ function drawTextWithFont(ctx, text, color, x, y, height) {
     ctx.fillStyle = color;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
-    //ctx.imageSmoothingEnabled = false;
     ctx.fillText(text, x, y);
+    //console.log(`ctx=${ctx} color=${color} x=${x} y=${y} height=${height} font=${ctx.font} text=${text} `);
 
 }
 var textsheetCanvas = null;
@@ -209,9 +209,10 @@ function regenSpriteImages() {
         if (canOpenEditor) {
             spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
         }            
-        if (obj.spriteText) {
-            drawTextWithFont(spritesheetContext, obj.spriteText, sprites[i].colors, 
-                (spriteX + 0.5) * cellwidth, (spriteY + 0.5) * cellheight, cellheight / obj.spriteText.length);
+        if (obj.spritetext) {
+            drawTextWithFont(spritesheetContext, obj.spritetext, sprites[i].colors, 
+                (spriteX + 0.5) * cellwidth, (spriteY + 0.5) * cellheight, 
+                obj.scale ? (obj.scale * cellheight) : (cellheight / obj.spritetext.length));
         } else {
             renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
         }
@@ -413,6 +414,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
+    if (debugLevel.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -592,8 +594,9 @@ function redrawCellGrid() {
         if (tween == 0) 
             seedsToAnimate = {};
 
+        // Decision required whether to follow P:S pivot (top left)
         const spriteScaler = state.metadata.sprite_size ? { 
-            size: state.sprite_size, 
+            scale: state.sprite_size, 
             pivotx: 0.0, // todo
             pivoty: 1.0 
         } : null;
@@ -614,7 +617,9 @@ function redrawCellGrid() {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
                             continue;
-                        const spriteScale = spriteScaler ? Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.size : 1;
+                        let spriteScale = 1;
+                        if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
+                        //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = {
                             x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth,
                             y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight
@@ -629,7 +634,10 @@ function redrawCellGrid() {
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
-                        const csz = { x: params.scalex * cellwidth * spriteScale, y: params.scaley * cellheight * spriteScale };
+                        const csz = { 
+                            x: params.scalex * cellwidth * spriteScale, 
+                            y: params.scaley * cellheight * spriteScale 
+                        };
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
                             y: Math.floor(drawpos.y + params.y * cellheight),
@@ -651,31 +659,53 @@ function redrawCellGrid() {
         }
     } 
 
-    // calculate animation for this object
-    // todo: pre-compute for performance reasons?
+    // update animation parameters based on kind and dir, based on tween curve
     function calcAnimate(afx, kind, dir, params, tween) {
-        const funcs = {
-            xlate: (p,a) => { 
-                const delta = dir ? dirMasksDelta[dir] : [ 0, 0 ];
-                p.x = -tween * delta[0] * (a || 1); 
-                p.y = -tween * delta[1] * (a || 1); 
-            },
-            scale: (p,a) => { 
-                p.scalex = p.scaley = tween; 
-                p.x = p.y = 0.5 - tween / 2 * (a || 1);
-            },
-            alpha: (p,a) => { p.alpha = tween * (a || 1); },
-            angle: (p,a) => { p.angle = tween * (a || 360); },
-            ease: (p,a) => { tween = easingFunction(a)(tween); },
-            tween: (p,a) => { tween = tween * (a || 1); },
+        const tween_table = {
+            move:   { slide: [-1,0],    zoom: [0,1],       turn: [0,.25],       fade: [0,1] },
+            cant:   { slide: [0,.2,0],  zoom: [1,1.2,1],   turn: [0,.1,0],      fade: [1,.5,1] },
+            hit:    { slide: [0,.2,0],  zoom: [1,1.2,1],   turn: [0,-.1,.1,0],  fade: [1,.5,1] },
+            create: { slide: [1,0],     zoom: [0,1],       turn: [-.125,0],     fade: [0,1] },
+            destroy:{ slide: [0,1],     zoom: [1,0],       turn: [0,.125],      fade: [1,0] },
         }
-        if (kind == 'create') tween = 1 - tween;
-        else if (kind == 'cant') tween = (tween > 0.5) ? 1 - tween : tween;
+    
+        // tweening funcs
+        const tfuncs = {
+            slide: (p,t) => { 
+                const delta = [1,2,4,8].includes(dir) ? dirMasksDelta[dir] : [ 0, -1 ]; // up
+                p.x = t * delta[0]; 
+                p.y = t * delta[1]; 
+            },
+            zoom: (p,t) => { 
+                p.scalex = p.scaley = t; 
+                p.x = p.y = 0.5 - p.scalex/2;  
+            },
+            fade: (p,t) => { p.alpha = t; },
+            turn: (p,t) => { p.angle = t * 360; },
+        }
 
+        // param funcs
+        const pfuncs = {
+            ease: (p,a,t) => { tween = easingFunction(a)(tween); },
+            tween: (p,a,t) => { tween = a; },  // wrong!?
+        }
+        
         for (x of afx) {
             const xs = x.split('=');
-            if (funcs[xs[0]])
-                funcs[xs[0]](params, xs[1]);
+            if (tfuncs[xs[0]]) {
+                if (kind == 'move' && ![1,2,4,8].includes(dir))
+                    kind = 'hit';
+                const tweens = xs[1] ? xs[1].split(',').map(p => parseFloat(p) || 0)
+                    : tween_table[kind][xs[0]];
+                const twx = (1 - tween) * (tweens.length - 1);
+                const tdiv = ~~twx;
+                const tmod = twx - tdiv;
+                const t = tweens[tdiv] + (tweens[tdiv + 1] - tweens[tdiv]) * tmod;
+                tfuncs[xs[0]](params, t);
+            } else if (pfuncs[xs[0]]) {
+                pfuncs[xs[0]](params, xs[1], t);
+            }
+
         }
         return params;
     }
@@ -1029,9 +1059,10 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
-    // debugLevel
-    // const ele = document.getElementById('debug');
-    // ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    if (debugLevel.includes('cell')) {
+        const ele = document.getElementById('debug');
+        ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+    }
     
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
     	forceRegenImages=false;

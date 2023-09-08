@@ -9,7 +9,6 @@ background_color lightblue
 text_color darkbrown
 
 run_rules_on_level_start
-tween_length 0.25
 sprite_size 9
 //nokeyboard 
 mouse_clicks
@@ -108,12 +107,15 @@ tileRR1 = tileX or tileN or tileW or tileS or tileE
 tileRX0 = tileN or tileS or tileW or tileE or tileX
 tileRX1 = tileN or tileS or tileX or tileW or tileE
 
+tileX0 = tileN or tileE or tileS or tileW
+tileX1 = tileE or tileS or tileW or tileN
+
 =======
 SOUNDS
 =======
 
-player lclick 32169907 afx:RR
-player rclick 32169907 afx:RL
+player lclick 32169907 afx:turn=-0.25
+player rclick 16334503 afx:turn=.25
 sfx0 32169907
 sfx1 16334503
 
@@ -138,10 +140,15 @@ RULES
 
 // accept a user input
 
-  [ lclick tileRL0 ] -> [ lclick tileRL1 ] 
-+ [ lclick tileRL0 ] -> [ tileRL0 ]
-  [ rclick tileRR0 ] -> [ rclick tileRR1 ] 
-+ [ rclick tileRR0 ] -> [ tileRR0 ]
+  [ lclick tileX1 ] -> [ action tileX0 ] 
+  [ action tileX0 ] -> [ lclick tileX0 ]
+  [ rclick tileX0 ] -> [ action tileX1 ] 
+  [ action tileX0 ] -> [ rclick tileX0 ]
+
+//  [ lclick tileRL0 ] -> [ action tileRL1 ] 
+//+ [ action tileRL0 ] -> [ lclick tileRL0 ]
+//  [ rclick tileRR0 ] -> [ rclick tileRR1 ] 
+//+ [ rclick tileRR0 ] -> [ tileRR0 ]
 
 ==============
 WINCONDITIONS

@@ -1,0 +1,95 @@
+title test min animate
+author polymino
+homepage www.polyomino.com
+
+// test program for animations
+// click on everything, left and right
+// move the player UDLR, and bump into things
+
+//animate_interval 2.0
+
+verbose_logging
+debug
+mouse_clicks
+
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+m;purple
+w;brown
+d;darkgreen
+t;transparent
+
+=======
+LEGEND
+=======
+. = Background
+rgby = r or g or b or y
+
+=======
+SOUNDS
+=======
+
+player move up afx:slide
+player cantmove up afx:slide
+player move left afx:zoom
+player cantmove left afx:zoom
+player move right afx:turn
+player cantmove right afx:turn
+player move down afx:fade
+player cantmove down afx:fade
+
+k lclick afx:slide
+k rclick afx:slide=-.25,0
+d lclick afx:zoom
+d rclick afx:zoom=.5,1
+m lclick afx:turn
+m rclick afx:turn=-.25,0
+w lclick afx:fade
+w rclick afx:fade=1,0
+
+r create  afx:slide
+r destroy afx:slide
+g create  afx:zoom
+g destroy afx:zoom
+b create  afx:turn
+b destroy afx:turn
+y create  afx:fade
+y destroy afx:fade
+
+sfx1 64217903 
+sfx99 64217903 
+
+================
+COLLISIONLAYERS
+================
+Background
+Player, r, b, g, y, k, d, m, w
+t
+======
+RULES
+======
+
+horizontal [ lclick rgby | t ] -> [ t | rgby ]
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+........
+..k.rt..
+.d.p.gt.
+.m...bt.
+..w.yt..
+........

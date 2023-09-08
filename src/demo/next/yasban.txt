@@ -72,6 +72,7 @@ Crate C; Yellow DarkBrown
 
 Background .; LightGrey
 Void -; Blue
+Temp; transparent
 Hello H; blue yellow
 text: Hello world!
 
@@ -86,9 +87,10 @@ LEGEND
 SOUNDS
 =======
 
-player move afx:xlate
-player cantmove 48306102 afx:xlate=-.5
-crate move 76861108 afx:xlate
+player move afx:slide
+player cantmove 48306102 afx:slide
+crate move 76861108 afx:slide
+crate action afx:zoom
 
 ================
 COLLISIONLAYERS
@@ -99,12 +101,14 @@ Void
 Target
 Player, Wall, Crate
 Hello
+Temp
 
 ======
 RULES
 ======
 
 [ >  Player | Crate ] -> [  >  Player | > Crate  ]
+[ > Crate | Target no Crate ] -> [ | action Crate Target ]
 
 ==============
 WINCONDITIONS
