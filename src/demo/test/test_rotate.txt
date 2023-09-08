@@ -114,8 +114,8 @@ tileX1 = tileE or tileS or tileW or tileN
 SOUNDS
 =======
 
-player lclick 32169907 afx:angle=-90
-player rclick 16334503 afx:angle=90
+player lclick 32169907 afx:turn=-0.25
+player rclick 16334503 afx:turn=.25
 sfx0 32169907
 sfx1 16334503
 

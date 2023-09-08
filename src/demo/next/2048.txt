@@ -2,15 +2,12 @@ title 2048
 author polyomino games
 homepage polyomino.org
 
-comment //
-endline ;
-
 // This is an implementation of the 2048 game designed to show off Puzzlang extensions
 // Text objects using TEXT 
 // Icons of any size with definable scaling factor
 // End of line comments using //
 // Line breaks using ;
-// Program structure using rule segments
+// Program structure using rule subroutines -- TBD
 
 background_color blue
 text_color yellow
@@ -20,17 +17,17 @@ run_rules_on_level_start
 OBJECTS
 ========
 
-1; white; resize 0.9; text 2
-2; white; resize 0.8; text 4
-3; white; resize 0.8; text 8
-4; white; resize 0.8; text 16
-5; white; resize 0.7; text 32
-6; white; resize 0.7; text 64
-7; white; resize 0.6; text 128
-8; white; resize 0.6; text 256
-9; white; resize 0.6; text 512
-a; white; resize 0.4; text 1024
-b; white; resize 0.4; text 2048
+1; white; text: 2
+2; white; text: 4
+3; white; text: 8
+4; white; text: 16
+5; white; text: 32
+6; white; text: 64
+7; white; text: 128
+8; white; text: 256
+9; white; text: 512
+a; white; text: 1024
+b; white; text: 2048
 
 border #; lightbrown yellow orange red
 0123

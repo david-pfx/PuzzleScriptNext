@@ -144,8 +144,8 @@ tempobj = r0 or init or mix
 SOUNDS
 =======
 
-player lclick 32169907 afx:angle=-90
-player rclick 32169907 afx:angle=90
+player lclick 32169907 afx:turn=.25,0      // anticlockwise 90
+player rclick 32169907 afx:turn=-.25,0     // clockwise 90
 sfx0 32169907
 sfx1 16334503
 
@@ -237,7 +237,7 @@ WINCONDITIONS
 LEVELS
 =======
 
-message The aim is to light up the whole board
+message The aim is to light up the whole board. Left click to rotate left, right click for right.
 
 section Single start 3x3
 i***m

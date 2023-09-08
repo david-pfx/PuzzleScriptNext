@@ -2,77 +2,63 @@ title Fifteen
 author polyomino games
 homepage polyomino.org
 
-comment //
-endline ;
+// slide the tiles into the correct order
+// port/rewrite from Tatham collection
 
 background_color lightbrown
 text_color darkblue
 run_rules_on_level_start
-hover
+mouse_clicks
+level_select
+status_line
 
 ========
 OBJECTS
 ========
-Background .;lightblue
-edge *;lightbrown
-info +;lightbrown
-player;transparent
-N;red
-W;lightbrown
-X;lightbrown
-Y;lightbrown
-Z;lightbrown
-lit;transparent
-
-focus // for hover
-lightgrey
-000000000000
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-000000000000
 
 grid
-darkgrey
+lightred white
 000000000000
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
-0..........0
+011111111110
+011111111110
+011111111110
+011111111110
+011111111110
+011111111110
+011111111110
+011111111110
+011111111110
+011111111110
 000000000000
 
 0;transparent
-1;blue;resize 0.8;text 1
-2;blue;resize 0.8;text 2
-3;blue;resize 0.7;text 3
-4;blue;resize 0.7;text 4
-5;blue;resize 0.7;text 5
-6;blue;resize 0.7;text 6
-7;blue;resize 0.7;text 7
-8;blue;resize 0.7;text 8
-9;blue;resize 0.7;text 9
-A;blue;resize 0.7;text 10
-B;blue;resize 0.7;text 11
-C;blue;resize 0.7;text 12
-D;blue;resize 0.7;text 13
-E;blue;resize 0.7;text 14
-F;blue;resize 0.7;text 15
 
-tyou;blue;resize 0.5;text You
-twin;blue;resize 0.5;text Win!
+1 scale: 0.7; blue; text: 1
+2 scale: 0.7; blue; text: 2
+3 scale: 0.7; blue; text: 3
+4 scale: 0.7; blue; text: 4
+5 scale: 0.7; blue; text: 5
+6 scale: 0.7; blue; text: 6
+7 scale: 0.7; blue; text: 7
+8 scale: 0.7; blue; text: 8
+9 scale: 0.7; blue; text: 9
+A scale: 0.6; blue; text: 10
+B scale: 0.6; blue; text: 11
+C scale: 0.6; blue; text: 12
+D scale: 0.6; blue; text: 13
+E scale: 0.6; blue; text: 14
+F scale: 0.6; blue; text: 15
+
+Background .; lightblue
+edge *;       lightbrown
+info +;       lightbrown
+player;       transparent
+N;            red
+W;            lightbrown
+X;            lightbrown
+Y;            lightbrown
+Z;            lightbrown
+lit;          transparent
 
 =======
 LEGEND
@@ -86,6 +72,9 @@ P = player and edge
 =======
 SOUNDS
 =======
+sfx0 43153703
+digit move afx:slide 83424300
+grid move afx:slide
 
 ================
 COLLISIONLAYERS
@@ -93,24 +82,21 @@ COLLISIONLAYERS
 Background
 edge W X Y Z N grid info 
 lit
-0 digit player tyou twin
-focus
+0 
+digit player
 
 ======
 RULES
 ======
 
-[ action player ] -> reset
-[ moving player ] -> [ player ]
+[ lit | lit | lit | lit ] -> cancel
+[ action player ] -> restart  // should be to replay same game
 
-[ tyou ] -> cancel
-
+// start from valid ending position, then shuffle
 [ W | N | N | N | N ] -> [ W | N 1 | N 2 | N 3 | N 4 ]
 [ X | N | N | N | N ] -> [ X | N 5 | N 6 | N 7 | N 8 ]
 [ Y | N | N | N | N ] -> [ Y | N 9 | N A | N B | N C ]
 [ Z | N | N | N | N ] -> [ Z | N D | N E | N F |   0 ]
-
-(random [ N digit | 0 ] -> [ 0 | digit ] )
 
 startloop
 random [ N digit | 0 ] -> [ 0 | digit ] 
@@ -120,32 +106,43 @@ random [ N ] [ no N digit | | | 0 ] -> [ N ] [ 0 | | | digit ]
 endloop
 
 [ N ] -> [ ]
-
-[ focus ] -> [ ]
-[ hover clickable ] -> [ focus clickable ]
-
-[ click1 digit | 0 ] -> [ 0 | digit ]
-
 [ grid ] -> [ ]
 [ digit ] -> [ digit grid ]
 
-[ lit ] -> [ ]
-right [ W | 1 | 2 | 3 | 4 ] -> [ W lit | 1 | 2 | 3 | 4 ]
-right [ X | 5 | 6 | 7 | 8 ] -> [ X lit | 5 | 6 | 7 | 8 ]
-right [ Y | 9 | A | B | C ] -> [ Y lit | 9 | A | B | C ]
-right [ Z | D | E | F | 0 ] -> [ Z lit | D | E | F | 0 ]
+[ lclick digit grid | 0 ] -> [ > digit > grid | < 0 ]
+[ > player ][ digit grid | 0 ] -> [ player ][ > digit > grid | < 0 ]
 
-([ lit | lit | lit | lit ] [ info ] -> message You win!)
-down [ lit | lit | lit | lit ] [ info ] -> [ lit | lit | lit | lit ] [ info tyou ]
-right [ info tyou | info tyou ] -> [ info tyou | info twin ]
+late [ lit ] -> [ ]
+late right [ W | 1 | 2 | 3 | 4 ] -> [ W lit | 1 | 2 | 3 | 4 ]
+late right [ X | 5 | 6 | 7 | 8 ] -> [ X lit | 5 | 6 | 7 | 8 ]
+late right [ Y | 9 | A | B | C ] -> [ Y lit | 9 | A | B | C ]
+late right [ Z | D | E | F | 0 ] -> [ Z lit | D | E | F | 0 ]
+
+late [ lit | lit | lit | lit ] -> sfx0
+late [ lit | lit | lit | lit ] -> status You win! Press R to play a new game.
+
+=======
+WINCONDITIONS
+=======
 
 =======
 LEVELS
 =======
 
+message Click on a tile or use the arrow keys to move. Try to get all the tiles into numeric order.
+
+section Regular level 4x4
 P*****
 WNNNN*
 XNNNN*
 YNNNN*
 ZNNNN*
+**++**
+
+section Test level, one move to win
+P*****
+W1234*
+X5678*
+Y9ABC*
+ZDE0F*
 **++**

@@ -2,8 +2,9 @@ title Bridges
 author polyomino games
 homepage polyomino.org
 
-comment //
-endline ;
+// join up the network using single and double lines
+// port/rewrite from Tatham collection
+// requires rule subroutines - TBD
 
 color_palette mastersystem
 background_color blue

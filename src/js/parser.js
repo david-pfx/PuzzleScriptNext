@@ -617,7 +617,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, kind);
                     if (lexer.checkEolSemi()) break;
 
-                } else if (token = lexer.match(/^size:/i)) {
+                } else if (token = lexer.match(/^scale:/i)) {
                     if (!symbols.candname)
                         logError(`Must define a sprite first`, state.lineNumber);
                     else kind = 'KEYWORD';
@@ -626,11 +626,11 @@ var codeMirrorFn = function() {
 
                     kind = 'ERROR';
                     token = lexer.match(/^[0-9.]+/);
-                    const size = parseFloat(token);
-                    if (size == NaN)
-                        logError(`Size requires a numeric argument.`, state.lineNumber);
+                    const scale = parseFloat(token);
+                    if (scale == NaN)
+                        logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
-                        symbols.size = size;
+                        symbols.scale = scale;
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -670,8 +670,8 @@ var codeMirrorFn = function() {
                 colors: [],
                 spritematrix: [],
                 cloneSprite: symbols.parent || '',
-                spriteText: null,
-                size: symbols.size
+                spritetext: null,
+                scale: symbols.scale
             };
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
@@ -727,8 +727,8 @@ var codeMirrorFn = function() {
         const obj = state.objects[state.objects_candname];
         
         if (getTokens()) {
-            if (values.text)
-                obj.spriteText = values.text;
+            if (values.text) 
+                obj.spritetext = values.text;
             else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
@@ -742,6 +742,7 @@ var codeMirrorFn = function() {
                 token = lexer.matchAll();
                 lexer.pushToken(token, `COLOR COLOR-${obj.colors[0].toUpperCase()}`);
                 values.text = token;
+                state.objects_section = 0;
                 return true;
             }    
 
@@ -1197,7 +1198,7 @@ var codeMirrorFn = function() {
                     colors: obj.colors.slice(),
                     lineNumber : obj.lineNumber,
                     spritematrix: obj.spritematrix.slice(),
-                    spriteText: obj.spriteText
+                    spritetext: obj.spritetext
                     // bug: why no copy of cloneSprite?
                 };
             }
@@ -1350,7 +1351,7 @@ var codeMirrorFn = function() {
                         // if not a grid char assume missing blank line and go to next object
                         if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
                             && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            if (debugLevel.includes('obj')) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
+                            //if (debugLevel.includes('obj')) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
                             state.objects_section = 1;
                         }
                     }

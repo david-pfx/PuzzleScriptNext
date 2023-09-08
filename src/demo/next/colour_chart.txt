@@ -2,8 +2,7 @@ title Colour Chart
 author polyomino games
 homepage polyomino.org
 
-comment //
-endline ;
+// program to show all the colours in a palette
 
 background_color white
 text_color black
@@ -30,50 +29,50 @@ Background .;white
 Player P;red
 
 // colour patches
-C0;Black
-C1;White
-C2;Grey
-C3;DarkGrey
-C4;LightGrey
-C5;Red
-C6;DarkRed
-C7;LightRed
-C8;Brown
-C9;DarkBrown
-CA;LightBrown
-CB;Orange
-CC;Yellow
-CD;Green
-CE;DarkGreen
-CF;LightGreen
-CG;Blue
-CH;LightBlue
-CI;DarkBlue
-CJ;Purple
-CK;Pink
+C0; Black
+C1; White
+C2; Grey
+C3; DarkGrey
+C4; LightGrey
+C5; Red
+C6; DarkRed
+C7; LightRed
+C8; Brown
+C9; DarkBrown
+CA; LightBrown
+CB; Orange
+CC; Yellow
+CD; Green
+CE; DarkGreen
+CF; LightGreen
+CG; Blue
+CH; LightBlue
+CI; DarkBlue
+CJ; Purple
+CK; Pink
 
 // text overlay
-T0;White;resize  0.18;text Black
-T1;Black;resize  0.18;text White
-T2;Black;resize  0.18;text Grey
-T3;White;resize  0.18;text DarkGrey
-T4;Black;resize  0.18;text LightGrey
-T5;Black;resize  0.18;text Red
-T6;White;resize  0.18;text DarkRed
-T7;Black;resize  0.18;text LightRed
-T8;Black;resize  0.18;text Brown
-T9;White;resize  0.18;text DarkBrown
-TA;Black;resize  0.18;text LightBrown
-TB;Black;resize  0.18;text Orange
-TC;Black;resize  0.18;text Yellow
-TD;Black;resize  0.18;text Green
-TE;White;resize  0.18;text DarkGreen
-TF;Black;resize  0.18;text LightGreen
-TG;Black;resize  0.18;text Blue
-TH;Black;resize  0.18;text LightBlue
-TI;White;resize  0.18;text DarkBlue
-TJ;Black;resize  0.18;text Purple
-TK;Black;resize  0.18;text Pink
+T0 scale: 0.18; White; text: Black
+T1 scale: 0.18; Black; text: White
+T2 scale: 0.18; Black; text: Grey
+T3 scale: 0.18; White; text: DarkGrey
+T4 scale: 0.18; Black; text: LightGrey
+T5 scale: 0.18; Black; text: Red
+T6 scale: 0.18; White; text: DarkRed
+T7 scale: 0.18; Black; text: LightRed
+T8 scale: 0.18; Black; text: Brown
+T9 scale: 0.18; White; text: DarkBrown
+TA scale: 0.18; Black; text: LightBrown
+TB scale: 0.18; Black; text: Orange
+TC scale: 0.18; Black; text: Yellow
+TD scale: 0.18; Black; text: Green
+TE scale: 0.18; White; text: DarkGreen
+TF scale: 0.18; Black; text: LightGreen
+TG scale: 0.18; Black; text: Blue
+TH scale: 0.18; Black; text: LightBlue
+TI scale: 0.18; White; text: DarkBlue
+TJ scale: 0.18; Black; text: Purple
+TK scale: 0.18; Black; text: Pink
 
 =======
 LEGEND
@@ -103,6 +102,10 @@ K = CK and TK
 Colours = C0 or C1 or C2 or C3 or C4 or C5 or C6 or C7 or C8 or C9 or CA or CB or CC or CD or CE or CF or CG or CH or CI or CJ or CK
 Texts   = T0 or T1 or T2 or T3 or T4 or T5 or T6 or T7 or T8 or T9 or TA or TB or TC or TD or TE or TF or TG or TH or TI or TJ or TK
 
+======
+SOUNDS
+======
+
 ================
 COLLISIONLAYERS
 ================
@@ -111,6 +114,14 @@ Background
 Player
 Colours
 Texts
+
+=====
+RULES
+=====
+
+=============
+WINCONDITIONS
+=============
 
 =======
 LEVELS

@@ -2,47 +2,30 @@ title Picross
 author polymino
 homepage www.polyomino.com
 
-comment //
-endline ;
+// Otherwise known as nonogram
 
 background_color darkblue
 text_color yellow
-hover
+mouse_clicks
 
 ========
 OBJECTS
 ========
-Background .;green
-edge *;darkgreen
-black x;black
-white o;white
-temp t;transparent
-lit;yellow
 
 0;transparent
-1;blue;resize 0.8;text 1
-2;blue;resize 0.8;text 2
-3;blue;resize 0.7;text 3
-4;blue;resize 0.7;text 4
-5;blue;resize 0.7;text 5
-6;blue;resize 0.7;text 6
-7;blue;resize 0.7;text 7
-8;blue;resize 0.7;text 8
-9;blue;resize 0.7;text 9
-A;blue;resize 0.7;text 10
-B;blue;resize 0.7;text 11
-C;blue;resize 0.7;text 12
 
-focus // for hover
-lightgrey
-00000000
-0......0
-0......0
-0......0
-0......0
-0......0
-0......0
-00000000
+1 scale: 0.8; blue;text: 1
+2 scale: 0.8; blue;text: 2
+3 scale: 0.7; blue;text: 3
+4 scale: 0.7; blue;text: 4
+5 scale: 0.7; blue;text: 5
+6 scale: 0.7; blue;text: 6
+7 scale: 0.7; blue;text: 7
+8 scale: 0.7; blue;text: 8
+9 scale: 0.7; blue;text: 9
+A scale: 0.4; blue;text: 10
+B scale: 0.4; blue;text: 11
+C scale: 0.4; blue;text: 12
 
 unknown u
 grey
@@ -54,6 +37,14 @@ grey
 0......0
 0......0
 00000000
+
+Background .;green
+Player P;red
+edge *;darkgreen
+black x;black
+white o;white
+temp t;transparent
+lit;yellow
 
 =======
 LEGEND
@@ -69,24 +60,20 @@ SOUNDS
 COLLISIONLAYERS
 ================
 Background
-edge lit
+edge lit player
 black white unknown temp
 0 digit
-focus
 
 ======
 RULES
 ======
 
-[ focus ] -> [ ]
-[ hover clickable ] -> [ focus clickable ]
-
-[ click1 unknown ] -> [ black ]
-[ click1 black ] -> [ white ]
-[ click1 white ] -> [ unknown ]
-[ click2 unknown ] -> [ white ]
-[ click2 black ] -> [ unknown ]
-[ click2 white ] -> [ black ]
+[ lclick unknown ] -> [ black ]
+[ lclick black ] -> [ white ]
+[ lclick white ] -> [ unknown ]
+[ rclick unknown ] -> [ white ]
+[ rclick black ] -> [ unknown ]
+[ rclick white ] -> [ black ]
 
 [ lit ] -> [ ]
 left [ no x | x | no x | ... | no lit 1 ]                                 -> [ no x | t | no x | ... | lit 1 ]

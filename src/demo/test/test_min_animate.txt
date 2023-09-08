@@ -37,32 +37,32 @@ rgby = r or g or b or y
 SOUNDS
 =======
 
-player move up afx:xlate
-player cantmove up afx:xlate
-player move left afx:scale
-player cantmove left afx:scale
-player move right afx:angle
-player cantmove right afx:angle
-player move down afx:alpha
-player cantmove down afx:alpha
+player move up afx:slide
+player cantmove up afx:slide
+player move left afx:zoom
+player cantmove left afx:zoom
+player move right afx:turn
+player cantmove right afx:turn
+player move down afx:fade
+player cantmove down afx:fade
 
-k lclick afx:xlate
-k rclick afx:xlate=.5
-d lclick afx:scale
-d rclick afx:scale=.5
-m lclick afx:angle
-m rclick afx:angle=.5
-w lclick afx:alpha
-w rclick afx:alpha=.5
+k lclick afx:slide
+k rclick afx:slide=-.25,0
+d lclick afx:zoom
+d rclick afx:zoom=.5,1
+m lclick afx:turn
+m rclick afx:turn=-.25,0
+w lclick afx:fade
+w rclick afx:fade=1,0
 
-r create  afx:xlate
-r destroy afx:xlate
-g create  afx:scale
-g destroy afx:scale
-b create  afx:angle
-b destroy afx:angle
-y create  afx:alpha
-y destroy afx:alpha
+r create  afx:slide
+r destroy afx:slide
+g create  afx:zoom
+g destroy afx:zoom
+b create  afx:turn
+b destroy afx:turn
+y create  afx:fade
+y destroy afx:fade
 
 sfx1 64217903 
 sfx99 64217903 

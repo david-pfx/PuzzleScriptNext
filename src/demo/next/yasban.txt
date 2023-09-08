@@ -87,10 +87,10 @@ LEGEND
 SOUNDS
 =======
 
-player move afx:xlate
-player cantmove 48306102 afx:xlate
-crate move 76861108 afx:xlate
-crate action afx:scale
+player move afx:slide
+player cantmove 48306102 afx:slide
+crate move 76861108 afx:slide
+crate action afx:zoom
 
 ================
 COLLISIONLAYERS

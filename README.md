@@ -105,34 +105,38 @@ The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScrip
 Use it like this. 
 
 ```
-player move up afx:xlate
-player cantmove up afx:xlate
-player move left afx:scale
-player cantmove left afx:scale
+player move up afx:slide
+player cantmove up afx:slide
+player move left afx:zoom
+player cantmove left afx:zoom
 
-m lclick afx:angle
-w lclick afx:alpha
+m lclick afx:turn
+w lclick afx:fade
 
-b create  afx:angle
-b destroy afx:angle
-y create  afx:alpha:scale
-y destroy afx:alpha:
+b create  afx:turn
+b destroy afx:turn
+y create  afx:fade:scale
+y destroy afx:fade:
+
+player lclick 32169907 afx:turn=.25,0      // anticlockwise 90
+player rclick 32169907 afx:turn=-.25,0     // clockwise 90
 ```
 
 All animations start with `afx` and have one or more parameters separated by `:`. 
 Each parameter may have an argument separated by `=`.
 The parameters are:
- * `xlate[=factor]` animates a translate movement of an object
- * `scale[=factor]` animates a scaling (resizing or zooming) of an object
- * `alpha[=factor]` animates the alpha (transparency) of an object
- * `angle[=angle]` animates the rotation (`angle`) of an object, default 360 degrees
+ * `slide[=n,m...]` animates a sliding movement of an object
+ * `zoom[=n,m...]` animates zooming in or out (resizing) of an object
+ * `fade[=n,m...]` animates fading (alpha, transparency) of an object
+ * `turn[=n,m...]` animates turning (rotation) of an object
  * `ease[=function]` applies an easing `function` (non-linear tweening), as per `tween_easing` in the prelude
 
- An argument of `factor` is multiplied by the magitude of the animation, and defaults to 1.0.
- Multiple animations may be applied to an object.
- Feel free to experiment.
+ An argument of `n,m...` is a comma-separated list of values that define the animation, how the value changes over time.
+ Default values are defined in a table in the source code and will be documented here once stable.
+ Meanwhile feel free to experiment.
 
  All animations take place in a single period of time, set by in the prelude by `animate_interval`. 
+ Multiple animations may be applied to an object.
  The default is 0.25 sec. Note that if you enable tweening by setting `tween_length`, animation is disabled.
 
  ```

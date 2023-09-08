@@ -2,13 +2,11 @@ title 333
 author polyomino games
 homepage polyomino.org
 
-comment //
-endline ;
-
 background_color blue
 text_color yellow
 run_rules_on_level_start
-// cannot use require player movement because we kill off movement before move phase -- TODO?
+level_select
+// cannot use require player movement because we kill off movement before move phase
 
 //debug
 //verbose_logging
@@ -43,39 +41,39 @@ grid;grey;
 0..............0
 0000000000000000
 
-1;black;resize 0.8;text 1
-2;black;resize 0.8;text 2
-3;black;resize 0.8;text 3
-4;black;resize 0.8;text 6
-5;black;resize 0.7;text 12
-6;black;resize 0.7;text 24
-7;black;resize 0.6;text 48
-8;black;resize 0.6;text 96
-9;black;resize 0.6;text 192
-a;black;resize 0.4;text 384
-b;black;resize 0.4;text 768
-c;black;resize 0.4;text 1536
-d;black;resize 0.4;text 3072
-e;black;resize 0.4;text 6144
+1 scale: 0.7; black; text: 1
+2 scale: 0.7; black; text: 2
+3 scale: 0.7; black; text: 3
+4 scale: 0.7; black; text: 6
+5 scale: 0.6; black; text: 12
+6 scale: 0.6; black; text: 24
+7 scale: 0.6; black; text: 48
+8 scale: 0.6; black; text: 96
+9 scale: 0.45; black; text: 192
+a scale: 0.45; black; text: 384
+b scale: 0.45; black; text: 768
+c scale: 0.35; black; text: 1536
+d scale: 0.35; black; text: 3072
+e scale: 0.35; black; text: 6144
 
-Background .;green;
-edge *;green;
-empty;lightgrey;        // empty square, where a number is not
-stack s;lightbrown      // array of values for next
-bonus u;darkbrown       // array of values for bonus
-init i;darkblue         // array of markers for initial seed
-next n;transparent      // next tile
-mover M;transparent     // player used to record input direction for next
-bg1;blue;
-bg2;red;
-bg3;white;
+Background .; green;
+edge *;     green;
+empty;      lightgrey;        // empty square, where a number is not
+stack s;    lightbrown        // array of values for next
+bonus u;    darkbrown         // array of values for bonus
+init i;     darkblue          // array of markers for initial seed
+next n;     transparent       // next tile
+mover M;    transparent       // player used to record input direction for next
+bg1;        blue;
+bg2;        red;
+bg3;        white;
 
-over;transparent        // marker for game over (with d is won)
+over;       transparent       // marker for game over (with d is won)
 
 // temporary marker objects
-T1;pink;
-T2;pink;
-T3;pink;
+T1; pink;
+T2; pink;
+T3; pink;
 
 =======
 LEGEND
@@ -245,7 +243,7 @@ WINCONDITIONS
 LEVELS
 =======
 
-level Regular puzzle 6 seeds
+section Regular puzzle 6 seeds
 UUUUUUUU##ii
 ###N*****#ii
 ###*xxxx*#ii
@@ -255,7 +253,7 @@ UUUUUUUU##ii
 ###M*****###
 SSSSSSSSSSSS
 
-level Regular puzzle 1 seed
+section Regular puzzle 1 seed
 UUUUUUUU###i
 ###N*****###
 ###*xxxx*###
@@ -265,7 +263,7 @@ UUUUUUUU###i
 ###M*****###
 SSSSSSSSSSSS
 
-level Test puzzle no move to left
+section Test puzzle no move to left
 UUUUUUUU####
 ###N*****###
 ###*3xxx*###
@@ -275,7 +273,7 @@ UUUUUUUU####
 ###M*****###
 SSSSSSSSSSSS
 
-level Test puzzle full no move
+section Test puzzle full no move
 UUUUUUUU####
 ###N*****###
 ###*5455*###
@@ -285,7 +283,7 @@ UUUUUUUU####
 ###M*****###
 SSSSSSSSSSSS
 
-level Test puzzle one move to win
+section Test puzzle one move to win
 UUUUUUUU####
 ###N*****###
 ###*cccc*###

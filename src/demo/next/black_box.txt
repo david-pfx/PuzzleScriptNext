@@ -2,15 +2,15 @@ title Black Box
 author polyomino games
 homepage polyomino.org
 
-comment //
-endline ;
+// find the hidden objects by bouncing rays off them
+// port/rewrite from Tatham collection
+// requires rule subroutines - TBD
+
 background_color lightbrown
 text_color darkblue
 run_rules_on_level_start
-noarrows
-noaction
-clicks
-//hove«r
+nokeyboard 
+mouse_clicks
 
 ========
 OBJECTS
@@ -62,20 +62,20 @@ black grey
 
 //FAB extension: text objects
 // numbers to show on edge
-N1 ; blue; scale 0.8; text 1
-N2 ; blue; scale 0.8; text 2
-N3 ; blue; scale 0.7; text 3
-N4 ; blue; scale 0.7; text 4
-N5 ; blue; scale 0.7; text 5
-N6 ; blue; scale 0.7; text 6
-N7 ; blue; scale 0.7; text 7
-N8 ; blue; scale 0.7; text 8
-N9 ; blue; scale 0.7; text 9
-N10; blue; scale 0.7; text 10
-N11; blue; scale 0.7; text 11
-N12; blue; scale 0.7; text 12
-NR ; blue; scale 0.7; text R
-NH ; blue; scale 0.7; text H
+N1 ; blue; text 1
+N2 ; blue; text 2
+N3 ; blue; text 3
+N4 ; blue; text 4
+N5 ; blue; text 5
+N6 ; blue; text 6
+N7 ; blue; text 7
+N8 ; blue; text 8
+N9 ; blue; text 9
+N10; blue; text 10
+N11; blue; text 11
+N12; blue; text 12
+NR ; blue; text R
+NH ; blue; text H
 
 target; transparent
 
