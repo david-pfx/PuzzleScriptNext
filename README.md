@@ -7,101 +7,19 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23g08, mainly bug fixes. 
-
-* The parsing of the new STATUS command now works correctly.
-* The parsing of some end of line situations now works correctly.
-* The ACTION key in `test_min_prelude` now triggers a win.
-* The level editor now counts glyphs correctly.
-* The `youtube` warning from PuzzleScript has been merged.
+The latest version is Release v-23i08, which includes a significant upgrade to the animation system, as well as:
+* Several new games to demonstrate text sprites and animation.
+* Key repeat interval default 200 (from 150) to reduce key bounce.
+* The lexer has been reimplemented as a class, and several parsing sections rewritten to use it.
+* Performance counters to gather timing statistics (`set debugLevel='perf'``).
+* Updated to latest version of jquery.
 
 It includes the following features.
-
-### Custom font can load dynamically
-The custom font setting can be a link to a font file on the Web, preferably of type `woff2`.
-You can find font files that are freely accessible in various places, including Google Fonts.
-* Search for VT323 and you will find https://fonts.google.com/specimen/VT323. 
-* Then search a bit more and find this link: https://fonts.googleapis.com/css2?family=VT323.
-* On this page there is (finally) this link to the font file: https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
-
-Use it like this.
-See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prelude) for a small example.
-```
-custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
-
-custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
-```
-Note that text pages like the title screen and message text are displayed as full lines of text.
-This means that there will be a variation in character widths, and even in a Monospace font wide characters like `大 ⚐` will display at full width.
-### TEXT objects now use the custom font, or Monospace fallback
-This change greatly improves the visual appearance and usability of TEXT sprites.
-Use it like this:
-```
-OBJECTS
-number7
-red
-TEXT 7
-```
-
-### New STATUS_LINE setting and STATUS command
-This prelude setting reserves some space at the bottom of the screen for displaying a status line.
-
-Use it like this.
-See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_prelude) for a small example.
-
-```
-status_line
-RULES
-[ right p ] -> status You just moved the player to the right!
-
-```
-### Level editor supports zoomscreen etc
-
-Some PuzzleScript games create very large levels and divide them into 'rooms' or 'caves' using `zoomscreen`. 
-A similar approach for a large open area is to use `flickscreen`.
-Editing as one large area is hard.
-The level editor now respects `zoomscreen` and `flickscreen`, allowing editing of individual 'rooms'.
-
-### Major rework of test suite
-
-The test suite now includes far more programs and provides greater detail about test results.
-A test suite program can now be opened directly in the editor.
-The version of QUnit has been updated to the latest.
-
-### Sprites can be of any size or width
-
-Sprites can be defined as a grid of anything from 2x2 to 50x50 or even more! 
-They do not need to be square, but they must be rectangular (that is, all rows in the grid the same length).
-
-There are two options. 
-* If sprite_size is __not__ specified, sprites are scaled to the cell size and non-square sprites are centred horizontally and vertically.
-That is, all sprites are sized to fit in and fill a cell.
-* If sprite_size __is__ specified, sprites are scaled so that a sprite of that size fills a cell. 
-Smaller sprites are smaller and larger sprites are larger, and will overlap adjacent cells.
-
-The test program is [`test_min_spritesize`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_spritesize).
-Use it like this. 
-```
-sprite_size 8
-
-stripe;black red blue green yellow white orange purple
-01234567
-70123456
-```
-
-### Run button
-The console toolbar now has a 'run' button.
-The point is to make it easy to to use the mouse to clear the console and then click on run.
-
-### Show single layer
- The editor has a new button to show a single layer of a running game.
- The PgUp and PgDn keys move through the layers.
- This is a work in progress.
 
 ### Object animation
 
 The SOUNDS section is enhanced by the ability for an object to have an animation instead of or as well as a sound.
-The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_animate) and the demo is [`next_yasban`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next_yasban).
+The test program is [`test_min_animate`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_animate) and the demos are Yet Another Sokoban, Net Game and Fifteen in the editor examples dropdown.
 Use it like this. 
 
 ```
@@ -144,6 +62,87 @@ The parameters are:
  // tween_length = 0.4  // tweening must not be set
  ```
 
+### Custom font can load dynamically
+The custom font setting can be a link to a font file on the Web, preferably of type `woff2`.
+You can find font files that are freely accessible in various places, including Google Fonts.
+* Search for VT323 and you will find https://fonts.google.com/specimen/VT323. 
+* Then search a bit more and find this link: https://fonts.googleapis.com/css2?family=VT323.
+* On this page there is (finally) this link to the font file: https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+
+Use it like this.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_prelude) for a small example.
+```
+custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+```
+Note that text pages like the title screen and message text are displayed as full lines of text.
+This means that there will be a variation in character widths, and even in a Monospace font wide characters like `大 ⚐` will display at full width.
+### TEXT objects now use the custom font, or Monospace fallback
+This change greatly improves the visual appearance and usability of TEXT sprites.
+Use it like this:
+```
+OBJECTS
+number7
+red
+TEXT 7
+```
+
+### New STATUS_LINE setting and STATUS command
+This prelude setting reserves some space at the bottom of the screen for displaying a status line.
+
+Use it like this.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_prelude) for a small example.
+
+```
+status_line
+RULES
+[ right p ] -> status You just moved the player to the right!
+
+```
+### Level editor supports zoomscreen etc
+
+Some PuzzleScript games create very large levels and divide them into 'rooms' or 'caves' using `zoomscreen`. 
+A similar approach for a large open area is to use `flickscreen`.
+Editing as one large area is hard.
+The level editor now respects `zoomscreen` and `flickscreen`, allowing editing of individual 'rooms'.
+
+### Major rework of test suite
+
+The test suite now includes far more programs and provides greater detail about test results.
+A test suite program can now be opened directly in the editor.
+The version of QUnit has been updated to the latest.
+
+### Sprites can be of any size or width
+
+Sprites can be defined as a grid of anything from 2x2 to 50x50 or even more! 
+They do not need to be square, but they must be rectangular (that is, all rows in the grid the same length).
+
+There are two options. 
+* If sprite_size is __not__ specified, sprites are scaled to the cell size and non-square sprites are centred horizontally and vertically.
+That is, all sprites are sized to fit in and fill a cell.
+* If sprite_size __is__ specified, sprites are scaled so that a sprite of that size fills a cell. 
+Smaller sprites are smaller and larger sprites are larger, and will overlap adjacent cells.
+
+The test program is [`test_min_spritesize`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_spritesize).
+Use it like this. 
+```
+sprite_size 8
+
+stripe;black red blue green yellow white orange purple
+01234567
+70123456
+```
+
+### Run button
+The console toolbar now has a 'run' button.
+The point is to make it easy to to use the mouse to clear the console and then click on run.
+
+### Show single layer
+ The editor has a new button to show a single layer of a running game.
+ The PgUp and PgDn keys move through the layers.
+ This is a work in progress.
+
 ### Comment styles
 Like this:
 ```
@@ -171,7 +170,7 @@ See the starter for how it looks.
 ### Mouse click movements
 
 This feature is enabled by prelude setting `mouse_clicks`.
-The test program is [`test_min_click`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_click).
+The test program is [`test_min_click`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_click).
 Use it like this. 
 ```
 mouse_clicks
@@ -187,7 +186,7 @@ These movements are also displayed in the editor to show where the click happene
 
 Instead of a sprite matrix, use `text:` followed by a string of one or more characters. 
 The rest of the line is the text in the sprite (trimmed).
-The test program is [`test_min_text`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_text).
+The test program is [`test_min_text`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_text).
 Use it like this. 
 ```
 s; purple; text S
@@ -204,7 +203,7 @@ A future release may offer a better font.
 Property objects work as maps, to move objects in corresponding positions within the definition.
 There must be at least one on each side and all must be the same size.
 
-Use it like this. The test program is [`test_min_move_corr`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test_min_move_corr).
+Use it like this. The test program is [`test_min_move_corr`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_move_corr).
 ```
 rgb = r or g or b
 gbr = g or b or r

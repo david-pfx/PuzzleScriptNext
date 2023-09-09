@@ -15,17 +15,16 @@ if (storage_has('test_code')) {
 window.addEventListener('load', function () {
 	let file = null;
 	if (file = getParameterByName("demo")) {
-		code.value = "loading...";
+		code.value = "loading demo...";
 		tryLoadFile(`demo/${file}.txt`);
 	} else if (file = getParameterByName("url")) {
-		code.value = "loading...";
+		code.value = "loading url...";
 		tryLoadFile(file);
-	} else if (file =getParameterByName("hack")) {
-		code.value = "loading...";
-		let id = gistToLoad.replace(/[\\\/]/,"");
-		tryLoadGist(id);
+	} else if (file = getParameterByName("hack")) {
+		code.value = "loading gist...";
+		tryLoadGist(file.replace(/[\\\/]/,""));
 	} else if (code.value == '') {
-		code.value = "loading...";
+		code.value = "loading starter...";
 		tryLoadFile(`demo/${starterCodeFile}`, false);
 	}
 	try {

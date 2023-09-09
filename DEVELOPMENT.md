@@ -1,36 +1,68 @@
-# PuzzleScript Development Guide
+# PuzzleScript Next Development Guide
 
 ## Hello
 
-This document is about recompiling PuzzlescriptNext from source.  If you're just interested in learning about using the engine, rather than developing it, [the documentation is here](https://www.puzzlescript.net/Documentation/documentation.html).
+This document is about recompiling PuzzlescriptNext from source.  If you're just interested in learning about using the engine, rather than developing it, 
+[the documentation is here](https://www.puzzlescript.net/Documentation/documentation.html) 
+and [here](https://auroriax.github.io/PuzzleScript/Documentation/documentation.html).
 
 ## Structure
-The structure of PuzzleScript is the following:
+The structure of PuzzleScript is as follows.
 
-* In the `./src/` directory you have the 'raw' version of PuzzleScript, which is itself runnable, just not compressed/optimised.
-* When you run `node ./compile.js` it generates a compressed/optimized version of PuzzleScript, which is what people see on [puzzlescript.net](https://www.puzzlescript.net/), or wherever you are hosting this. Running this also updates the `./src/standalone_inlined.txt` file, which is the template that is used for exported standalone PuzzleScript games.
+* In the `src/` directory you have the 'raw' version of PuzzleScript, which is itself runnable, just not compressed/optimised.
+* When you run the compile step it generates a compressed/optimized version of PuzzleScript into `bin`, which is what people see on 
+[PuzzleScript Next](https://david-pfx.github.io/PuzzleScriptNext/), or wherever you are hosting this. 
+* It also updates the `standalone_inlined.txt` file, which is the template that is used for exported standalone PuzzleScriptNext games.
+This is generated from `./src/standalone.html`.
 
-## Getting compilation working
+Getting compilation working requires a couple of extra steps.
+`compile.js` uses [node](https://nodejs.org). 
+So first off you have to install that, followed by the packages that it uses (the specific packages and versions go into `package.json`).
 
-`./compile.js` uses [node](https://nodejs.org). So first off you have to install that.  Then you need to install the packages that it uses:
+So the steps in order are:
 
+1. Install [node](https://nodejs.org) by following this link.
+2. Install packages.
 ```
 npm install
 ```
-
-The specific packages and versions are now in `package.json`.
-Then you should be able to compile the site (outputted to the `./bin/` directory) with 
-
+3. Compile the site.
 ```
 node compile.js
 ```
 
-## Standalone-exporting
+The final compiled site can be found in the `./bin/` directory.
+If you need to do it again, just run Step 3.
 
-If you load `./src/editor.html` directly, by double-clicking it or whatever, exporting won't work because the browser sandboxing prevents the `XMLHttpRequest` for `standalone_inlined.txt` from working.  To get it to work you need to run a local http server. 
-The Windows batch file `runserver.bat` does this using python.
+## Standalone Exporting
 
-Also, remember you need to run `./compile.js` to generate the updated `./src/standalone_inlined.txt` template (which is generated from `./src/standalone.html`).
+If you load `src/editor.html` directly, by double-clicking it or whatever, exporting won't work because the browser sandboxing prevents the `XMLHttpRequest` for `standalone_inlined.txt` from working.  
+To get it to work you need to run it from a server.
+The Windows batch file `runserver.bat` runs a local http server using python.
+
+Also, remember you need to run `compile.js` to generate the updated `standalone_inlined.txt` template whenever you make changes.
+
+## Publishing your Game
+
+Of course you can just send anyone your source code with instructions how to load it into PuzzleScript Next, but sometimes you just want to give people a single
+link "click to play". There are basically two ways.
+
+The EXPORT link in the editor builds a standalone HTML version of you game that you can send to someone as a file.
+They should save the file and then open it in their favourite browser, and play your fantastic creation.
+So the full sequence of steps is:
+* Run the `compile.js` step above to rebuild `standalone_inlined.txt`.
+* Click the EXPORT link.
+* Save the HTML file.
+* (optional) Send it to someone.
+* Open the HTML file in a browser (perhaps by double clicking the file).
+
+The SHARE link makes more work for you and less for your target player. 
+It relies on storing your HTML game as a 'gist' in GitHub.
+The steps are these:
+* Setup an account with GitHub, or login if you already have one.
+* Click the SHARE link
+* (first time only) Go through the authorisation procedure to create a token.
+* Copy the URL and paste it into an email or Discord or wherever for your friends to enjoy!
 
 ## Tests
 

@@ -19,29 +19,6 @@ repopulateSaveDropdown();
 var loadDropdown = document.getElementById('loadDropDown');
 loadDropdown.selectedIndex=0;
 
-function levelEditorClick_Fn() {  // dup:
-	if (textMode || state.levels.length===0) {
-		compile(["loadLevel",0]);
-		levelEditorOpened=true;
-    	canvasResize();
-	} else {
-		levelEditorOpened=!levelEditorOpened;
-    	canvasResize();
-    }
-    lastDownTarget=canvas;	
-}
-
-function printUnauthorized(){
-
-	var authUrl = getAuthURL();
-	consolePrint(
-			"<br>" +
-			"PuzzleScript needs permission to share games through GitHub:<br>" +
-			"<ul>" +
-			"<li><a target=\"_blank\" href=\"" + authUrl + "\">Give PuzzleScript permission</a></li>" +
-			"</ul>",true);
-}
-
 function cancelClick() {
 	stopSolving();
 }
@@ -237,30 +214,20 @@ function levelEditorClick_Fn() {
 
 // const HOSTPAGEURL = "http://www.puzzlescript.net"
 // const PSFORKNAME = "PuzzleScript"
-const HOSTPAGEURL = "https://polyomino.github.io/PuzzleScriptNext"
+const HOSTPAGEURL = "https://david-pfx.github.io/PuzzleScriptNext"
 const PSFORKNAME = "Puzzlescript Next"
 
 /* I don't want to setup the required server for an OAuth App, so for now we will use a slightly more complex method for the user, which is to create a personal identification token. */
-// OAUTH_CLIENT_ID = "211570277eb588cddf44";
 function getAuthURL()
 {
-	return HOSTPAGEURL+'/auth_pat.html';
-	// const randomState = window.btoa(Array.prototype.map.call(
-	// 	window.crypto.getRandomValues(new Uint8Array(24)),
-	// 	function(x) { return String.fromCharCode(x); }).join(""));
-
-	// return "https://github.com/login/oauth/authorize"
-	// 	+ "?client_id=" + OAUTH_CLIENT_ID
-	// 	+ "&scope=gist"
-	// 	+ "&state=" + randomState
-	// 	+ "&allow_signup=true";
+	return HOSTPAGEURL+'/src/auth_pat.html';
 }
 
 function printUnauthorized()
 {
 	const authUrl = getAuthURL();
 	consolePrint(
-		"<br>"+PSFORKNAME+" needs permission to share/save games through GitHub:<br><ul><li><a target=\"_blank\" href=\"" + authUrl + "\">Give "+PSFORKNAME+" permission</a></li></ul>",
+		"<br>"+PSFORKNAME+" needs permission to share/save games through GitHub.<br><ul><li><a target=\"_blank\" href=\"" + authUrl + "\">Give "+PSFORKNAME+" permission</a></li></ul>",
 		true
 	);
 }
@@ -283,7 +250,7 @@ function shareClick() {
 		return;
 	}
 
-	consolePrint("<br>Sending code to github...", true)
+	consolePrint("<br>Sending code to GitHub...", true)
 	const title = (state.metadata.title !== undefined) ? state.metadata.title + " ("+PSFORKNAME+" Script)" : "Untitled "+PSFORKNAME+" Script";
 	
 	compile(["rebuild"]);
@@ -296,7 +263,7 @@ function shareClick() {
 		"public" : true,
 		"files": {
 			"readme.txt" : {
-				"content": "Play this game by pasting the script in "+HOSTPAGEURL+"/editor.html"
+				"content": `Play this game by pasting the script into ${HOSTPAGEURL}/src/editor.html`
 			},
 			"script.txt" : {
 				"content": source
