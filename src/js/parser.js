@@ -740,7 +740,8 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'LOGICWORD');
 
                 token = lexer.matchAll();
-                lexer.pushToken(token, `COLOR COLOR-${obj.colors[0].toUpperCase()}`);
+                const kind = obj.colors.length == 1 ? `COLOR COLOR-${obj.colors[0].toUpperCase()}` : 'ERROR';
+                lexer.pushToken(token, kind);
                 values.text = token;
                 state.objects_section = 0;
                 return true;
