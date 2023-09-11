@@ -648,14 +648,32 @@ function convertSectionNamesToIndices(state) {
 		var targetName = level.target.toLowerCase();
 		var targetIndex = sectionMap[targetName];
 		if (targetIndex === undefined){
-			logError('Invalid GOTO command - There is no section named "'+command[1]+'".', level.lineNumber);
+			logError('Invalid GOTO command - there is no section named "'+command[1]+'".', level.lineNumber);
 			targetIndex = 0;
 		}else if (duplicateSections[targetName] !== undefined){
-			logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'".', level.lineNumber);
+			logError('Invalid GOTO command - there are multiple sections named "'+command[1]+'".', level.lineNumber);
 			targetIndex = 0;
 		}
 		level.target = targetIndex;
 	}
+}
+
+function fixUpGosubs(state) { //@@ PS>
+    for (const rule of state.rules) {
+        for (const cmd of rule.commands) {
+            if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
+                const subroutine = state[cmd[1].toLowerCase()];
+                if (!subroutine) 
+                    logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
+                else cmd[1] = subroutine.group;   // replace name by linenumber
+                // const subroutine = state.subroutines.find(s => s[1] == cmd[1].toLowerCase());
+                // if (!subroutine) 
+                //     logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
+                // else cmd[1] = subroutine[0];   // replace name by linenumber
+            }
+        }
+
+    }
 }
 
 var directionaggregates = {
@@ -780,23 +798,29 @@ var incellrow = false;
     var has_plus = false;
     var globalRule=false;
 
-if (tokens.length===1) {
-    if (tokens[0]==="startloop" ) {
-        rule_line = {
-            bracket: 1
+    if (tokens.length===1) {
+        if (tokens[0]==="startloop" ) {
+            rule_line = {
+                bracket: 1
+            }
+            return rule_line;
+        } else if (tokens[0]==="endloop" ) {
+            rule_line = {
+                bracket: -1
+            }
+            return rule_line;
         }
-        return rule_line;
-    } else if (tokens[0]==="endloop" ) {
-        rule_line = {
-            bracket: -1
-        }
-        return rule_line;
     }
-}
 
-if (tokens.indexOf('->') == -1) {
-    logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
-}
+    if (tokens[0] == 'subroutine') {
+        return {
+            subr: tokens.slice(1).join(' ').toLowerCase()
+        }
+    }
+
+    if (tokens.indexOf('->') == -1) {
+        logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
+    }
 
     var curcell = [];
     var bracketbalance = 0;
@@ -1043,16 +1067,37 @@ function rulesToArray(state) {
     var oldrules = state.rules;
     var rules = [];
     var loops = [];
+    var subroutines = {};
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
         var newrule = processRuleString(oldrules[i], state, rules);
-        if (newrule.bracket !== undefined) {
+        if (newrule.bracket) {
             loops.push([lineNumber, newrule.bracket]);
-            continue;
-        }
-        rules.push(newrule);
+        } else if (newrule.subr) {
+            const other = subroutines[newrule.subr];
+            if (other)
+                logError(`Duplicate subroutine, "${newrule.subr}" already defined at line ${other.lineNumber}`, rule.lineNumber);
+            else subroutines[newrule.subr] = {
+                lineno: rule.lineNumber,
+                group: rule.groupnumber
+            };
+        } else rules.push(newrule);
     }
+    // var subroutines = [];
+    // for (var i = 0; i < oldrules.length; i++) {
+    //     var lineNumber = oldrules[i][1];
+    //     var newrule = processRuleString(oldrules[i], state, rules);
+    //     if (newrule.bracket) {
+    //         loops.push([lineNumber, newrule.bracket]);
+    //     } else if (newrule.subr) {
+    //         const subr = subroutines.find(s => s[1] == newrule.subr);
+    //         if (subr)
+    //             logError(`Duplicate subroutine, "${cmd[1]}" already defined at line ${cmd[0]}`, lineNumber);
+    //         else subroutines.push([lineNumber, newrule.subr]);
+    //     } else rules.push(newrule);
+    // }
     state.loops = loops;
+    state.subroutines = subroutines;
 
     //now expand out rules with multiple directions
     var rules2 = [];
@@ -1784,7 +1829,6 @@ function rulesToMask(state) {
                         objectsPresent = ellipsisPattern;
                         if (cell_l.length !== 2) {
                             logError("You can't have anything in with an ellipsis. Sorry.", rule.lineNumber);
-                            //throw 'aborting compilation';//throwing here because I was getting infinite loops in the compiler otherwise
                         } else if ((k === 0) || (k === cellrow_l.length - 1)) {
                             logError("There's no point in putting an ellipsis at the very start or the end of a rule", rule.lineNumber);
                         } else if (rule.rhs.length > 0) {
@@ -2680,6 +2724,7 @@ function printRules(state) {
             output += "ENDLOOP<br>";
             loopEnd = -1;
         }
+        // todo: print subroutine
         if (rule.hasOwnProperty('discard')) {
             discardcount++;
         } else {
@@ -3035,7 +3080,8 @@ function loadFile(str) {
     }
 
 	convertSectionNamesToIndices(state);
-
+    fixUpGosubs(state);
+    
 	rulesToMask(state);
 
 	
@@ -3078,6 +3124,7 @@ function loadFile(str) {
 	delete state.tokenIndex;
     delete state.current_line_wip_array;
 	delete state.visitedSections;
+	delete state.subroutines;
 	delete state.loops;
 	return state;
 }

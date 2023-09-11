@@ -2771,16 +2771,14 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString,false,lineNumber,null);
 		}
 
-		if (command[0]==='message') {     
+		if (command[0] == 'message') {     
 			messagetext=command[1];
-		}
-		
-		if (command[0]==='goto') {
+		} else if (command[0] == 'goto') {
 			gotoLevel(command[1]);
-		}
-
-		if (command[0]==='status') {
+		} else if (command[0] == 'status') { // PS>
 			statusText = command[1];
+		} else if (command[0] == 'gosub') {  //@@
+			// ??
 		}
 
     if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
@@ -2909,17 +2907,16 @@ function applyRuleGroup(ruleGroup) {
 		return applyRandomRuleGroup(level,ruleGroup);
 	}
 
-  var loopPropagated=false;
+  	var loopPropagated=false;
     var propagated=true;
     var loopcount=0;
 	var nothing_happened_counter = -1;
     while(propagated) {
-      loopcount++;
-      if (loopcount>200) 
-      {
-        logErrorCacheable("Got caught looping lots in a rule group :O",ruleGroup[0].lineNumber,true);
-        break;
-      }
+		loopcount++;
+		if (loopcount>200) {
+			logErrorCacheable("Got caught looping lots in a rule group :O",ruleGroup[0].lineNumber,true);
+			break;
+		}
         propagated=false;
 
         for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
@@ -2953,16 +2950,20 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 
     playerPositions = getPlayerPositions();
 
+	// stack of rule group index to return to at end of subroutine
+	const gosubStack = [];
+	const currentSubroutine = {};
+
     //when we're going back in, let's loop, to be sure to be sure
     var loopPropagated = startRuleGroupindex>0;
     var loopCount = 0;
     for (var ruleGroupIndex=startRuleGroupindex;ruleGroupIndex<rules.length;) {
-      if (bannedGroup && bannedGroup[ruleGroupIndex]) {
-        //do nothing
-      } else {
-        var ruleGroup=rules[ruleGroupIndex];
-      loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
-      }
+		if (bannedGroup && bannedGroup[ruleGroupIndex]) {
+			//do nothing
+		} else {
+			var ruleGroup=rules[ruleGroupIndex];
+			loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
+		}
         if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
         	ruleGroupIndex = loopPoint[ruleGroupIndex];
         	loopPropagated=false;
@@ -2977,6 +2978,7 @@ function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
 				debugger_turnIndex++;
 				addToDebugTimeline(level,-2);//pre-movement-applied debug state
 			}
+        } else if(level.commandQueue.includes('gosub')) { //@@ PS>
         } else {
         	ruleGroupIndex++;
         	if (ruleGroupIndex===rules.length) {

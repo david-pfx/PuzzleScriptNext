@@ -19,7 +19,7 @@ tween_length 0.03
 smoothscreen 5x5
 level_select
 runtime_metadata_twiddling
-text_controls Don't forget to try\nthe Action key\nand Escape for Level Select!
+text_controls Don't forget to try the Examples\nand the Action key and Escape for Level Select!
 
 ========
 OBJECTS
