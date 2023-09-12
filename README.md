@@ -13,6 +13,7 @@ The latest version is Release v-23i08, which includes a significant upgrade to t
 * The lexer has been reimplemented as a class, and several parsing sections rewritten to use it.
 * Performance counters to gather timing statistics (`set debugLevel='perf'``).
 * Updated to latest version of jquery.
+* Fixed a bug if text object has an invalid colour (update).
 
 It includes the following features.
 
