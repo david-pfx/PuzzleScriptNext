@@ -5,13 +5,17 @@ homepage polyomino.org
 // This is an implementation of the 2048 game designed to show off Puzzlang extensions
 // Text objects using TEXT 
 // Icons of any size with definable scaling factor
-// End of line comments using //
-// Line breaks using ;
-// Program structure using rule subroutines -- TBD
+// GOSUB provides structure
+// STATUS line for single page play
 
 background_color blue
 text_color yellow
 run_rules_on_level_start
+level_select
+status_line
+
+debug
+verbose_logging
 
 ========
 OBJECTS

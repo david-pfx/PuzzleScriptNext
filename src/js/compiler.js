@@ -658,21 +658,30 @@ function convertSectionNamesToIndices(state) {
 	}
 }
 
-function fixUpGosubs(state) { //@@ PS>
-    for (const rule of state.rules) {
-        for (const cmd of rule.commands) {
-            if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
-                const subroutine = state[cmd[1].toLowerCase()];
-                if (!subroutine) 
-                    logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
-                else cmd[1] = subroutine.group;   // replace name by linenumber
-                // const subroutine = state.subroutines.find(s => s[1] == cmd[1].toLowerCase());
-                // if (!subroutine) 
-                //     logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
-                // else cmd[1] = subroutine[0];   // replace name by linenumber
+// fix gosubs and subroutines to use group number (so must be after created groups)
+function fixUpGosubs(state) { // PS>
+    const subroutines = state.subroutines;
+    const rules = state.rules;
+    // first fixup subroutines so we know which group to gosub to
+    let rulex = 0;
+    for (const subroutine of subroutines) {
+        while (rules[rulex][0].lineNumber < subroutine.lineNumber)
+            rulex++;
+        subroutine.groupNumber = rulex;
+    }
+
+    // rules are now groups. Go figure.
+    for (const group of state.rules) {
+        for (const rule of group) {
+            for (const cmd of rule.commands) {
+                if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
+                    const subroutine = state.subroutines.find(s => s.label == cmd[1].toLowerCase());
+                    if (!subroutine) 
+                        logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
+                    else cmd[1] = subroutine.groupNumber;   // replace name by linenumber
+                }
             }
         }
-
     }
 }
 
@@ -812,9 +821,10 @@ var incellrow = false;
         }
     }
 
-    if (tokens[0] == 'subroutine') {
+    if (tokens[0] == 'subroutine') {   // PS>
         return {
-            subr: tokens.slice(1).join(' ').toLowerCase()
+            label: tokens.slice(1).join(' ').toLowerCase(),
+            lineNumber: lineNumber
         }
     }
 
@@ -1067,35 +1077,27 @@ function rulesToArray(state) {
     var oldrules = state.rules;
     var rules = [];
     var loops = [];
-    var subroutines = {};
+    var subroutines = [];
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
         var newrule = processRuleString(oldrules[i], state, rules);
         if (newrule.bracket) {
             loops.push([lineNumber, newrule.bracket]);
-        } else if (newrule.subr) {
-            const other = subroutines[newrule.subr];
+        } else if (newrule.label) {      // PS>
+            const other = subroutines.find(s => s.label == newrule.label);
             if (other)
-                logError(`Duplicate subroutine, "${newrule.subr}" already defined at line ${other.lineNumber}`, rule.lineNumber);
-            else subroutines[newrule.subr] = {
-                lineno: rule.lineNumber,
-                group: rule.groupnumber
-            };
+                logError(`Duplicate subroutine, "${newrule.label}" already defined at line ${other.lineNumber}`, newrule.lineNumber);
+            else {
+                // target for gosub is next groupno, or next lineno if none
+                //const groupno = (i + 1 < oldrules.length) ? oldrules[i + 1][1].groupNumber : newrule.lineNumber + 1;
+                subroutines.push({
+                    label: newrule.label,
+                    lineNumber: newrule.lineNumber,
+                    //groupNumber: groupno,
+                });
+            }
         } else rules.push(newrule);
     }
-    // var subroutines = [];
-    // for (var i = 0; i < oldrules.length; i++) {
-    //     var lineNumber = oldrules[i][1];
-    //     var newrule = processRuleString(oldrules[i], state, rules);
-    //     if (newrule.bracket) {
-    //         loops.push([lineNumber, newrule.bracket]);
-    //     } else if (newrule.subr) {
-    //         const subr = subroutines.find(s => s[1] == newrule.subr);
-    //         if (subr)
-    //             logError(`Duplicate subroutine, "${cmd[1]}" already defined at line ${cmd[0]}`, lineNumber);
-    //         else subroutines.push([lineNumber, newrule.subr]);
-    //     } else rules.push(newrule);
-    // }
     state.loops = loops;
     state.subroutines = subroutines;
 
@@ -2707,12 +2709,19 @@ function printRules(state) {
     var output = "";
     var loopIndex = 0;
     var loopEnd = -1;
+    let subroutineIndex = 0;
     var discardcount = 0;
     for (var i = 0; i < state.rules.length; i++) {
         var rule = state.rules[i];
+        // print subroutine - could be more than one, must come before any startloop and after any endloop!
+        let subrtext = '';
+        for (let subroutine = state.subroutines[subroutineIndex]; subroutine && subroutine.lineNumber < rule.lineNumber; subroutine = state.subroutines[++subroutineIndex]) {
+            subrtext += `SUBROUTINE ${subroutine.label}<br>`;
+        }
         if (loopIndex < state.loops.length) {
             if (state.loops[loopIndex][0] < rule.lineNumber) {
-                output += "STARTLOOP<br>";
+                output += subrtext + "STARTLOOP<br>";
+                subrtext = '';
                 loopIndex++;
                 if (loopIndex < state.loops.length) { // don't die with mismatched loops
                     loopEnd = state.loops[loopIndex][0];
@@ -2724,7 +2733,7 @@ function printRules(state) {
             output += "ENDLOOP<br>";
             loopEnd = -1;
         }
-        // todo: print subroutine
+        output += subrtext;
         if (rule.hasOwnProperty('discard')) {
             discardcount++;
         } else {
@@ -3080,7 +3089,6 @@ function loadFile(str) {
     }
 
 	convertSectionNamesToIndices(state);
-    fixUpGosubs(state);
     
 	rulesToMask(state);
 
@@ -3104,7 +3112,9 @@ function loadFile(str) {
 
 	generateLoopPoints(state);
 
-	generateSoundData(state);
+    fixUpGosubs(state);  //
+
+    generateSoundData(state);
 
     formatHomePage(state);
 
@@ -3124,7 +3134,6 @@ function loadFile(str) {
 	delete state.tokenIndex;
     delete state.current_line_wip_array;
 	delete state.visitedSections;
-	delete state.subroutines;
 	delete state.loops;
 	return state;
 }
