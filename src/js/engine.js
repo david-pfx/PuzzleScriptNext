@@ -405,6 +405,7 @@ function gotoLevelSelectScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
+	statusText = "";
 
 	if (titleSelection == false) {
 		for(var i = 0; i < state.sections.length; i++) {
@@ -580,6 +581,7 @@ function gotoLevel(sectionIndex) {
 
 	againing = false;
 	messagetext = "";
+	statusText = "";
 
 	curlevel = state.sections[sectionIndex].firstLevel;
 
@@ -2754,6 +2756,7 @@ Rule.prototype.queueCommands = function() {
 		level.commandQueue=[];
         level.commandQueueSourceRules=[];
 		messagetext="";
+		statusText = "";
 	}
 
 	for(var i=0;i<commands.length;i++) {
@@ -3321,6 +3324,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
+			statusText = "";
 			DoUndo(true,false, true, true, true);
 			return true;
 		}
@@ -3403,6 +3407,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				goToTitleScreen();
 			}
 			messagetext = "";
+			statusText = "";
 			canvasResize();	
 			return true;
 		}
@@ -3706,6 +3711,7 @@ function DoWin() {
 function nextLevel() {
     againing=false;
 	messagetext="";
+	statusText = "";
 	if (state && state.levels && (curlevel>state.levels.length) ){
 		curlevel=state.levels.length-1;
 	}
@@ -3808,6 +3814,7 @@ function loadLevelFromStateOrTarget() {
 function goToTitleScreen(){
     againing=false;
 	messagetext="";
+	statusText = "";
 	titleScreen=true;
 	textMode=true;
 	hoverSelection=-1;
