@@ -7,15 +7,45 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23i08, which includes a significant upgrade to the animation system, as well as:
-* Several new games to demonstrate text sprites and animation.
+The latest version is Release v-23i15, which includes GOSUB and SUBROUTINE, , as well as:
+* New games to demonstrate text sprites, animation and GOSUB.
+* The STATUS line is reset where needed
 * Key repeat interval default 200 (from 150) to reduce key bounce.
-* The lexer has been reimplemented as a class, and several parsing sections rewritten to use it.
 * Performance counters to gather timing statistics (`set debugLevel='perf'``).
-* Updated to latest version of jquery.
-* Fixed a bug if text object has an invalid colour (update).
 
 It includes the following features.
+
+### GOSUB and SUBROUTINE
+
+The RULES section is enhanced by two new keywords. 
+SUBROUTINE defines a set of rules that can only be reached by GOSUB to that subroutine. 
+The code looks like this.
+
+```
+[ stationary spot ] -> gosub Startup
+[ > spot ] -> gosub Move Tiles
+[ > spot ] -> gosub Drop New Tile
+[ spot ] -> gosub Check Move
+[ spot ] -> gosub Finish
+
+subroutine Startup
+startloop
+  random [ seed ][ empty ] -> [] [ 1 ]
+endloop
+
+subroutine Drop New Tile
+random [ empty ] -> [ random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 2 ]
+
+subroutine Move Tiles
+// and so on
+
+```
+
+The code is taken from 2048.txt, so take a look at that to see how it can help to structure your code.
+
+Just one more thing -- don't try to put a GOSUB inside a STARTLOOP ENDLOOP. 
+Right now it won't work but the compiler doesn't tell you.
+In a future release it will either work, or trigger an error.
 
 ### Object animation
 

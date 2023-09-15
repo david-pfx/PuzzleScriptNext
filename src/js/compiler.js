@@ -2786,7 +2786,7 @@ function generateLoopPoints(state) {
             if (i%2===0){
                 if (loop[1]===-1){         
                     logError("Found an ENDLOOP, but I'm not in a loop?",loop[0]);
-    }
+                }
             } else {
                 if (loop[1]===1){         
                     logError("Found a STARTLOOP, but I'm already inside a loop? (Puzzlescript can't nest loops, FWIW).",loop[0]);
