@@ -5,29 +5,33 @@ homepage polyomino.org
 // This is an implementation of the 2048 game designed to show off Puzzlang extensions
 // Text objects using TEXT 
 // Icons of any size with definable scaling factor
-// End of line comments using //
-// Line breaks using ;
-// Program structure using rule subroutines -- TBD
+// GOSUB provides structure
+// STATUS line for single page play
 
 background_color blue
 text_color yellow
 run_rules_on_level_start
+level_select
+status_line
+
+debug
+verbose_logging
 
 ========
 OBJECTS
 ========
 
-1; white; text: 2
-2; white; text: 4
-3; white; text: 8
-4; white; text: 16
-5; white; text: 32
-6; white; text: 64
-7; white; text: 128
-8; white; text: 256
-9; white; text: 512
-a; white; text: 1024
-b; white; text: 2048
+1 scale: 0.7;  white; text: 2
+2 scale: 0.7;  white; text: 4
+3 scale: 0.7;  white; text: 8
+4 scale: 0.6;  white; text: 16
+5 scale: 0.6;  white; text: 32
+6 scale: 0.6;  white; text: 64
+7 scale: 0.45; white; text: 128
+8 scale: 0.45; white; text: 256
+9 scale: 0.45; white; text: 512
+a scale: 0.45; white; text: 1024
+b scale: 0.45; white; text: 2048
 
 border #; lightbrown yellow orange red
 0123
@@ -85,6 +89,15 @@ x = grid and empty
 S = edge and score
 ? = seed and edge
 
+======
+SOUNDS
+======
+
+number create 74380707
+cancel 42189302
+sfx0 51579108 // win
+sfx1 65275902 // lose
+
 ================
 COLLISIONLAYERS
 ================
@@ -100,43 +113,34 @@ live
 seed
 
 ======
-SOUNDS
-======
-
-number create 74380707
-cancel 42189302
-sfx0 51579108 // win
-sfx1 65275902 // lose
-
-======
 RULES
 ======
 
 [ over ] -> cancel
 [ b ] -> cancel
-[ stationary spot ] -> call Startup
-[ > spot ] -> call Move Tiles
+[ stationary spot ] -> gosub Startup
+[ > spot ] -> gosub Move Tiles
 [ idle ] -> cancel
-[ > spot ] -> call Drop New Tile
-[ spot ] -> call Check Move
-[ spot ] -> call Finish
+[ > spot ] -> gosub Drop New Tile
+[ spot ] -> gosub Check Move
+[ spot ] -> gosub Finish
 [ over ] -> sfx1 status Game Over! R to play again.
 [ b ] -> sfx0 status You win! R to play again.
 
 ////////////////////////////////////////////////////////////////////////////////
-segment Startup
+subroutine Startup
 
 startloop
   random [ seed ][ empty ] -> [] [ 1 ]
 endloop
 
 ////////////////////////////////////////////////////////////////////////////////
-segment Drop New Tile
+subroutine Drop New Tile
 
 random [ empty ] -> [ random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 2 ]
 
 ////////////////////////////////////////////////////////////////////////////////
-segment Move Tiles
+subroutine Move Tiles
 
 // mark all tiles as live (combinable) and original position
 [ orig ] -> []
@@ -176,7 +180,7 @@ endloop
 [ idle ] [ orig no number ] -> [ ] [ ] 
 
 ////////////////////////////////////////////////////////////////////////////////
-segment Check Move
+subroutine Check Move
 
 // check for can move, set over if not
 [ > spot ] -> [ > spot live]
@@ -194,7 +198,7 @@ segment Check Move
 [ > spot live ] -> [ spot over ]
 
 ////////////////////////////////////////////////////////////////////////////////
-segment Finish
+subroutine Finish
 
 // finished, add backgrounds
 [ bg ] -> [ ]
@@ -227,7 +231,7 @@ LEVELS
 
 message The aim is to reach 2048. Good luck!
 
-level Regular 4x4 puzzle
+section Regular 4x4 puzzle
 #@??*S*#
 #*xxxx*#
 #*xxxx*#
@@ -235,7 +239,7 @@ level Regular 4x4 puzzle
 #*xxxx*#
 #******#
 
-level Test 4x4 puzzle
+section Test 4x4 puzzle
 #@??*S*#
 #*11xx*#
 #*xxxx*#
@@ -243,7 +247,7 @@ level Test 4x4 puzzle
 #*xxxx*#
 #******#
 
-level Test puzzle full no move
+section Test puzzle full no move
 #@***S*#
 #*x3x3*#
 #*2424*#
@@ -251,7 +255,7 @@ level Test puzzle full no move
 #*2424*#
 #******#
 
-level Test puzzle no move up
+section Test puzzle no move up
 #@***S*#
 #*1353*#
 #*xxxx*#
@@ -259,7 +263,7 @@ level Test puzzle no move up
 #*xxxx*#
 #******#
 
-level Test puzzle one move to win
+section Test puzzle one move to win
 #@***S*#
 #*99aa*#
 #*5678*#

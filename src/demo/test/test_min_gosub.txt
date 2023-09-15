@@ -1,0 +1,73 @@
+title test min gosub
+author polymino
+homepage www.polyomino.com
+
+// testing gosubs
+
+run_rules_on_level_start
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+[ g ] -> gosub the sub
+
+[ > p | r ] -> [ > p | > r ]
+
+subroutine the sub
+right [ g | no g ] -> [ action g | ]
+right [ action g | no g ] -> [ g | g ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b......
+
+message second level
+
+..........
+....pry...
+..........
+

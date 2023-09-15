@@ -648,14 +648,41 @@ function convertSectionNamesToIndices(state) {
 		var targetName = level.target.toLowerCase();
 		var targetIndex = sectionMap[targetName];
 		if (targetIndex === undefined){
-			logError('Invalid GOTO command - There is no section named "'+command[1]+'".', level.lineNumber);
+			logError('Invalid GOTO command - there is no section named "'+command[1]+'".', level.lineNumber);
 			targetIndex = 0;
 		}else if (duplicateSections[targetName] !== undefined){
-			logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'".', level.lineNumber);
+			logError('Invalid GOTO command - there are multiple sections named "'+command[1]+'".', level.lineNumber);
 			targetIndex = 0;
 		}
 		level.target = targetIndex;
 	}
+}
+
+// fix gosubs and subroutines to use group number (so must be after created groups)
+function fixUpGosubs(state) { // PS>
+    const subroutines = state.subroutines;
+    const rules = state.rules;
+    // first fixup subroutines so we know which group to gosub to
+    let rulex = 0;
+    for (const subroutine of subroutines) {
+        while (rules[rulex][0].lineNumber < subroutine.lineNumber)
+            rulex++;
+        subroutine.groupNumber = rulex;
+    }
+
+    // rules are now groups. Go figure.
+    for (const group of state.rules) {
+        for (const rule of group) {
+            for (const cmd of rule.commands) {
+                if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
+                    const subroutine = state.subroutines.find(s => s.label == cmd[1].toLowerCase());
+                    if (!subroutine) 
+                        logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
+                    else cmd[1] = subroutine.groupNumber;   // replace name by linenumber
+                }
+            }
+        }
+    }
 }
 
 var directionaggregates = {
@@ -780,23 +807,30 @@ var incellrow = false;
     var has_plus = false;
     var globalRule=false;
 
-if (tokens.length===1) {
-    if (tokens[0]==="startloop" ) {
-        rule_line = {
-            bracket: 1
+    if (tokens.length===1) {
+        if (tokens[0]==="startloop" ) {
+            rule_line = {
+                bracket: 1
+            }
+            return rule_line;
+        } else if (tokens[0]==="endloop" ) {
+            rule_line = {
+                bracket: -1
+            }
+            return rule_line;
         }
-        return rule_line;
-    } else if (tokens[0]==="endloop" ) {
-        rule_line = {
-            bracket: -1
-        }
-        return rule_line;
     }
-}
 
-if (tokens.indexOf('->') == -1) {
-    logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
-}
+    if (tokens[0] == 'subroutine') {   // PS>
+        return {
+            label: tokens.slice(1).join(' ').toLowerCase(),
+            lineNumber: lineNumber
+        }
+    }
+
+    if (tokens.indexOf('->') == -1) {
+        logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
+    }
 
     var curcell = [];
     var bracketbalance = 0;
@@ -1043,16 +1077,29 @@ function rulesToArray(state) {
     var oldrules = state.rules;
     var rules = [];
     var loops = [];
+    var subroutines = [];
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
         var newrule = processRuleString(oldrules[i], state, rules);
-        if (newrule.bracket !== undefined) {
+        if (newrule.bracket) {
             loops.push([lineNumber, newrule.bracket]);
-            continue;
-        }
-        rules.push(newrule);
+        } else if (newrule.label) {      // PS>
+            const other = subroutines.find(s => s.label == newrule.label);
+            if (other)
+                logError(`Duplicate subroutine, "${newrule.label}" already defined at line ${other.lineNumber}`, newrule.lineNumber);
+            else {
+                // target for gosub is next groupno, or next lineno if none
+                //const groupno = (i + 1 < oldrules.length) ? oldrules[i + 1][1].groupNumber : newrule.lineNumber + 1;
+                subroutines.push({
+                    label: newrule.label,
+                    lineNumber: newrule.lineNumber,
+                    //groupNumber: groupno,
+                });
+            }
+        } else rules.push(newrule);
     }
     state.loops = loops;
+    state.subroutines = subroutines;
 
     //now expand out rules with multiple directions
     var rules2 = [];
@@ -1784,7 +1831,6 @@ function rulesToMask(state) {
                         objectsPresent = ellipsisPattern;
                         if (cell_l.length !== 2) {
                             logError("You can't have anything in with an ellipsis. Sorry.", rule.lineNumber);
-                            //throw 'aborting compilation';//throwing here because I was getting infinite loops in the compiler otherwise
                         } else if ((k === 0) || (k === cellrow_l.length - 1)) {
                             logError("There's no point in putting an ellipsis at the very start or the end of a rule", rule.lineNumber);
                         } else if (rule.rhs.length > 0) {
@@ -2663,12 +2709,19 @@ function printRules(state) {
     var output = "";
     var loopIndex = 0;
     var loopEnd = -1;
+    let subroutineIndex = 0;
     var discardcount = 0;
     for (var i = 0; i < state.rules.length; i++) {
         var rule = state.rules[i];
+        // print subroutine - could be more than one, must come before any startloop and after any endloop!
+        let subrtext = '';
+        for (let subroutine = state.subroutines[subroutineIndex]; subroutine && subroutine.lineNumber < rule.lineNumber; subroutine = state.subroutines[++subroutineIndex]) {
+            subrtext += `SUBROUTINE ${subroutine.label}<br>`;
+        }
         if (loopIndex < state.loops.length) {
             if (state.loops[loopIndex][0] < rule.lineNumber) {
-                output += "STARTLOOP<br>";
+                output += subrtext + "STARTLOOP<br>";
+                subrtext = '';
                 loopIndex++;
                 if (loopIndex < state.loops.length) { // don't die with mismatched loops
                     loopEnd = state.loops[loopIndex][0];
@@ -2680,6 +2733,7 @@ function printRules(state) {
             output += "ENDLOOP<br>";
             loopEnd = -1;
         }
+        output += subrtext;
         if (rule.hasOwnProperty('discard')) {
             discardcount++;
         } else {
@@ -2732,7 +2786,7 @@ function generateLoopPoints(state) {
             if (i%2===0){
                 if (loop[1]===-1){         
                     logError("Found an ENDLOOP, but I'm not in a loop?",loop[0]);
-    }
+                }
             } else {
                 if (loop[1]===1){         
                     logError("Found a STARTLOOP, but I'm already inside a loop? (Puzzlescript can't nest loops, FWIW).",loop[0]);
@@ -3035,7 +3089,7 @@ function loadFile(str) {
     }
 
 	convertSectionNamesToIndices(state);
-
+    
 	rulesToMask(state);
 
 	
@@ -3058,7 +3112,9 @@ function loadFile(str) {
 
 	generateLoopPoints(state);
 
-	generateSoundData(state);
+    fixUpGosubs(state);  //
+
+    generateSoundData(state);
 
     formatHomePage(state);
 

@@ -405,6 +405,7 @@ function gotoLevelSelectScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
+	statusText = "";
 
 	if (titleSelection == false) {
 		for(var i = 0; i < state.sections.length; i++) {
@@ -580,6 +581,7 @@ function gotoLevel(sectionIndex) {
 
 	againing = false;
 	messagetext = "";
+	statusText = "";
 
 	curlevel = state.sections[sectionIndex].firstLevel;
 
@@ -1248,7 +1250,8 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
-let statusText="";
+let statusText = "";  // PS>
+let gosubTarget = -1;  // PS>
 var currentMovedEntities = {};
 var newMovedEntities = {};
 
@@ -1660,7 +1663,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
     			if (verbose_logging) 
-					consolePrint(`${state.idDict[fx.objId]} has moved, playing seed ${fx.seed}`)
+					consolePrint(`Object "${state.idDict[fx.objId]}" has moved, playing seed "${fx.seed}"`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -2753,12 +2756,17 @@ Rule.prototype.queueCommands = function() {
 		level.commandQueue=[];
         level.commandQueueSourceRules=[];
 		messagetext="";
+		statusText = "";
 	}
 
 	for(var i=0;i<commands.length;i++) {
 		var command=commands[i];
 		var already=false;
 		if (level.commandQueue.indexOf(command[0])>=0) {
+			continue;
+		} else if (command[0] == 'gosub') {  // PS>
+			// gosub is not queued
+			gosubTarget = command[1];
 			continue;
 		}
 		level.commandQueue.push(command[0]);
@@ -2771,17 +2779,13 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString,false,lineNumber,null);
 		}
 
-		if (command[0]==='message') {     
+		if (command[0] == 'message') {     
 			messagetext=command[1];
-		}
-		
-		if (command[0]==='goto') {
+		} else if (command[0] == 'goto') {
 			gotoLevel(command[1]);
-		}
-
-		if (command[0]==='status') {
+		} else if (command[0] == 'status') { // PS>
 			statusText = command[1];
-		}
+		}		
 
     if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
 
@@ -2909,17 +2913,16 @@ function applyRuleGroup(ruleGroup) {
 		return applyRandomRuleGroup(level,ruleGroup);
 	}
 
-  var loopPropagated=false;
+  	var loopPropagated=false;
     var propagated=true;
     var loopcount=0;
 	var nothing_happened_counter = -1;
     while(propagated) {
-      loopcount++;
-      if (loopcount>200) 
-      {
-        logErrorCacheable("Got caught looping lots in a rule group :O",ruleGroup[0].lineNumber,true);
-        break;
-      }
+		loopcount++;
+		if (loopcount>200) {
+			logErrorCacheable("Got caught looping lots in a rule group :O",ruleGroup[0].lineNumber,true);
+			break;
+		}
         propagated=false;
 
         for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
@@ -2946,60 +2949,75 @@ function applyRuleGroup(ruleGroup) {
     return loopPropagated;
 }
 
-function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
+function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGroup){
 	perfCounters.tries++;
     //for each rule
     //try to match it
 
     playerPositions = getPlayerPositions();
 
-    //when we're going back in, let's loop, to be sure to be sure
-    var loopPropagated = startRuleGroupindex>0;
-    var loopCount = 0;
-    for (var ruleGroupIndex=startRuleGroupindex;ruleGroupIndex<rules.length;) {
-      if (bannedGroup && bannedGroup[ruleGroupIndex]) {
-        //do nothing
-      } else {
-        var ruleGroup=rules[ruleGroupIndex];
-      loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
-      }
-        if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
-        	ruleGroupIndex = loopPoint[ruleGroupIndex];
-        	loopPropagated=false;
-        	loopCount++;
-			if (loopCount > 200) {
-    			var ruleGroup=rules[ruleGroupIndex];
-			   	logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
-			   	break;
-			}
-			
-			if (verbose_logging){
-				debugger_turnIndex++;
-				addToDebugTimeline(level,-2);//pre-movement-applied debug state
-			}
-        } else {
-        	ruleGroupIndex++;
-        	if (ruleGroupIndex===rules.length) {
-        		if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
-		        	ruleGroupIndex = loopPoint[ruleGroupIndex];
-		        	loopPropagated=false;
-		        	loopCount++;
-					if (loopCount > 200) {
-		    			var ruleGroup=rules[ruleGroupIndex];
-					   	logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
-					   	break;
-					}
-		        } 
-        	}
-			
-			if (verbose_logging){
-				debugger_turnIndex++;
-				addToDebugTimeline(level,-2);//pre-movement-applied debug state
-			}
-        }
-    }
-}
+	// stack of rule group index to return to at end of subroutine
+	const gosubStack = []; // PS>
 
+    //when we're going back in, let's loop, to be sure to be sure
+    let loopPropagated = startRuleGroupindex > 0;
+    let loopCount = 0;
+    for (let ruleGroupIndex = startRuleGroupindex; ruleGroupIndex<rules.length; ) {
+		// first process the rule and check for endloop
+		if (bannedGroup && bannedGroup[ruleGroupIndex]) {
+			//do nothing
+		} else {
+			const ruleGroup = rules[ruleGroupIndex];
+			loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
+		}
+		// loop ends right here
+        if (loopPropagated && loopPoint[ruleGroupIndex]) { 
+			if (checkLoop())
+				break; 
+		} else {
+			if (gosubTarget >=0 ) {			// PS>
+				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
+				ruleGroupIndex = gosubTarget;
+				gosubTarget = -1;
+				if (verbose_logging)
+					consolePrint(`Gosub to line ${rules[ruleGroupIndex][0].lineNumber}`);
+				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+			} else {
+				ruleGroupIndex++;
+				// note special for loops and gosubs that end after the last rule
+				if (ruleGroupIndex == rules.length && loopPropagated && loopPoint[ruleGroupIndex]) {
+					if (checkLoop())
+						break; 
+				}		
+
+				if (ruleGroupIndex == rules.length || subroutines.find(s => s.groupNumber == ruleGroupIndex)) {
+					if (gosubStack.length > 0) {
+						ruleGroupIndex = gosubStack.pop();
+						if (verbose_logging)
+							consolePrint(`Gosub return to line ${rules[ruleGroupIndex][0].lineNumber}`);
+						//console.log(`return group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+					} else break;
+				} 
+			}
+		}
+
+		if (verbose_logging){
+			debugger_turnIndex++;
+			addToDebugTimeline(level,-2);//pre-movement-applied debug state
+		}
+
+		function checkLoop() {
+			ruleGroupIndex = loopPoint[ruleGroupIndex];
+			loopPropagated = false;
+			loopCount++;
+			if (loopCount > 200) {
+				var ruleGroup = rules[ruleGroupIndex];
+				logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber, true);
+				return true;
+			}	
+		}
+	}
+}
 
 //if this returns!=null, need to go back and reprocess
 function resolveMovements(level, bannedGroup){
@@ -3047,7 +3065,7 @@ function resolveMovements(level, bannedGroup){
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
 						const object = getObject(fx.objId);
 						if (verbose_logging) 
-							consolePrint(`${state.idDict[object]} can't move, playing seed ${seedsToPlay_CantMove[i]}`)
+							consolePrint(`Object "${state.idDict[object]}" can't move, playing seed "${seedsToPlay_CantMove[i]}"`)
 						if (fx.seed.startsWith('afx')) {
 							const move = getLayerMovement(movementMask, object.layer);
 							seedsToAnimate[i+','+fx.objId] = { 
@@ -3221,7 +3239,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	rigidloop=false;
         	i++;
 
-			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
+			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
         	var shouldUndo = resolveMovements(level, bannedGroup);
 
         	if (shouldUndo) {
@@ -3283,7 +3301,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 						consolePrint('Applying late rules');
 					}
 				}
-        		applyRules(state.lateRules, state.lateLoopPoint, 0);
+        		applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
         		startRuleGroupIndex=0;
         	}
         } while (i < 250 && rigidloop);
@@ -3291,7 +3309,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         if (i>=250) {
           consolePrint("looped through 250 times, gave up. Too many loops!");
           
-          applyRules(state.lateRules, state.lateLoopPoint, 0);
+          applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
           startRuleGroupIndex=0;
           
           backups.push(bak);
@@ -3306,6 +3324,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
+			statusText = "";
 			DoUndo(true,false, true, true, true);
 			return true;
 		}
@@ -3388,6 +3407,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				goToTitleScreen();
 			}
 			messagetext = "";
+			statusText = "";
 			canvasResize();	
 			return true;
 		}
@@ -3459,12 +3479,12 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
 						if (fx.objId == entry.objId) {
-							if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+							if (verbose_logging) consolePrint(`Created object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
 						}
 					}
 				} else {
-					if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					if (verbose_logging) consolePrint(`Created object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 					playSeed(entry.seed);
 				}
 			}
@@ -3475,12 +3495,12 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
 						if (fx.objId == entry.objId) {
-							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+							if (verbose_logging) consolePrint(`Destroyed object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
 						}
 					}
 				} else {
-					if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					if (verbose_logging) consolePrint(`Destroyed object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 					playSeed(entry.seed);
 				}
 			}
@@ -3691,6 +3711,7 @@ function DoWin() {
 function nextLevel() {
     againing=false;
 	messagetext="";
+	statusText = "";
 	if (state && state.levels && (curlevel>state.levels.length) ){
 		curlevel=state.levels.length-1;
 	}
@@ -3793,6 +3814,7 @@ function loadLevelFromStateOrTarget() {
 function goToTitleScreen(){
     againing=false;
 	messagetext="";
+	statusText = "";
 	titleScreen=true;
 	textMode=true;
 	hoverSelection=-1;
