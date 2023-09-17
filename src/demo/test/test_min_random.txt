@@ -1,0 +1,84 @@
+title test min random
+author polymino
+homepage www.polyomino.com
+
+// testing randomness
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+R, B, G
+Player
+k
+======
+RULES
+======
+
+//[ left player ] [ no rgb ] -> [ player ] [random rgb ]
+//[ right player ][ no rgb ] -> [ player ] [random r random g random b ]
+//[ up player ]   [ no rgb ] -> [ player ] [random r random g random b random b random b random b random b random b ]
+//[ down player ] [ no rgb ] -> [ player ] [random rgb ]
+
+// does not work
+//[ no rgb ] -> [random r random g random b random b random b random b random b random b ]
+
+startloop
+    random [ no rgb ] -> [ r ]
+    + [ no rgb ] -> [ g ]
+    + [ no rgb ] -> [ b ]
+    + [ no rgb ] -> [ b ]
+    + [ no rgb ] -> [ b ]
+    + [ no rgb ] -> [ b ]
+endloop
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b......
+
+message second level
+
+..........
+....pry...
+..........
+

@@ -2971,7 +2971,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 			loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
 		}
 		// loop ends right here
-        if (loopPropagated && loopPoint[ruleGroupIndex]) { 
+        if (loopPropagated && loopPoint[ruleGroupIndex] >= 0) { 
 			if (checkLoop())
 				break; 
 		} else {
@@ -2985,7 +2985,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 			} else {
 				ruleGroupIndex++;
 				// note special for loops and gosubs that end after the last rule
-				if (ruleGroupIndex == rules.length && loopPropagated && loopPoint[ruleGroupIndex]) {
+				if (ruleGroupIndex == rules.length && loopPropagated && loopPoint[ruleGroupIndex] >= 0) {
 					if (checkLoop())
 						break; 
 				}		

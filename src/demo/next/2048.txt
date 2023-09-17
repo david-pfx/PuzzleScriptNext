@@ -137,7 +137,16 @@ endloop
 ////////////////////////////////////////////////////////////////////////////////
 subroutine Drop New Tile
 
-random [ empty ] -> [ random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 2 ]
+random [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 1 ]
+     + [ empty ] -> [ random 2 ]
 
 ////////////////////////////////////////////////////////////////////////////////
 subroutine Move Tiles
