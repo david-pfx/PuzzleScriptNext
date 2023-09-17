@@ -1,0 +1,52 @@
+title My Game
+author My Name Here
+homepage www.puzzlescript.net
+run_rules_on_level_start
+========
+OBJECTS
+========
+Background
+green
+
+red
+red
+
+blue
+blue
+=======
+LEGEND
+=======
+. = Background
+R = red
+B = blue
+colors = red or blue
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+colors
+======
+RULES
+======
+startloop
+random [no Colors] -> [blue]
++ [no Colors] -> [red]
++ [no Colors] -> [red]
++ [no Colors] -> [red]
+endloop
+==============
+WINCONDITIONS
+==============
+=======
+LEVELS
+=======
+.....................
+.....................
+.....................
+.....................
+.....................
+.....................
+.....................
