@@ -4,13 +4,21 @@ homepage polyomino.org
 
 // find the hidden objects by bouncing rays off them
 // port/rewrite from Tatham collection
-// requires rule subroutines - TBD
+
+// Demonstrates PS Next features: 
+// * direction mappings (TBD)
+// * GOSUB and SUBROUTINE
+// * text sprites
+// * STATUS line
+// * mouse clicks
+// * sprites of different sizes scaled to fit
 
 background_color lightbrown
 text_color darkblue
 run_rules_on_level_start
 nokeyboard 
 mouse_clicks
+status_line
 
 ========
 OBJECTS
@@ -60,22 +68,21 @@ black grey
 ...100001...
 .....00.....
 
-//FAB extension: text objects
 // numbers to show on edge
-N1 ; blue; text 1
-N2 ; blue; text 2
-N3 ; blue; text 3
-N4 ; blue; text 4
-N5 ; blue; text 5
-N6 ; blue; text 6
-N7 ; blue; text 7
-N8 ; blue; text 8
-N9 ; blue; text 9
-N10; blue; text 10
-N11; blue; text 11
-N12; blue; text 12
-NR ; blue; text R
-NH ; blue; text H
+N1 ; blue; text: 1
+N2 ; blue; text: 2
+N3 ; blue; text: 3
+N4 ; blue; text: 4
+N5 ; blue; text: 5
+N6 ; blue; text: 6
+N7 ; blue; text: 7
+N8 ; blue; text: 8
+N9 ; blue; text: 9
+N10; blue; text: 10
+N11; blue; text: 11
+N12; blue; text: 12
+NR ; blue; text: R
+NH ; blue; text: H
 
 target; transparent
 
@@ -89,7 +96,7 @@ edge *; orange
 cover C; blue
 
 // click this to check solution
-done; black; text ?
+done; black; text: ?
 lit; yellow
 
 noball; transparent   // space when not a ball
@@ -101,15 +108,15 @@ temp; transparent     // just a temporary marker
 
 // paths components
 // PS ... PQ PP:? ... Pend
-PS; red; text @
-PQ; red; text q
-pend; red; text e
+PS;   red; text: @
+PQ;   red; text: q
+pend; red; text: e
 
 // path probes in four directions, not seen
-PPup; red; text u
-PPdown; red; text d
-PPleft; red; text l
-PPright; red; text r
+PPup;    red; text: u
+PPdown;  red; text: d
+PPleft;  red; text: l
+PPright; red; text: r
 
 =======
 LEGEND
@@ -155,13 +162,13 @@ RULES
 [ iswin ] -> cancel
 [ wrong ] -> []
 
-[ cover target ] -> call initialise
-[ player ] -> call user input
-[ click1 done lit ] -> call check for win
-[ player ] -> call update display
+[ cover target ] -> gosub initialise
+[ player ] -> gosub user input
+[ lclick done lit ] -> gosub check for win
+[ player ] -> gosub update display
 
 ////////////////////////////////////////////////////////////////////////////////
-segment initialise
+subroutine initialise
 
 // place one target at random for each S in the level
 startloop
@@ -169,30 +176,30 @@ startloop
 endloop
 
 ////////////////////////////////////////////////////////////////////////////////
-segment user input
+subroutine user input
 
 // manage focus
 
 // place or remove a solution ball on the grid
-[ click1 noball ][ ball cover ] -> [ ball ][ noball cover ]
-[ click1 ball ][ noball cover ] -> [ noball ][ ball cover ]
+[ lclick noball ][ ball cover ] -> [ ball ][ noball cover ]
+[ lclick ball ][ noball cover ] -> [ noball ][ ball cover ]
 
 // place or remove a marker on the grid
-[ click2 grid no mark ] -> [ grid mark ]
-[ click2 grid mark ] -> [ grid no mark ]
+[ rclick grid no mark ] -> [ grid mark ]
+[ rclick grid mark ] -> [ grid no mark ]
 
 // light up if no balls left to place
 [ done ] -> [ done lit ]
 [ done lit ][ ball cover ] -> [ done ][ ball cover ]
 
 ////////////////////////////////////////////////////////////////////////////////
-segment update display
+subroutine update display
 
 //FAB extension: expand relative directions with token pasting
 // so [ PP:> ] becomes [ PP:right ] etc x4
 
 // accept a trial ray click on edge
-[ done no lit ][ click1 nonum ] -> [ done ][ PS ]
+[ done no lit ][ lclick nonum ] -> [ done ][ PS ]
 [ ps | target ] -> [ nh | target ]      // target ahead blocked immediately
 [ ps | x ] -> [ ps | x PP:> ]       // start path
 
@@ -238,10 +245,10 @@ endloop
 [ pend ]       -> [ N1 ]
 
 ================================================================================
-segment check for win
+subroutine check for win
 
 // check for win
-[ click1 done lit ] -> [ done lit temp ]
+[ lclick done lit ] -> [ done lit temp ]
 [ lit temp ][ ball no target ] -> [ lit temp ][ ball wrong ]
 [ lit temp ][ wrong ] -> [ lit temp wrong ][ wrong ]
 [ lit temp no wrong ] -> [ lit temp iswin ]
@@ -263,7 +270,7 @@ LEVELS
 message Click on the edge to send rays bouncing off hidden targets
 
 
-level 10x10, 5 balls
+section 10x10, 5 balls
 SDEEEEEEEEEE*B
 SExxxxxxxxxxEB
 SExxxxxxxxxxEB
@@ -277,7 +284,7 @@ CExxxxxxxxxxEC
 CExxxxxxxxxxEC
 C*EEEEEEEEEE*C
 
-level 8x8, 5 balls
+section 8x8, 5 balls
 SDEEEEEEEE*B
 SExxxxxxxxEB
 SExxxxxxxxEB
@@ -289,7 +296,7 @@ CExxxxxxxxEC
 CExxxxxxxxEC
 C*EEEEEEEE*C
 
-level 5x5, 3 balls
+section 5x5, 3 balls
 SDEEEEE*B
 SExxxxxEB
 SExxxxxEB
@@ -298,17 +305,17 @@ CExxxxxEC
 CExxxxxEC
 C*EEEEE*C
 
-(level test 10x10, 5 balls
-DEEEEEEEEEE*B
-ExxxxxxxxxTEB
-ExxxxxxxxTxEB
-ExxxxxxxxxxEB
-ExxxxxxxxxxEB
-ExxxxxTxxxxEC
-ExxxxxxxxxxEC
-ExxxxxxxxxxEC
-ExxxxxxxxxxEC
-ExTxxxxxxxxEC
-ETxxxxxxxxxEC
-*EEEEEEEEEE*C)
+//section test 10x10, 5 balls
+//DEEEEEEEEEE*B
+//ExxxxxxxxxTEB
+//ExxxxxxxxTxEB
+//ExxxxxxxxxxEB
+//ExxxxxxxxxxEB
+//ExxxxxTxxxxEC
+//ExxxxxxxxxxEC
+//ExxxxxxxxxxEC
+//ExxxxxxxxxxEC
+//ExTxxxxxxxxEC
+//ETxxxxxxxxxEC
+//*EEEEEEEEEE*C
 

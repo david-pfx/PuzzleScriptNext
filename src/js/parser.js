@@ -1445,15 +1445,9 @@ var codeMirrorFn = function() {
                                 }
                                 
                                 m = m.toLowerCase();
-                                if (m==='...') {
+                                if (['...', 'rigid', 'random', 'global', 'once'].includes(m)) {
                                     return 'DIRECTION';
-                                } else if (m==='rigid') {
-                                    return 'DIRECTION';
-                                } else if (m==='random') {
-                                    return 'DIRECTION';
-                                } else if (m==='global') {
-                                    return 'DIRECTION';
-                                }else if (m.match(reg_commandwords)) {
+                                } else if (m.match(reg_commandwords)) {
                                     if (commandargs_table.includes(m) || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
                                     }                                	

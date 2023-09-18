@@ -806,6 +806,7 @@ var incellrow = false;
     var randomRule = false;
     var has_plus = false;
     var globalRule=false;
+    let isOnce = false;
 
     if (tokens.length===1) {
         if (tokens[0]==="startloop" ) {
@@ -868,6 +869,8 @@ var incellrow = false;
 
                     }else if (token==='global') {
                         globalRule=true;
+                    }else if (token==='once') {
+                        isOnce = true;
                     } else if (simpleAbsoluteDirections.indexOf(token) >= 0) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
@@ -1040,7 +1043,8 @@ var rule_line = {
     groupNumber: groupNumber,
     commands: commands,
     randomRule: randomRule,
-    globalRule: globalRule
+    globalRule: globalRule,
+    isOnce: isOnce,
 };
 
     if (directionalRule(rule_line) === false && rule_line.directions.length>1) {
@@ -1068,7 +1072,8 @@ function deepCloneRule(rule) {
 		groupNumber: rule.groupNumber,
 		commands:rule.commands,
 		randomRule:rule.randomRule,
-		globalRule:rule.globalRule
+		globalRule:rule.globalRule,
+        isOnce: rule.isOnce,
 	};
 	return clonedRule;
 }
@@ -2135,6 +2140,7 @@ function collapseRules(groups) {
             newrule.push(cellRowMasks(newrule));
             newrule.push(cellRowMasks_Movements(newrule));
             newrule.push(oldrule.globalRule);
+            newrule.push(oldrule.isOnce);
             rules[i] = new Rule(newrule);
         }
     }
@@ -2672,6 +2678,9 @@ function cacheRuleStringRep(rule) {
 	}
 	if (rule.globalRule) {
 		result = "GLOBAL "+result+" ";
+	}
+	if (rule.isOnce) {
+		result = "ONCE "+result+" ";
 	}
 	if (rule.late) {
 		result = "LATE "+result+" ";

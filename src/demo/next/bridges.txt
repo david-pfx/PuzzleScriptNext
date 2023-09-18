@@ -4,15 +4,26 @@ homepage polyomino.org
 
 // join up the network using single and double lines
 // port/rewrite from Tatham collection
-// requires rule subroutines - TBD
+
+// Demonstrates PS Next features: 
+// * rules referring to OR lists of the same length are expanded pair-wise
+// * 'once' means the rule is applied just once whether 'anything changed' or not
+// * GOSUB and SUBROUTINE
+// * text sprites
+// * STATUS line
+// * mouse clicks
+// * sprites of different sizes scaled to fit
 
 color_palette mastersystem
 background_color blue
 text_color yellow
 
-noarrows
-noaction
-clicks
+nokeyboard
+mouse_clicks
+status_line
+
+debug
+verbose_logging
 
 ========
 OBJECTS
@@ -45,16 +56,6 @@ darkblue green
 10.........01
 110.......011
 1110000000111
-
-// numbers in cells -- macro would help
-N1;black;resize 0.7;text 1
-N2;black;resize 0.7;text 2
-N3;black;resize 0.6;text 3
-N4;black;resize 0.6;text 4
-N5;black;resize 0.6;text 5
-N6;black;resize 0.6;text 6
-N7;black;resize 0.7;text 7
-N8;black;resize 0.7;text 8
 
 singley
 darkblue
@@ -90,20 +91,30 @@ darkblue
 .........
 000000000
 
-c0;transparent;text A
-c1;transparent;text B
-c2;transparent;text C
-c3;transparent;text D
-c4;transparent;text E 
-c5;transparent;text F 
-c6;transparent;text G
-c7;transparent;text H 
-c8;transparent;text I
+// numbers in cells -- macro would help
+N1 scale: 0.7; black; text: 1
+N2 scale: 0.7; black; text: 2
+N3 scale: 0.6; black; text: 3
+N4 scale: 0.6; black; text: 4
+N5 scale: 0.6; black; text: 5
+N6 scale: 0.6; black; text: 6
+N7 scale: 0.7; black; text: 7
+N8 scale: 0.7; black; text: 8
 
-Background .;green
-player -;transparent
-lit;yellow
-win;transparent
+c0; transparent; text: A
+c1; transparent; text: B
+c2; transparent; text: C
+c3; transparent; text: D
+c4; transparent; text: E 
+c5; transparent; text: F 
+c6; transparent; text: G
+c7; transparent; text: H 
+c8; transparent; text: I
+
+Background .; green
+player -; transparent
+lit;    yellow
+won;    transparent
 
 =======
 LEGEND
@@ -145,60 +156,60 @@ player
 line
 cell
 number
-win 
+won 
 
 ======
 RULES
 ======
 
-[ win ] -> cancel // it's already a win and we said so
-[ player ] -> call player move
-[ player ] -> call show lit
-[ player ] -> call check win
+[ won ] -> cancel // it's already a win and we said so
+[ player ] -> gosub player move
+[ player ] -> gosub show lit
+[ player ] -> gosub check win
 
 ////////////////////////////////////////////////////////////////////////////////
-segment player move
+subroutine player move
 // single line left right
-horizontal [ cell    | click1 player no line ]           -> [ cell    | player action singlex ]
+horizontal [ cell    | lclick player no line ]           -> [ cell    | player action singlex ]
 horizontal [ cell    | action singlex | player no line ] -> [ cell    | singlex | player action singlex ]
 horizontal [ singlex | action singlex | player no line ] -> [ singlex | singlex | player action singlex ]
 
 // promote single to double
-horizontal [ cell    | click1 player singlex ]              -> [ cell    | player action doublex ]
+horizontal [ cell    | lclick player singlex ]              -> [ cell    | player action doublex ]
 horizontal [ cell    | action doublex | singlex ]           -> [ cell    | doublex | action doublex ]
 horizontal [ doublex | action doublex | singlex ]           -> [ doublex | doublex | action doublex ]
 
 // single line up down
-vertical   [ cell    | click2 player no line ]           -> [ cell    | player action singley ]
+vertical   [ cell    | rclick player no line ]           -> [ cell    | player action singley ]
 vertical   [ cell    | action singley | player no line ] -> [ cell    | singley | player action singley ]
 vertical   [ singley | action singley | player no line ] -> [ singley | singley | player action singley ]
 
 // promote single to double
-vertical   [ cell    | click2 player singley ]              -> [ cell    | player action doubley ]
+vertical   [ cell    | rclick player singley ]              -> [ cell    | player action doubley ]
 vertical   [ cell    | action doubley | singley ]           -> [ cell    | doubley | action doubley ]
 vertical   [ doubley | action doubley | singley ]           -> [ doubley | doubley | action doubley ]
 
 // remove line
-horizontal [ cell | click1 player doublex ] -> [ cell | player ]
-vertical   [ cell | click2 player doubley ] -> [ cell | player ]
+horizontal [ cell | lclick player doublex ] -> [ cell | player ]
+vertical   [ cell | rclick player doubley ] -> [ cell | player ]
 
 // remove loose ends
 horizontal [ linex | player no line ] -> [ | player ]
 vertical   [ liney | player no line ] -> [ | player ]
 
 ////////////////////////////////////////////////////////////////////////////////
-segment show lit
+subroutine show lit
 
-// calculate a count for each cell, using the final prefix so the rule applies only once
+// calculate a count for each cell, using the once prefix so the rule applies only once
             [ cell ] -> [ cell c0 ]
-up    final [ cell count | singley ] -> [ cell count1 | singley ]
-down  final [ cell count | singley ] -> [ cell count1 | singley ]
-left  final [ cell count | singlex ] -> [ cell count1 | singlex ]
-right final [ cell count | singlex ] -> [ cell count1 | singlex ]
-up    final [ cell count | doubley ] -> [ cell count2 | doubley ]
-down  final [ cell count | doubley ] -> [ cell count2 | doubley ]
-left  final [ cell count | doublex ] -> [ cell count2 | doublex ]
-right final [ cell count | doublex ] -> [ cell count2 | doublex ]
+up    once [ cell count | singley ] -> [ cell count1 | singley ]
+down  once [ cell count | singley ] -> [ cell count1 | singley ]
+left  once [ cell count | singlex ] -> [ cell count1 | singlex ]
+right once [ cell count | singlex ] -> [ cell count1 | singlex ]
+up    once [ cell count | doubley ] -> [ cell count2 | doubley ]
+down  once [ cell count | doubley ] -> [ cell count2 | doubley ]
+left  once [ cell count | doublex ] -> [ cell count2 | doublex ]
+right once [ cell count | doublex ] -> [ cell count2 | doublex ]
 
 // light up every cell where the count matches
     [ lit ] -> [ ]
@@ -211,11 +222,11 @@ right final [ cell count | doublex ] -> [ cell count2 | doublex ]
     [ 7 c7 ] -> [ 7 lit ]
     [ 8 c8 ] -> [ 8 lit ]
 
-segment check win
-[ player ] -> [ player win ]
-[ cell no lit ][ player win ] -> [ cell ][ player ]
-[ win ] -> sfx1
-[ win ] -> status You win! Press R to play again, or Esc to select level.
+subroutine check win
+[ player ] -> [ player won ]
+[ cell no lit ][ player won ] -> [ cell ][ player ]
+[ won ] -> sfx1
+[ won ] -> status You win! Press R to play again, or Esc to select level.
 
 ==============
 WINCONDITIONS
@@ -231,7 +242,7 @@ message Left click to draw horizontal line, right click vertical
 
 message The aim is to light up all the boxes
 
-level Small 7x7 puzzle
+section Small 7x7 puzzle
 ***********
 *.........*
 *.3-----4.*
@@ -244,7 +255,7 @@ level Small 7x7 puzzle
 *.........*
 ***********
 
-level Medium 10x10 puzzle
+section Medium 10x10 puzzle
 **************
 *............*
 *.-2--3-2-4-.*
@@ -260,7 +271,7 @@ level Medium 10x10 puzzle
 *............*
 **************
 
-level Large 15x15 puzzle
+section Large 15x15 puzzle
 *******************
 *.................*
 *.2-5-----------3.*

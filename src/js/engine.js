@@ -1954,8 +1954,9 @@ function Rule(rule) {
 	this.commands = rule[7];		/* cancel, restart, sfx, etc */
 	this.isRandom = rule[8];
 	this.cellRowMasks = rule[9];
-  this.cellRowMasks_Movements = rule[10];
-  this.isGlobal = rule[11];
+    this.cellRowMasks_Movements = rule[10];
+    this.isGlobal = rule[11];
+    this.isOnce = rule[12];
 	this.ruleMask = this.cellRowMasks.reduce( (acc, m) => { acc.ior(m); return acc }, new BitVec(STRIDE_OBJ) );
 
 	/*I tried out doing a ruleMask_movements as well along the lines of the above,
@@ -2928,7 +2929,8 @@ function applyRuleGroup(ruleGroup) {
         for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
             var rule = ruleGroup[ruleIndex];     
 			if (rule.tryApply(level)){
-				propagated=true;
+				if (!rule.isOnce)
+					propagated=true;
 				nothing_happened_counter=0;//why am I resetting to 1 rather than 0? because I've just verified that applications of the current rule are exhausted
 			} else {
 				nothing_happened_counter++;
