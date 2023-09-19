@@ -7,13 +7,56 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23i15, which includes GOSUB and SUBROUTINE, , as well as:
-* New games to demonstrate text sprites, animation and GOSUB.
+The latest version is Release v-23i20, which includes object direction suffixes and the `once` keyword, as well as:
+* New games to demonstrate text sprites, animation, GOSUB, direction suffix and `once`
 * The STATUS line is reset where needed
-* Key repeat interval default 200 (from 150) to reduce key bounce.
+* Key repeat interval default 200 (from 150) to reduce key bounce
 * Performance counters to gather timing statistics (`set debugLevel='perf'``).
 
 It includes the following features.
+
+### The `once` keyword
+
+The standard defined behaviour per the PuzzleScript documentation is that "Each rule gets applied in turn as often as it can be".
+A rule with a `once` prefix simply executes once instead.
+Even if "something happens", the rule is executed just the once.
+
+This turns out to useful in situations where after running the rule, the result is such that the rule would still apply.
+Without this feature, it's necessary to use movement flags or lay down temporary objects to achieve the same effect.
+There is a new game Bridges.txt to show it in use.
+
+Here is how the code looks (from Bridges).
+```
+// calculate a count for each cell, using the once prefix so the rule applies only once
+            [ cell ] -> [ cell c0 ]
+up    once [ cell count | singley ] -> [ cell count1 | singley ]
+down  once [ cell count | singley ] -> [ cell count1 | singley ]
+left  once [ cell count | singlex ] -> [ cell count1 | singlex ]
+right once [ cell count | singlex ] -> [ cell count1 | singlex ]
+up    once [ cell count | doubley ] -> [ cell count2 | doubley ]
+down  once [ cell count | doubley ] -> [ cell count2 | doubley ]
+left  once [ cell count | doublex ] -> [ cell count2 | doublex ]
+right once [ cell count | doublex ] -> [ cell count2 | doublex ]
+```
+
+### Object direction suffix
+
+The intent of this feature is for an object to have 4 variants, one for each direction, and choose one depending on the direction of the rule that matches.
+A new game Black_box shows how it is used.
+
+The object rule suffix is a colon and a relative direction.
+The code looks like this (from Black_box).
+```
+[ ps ][ PP:^ | target ]       -> [ nr ][ | target ]
+[ ps ][ PP:v | target ]       -> [ nr ][ | target ]
+[ ps | PP:> | target ]        -> [ nh | | target ]
+[ ps | PP:> | x no target ]   -> [ ps | pq | x PP:> ]
+```
+
+The first rule is expanded as usual into one for each direction.
+For the rules where the direction is `right` the object `PP:^` is translated as `PPup`.
+For the direction `down` the object `PP:>` is translated as `PPdown`, and so on.
+You can easily see the expansions by switching on `verbose_logging`.
 
 ### GOSUB and SUBROUTINE
 
