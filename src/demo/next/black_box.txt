@@ -6,7 +6,7 @@ homepage polyomino.org
 // port/rewrite from Tatham collection
 
 // Demonstrates PS Next features: 
-// * direction mappings (TBD)
+// * object direction suffixes
 // * GOSUB and SUBROUTINE
 // * text sprites
 // * STATUS line
