@@ -1,0 +1,71 @@
+title test min dirmap
+author polymino
+homepage www.polyomino.com
+
+// test program for <>^v mapping
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+PPup;    red; text: u
+PPdown;  red; text: d
+PPleft;  red; text: l
+PPright; red; text: r
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+paths = PPup or PPdown or PPright or PPleft
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+
+Background
+y
+Player, R, B, G
+k
+paths
+
+======
+RULES
+======
+
+[ y ] -> [ PPup ]
+[ PP:> ] -> [ PP:v ]
+[ PP:> ] -> [ bad:v ]
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+.........
+..p.r.y..
+.........
+

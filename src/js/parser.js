@@ -1436,7 +1436,7 @@ var codeMirrorFn = function() {
                             } else {
                                 if (state.names.indexOf(m) >= 0) {
                                     if (sol) {
-                                logError('Objects cannot appear outside of square brackets in rules, only directions can.', state.lineNumber);
+                                        logError('Objects cannot appear outside of square brackets in rules, only directions can.', state.lineNumber);
                                         return 'ERROR';
                                     } else {
                                         stream.match(/[\p{Z}\s]*/u, true);
@@ -1452,6 +1452,8 @@ var codeMirrorFn = function() {
                                         state.tokenIndex=-4;
                                     }                                	
                                     return 'COMMAND';
+                                } else if (m.match(/^[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
+                                    return 'NAME';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
                                     return 'ERROR';

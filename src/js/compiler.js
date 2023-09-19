@@ -710,6 +710,9 @@ function directionalRule(rule) {
                 if (relativeDirections.indexOf(cell[k]) >= 0) {
                     return true;
                 }
+                if (cell[k + 1].match(/(:<|:>|:\^|:v)$/)) {     //@@ PS>
+                    return true;
+                }
             }
         }
     }
@@ -943,14 +946,12 @@ var incellrow = false;
                 curcellrow = [];
                 incellrow = false;
             } else if (token === '->') {
-
-                        if (groupNumber !== lineNumber) {
-                            var parentrule = curRules[curRules.length - 1];
-                            if (parentrule.late!==late){
-                                logWarning('Oh gosh you can mix late and non-late rules in a rule-group if you really want to, but gosh why would you want to do that?  What do you expect to accomplish?', lineNumber);
-                            }
-                        }
-                        
+                if (groupNumber !== lineNumber) {
+                    var parentrule = curRules[curRules.length - 1];
+                    if (parentrule.late!==late){
+                        logWarning('Oh gosh you can mix late and non-late rules in a rule-group if you really want to, but gosh why would you want to do that?  What do you expect to accomplish?', lineNumber);
+                    }
+                }
                 if (incellrow) {
                     logError('Encountered an unexpected "->" inside square brackets.  It\'s used to separate states, it has no place inside them >:| .', lineNumber);
                 } else if (rhs) {
@@ -958,7 +959,7 @@ var incellrow = false;
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.indexOf(token) >= 0) {
+            } else if (state.names.indexOf(token) >= 0 || token.match(/[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
                 if (!incellrow) {
                      logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
                  }
@@ -1130,6 +1131,8 @@ function rulesToArray(state) {
 
     for (var i = 0; i < rules2.length; i++) {
         var rule = rules2[i];
+        // remove object suffixes       // PS>
+        replaceObjectSuffixes(state, rule);
         //remove relative directions
         convertRelativeDirsToAbsolute(rule);
         //optional: replace up/left rules with their down/right equivalents
@@ -1329,7 +1332,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
         }
     }
 
-    // do we have properties on both sides, all of the same length, left all different from right?
+    // PS> do we have properties on both sides, all of the same length, left all different from right?
     let result = [rule];
     if (mappingProperties_l.length > 0 && mappingProperties_r.length > 0) {
         const proplen = prop => state.propertiesDict[prop].length;
@@ -1342,7 +1345,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
         }
     }
 
-    // blindly replace property by n-th member in the n-th new rule (except if random)
+    // PS> blindly replace property by n-th member in the n-th new rule (except if random)
     function replaceMappedProperties(oldRule, numprops) {
         let newRules = [];
         while (numprops-- > 0)
@@ -1512,6 +1515,7 @@ function makeSpawnedObjectsStationary(state,rule,lineNumber){
                 if (name in state.propertiesDict || objects_l.indexOf(name)>=0){
                     continue;
                 }
+                //@@ dies here if invalid object name
                 var r_layer = state.objects[name].layer;
                 if (layers.indexOf(r_layer)===-1){
                     cell[l]='stationary';
@@ -1786,6 +1790,17 @@ function convertRelativeDirsToAbsolute(rule) {
     }
 }
 
+//@@ PS>
+function replaceObjectSuffixes(state, rule) {
+    for (const side of [rule.lhs, rule.rhs]) {
+        for (const cellrow of side) {
+            for (const cell of cellrow) {
+                replaceObjectSuffix(state, rule, cell);
+            }
+        }
+    }
+}
+
 var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
 //I use _par/_perp just to keep track of providence for replacement purposes later.
 var relativeDict = {
@@ -1794,6 +1809,23 @@ var relativeDict = {
     'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
     'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
 };
+
+//@@ PS> replace a suffix on thing:> with thingup  ???
+function replaceObjectSuffix(state, rule, cell) {
+    for (let i = 1; i < cell.length; i += 2) {
+        const c = cell[i];
+        if (c.match(/(:<|:>|:\^|:v)$/)) {
+            const s = c.slice(-1);
+            const newc = c.slice(0, -2) + relativeDict[rule.direction][relativeDirs.indexOf(s)];
+            if (!state.names.includes(newc)) {
+                logError(`Invalid direction expansion: "${c}" expands to "${newc}" which is not a defined object.`, rule.lineNumber);
+                cell[i] = 'background';
+            } else 
+                cell[i] = newc;
+
+        }
+    }
+}
 
 function absolutifyRuleCell(forward, cell) {
     for (var i = 0; i < cell.length; i += 2) {
