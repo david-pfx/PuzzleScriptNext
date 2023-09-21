@@ -573,7 +573,7 @@ function redrawCellGrid() {
 
     if (state.metadata.status_line)
         drawTextWithFont(ctx, statusText, state.fgcolor, 
-            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight);
+            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight * 0.6);
 
     if (diffToVisualize)
         drawDiffToVisualize();

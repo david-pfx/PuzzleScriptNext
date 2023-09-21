@@ -1340,7 +1340,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
         if (!mappingProperties_l.some(value => proplen(value) != len0)
             && !mappingProperties_r.some(value => proplen(value) != len0)
             && !mappingProperties_l.some(value => mappingProperties_r.includes(value))) {
-            console.log(`go for mapping rule ${lineNumber}: ${rule}`);
+            //console.log(`go for mapping rule ${lineNumber}: ${rule}`);
             result = replaceMappedProperties(rule, len0);
         }
     }

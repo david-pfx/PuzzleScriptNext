@@ -7406,7 +7406,7 @@ function redrawCellGrid() {
 
     if (state.metadata.status_line)
         drawTextWithFont(ctx, statusText, state.fgcolor, 
-            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight);
+            xoffset + screenwidth * cellwidth / 2, yoffset + screenheight * cellheight + textcellheight * 0.6, textcellheight * 0.8);
 
     if (diffToVisualize)
         drawDiffToVisualize();
@@ -8377,6 +8377,7 @@ function gotoLevelSelectScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
+	statusText = "";
 
 	if (titleSelection == false) {
 		for(var i = 0; i < state.sections.length; i++) {
@@ -8552,6 +8553,7 @@ function gotoLevel(sectionIndex) {
 
 	againing = false;
 	messagetext = "";
+	statusText = "";
 
 	curlevel = state.sections[sectionIndex].firstLevel;
 
@@ -9220,7 +9222,8 @@ function RebuildLevelArrays() {
 }
 
 var messagetext="";
-let statusText="";
+let statusText = "";  // PS>
+let gosubTarget = -1;  // PS>
 var currentMovedEntities = {};
 var newMovedEntities = {};
 
@@ -9632,7 +9635,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
     			if (verbose_logging) 
-					consolePrint(`${state.idDict[fx.objId]} has moved, playing seed ${fx.seed}`)
+					consolePrint(`Object "${state.idDict[fx.objId]}" has moved, playing seed "${fx.seed}"`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -9923,8 +9926,9 @@ function Rule(rule) {
 	this.commands = rule[7];		/* cancel, restart, sfx, etc */
 	this.isRandom = rule[8];
 	this.cellRowMasks = rule[9];
-  this.cellRowMasks_Movements = rule[10];
-  this.isGlobal = rule[11];
+    this.cellRowMasks_Movements = rule[10];
+    this.isGlobal = rule[11];
+    this.isOnce = rule[12];
 	this.ruleMask = this.cellRowMasks.reduce( (acc, m) => { acc.ior(m); return acc }, new BitVec(STRIDE_OBJ) );
 
 	/*I tried out doing a ruleMask_movements as well along the lines of the above,
@@ -10725,12 +10729,17 @@ Rule.prototype.queueCommands = function() {
 		level.commandQueue=[];
         level.commandQueueSourceRules=[];
 		messagetext="";
+		statusText = "";
 	}
 
 	for(var i=0;i<commands.length;i++) {
 		var command=commands[i];
 		var already=false;
 		if (level.commandQueue.indexOf(command[0])>=0) {
+			continue;
+		} else if (command[0] == 'gosub') {  // PS>
+			// gosub is not queued
+			gosubTarget = command[1];
 			continue;
 		}
 		level.commandQueue.push(command[0]);
@@ -10743,17 +10752,13 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString,false,lineNumber,null);
 		}
 
-		if (command[0]==='message') {     
+		if (command[0] == 'message') {     
 			messagetext=command[1];
-		}
-		
-		if (command[0]==='goto') {
+		} else if (command[0] == 'goto') {
 			gotoLevel(command[1]);
-		}
-
-		if (command[0]==='status') {
+		} else if (command[0] == 'status') { // PS>
 			statusText = command[1];
-		}
+		}		
 
     if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
 
@@ -10881,23 +10886,23 @@ function applyRuleGroup(ruleGroup) {
 		return applyRandomRuleGroup(level,ruleGroup);
 	}
 
-  var loopPropagated=false;
+  	var loopPropagated=false;
     var propagated=true;
     var loopcount=0;
 	var nothing_happened_counter = -1;
     while(propagated) {
-      loopcount++;
-      if (loopcount>200) 
-      {
-        logErrorCacheable("Got caught looping lots in a rule group :O",ruleGroup[0].lineNumber,true);
-        break;
-      }
+		loopcount++;
+		if (loopcount>200) {
+			logErrorCacheable("Got caught looping lots in a rule group :O",ruleGroup[0].lineNumber,true);
+			break;
+		}
         propagated=false;
 
         for (var ruleIndex=0;ruleIndex<ruleGroup.length;ruleIndex++) {
             var rule = ruleGroup[ruleIndex];     
 			if (rule.tryApply(level)){
-				propagated=true;
+				if (!rule.isOnce)
+					propagated=true;
 				nothing_happened_counter=0;//why am I resetting to 1 rather than 0? because I've just verified that applications of the current rule are exhausted
 			} else {
 				nothing_happened_counter++;
@@ -10918,60 +10923,75 @@ function applyRuleGroup(ruleGroup) {
     return loopPropagated;
 }
 
-function applyRules(rules, loopPoint, startRuleGroupindex, bannedGroup){
+function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGroup){
 	perfCounters.tries++;
     //for each rule
     //try to match it
 
     playerPositions = getPlayerPositions();
 
-    //when we're going back in, let's loop, to be sure to be sure
-    var loopPropagated = startRuleGroupindex>0;
-    var loopCount = 0;
-    for (var ruleGroupIndex=startRuleGroupindex;ruleGroupIndex<rules.length;) {
-      if (bannedGroup && bannedGroup[ruleGroupIndex]) {
-        //do nothing
-      } else {
-        var ruleGroup=rules[ruleGroupIndex];
-      loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
-      }
-        if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
-        	ruleGroupIndex = loopPoint[ruleGroupIndex];
-        	loopPropagated=false;
-        	loopCount++;
-			if (loopCount > 200) {
-    			var ruleGroup=rules[ruleGroupIndex];
-			   	logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
-			   	break;
-			}
-			
-			if (verbose_logging){
-				debugger_turnIndex++;
-				addToDebugTimeline(level,-2);//pre-movement-applied debug state
-			}
-        } else {
-        	ruleGroupIndex++;
-        	if (ruleGroupIndex===rules.length) {
-        		if (loopPropagated && loopPoint[ruleGroupIndex]!==undefined) {
-		        	ruleGroupIndex = loopPoint[ruleGroupIndex];
-		        	loopPropagated=false;
-		        	loopCount++;
-					if (loopCount > 200) {
-		    			var ruleGroup=rules[ruleGroupIndex];
-					   	logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber,true);
-					   	break;
-					}
-		        } 
-        	}
-			
-			if (verbose_logging){
-				debugger_turnIndex++;
-				addToDebugTimeline(level,-2);//pre-movement-applied debug state
-			}
-        }
-    }
-}
+	// stack of rule group index to return to at end of subroutine
+	const gosubStack = []; // PS>
 
+    //when we're going back in, let's loop, to be sure to be sure
+    let loopPropagated = startRuleGroupindex > 0;
+    let loopCount = 0;
+    for (let ruleGroupIndex = startRuleGroupindex; ruleGroupIndex<rules.length; ) {
+		// first process the rule and check for endloop
+		if (bannedGroup && bannedGroup[ruleGroupIndex]) {
+			//do nothing
+		} else {
+			const ruleGroup = rules[ruleGroupIndex];
+			loopPropagated = applyRuleGroup(ruleGroup) || loopPropagated;
+		}
+		// loop ends right here
+        if (loopPropagated && loopPoint[ruleGroupIndex] >= 0) { 
+			if (checkLoop())
+				break; 
+		} else {
+			if (gosubTarget >=0 ) {			// PS>
+				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
+				ruleGroupIndex = gosubTarget;
+				gosubTarget = -1;
+				if (verbose_logging)
+					consolePrint(`Gosub to line ${rules[ruleGroupIndex][0].lineNumber}`);
+				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+			} else {
+				ruleGroupIndex++;
+				// note special for loops and gosubs that end after the last rule
+				if (ruleGroupIndex == rules.length && loopPropagated && loopPoint[ruleGroupIndex] >= 0) {
+					if (checkLoop())
+						break; 
+				}		
+
+				if (ruleGroupIndex == rules.length || subroutines.find(s => s.groupNumber == ruleGroupIndex)) {
+					if (gosubStack.length > 0) {
+						ruleGroupIndex = gosubStack.pop();
+						if (verbose_logging)
+							consolePrint(`Gosub return to line ${rules[ruleGroupIndex][0].lineNumber}`);
+						//console.log(`return group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+					} else break;
+				} 
+			}
+		}
+
+		if (verbose_logging){
+			debugger_turnIndex++;
+			addToDebugTimeline(level,-2);//pre-movement-applied debug state
+		}
+
+		function checkLoop() {
+			ruleGroupIndex = loopPoint[ruleGroupIndex];
+			loopPropagated = false;
+			loopCount++;
+			if (loopCount > 200) {
+				var ruleGroup = rules[ruleGroupIndex];
+				logErrorCacheable("got caught in an endless startloop...endloop vortex, escaping!", ruleGroup[0].lineNumber, true);
+				return true;
+			}	
+		}
+	}
+}
 
 //if this returns!=null, need to go back and reprocess
 function resolveMovements(level, bannedGroup){
@@ -11019,7 +11039,7 @@ function resolveMovements(level, bannedGroup){
 					if (movementMask.anyBitsInCommon(fx.directionMask)) {
 						const object = getObject(fx.objId);
 						if (verbose_logging) 
-							consolePrint(`${state.idDict[object]} can't move, playing seed ${seedsToPlay_CantMove[i]}`)
+							consolePrint(`Object "${state.idDict[object]}" can't move, playing seed "${seedsToPlay_CantMove[i]}"`)
 						if (fx.seed.startsWith('afx')) {
 							const move = getLayerMovement(movementMask, object.layer);
 							seedsToAnimate[i+','+fx.objId] = { 
@@ -11193,7 +11213,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	rigidloop=false;
         	i++;
 
-			applyRules(state.rules, state.loopPoint, startRuleGroupIndex, bannedGroup);
+			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
         	var shouldUndo = resolveMovements(level, bannedGroup);
 
         	if (shouldUndo) {
@@ -11255,7 +11275,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 						consolePrint('Applying late rules');
 					}
 				}
-        		applyRules(state.lateRules, state.lateLoopPoint, 0);
+        		applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
         		startRuleGroupIndex=0;
         	}
         } while (i < 250 && rigidloop);
@@ -11263,7 +11283,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         if (i>=250) {
           consolePrint("looped through 250 times, gave up. Too many loops!");
           
-          applyRules(state.lateRules, state.lateLoopPoint, 0);
+          applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
           startRuleGroupIndex=0;
           
           backups.push(bak);
@@ -11278,6 +11298,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
+			statusText = "";
 			DoUndo(true,false, true, true, true);
 			return true;
 		}
@@ -11360,6 +11381,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				goToTitleScreen();
 			}
 			messagetext = "";
+			statusText = "";
 			canvasResize();	
 			return true;
 		}
@@ -11431,12 +11453,12 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxCreateList) {
 						if (fx.objId == entry.objId) {
-							if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+							if (verbose_logging) consolePrint(`Created object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'create', seed: entry.seed };
 						}
 					}
 				} else {
-					if (verbose_logging) consolePrint(`Created ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					if (verbose_logging) consolePrint(`Created object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 					playSeed(entry.seed);
 				}
 			}
@@ -11447,12 +11469,12 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				if (entry.seed.startsWith('afx')) {
 					for (const fx of sfxDestroyList) {
 						if (fx.objId == entry.objId) {
-							if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+							if (verbose_logging) consolePrint(`Destroyed object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 							seedsToAnimate[fx.posIndex+','+fx.objId] = { kind: 'destroy', seed: entry.seed };
 						}
 					}
 				} else {
-					if (verbose_logging) consolePrint(`Destroyed ${state.idDict[entry.objId]}, playing seed ${entry.seed}`);
+					if (verbose_logging) consolePrint(`Destroyed object "${state.idDict[entry.objId]}", playing seed "${entry.seed}"`);
 					playSeed(entry.seed);
 				}
 			}
@@ -11663,6 +11685,7 @@ function DoWin() {
 function nextLevel() {
     againing=false;
 	messagetext="";
+	statusText = "";
 	if (state && state.levels && (curlevel>state.levels.length) ){
 		curlevel=state.levels.length-1;
 	}
@@ -11765,6 +11788,7 @@ function loadLevelFromStateOrTarget() {
 function goToTitleScreen(){
     againing=false;
 	messagetext="";
+	statusText = "";
 	titleScreen=true;
 	textMode=true;
 	hoverSelection=-1;
@@ -11962,10 +11986,10 @@ var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub)$/u;
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
-    'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status'];
-const commandargs_table = ['message', 'goto', 'status'];
+    'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
+const commandargs_table = ['message', 'goto', 'status', 'gosub'];
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move','cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
@@ -12675,7 +12699,8 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'LOGICWORD');
 
                 token = lexer.matchAll();
-                lexer.pushToken(token, `COLOR COLOR-${obj.colors[0].toUpperCase()}`);
+                const kind = obj.colors.length == 1 ? `COLOR COLOR-${obj.colors[0].toUpperCase()}` : 'ERROR';
+                lexer.pushToken(token, kind);
                 values.text = token;
                 state.objects_section = 0;
                 return true;
@@ -13361,13 +13386,16 @@ var codeMirrorFn = function() {
                             } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
+                            } else if (state.tokenIndex == 0 && m.toLowerCase() == 'subroutine') {
+                                state.tokenIndex = -4;
+                                return 'BRACKET';
                             } else if (state.tokenIndex === 1 && directions_table.includes(m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else {
                                 if (state.names.indexOf(m) >= 0) {
                                     if (sol) {
-                                logError('Objects cannot appear outside of square brackets in rules, only directions can.', state.lineNumber);
+                                        logError('Objects cannot appear outside of square brackets in rules, only directions can.', state.lineNumber);
                                         return 'ERROR';
                                     } else {
                                         stream.match(/[\p{Z}\s]*/u, true);
@@ -13376,19 +13404,15 @@ var codeMirrorFn = function() {
                                 }
                                 
                                 m = m.toLowerCase();
-                                if (m==='...') {
+                                if (['...', 'rigid', 'random', 'global', 'once'].includes(m)) {
                                     return 'DIRECTION';
-                                } else if (m==='rigid') {
-                                    return 'DIRECTION';
-                                } else if (m==='random') {
-                                    return 'DIRECTION';
-                                } else if (m==='global') {
-                                    return 'DIRECTION';
-                                }else if (m.match(reg_commandwords)) {
+                                } else if (m.match(reg_commandwords)) {
                                     if (commandargs_table.includes(m) || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
                                     }                                	
                                     return 'COMMAND';
+                                } else if (m.match(/^[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
+                                    return 'NAME';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
                                     return 'ERROR';
@@ -14143,14 +14167,41 @@ function convertSectionNamesToIndices(state) {
 		var targetName = level.target.toLowerCase();
 		var targetIndex = sectionMap[targetName];
 		if (targetIndex === undefined){
-			logError('Invalid GOTO command - There is no section named "'+command[1]+'".', level.lineNumber);
+			logError('Invalid GOTO command - there is no section named "'+command[1]+'".', level.lineNumber);
 			targetIndex = 0;
 		}else if (duplicateSections[targetName] !== undefined){
-			logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'".', level.lineNumber);
+			logError('Invalid GOTO command - there are multiple sections named "'+command[1]+'".', level.lineNumber);
 			targetIndex = 0;
 		}
 		level.target = targetIndex;
 	}
+}
+
+// fix gosubs and subroutines to use group number (so must be after created groups)
+function fixUpGosubs(state) { // PS>
+    const subroutines = state.subroutines;
+    const rules = state.rules;
+    // first fixup subroutines so we know which group to gosub to
+    let rulex = 0;
+    for (const subroutine of subroutines) {
+        while (rules[rulex][0].lineNumber < subroutine.lineNumber)
+            rulex++;
+        subroutine.groupNumber = rulex;
+    }
+
+    // rules are now groups. Go figure.
+    for (const group of state.rules) {
+        for (const rule of group) {
+            for (const cmd of rule.commands) {
+                if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
+                    const subroutine = state.subroutines.find(s => s.label == cmd[1].toLowerCase());
+                    if (!subroutine) 
+                        logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
+                    else cmd[1] = subroutine.groupNumber;   // replace name by linenumber
+                }
+            }
+        }
+    }
 }
 
 var directionaggregates = {
@@ -14176,6 +14227,9 @@ function directionalRule(rule) {
             var cell = cellRow[j];
             for (var k = 0; k < cell.length; k += 2) {
                 if (relativeDirections.indexOf(cell[k]) >= 0) {
+                    return true;
+                }
+                if (cell[k + 1].match(/(:<|:>|:\^|:v)$/)) {     //@@ PS>
                     return true;
                 }
             }
@@ -14274,24 +14328,32 @@ var incellrow = false;
     var randomRule = false;
     var has_plus = false;
     var globalRule=false;
+    let isOnce = false;
 
-if (tokens.length===1) {
-    if (tokens[0]==="startloop" ) {
-        rule_line = {
-            bracket: 1
+    if (tokens.length===1) {
+        if (tokens[0]==="startloop" ) {
+            rule_line = {
+                bracket: 1
+            }
+            return rule_line;
+        } else if (tokens[0]==="endloop" ) {
+            rule_line = {
+                bracket: -1
+            }
+            return rule_line;
         }
-        return rule_line;
-    } else if (tokens[0]==="endloop" ) {
-        rule_line = {
-            bracket: -1
-        }
-        return rule_line;
     }
-}
 
-if (tokens.indexOf('->') == -1) {
-    logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
-}
+    if (tokens[0] == 'subroutine') {   // PS>
+        return {
+            label: tokens.slice(1).join(' ').toLowerCase(),
+            lineNumber: lineNumber
+        }
+    }
+
+    if (tokens.indexOf('->') == -1) {
+        logError("A rule has to have an arrow in it. There's no arrow here! Consider reading up about rules - you're clearly doing something weird", lineNumber);
+    }
 
     var curcell = [];
     var bracketbalance = 0;
@@ -14329,6 +14391,8 @@ if (tokens.indexOf('->') == -1) {
 
                     }else if (token==='global') {
                         globalRule=true;
+                    }else if (token==='once') {
+                        isOnce = true;
                     } else if (simpleAbsoluteDirections.indexOf(token) >= 0) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
@@ -14401,14 +14465,12 @@ if (tokens.indexOf('->') == -1) {
                 curcellrow = [];
                 incellrow = false;
             } else if (token === '->') {
-
-                        if (groupNumber !== lineNumber) {
-                            var parentrule = curRules[curRules.length - 1];
-                            if (parentrule.late!==late){
-                                logWarning('Oh gosh you can mix late and non-late rules in a rule-group if you really want to, but gosh why would you want to do that?  What do you expect to accomplish?', lineNumber);
-                            }
-                        }
-                        
+                if (groupNumber !== lineNumber) {
+                    var parentrule = curRules[curRules.length - 1];
+                    if (parentrule.late!==late){
+                        logWarning('Oh gosh you can mix late and non-late rules in a rule-group if you really want to, but gosh why would you want to do that?  What do you expect to accomplish?', lineNumber);
+                    }
+                }
                 if (incellrow) {
                     logError('Encountered an unexpected "->" inside square brackets.  It\'s used to separate states, it has no place inside them >:| .', lineNumber);
                 } else if (rhs) {
@@ -14416,7 +14478,7 @@ if (tokens.indexOf('->') == -1) {
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.indexOf(token) >= 0) {
+            } else if (state.names.indexOf(token) >= 0 || token.match(/[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
                 if (!incellrow) {
                      logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
                  }
@@ -14501,7 +14563,8 @@ var rule_line = {
     groupNumber: groupNumber,
     commands: commands,
     randomRule: randomRule,
-    globalRule: globalRule
+    globalRule: globalRule,
+    isOnce: isOnce,
 };
 
     if (directionalRule(rule_line) === false && rule_line.directions.length>1) {
@@ -14529,7 +14592,8 @@ function deepCloneRule(rule) {
 		groupNumber: rule.groupNumber,
 		commands:rule.commands,
 		randomRule:rule.randomRule,
-		globalRule:rule.globalRule
+		globalRule:rule.globalRule,
+        isOnce: rule.isOnce,
 	};
 	return clonedRule;
 }
@@ -14538,16 +14602,29 @@ function rulesToArray(state) {
     var oldrules = state.rules;
     var rules = [];
     var loops = [];
+    var subroutines = [];
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
         var newrule = processRuleString(oldrules[i], state, rules);
-        if (newrule.bracket !== undefined) {
+        if (newrule.bracket) {
             loops.push([lineNumber, newrule.bracket]);
-            continue;
-        }
-        rules.push(newrule);
+        } else if (newrule.label) {      // PS>
+            const other = subroutines.find(s => s.label == newrule.label);
+            if (other)
+                logError(`Duplicate subroutine, "${newrule.label}" already defined at line ${other.lineNumber}`, newrule.lineNumber);
+            else {
+                // target for gosub is next groupno, or next lineno if none
+                //const groupno = (i + 1 < oldrules.length) ? oldrules[i + 1][1].groupNumber : newrule.lineNumber + 1;
+                subroutines.push({
+                    label: newrule.label,
+                    lineNumber: newrule.lineNumber,
+                    //groupNumber: groupno,
+                });
+            }
+        } else rules.push(newrule);
     }
     state.loops = loops;
+    state.subroutines = subroutines;
 
     //now expand out rules with multiple directions
     var rules2 = [];
@@ -14573,6 +14650,8 @@ function rulesToArray(state) {
 
     for (var i = 0; i < rules2.length; i++) {
         var rule = rules2[i];
+        // remove object suffixes       // PS>
+        replaceObjectSuffixes(state, rule);
         //remove relative directions
         convertRelativeDirsToAbsolute(rule);
         //optional: replace up/left rules with their down/right equivalents
@@ -14772,7 +14851,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
         }
     }
 
-    // do we have properties on both sides, all of the same length, left all different from right?
+    // PS> do we have properties on both sides, all of the same length, left all different from right?
     let result = [rule];
     if (mappingProperties_l.length > 0 && mappingProperties_r.length > 0) {
         const proplen = prop => state.propertiesDict[prop].length;
@@ -14785,7 +14864,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
         }
     }
 
-    // blindly replace property by n-th member in the n-th new rule (except if random)
+    // PS> blindly replace property by n-th member in the n-th new rule (except if random)
     function replaceMappedProperties(oldRule, numprops) {
         let newRules = [];
         while (numprops-- > 0)
@@ -14955,6 +15034,7 @@ function makeSpawnedObjectsStationary(state,rule,lineNumber){
                 if (name in state.propertiesDict || objects_l.indexOf(name)>=0){
                     continue;
                 }
+                //@@ dies here if invalid object name
                 var r_layer = state.objects[name].layer;
                 if (layers.indexOf(r_layer)===-1){
                     cell[l]='stationary';
@@ -15229,6 +15309,17 @@ function convertRelativeDirsToAbsolute(rule) {
     }
 }
 
+//@@ PS>
+function replaceObjectSuffixes(state, rule) {
+    for (const side of [rule.lhs, rule.rhs]) {
+        for (const cellrow of side) {
+            for (const cell of cellrow) {
+                replaceObjectSuffix(state, rule, cell);
+            }
+        }
+    }
+}
+
 var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
 //I use _par/_perp just to keep track of providence for replacement purposes later.
 var relativeDict = {
@@ -15237,6 +15328,23 @@ var relativeDict = {
     'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
     'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
 };
+
+//@@ PS> replace a suffix on thing:> with thingup  ???
+function replaceObjectSuffix(state, rule, cell) {
+    for (let i = 1; i < cell.length; i += 2) {
+        const c = cell[i];
+        if (c.match(/(:<|:>|:\^|:v)$/)) {
+            const s = c.slice(-1);
+            const newc = c.slice(0, -2) + relativeDict[rule.direction][relativeDirs.indexOf(s)];
+            if (!state.names.includes(newc)) {
+                logError(`Invalid direction expansion: "${c}" expands to "${newc}" which is not a defined object.`, rule.lineNumber);
+                cell[i] = 'background';
+            } else 
+                cell[i] = newc;
+
+        }
+    }
+}
 
 function absolutifyRuleCell(forward, cell) {
     for (var i = 0; i < cell.length; i += 2) {
@@ -15279,7 +15387,6 @@ function rulesToMask(state) {
                         objectsPresent = ellipsisPattern;
                         if (cell_l.length !== 2) {
                             logError("You can't have anything in with an ellipsis. Sorry.", rule.lineNumber);
-                            //throw 'aborting compilation';//throwing here because I was getting infinite loops in the compiler otherwise
                         } else if ((k === 0) || (k === cellrow_l.length - 1)) {
                             logError("There's no point in putting an ellipsis at the very start or the end of a rule", rule.lineNumber);
                         } else if (rule.rhs.length > 0) {
@@ -15584,6 +15691,7 @@ function collapseRules(groups) {
             newrule.push(cellRowMasks(newrule));
             newrule.push(cellRowMasks_Movements(newrule));
             newrule.push(oldrule.globalRule);
+            newrule.push(oldrule.isOnce);
             rules[i] = new Rule(newrule);
         }
     }
@@ -16122,6 +16230,9 @@ function cacheRuleStringRep(rule) {
 	if (rule.globalRule) {
 		result = "GLOBAL "+result+" ";
 	}
+	if (rule.isOnce) {
+		result = "ONCE "+result+" ";
+	}
 	if (rule.late) {
 		result = "LATE "+result+" ";
 	}
@@ -16158,12 +16269,19 @@ function printRules(state) {
     var output = "";
     var loopIndex = 0;
     var loopEnd = -1;
+    let subroutineIndex = 0;
     var discardcount = 0;
     for (var i = 0; i < state.rules.length; i++) {
         var rule = state.rules[i];
+        // print subroutine - could be more than one, must come before any startloop and after any endloop!
+        let subrtext = '';
+        for (let subroutine = state.subroutines[subroutineIndex]; subroutine && subroutine.lineNumber < rule.lineNumber; subroutine = state.subroutines[++subroutineIndex]) {
+            subrtext += `SUBROUTINE ${subroutine.label}<br>`;
+        }
         if (loopIndex < state.loops.length) {
             if (state.loops[loopIndex][0] < rule.lineNumber) {
-                output += "STARTLOOP<br>";
+                output += subrtext + "STARTLOOP<br>";
+                subrtext = '';
                 loopIndex++;
                 if (loopIndex < state.loops.length) { // don't die with mismatched loops
                     loopEnd = state.loops[loopIndex][0];
@@ -16175,6 +16293,7 @@ function printRules(state) {
             output += "ENDLOOP<br>";
             loopEnd = -1;
         }
+        output += subrtext;
         if (rule.hasOwnProperty('discard')) {
             discardcount++;
         } else {
@@ -16227,7 +16346,7 @@ function generateLoopPoints(state) {
             if (i%2===0){
                 if (loop[1]===-1){         
                     logError("Found an ENDLOOP, but I'm not in a loop?",loop[0]);
-    }
+                }
             } else {
                 if (loop[1]===1){         
                     logError("Found a STARTLOOP, but I'm already inside a loop? (Puzzlescript can't nest loops, FWIW).",loop[0]);
@@ -16530,7 +16649,7 @@ function loadFile(str) {
     }
 
 	convertSectionNamesToIndices(state);
-
+    
 	rulesToMask(state);
 
 	
@@ -16553,7 +16672,9 @@ function loadFile(str) {
 
 	generateLoopPoints(state);
 
-	generateSoundData(state);
+    fixUpGosubs(state);  //
+
+    generateSoundData(state);
 
     formatHomePage(state);
 
