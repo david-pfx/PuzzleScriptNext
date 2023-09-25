@@ -790,15 +790,14 @@ function processRuleString(rule, state, curRules) {
 	1 - reading cell contents LHS
 	2 - reading cell contents RHS
 */
-var parsestate = 0;
-var directions = [];
+    var parsestate = 0;
+    var directions = [];
 
-var curcell = null; // [up, cat, down mouse]
-var curcellrow = []; // [  [up, cat]  [ down, mouse ] ]
+    var curcell = null; // [up, cat, down mouse]
+    var curcellrow = []; // [  [up, cat]  [ down, mouse ] ]
 
-var incellrow = false;
+    var incellrow = false;
 
-    var appendGroup = false;
     var rhs = false;
     var lhs_cells = [];
     var rhs_cells = [];
@@ -808,8 +807,9 @@ var incellrow = false;
     var commands = [];
     var randomRule = false;
     var has_plus = false;
-    var globalRule=false;
+    var globalRule = false;
     let isOnce = false;
+    const prefixes = [];
 
     if (tokens.length===1) {
         if (tokens[0]==="startloop" ) {
@@ -865,19 +865,19 @@ var incellrow = false;
                         rigid = true;
                     } else if (token === 'random') {
                         randomRule = true;
-                        if (has_plus)
-                        {
+                        if (has_plus) {
                             logError(`A rule-group can only be marked random by the opening rule in the group (aka, a '+' and 'random' can't appear as rule modifiers on the same line).  Why? Well, you see "random" isn't a property of individual rules, but of whole rule groups.  It indicates that a single possible application of some rule from the whole group should be applied at random.`, lineNumber) 
                         }
-
-                    }else if (token==='global') {
-                        globalRule=true;
-                    }else if (token==='once') {
+                    } else if (token == 'global') {
+                        globalRule = true;
+                    } else if (token == 'once') {
                         isOnce = true;
                     } else if (simpleAbsoluteDirections.indexOf(token) >= 0) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
                         logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
+                    } else if (state.tags.find(s => s.id == token)) {       //@@ PS> tags 
+                        prefixes.push(token);
                     } else if (token == '[') {
                         if (directions.length == 0) {
                             directions = directions.concat(directionaggregates['orthogonal']);
@@ -886,9 +886,9 @@ var incellrow = false;
                         i--;
                     } else {
                         logError("The start of a rule must consist of some number of directions (possibly 0), before the first bracket, specifying in what directions to look (with no direction specified, it applies in all four directions).  It seems you've just entered \"" + token.toUpperCase() + '\".', lineNumber);
+                    }
+                break;
             }
-            break;
-        }
             case 1:
                 {                                        
             if (token == '[') {
@@ -915,13 +915,12 @@ var incellrow = false;
                 if (!incellrow) {
                     logWarning('Janky syntax.  "|" should only be used inside cell rows (the square brackety bits).',lineNumber);
                 } else if (curcell.length % 2 == 1) {
-                            logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
+                    logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
                 } else {
                     curcellrow.push(curcell);
                     curcell = [];
                 }
             } else if (token === ']') {
-                
                 bracketbalance--;
                 if(bracketbalance<0){
                     logWarning("Multiple closing brackets without corresponding opening brackets.  Something fishy here.  Every '[' has to be closed by a ']', and you can't nest them.", lineNumber);
@@ -931,7 +930,7 @@ var incellrow = false;
                     if (curcell[0]==='...') {
                         logError('Cannot end a rule with ellipses.', lineNumber);
                     } else {
-                                logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
+                        logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
                     }
                 } else {
                     curcellrow.push(curcell);
@@ -959,11 +958,11 @@ var incellrow = false;
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.indexOf(token) >= 0 || token.match(/[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
+            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  //@@ PS>
+                // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
-                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
-                 }
-                 else if (curcell.length % 2 == 0) {
+                    logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
+                } else if (curcell.length % 2 == 0) {
                     curcell.push('');
                     curcell.push(token);
                 } else if (curcell.length % 2 == 1) {
@@ -1000,7 +999,7 @@ var incellrow = false;
                 }  else {
                     commands.push([tok]);
                 }
-            } else {
+                        } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
             }
         }
@@ -1046,6 +1045,7 @@ var rule_line = {
     randomRule: randomRule,
     globalRule: globalRule,
     isOnce: isOnce,
+    prefixes: prefixes,
 };
 
     if (directionalRule(rule_line) === false && rule_line.directions.length>1) {
@@ -1057,16 +1057,15 @@ var rule_line = {
 return rule_line;
 }
 
-function deepCloneHS(HS) {
-    var cloneHS = HS.map(function(arr) { return arr.map(function(deepArr) { return deepArr.slice(); }); });
-    return cloneHS;
+function deepCloneHS(HS, fn) {
+    return HS.map(row => row.map(cell => fn ? fn(cell) : [ ...cell ]));
 }
 
-function deepCloneRule(rule) {
-	var clonedRule = {
+function deepCloneRule(rule, fnlhs, fnrhs) {
+	return {
 		direction: rule.direction,
-		lhs: deepCloneHS(rule.lhs),
-		rhs: deepCloneHS(rule.rhs),
+		lhs: deepCloneHS(rule.lhs, fnlhs),
+		rhs: deepCloneHS(rule.rhs, fnrhs),
 		lineNumber: rule.lineNumber,
 		late: rule.late,
 		rigid: rule.rigid,
@@ -1076,7 +1075,6 @@ function deepCloneRule(rule) {
 		globalRule:rule.globalRule,
         isOnce: rule.isOnce,
 	};
-	return clonedRule;
 }
 
 function rulesToArray(state) {
@@ -1095,17 +1093,56 @@ function rulesToArray(state) {
                 logError(`Duplicate subroutine, "${newrule.label}" already defined at line ${other.lineNumber}`, newrule.lineNumber);
             else {
                 // target for gosub is next groupno, or next lineno if none
-                //const groupno = (i + 1 < oldrules.length) ? oldrules[i + 1][1].groupNumber : newrule.lineNumber + 1;
                 subroutines.push({
                     label: newrule.label,
                     lineNumber: newrule.lineNumber,
-                    //groupNumber: groupno,
                 });
             }
         } else rules.push(newrule);
     }
     state.loops = loops;
     state.subroutines = subroutines;
+
+    //@@ PS> expand rules with tags
+
+    var rules1 = [];
+    for (const rule of rules) {
+        // for every prefix.id found in a cell, clone the entire rule once for every prefix.member
+        const rlen = rules1.length;
+        for (const prefix of rule.prefixes) {
+            const tag = state.tags.find(t => t.id == prefix);
+            for (const member of tag.members) {
+                const lhs = cell => cell.map((c,x) => (x % 2 == 0) ? c
+                    : (c == tag.id) ? member 
+                    : (c.includes(`:${tag.id}`)) ? c.replace(`:${tag.id}`, `:${member}`)
+                    : c);
+                // rhs will be different with mapping
+                const newrule = deepCloneRule(rule, lhs, lhs);
+                newrule.directions = rule.directions; // not expanded yet
+                rules1.push(newrule);
+            }
+        }    
+        if (rlen == rules1.length)  // warning?
+            rules1.push(rule);
+    }
+    rules = [];
+    for (const rule of rules1) {
+        let ok = true;
+        for (const side of [rule.lhs, rule.rhs]) {
+            for (const cellrow of side) {
+                for (const cell of cellrow) {
+                    for (let i = 1; i < cell.length; i += 2) {
+                        if (!state.names.includes(cell[i]) && cell[i] != '...') {
+                            logError(`Name "${cell[i]}", referred to in a rule, does not exist.`, rule.lineNumber);
+                            ok = false;
+                        }
+                    }
+                }
+            }
+        }
+        if (ok)
+            rules.push(rule);
+    }
 
     //now expand out rules with multiple directions
     var rules2 = [];
@@ -3214,7 +3251,8 @@ function compile(command, text, randomseed) {
         var state = loadFile(text);
     } catch(error) {
         consolePrint(error);
-        console.log(`Compile error: ${error}`);
+        console.error(`Compile error: ${error}`);
+        console.error(`${error.stack}`);
         errorStrings.push(error);
         //errorCount++;
     } finally {

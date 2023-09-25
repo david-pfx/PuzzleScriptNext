@@ -1,0 +1,81 @@
+title test min tag
+author polymino
+homepage www.polyomino.com
+
+// test program for new TAG section
+
+verbose_logging
+debug
+
+====
+TAGS
+====
+
+clr3 = r b g
+clr4 = p r y k
+
+========
+OBJECTS
+========
+Background;grey
+PLAYER P;white
+
+obj:b; transparent;
+obj:r; transparent
+obj:g:r; transparent
+
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+right clr3 [ b ] -> [ obj:clr3 ]
+right clr3 [ b ] -> [ clr3 ]
+up    clr4 [ b ] -> [ clr4 ]
+left  clr3 clr4 [ b ] -> [ obj:clr3:clr4 ]
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b......
+
+message second level
+
+..........
+....pry...
+..........
+
