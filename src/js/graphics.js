@@ -11,45 +11,31 @@ function createSprite(name,spritegrid, colors, padding) {
     return sprite;
 }
 
-// draw the pixels of the sprite grid data into the context at a cell position
+// draw the pixels of the sprite grid data into the context at a cell position, 
 function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
-    if (colors === undefined) {
-        colors = ['#00000000', state.fgcolor];
-    }
+    colors ||= ['#00000000', state.fgcolor];
 
-    let offsetX = x * cellwidth;
-    let offsetY = y * cellheight;
+    const origin = { x: x * cellwidth, y: y * cellheight };
+    spritectx.clearRect(origin.x, origin.y, cellwidth, cellheight);
 
-    spritectx.clearRect(offsetX, offsetY, cellwidth, cellheight);
+    const gridsize = { 
+        w: spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0),
+        h: spritegrid.length 
+    };
 
-    const w = spritegrid[0].length;
-    const h = spritegrid.length;
-    let cw = ~~(cellwidth / (w + (padding | 0)));
-    let ch = ~~(cellheight / (h + (padding | 0)));
-    if (align) {
-        const maxwh = Math.max(w, h);
-        cw = cellwidth / maxwh;
-        ch = cellheight / maxwh;
-        if (w > h)
-            offsetY += (w - h) * ch / 2;
-        else offsetX += (h - w) * cw / 2;
-    }
-    var pixh=ch;
-    if ("scanline" in state.metadata) {
-        pixh=Math.ceil(ch/2);
-    }
+    // always assume square pixels at this stage
+    const pixelsize = Math.min(cellwidth / gridsize.w, cellheight / gridsize.h);
+    const pixh = ("scanline" in state.metadata) ? pixelsize / 2 : pixelsize;
+
     spritectx.fillStyle = state.fgcolor;
-    for (let j = 0; j < h; j++) {
-        for (let k = 0; k < w; k++) {
-            let val = spritegrid[j][k];
-            if (val >= 0) {
-                var cy = (j * ch)|0;
-                var cx = (k * cw)|0;
-                spritectx.fillStyle = colors[val];
-                spritectx.fillRect(offsetX + cx, offsetY + cy, cw, pixh);
-            }
-        }
-    }
+    spritegrid.forEach((row,y) => {
+        row.forEach((col,x) => {
+            if (col >= 0) {
+                spritectx.fillStyle = colors[col];
+                spritectx.fillRect(origin.x + x * pixelsize, origin.y + y * pixelsize, pixelsize, pixh);  //@@
+            }            
+        });
+    });
 }
 
 // draw font characters from the text sheet into the sprite sheet.
@@ -647,7 +633,7 @@ function redrawCellGrid() {
                         ctx.globalAlpha = params.alpha;
                         ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
                         ctx.rotate(params.angle * Math.PI / 180);
-                        ctx.drawImage(
+                        ctx.drawImage(  //@@
                             spritesheetCanvas, 
                             sheetpos.x, sheetpos.y, cellwidth, cellheight,
                             -csz.x/2, -csz.y/2, rc.w, rc.h);

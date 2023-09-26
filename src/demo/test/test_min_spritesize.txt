@@ -3,24 +3,28 @@ author polymino
 homepage www.polyomino.com
 
 // demo program showing that sprites can be any length or width
-// non-square sprites are centred
+// sprites not matching defined sprite size are aligned ???
 
 verbose_logging
 debug
 
-// remove the comments to see sprite scaling that can overflow a cell
-//sprite_size 7
+// comment out next line to see sprite scaling to fit the cell (usually not useful)
+sprite_size 7
 
 ========
 OBJECTS
 ========
-Background;grey
-R;RED
-B;BLUE
-g;green
-y;yellow
-k;pink
+//Background;grey
 
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
 Player p
 black orange white blue
 .000.
@@ -28,6 +32,12 @@ black orange white blue
 22222
 .333.
 .3.3.
+
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
 
 s;black red
 01
@@ -76,6 +86,39 @@ z;black red blue green yellow white orange purple
 45670123
 34567012
 23456701
+
+9;black red blue green yellow white orange purple lightblue
+012345678
+801234567
+780123456
+678012345
+567801234
+456780123
+345678012
+234567801
+
+0;black red blue green yellow white orange purple lightblue lightgreen
+0123456789
+8901234567
+7890123456
+6789012345
+5678901234
+4567890123
+3456789012
+2345678901
+1234567890
+
+1;black red blue green yellow white orange purple lightblue lightgreen
+01234567890
+89012345678
+78901234567
+67890123456
+56789012345
+45678901234
+34567890123
+23456789012
+12345678901
+01234567890
 
 m;black red blue green yellow 
 01234
@@ -150,7 +193,7 @@ Background
 y
 Player, R, B, G
 k
-s,t,u,w,x,q,z,m,n,l,c,d,e,f,h,i
+s,t,u,w,x,q,z,m,n,l,c,d,e,f,h,i,0,1,9
 
 ======
 RULES
@@ -172,9 +215,10 @@ LEVELS
 .............
 .rbgykprbgyk.
 .............
-.s.u.x.z.n.i.
-..t.w.q.m.l..
+.s.u.x...n.i.
+..t.w...m.l..
 ...c.d.e.f.h.
+..z.q.9.0.1..
 .............
 
 message second level
