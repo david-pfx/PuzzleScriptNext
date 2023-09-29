@@ -126,42 +126,7 @@ function generateExtraMembers(state) {
         }
     }
 
-    //generate sprite matrix
-    for (var n in state.objects) {
-        if (state.objects.hasOwnProperty(n)) {
-            var o = state.objects[n];
-            if (o.colors.length==0) {
-                logError('color not specified for object "' + n +'".',o.lineNumber);
-                o.colors=["#ff00ff"];
-            }
-           if (o.cloneSprite !== "") {
-              //console.log("To clone: "+o.cloneSprite);
-              if (state.objects.hasOwnProperty(o.cloneSprite)) {
-                  
-                  if (state.objects[o.cloneSprite].cloneSprite === "") {
-                      o.spritematrix = deepClone(state.objects[o.cloneSprite].spritematrix);
-                      //console.log(o.spritematrix);
-                  } else {
-                      logError("The sprite that "+n+" attempted to clone ("+o.cloneSprite+") clones a sprite itself ("+state.objects[o.cloneSprite].cloneSprite + "), so it can't clone the sprite! You'll need to set up the cloning differently.",o.lineNumber);
-                  }
-              } else {
-                  logError(n +" attempted to clone the sprite matrix of "+o.cloneSprite+", but that object doesn't exist?!",o.lineNumber);
-              }
-           } else if (o.spritematrix.length===0) {
-              o.spritematrix = new Array(state.sprite_size);
-              var zeros = new Array(state.sprite_size);
-              for(var i = 0; i < state.sprite_size; i++) {
-                  zeros[i] = 0;
-              }
-              for(var i = 0; i < state.sprite_size; i++) {
-                  o.spritematrix[i] = zeros;
-              }
-          } else {
-            // we now allow sprites of any length and width
-              //o.spritematrix = generateSpriteMatrix(o.spritematrix);
-          }
-        }
-    }
+    generateSpriteMatrix(state);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -416,6 +381,21 @@ function generateExtraMembers(state) {
     }
     state.backgroundid = backgroundid;
     state.backgroundlayer = backgroundlayer;
+}
+
+function generateSpriteMatrix(state) {
+    for (const obj of Object.values(state.objects)) {
+        if (obj.colors.length == 0) 
+            obj.colors.push('#ff00ff');
+        if (obj.cloneSprite) {
+            obj.spritematrix = state.objects[obj.cloneSprite].spritematrix.map(row => [ ...row ]);
+        } else if (obj.spritematrix.length == 0) {
+            obj.spritematrix = Array(state.sprite_size);
+            for (let i = 0; i < state.sprite_size; ++i)
+                obj.spritematrix[i] = Array(state.sprite_size).fill(0);
+        }
+        // sprite modifiers go here
+    }
 }
 
 function generateExtraMembersPart2(state) {
