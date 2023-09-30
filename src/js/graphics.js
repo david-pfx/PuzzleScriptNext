@@ -607,8 +607,8 @@ function redrawCellGrid() {
                         if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = {
-                            x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth,
-                            y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight
+                            x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth + obj.spriteoffset.x * ~~(cellwidth / state.sprite_size),
+                            y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight + obj.spriteoffset.y * ~~(cellheight / state.sprite_size)
                         };
                         
                         let params = {

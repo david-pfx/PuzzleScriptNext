@@ -29,7 +29,7 @@ var errorCount=0;//only counts errors
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
-const reg_objmodi = /^(copy|scale|shift|translate|rot):/i;
+const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
@@ -669,7 +669,7 @@ var codeMirrorFn = function() {
                 if (symbols.candname && lexer.check(reg_objmodi)) {
                     break;
                 // first name must be an object, glyph allowed after that
-                } else if ((token = lexer.matchObjectName(!state.case_sensitive) //@@
+                } else if ((token = lexer.matchObjectName(!state.case_sensitive) 
                     || (symbols.candname && lexer.matchObjectGlyph(!state.case_sensitive)))) {
                     if (state.legend_synonyms.some(s => s[0] == token))
                         logError(`Name "${token.toUpperCase()}" already in use.`, state.lineNumber);
@@ -803,22 +803,19 @@ var codeMirrorFn = function() {
         const candname = state.objects_candname;
         const obj = state.objects[candname];
         const lexer = new Lexer(stream, state);
-        const symbols = {};
+        const symbols = { modifiers: [] };
         if (getTokens())
             setState();
         return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
-            // if (state.case_sensitive)
-            //     stream.string = mixedCase;
-
-            while (!lexer.checkEolSemi()) { //@@
+            while (!lexer.checkEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^copy:/i)) {
                     if (symbols.copy) 
-                        logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                        logError(`You already assigned a sprite source for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
                     else kind = 'KEYWORD';
                     lexer.pushToken(token, kind);
                     lexer.checkComment(state);
@@ -840,15 +837,67 @@ var codeMirrorFn = function() {
                     lexer.checkComment(state);
 
                     token = lexer.match(/^[0-9.]+/);
-                    const scale = parseFloat(token);
-                    if (scale == NaN)
+                    const arg = parseFloat(token);
+                    if (arg == NaN)
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
-                        symbols.scale = scale;
+                        symbols.scale = arg;
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
-                    //if (lexer.checkEolSemi()) break;
+
+                } else if (token = lexer.match(/^flip:/)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+                    token = lexer.match(/^\w+/, true);
+                    if (!clockwiseDirections.includes(token))
+                        logError(`Flip requires a direction argument.`, state.lineNumber);
+                    else {
+                        symbols.modifiers.push([ 'flip', clockwiseDirections.indexOf(token), 1 ]);  // todo:
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^shift:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.match(/^\w+/, true);
+                    if (!clockwiseDirections.includes(token))
+                        logError(`Shift requires a direction argument.`, state.lineNumber);
+                    else {
+                        symbols.modifiers.push([ 'shift', clockwiseDirections.indexOf(token), 1 ]);  // todo:
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^translate:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.match(/^\w+:\d+/, true);
+                    const args = token ? token.split(':') : null;
+                    if (!args && clockwiseDirections.includes(args[0])) 
+                        logError(`Translate requires two arguments, a direction and an amount.`, state.lineNumber);
+                    else {
+                        symbols.modifiers.push([ 'translate', clockwiseDirections.indexOf(args[0]), +args[1] ]);
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^rot:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.match(/^\w+:\w+/, true);
+                    const args = token ? token.split(':') : null;
+                    if (!args && clockwiseDirections.includes(args[0]) && clockwiseDirections.includes(args[1])) 
+                        logError(`Rot requires two direction arguments.`, state.lineNumber);
+                    else {
+                        symbols.modifiers.push([ 'rot',  (clockwiseDirections.indexOf(args[1]) - clockwiseDirections.indexOf(args[0]) + 4) % 4 ]);
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
 
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid token in OBJECT section: "${token}".`, state.lineNumber);
@@ -1434,16 +1483,16 @@ var codeMirrorFn = function() {
                     return flushToken();
                 }
                 case 'objects': {
-                    if (state.objects_section == 3) {
+                    if (sol && stream.match(reg_objmodi, false)) {
+                        state.objects_section = 5;
+                    } else if (sol && state.objects_section == 3) {
                         // no blank line: criterion for no sprite: 1 colour, first char not [.0]
-                        if (sol && state.objects[state.objects_candname].colors.length == 1 && !stream.match(/^[.0]/, false))  {
+                        if (state.objects[state.objects_candname].colors.length == 1 && !stream.match(/^[.0]/, false)) 
                             state.objects_section = 0;
-                        }
-                    } else if (state.objects_section == 4) {
+                    } else if (sol && state.objects_section == 4) {
                         // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                        if (sol && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))  {
+                        if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
                             state.objects_section = 0;
-                        }
                     }
                     if (state.objects_section == 0) {
                         state.objects_candname = null;
@@ -1475,8 +1524,13 @@ var codeMirrorFn = function() {
                     case 4: {
                             stream.string = mixedCase;
                             state.current_line_wip_array.push(...parseObjectSprite(stream, state));
-                                                        if (state.objects_section == 3)  // text:?
+                            if (state.objects_section == 3)  // text:?
                                 state.objects_section++;
+                            return flushToken();
+                        }
+                    case 5: {
+                            state.current_line_wip_array.push(...parseObjectModifiers(stream, state));
+                            state.objects_section = 0;
                             return flushToken();
                         }
                     }

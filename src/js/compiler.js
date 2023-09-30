@@ -5,6 +5,7 @@
 var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
+const clockwiseDirections = ['up', 'right', 'down', 'left'];
 
 function isColor(str) {
 	str = str.trim();
@@ -384,17 +385,43 @@ function generateExtraMembers(state) {
 }
 
 function generateSpriteMatrix(state) {
+    const modifunc = {
+        'flip': (mat,_,dir) => [
+            (m => m.reverse()),
+		    (m => m.map(row => row.reverse())),
+        ][dir % 2](mat),
+        'shift': (mat,_,dir,amt) => [ // up right down left
+            (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
+            (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
+            (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
+            (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
+        ][dir](mat),
+        'rot': (mat,_,angle) => [
+            m => m, // 0°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
+            m => Array.from(m, l => l.reverse() ).reverse(), // 180°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
+        ][angle](mat),
+        'translate': (m,off,dir,amt) => {
+            off.x += [0,1,0,-1][dir] * amt;
+            off.y += [-1,0,1,0][dir] * amt;
+            return m;
+        }
+    };
     for (const obj of Object.values(state.objects)) {
         if (obj.colors.length == 0) 
             obj.colors.push('#ff00ff');
         if (obj.cloneSprite) {
             obj.spritematrix = state.objects[obj.cloneSprite].spritematrix.map(row => [ ...row ]);
         } else if (obj.spritematrix.length == 0) {
-            obj.spritematrix = Array(state.sprite_size);
-            for (let i = 0; i < state.sprite_size; ++i)
-                obj.spritematrix[i] = Array(state.sprite_size).fill(0);
+            obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
         }
-        // sprite modifiers go here
+        
+        obj.spriteoffset = { x: 0, y: 0 };
+        for (const modi of obj.modifiers ||  []) {
+            obj.spritematrix = modifunc[modi[0]](obj.spritematrix, obj.spriteoffset, ...modi.slice(1));
+        }
+        //console.log(JSON.stringify(obj));
     }
 }
 
