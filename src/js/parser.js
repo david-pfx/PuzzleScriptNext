@@ -230,7 +230,7 @@ var codeMirrorFn = function() {
             return def;
         else if (def = state.legend_properties.find(s => s[0] == id))
             return def;
-        else if (def = state.tags.find(s => s.id == id))
+        else if (def = state.tags[id])
             return def;
         else return null;
     }
@@ -461,7 +461,7 @@ var codeMirrorFn = function() {
         if (state.section === '') {
             state.commentStyle ||= '()';
         } else if (state.section === 'tags') {
-            state.names.push(...state.tags.map(s => s.id));
+            state.names.push(...Object.keys(state.tags));
         } else if (state.section === 'legend') {
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
@@ -637,10 +637,7 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            state.tags.push({
-                id: symbols.id,
-                members: symbols.members,
-            })
+            state.tags[symbols.id] = symbols.members;
         }
     }
 
@@ -699,8 +696,8 @@ var codeMirrorFn = function() {
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
             state.objects[candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
                 lineNumber: state.lineNumber,
-                 colors: [],
-                 spritematrix: [],
+                colors: [],
+                spritematrix: [],
             };
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
@@ -808,6 +805,13 @@ var codeMirrorFn = function() {
             setState();
         return lexer.tokens;
 
+        function toValidDirections(arg) {
+            if (state.tags[arg]) {
+                return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
+            }
+            return clockwiseDirections.includes(arg) ? arg : null;
+        }
+
         // build a list of tokens and kinds
         function getTokens() {
             while (!lexer.checkEolSemi()) { 
@@ -830,7 +834,6 @@ var codeMirrorFn = function() {
                         symbols.cloneSprite = token;
                     }
                     lexer.pushToken(token, kind);
-                    //if (lexer.checkEolSemi()) break;
 
                 } else if (token = lexer.match(/^scale:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
@@ -850,10 +853,11 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
                     token = lexer.match(/^\w+/, true);
-                    if (!clockwiseDirections.includes(token))
-                        logError(`Flip requires a direction argument.`, state.lineNumber);
+                    const dirs = toValidDirections(token);
+                    if (dirs == null)
+                        logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'flip', clockwiseDirections.indexOf(token), 1 ]);  // todo:
+                        symbols.modifiers.push([ 'flip', dirs ]);  // todo: P:S has -|
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -863,10 +867,11 @@ var codeMirrorFn = function() {
                     lexer.checkComment(state);
 
                     token = lexer.match(/^\w+/, true);
-                    if (!clockwiseDirections.includes(token))
-                        logError(`Shift requires a direction argument.`, state.lineNumber);
+                    const dirs = toValidDirections(token);
+                    if (dirs == null)
+                        logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'shift', clockwiseDirections.indexOf(token), 1 ]);  // todo:
+                        symbols.modifiers.push([ 'shift', dirs, 1 ]);  // todo: optional amount
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -877,10 +882,11 @@ var codeMirrorFn = function() {
 
                     token = lexer.match(/^\w+:\d+/, true);
                     const args = token ? token.split(':') : null;
-                    if (!args && clockwiseDirections.includes(args[0])) 
-                        logError(`Translate requires two arguments, a direction and an amount.`, state.lineNumber);
+                    const dirs = args && toValidDirections(args[0]);
+                    if (dirs == null)
+                        logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'translate', clockwiseDirections.indexOf(args[0]), +args[1] ]);
+                        symbols.modifiers.push([ 'translate', dirs, +args[1] ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -889,14 +895,22 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.match(/^\w+:\w+/, true);
-                    const args = token ? token.split(':') : null;
-                    if (!args && clockwiseDirections.includes(args[0]) && clockwiseDirections.includes(args[1])) 
-                        logError(`Rot requires two direction arguments.`, state.lineNumber);
+                    token = lexer.match(/^\w+/, true);
+                    const dirs = toValidDirections(token);
+                    if (dirs == null)
+                        logError(`Rot requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'rot',  (clockwiseDirections.indexOf(args[1]) - clockwiseDirections.indexOf(args[0]) + 4) % 4 ]);
+                        symbols.modifiers.push([ 'rot',  dirs ]);
                         kind = 'METADATATEXT';  //???
                     }
+                    // token = lexer.match(/^\w+:\w+/, true);
+                    // const args = token ? token.split(':') : null;
+                    // if (!args && toValidDirections(args[0]) && clockwiseDirections.includes(args[1])) 
+                    //     logError(`Rot requires two direction arguments.`, state.lineNumber);
+                    // else {
+                    //     symbols.modifiers.push([ 'rot',  (clockwiseDirections.indexOf(args[1]) - clockwiseDirections.indexOf(args[0]) + 4) % 4 ]);
+                    //     kind = 'METADATATEXT';  //???
+                    // }
                     lexer.pushToken(token, kind);
 
                 } else if (token = lexer.matchToken()) {
@@ -910,8 +924,6 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            // const candname = state.objects_candname;
-            // state.objects[candname] = { ...state.objects[candname], ...symbols };
             Object.assign(obj, symbols);
         }
     }
@@ -1389,7 +1401,7 @@ var codeMirrorFn = function() {
 
                 levels: state.levels.map(p => p.slice()),
 
-                tags: state.tags.map(p => ({ ...p })),
+                tags: Object.assign({}, state.tags),
 
                 STRIDE_OBJ : state.STRIDE_OBJ,
                 STRIDE_MOV : state.STRIDE_MOV

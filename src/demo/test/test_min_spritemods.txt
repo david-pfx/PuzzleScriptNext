@@ -1,0 +1,102 @@
+title test min sprite mods
+author polymino
+homepage www.polyomino.com
+
+// test program showing sprite modifications
+
+verbose_logging
+debug
+
+sprite_size 7
+
+====
+tags
+====
+
+t1 = right left down up
+t2 = up left down right
+t3 = red green blue
+
+========
+OBJECTS
+========
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+a;black red blue green yellow white orange
+0123456
+6011005
+5001004
+4001103
+3001002
+2001001
+1234560
+
+b;black red blue green yellow white orange
+copy: a flip:up
+
+c;black red blue green yellow white orange
+copy: a translate:right:3
+
+d;black red blue green yellow white orange
+copy: a shift:right
+
+e;black red blue green yellow white orange
+copy: a rot:right
+
+f;black red blue green yellow white orange
+copy: a translate:right:3 shift:right rot:right
+
+b:t1:t2:t3;black red blue green yellow white orange
+copy: a flip:t1
+
+r;red
+y;yellow
+
+=======
+LEGEND
+=======
+. = Background
+
+================
+COLLISIONLAYERS
+================
+Background
+Player
+a,b,c,d,e,f
+b:t1
+r
+y
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+=======
+LEVELS
+=======
+...........
+.p.r.y.....
+...........
+.a.b.c.d...
+...........
+.e.f.g.....
+...........
+

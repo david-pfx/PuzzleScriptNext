@@ -32,6 +32,63 @@ function colorToHex(palette, str) {
 var debugMode;
 var colorPalette;
 
+function expandAllSpriteTags(state) { //@@ PS>
+
+    // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+    const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
+    const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
+    // function cartesian(...arrays) {
+    //     return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+    // }
+
+    function expandSpriteTags(stem, parts, objvalue) {
+        const tags = parts.filter(p => state.tags[p]);
+        const values = tags.map(t => state.tags[t]);
+        const expansion = cartesian(...values);
+        //if(tags.length > 0) console.log(JSON.stringify(expansion));
+
+        const newobjects = {};
+        for (const exp of expansion) {
+            const newid = stem + ':' + parts.map(p => tags.includes(p) ? exp[tags.indexOf(p)] : p).join(':');
+            const newvalue = {
+                lineNumber: objvalue.lineNumber,
+                colors: [ ...objvalue.colors ],
+                spritematrix: [],
+            };
+            if (objvalue.cloneSprite) {
+                const [ stem, ...parts ] = objvalue.cloneSprite.split(':');
+                const altspriteid = (parts.length == 0) ? stem
+                    : stem + ':' + parts.map(p => tags.includes(p) ? exp[tags.indexOf(p)] : p).join(':');
+                if (state.objects[altspriteid])
+                    newvalue.spritematrix = [ ...state.objects[altspriteid].spritematrix ];
+                else logError(`Source ${altspriteid} for sprite clone not found`);
+            } else newvalue.spritematrix = [ ... objvalue.sprite ]; 
+
+            if (objvalue.modifiers) {
+                newvalue.modifiers = objvalue.modifiers.map(m => {
+                    const newm1 = tags.includes(m[1]) ? exp[tags.indexOf(m[1])] : m[1];
+                    return (newm1 == m[1]) ? m : [ m[0], newm1, ...m.slice(2) ];
+                })
+            }
+
+            newobjects[newid] = newvalue;
+        }
+        
+        console.log(JSON.stringify(newobjects));
+        console.log('---');
+        return newobjects;
+    }
+    
+    for (const objkey of Object.keys(state.objects).filter(k => k.includes(':'))) {
+        const parts = objkey.split(':');
+        const newobjects = expandSpriteTags(parts[0], parts.slice(1), state.objects[objkey]);
+        if (newobjects) {
+            delete state.objects[objkey];
+            Object.assign(state.objects, newobjects);
+        }
+    }
+}
+
 function generateExtraMembers(state) {
 
     if (state.collisionLayers.length === 0) {
@@ -419,9 +476,9 @@ function generateSpriteMatrix(state) {
         
         obj.spriteoffset = { x: 0, y: 0 };
         for (const modi of obj.modifiers ||  []) {
-            obj.spritematrix = modifunc[modi[0]](obj.spritematrix, obj.spriteoffset, ...modi.slice(1));
+            obj.spritematrix = modifunc[modi[0]](obj.spritematrix, obj.spriteoffset, clockwiseDirections.indexOf(modi[1]), ...modi.slice(2));
         }
-        //console.log(JSON.stringify(obj));
+        console.log(JSON.stringify(obj));
     }
 }
 
@@ -3155,6 +3212,8 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
+    console.log(state.objects)
+    expandAllSpriteTags(state);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
