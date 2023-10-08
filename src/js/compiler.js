@@ -7,6 +7,95 @@ var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 const clockwiseDirections = ['up', 'right', 'down', 'left'];
 
+// a combinatorial ident expander based on embedded tags and ':' delimiters
+class TagExpander {
+    constructor(state, ident) {
+        this.ident = ident;
+        [ this.stem, ...this.parts ] = ident.split(':');
+        this.tags = this.parts.filter(p => state.tags[p]);
+        this.values = this.tags.map(t => state.tags[t]);
+        this.expansion = this.cartesian(...this.values);
+    }
+
+    // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+    // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
+    // const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
+    // function cartesian(...arrays) {
+    //     return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+    // }
+
+    cartesian(...arrays) {
+        return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+    }
+
+    getExpandedTags() {
+        return this.expansion;
+    }
+
+    getExpandedKey(exp) {
+        return this.stem + ':' + this.parts.map(p => 
+            this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p).join(':');
+    }
+
+    getExpandedAlt(exp, ident) {
+        const [ stem, ...parts ] = ident.split(':');
+        return (parts.length == 0) ? stem
+            : stem + ':' + parts.map(p => 
+                this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p).join(':');
+    }
+
+    getExpandedItem(exp, ident) {
+        return this.tags.includes(ident) ? exp[this.tags.indexOf(ident)] : ident;
+    }
+
+    // return array of base idents, one for each expansion
+    getExpansion() {
+        return this.expansion.map(e => 
+            this.stem + ':' + this.parts.map(p => 
+                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p).join(':'));
+    }
+
+    // return array of (possibly expanded) idents, one for each expansion
+    getExpanded(ident) {
+        const [ stem, ...parts ] = ident.split(':');
+        return this.expansion.map(e =>
+            (parts.length == 0) ? stem
+            : stem + ':' + parts.map(p => 
+                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p).join(':') );
+    }
+}
+
+// expand sprites with tags into new objects, replace object by property
+function expandSpriteTags(state, objkey, objvalue) {
+    const expander = new TagExpander(state, objkey);
+    const newobjects = Object.fromEntries(expander.getExpandedTags().map(exp => {
+            const newkey = expander.getExpandedKey(exp);
+            const newvalue = {
+            lineNumber: objvalue.lineNumber,
+            colors: [ ...objvalue.colors ],
+            spritematrix: [],
+        };
+        if (objvalue.cloneSprite) {
+            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
+            if (state.objects[altspriteid])
+                newvalue.spritematrix = [ ...state.objects[altspriteid].spritematrix ]; // row-wise clone
+            else logError(`Source ${altspriteid} for sprite clone not found.`);
+        } else 
+            newvalue.spritematrix = [ ... objvalue.spritematrix ]; 
+
+        if (objvalue.modifiers) {
+            newvalue.modifiers = objvalue.modifiers.map(m => {
+                const newm1 = expander.getExpandedItem(exp, m[1]);
+                return (newm1 == m[1]) ? m : [ m[0], newm1, ...m.slice(2) ];
+            })
+        }
+        return [newkey, newvalue];
+    }));
+    
+    if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
+    return newobjects;
+}
+
 function isColor(str) {
 	str = str.trim();
 	if (str in colorPalettes.arnecolors)
@@ -31,63 +120,6 @@ function colorToHex(palette, str) {
 
 var debugMode;
 var colorPalette;
-
-function expandAllSpriteTags(state) { //@@ PS>
-
-    // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
-    const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
-    const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
-    // function cartesian(...arrays) {
-    //     return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
-    // }
-
-    function expandSpriteTags(stem, parts, objvalue) {
-        const tags = parts.filter(p => state.tags[p]);
-        const values = tags.map(t => state.tags[t]);
-        const expansion = cartesian(...values);
-        //if(tags.length > 0) console.log(JSON.stringify(expansion));
-
-        const newobjects = {};
-        for (const exp of expansion) {
-            const newid = stem + ':' + parts.map(p => tags.includes(p) ? exp[tags.indexOf(p)] : p).join(':');
-            const newvalue = {
-                lineNumber: objvalue.lineNumber,
-                colors: [ ...objvalue.colors ],
-                spritematrix: [],
-            };
-            if (objvalue.cloneSprite) {
-                const [ stem, ...parts ] = objvalue.cloneSprite.split(':');
-                const altspriteid = (parts.length == 0) ? stem
-                    : stem + ':' + parts.map(p => tags.includes(p) ? exp[tags.indexOf(p)] : p).join(':');
-                if (state.objects[altspriteid])
-                    newvalue.spritematrix = [ ...state.objects[altspriteid].spritematrix ];
-                else logError(`Source ${altspriteid} for sprite clone not found`);
-            } else newvalue.spritematrix = [ ... objvalue.sprite ]; 
-
-            if (objvalue.modifiers) {
-                newvalue.modifiers = objvalue.modifiers.map(m => {
-                    const newm1 = tags.includes(m[1]) ? exp[tags.indexOf(m[1])] : m[1];
-                    return (newm1 == m[1]) ? m : [ m[0], newm1, ...m.slice(2) ];
-                })
-            }
-
-            newobjects[newid] = newvalue;
-        }
-        
-        console.log(JSON.stringify(newobjects));
-        console.log('---');
-        return newobjects;
-    }
-    
-    for (const objkey of Object.keys(state.objects).filter(k => k.includes(':'))) {
-        const parts = objkey.split(':');
-        const newobjects = expandSpriteTags(parts[0], parts.slice(1), state.objects[objkey]);
-        if (newobjects) {
-            delete state.objects[objkey];
-            Object.assign(state.objects, newobjects);
-        }
-    }
-}
 
 function generateExtraMembers(state) {
 
@@ -3213,7 +3245,6 @@ function loadFile(str) {
 	}
 
     console.log(state.objects)
-    expandAllSpriteTags(state);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);

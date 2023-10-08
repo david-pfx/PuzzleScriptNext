@@ -49,7 +49,7 @@ a;black red blue green yellow white orange
 1234560
 
 b;black red blue green yellow white orange
-copy: a flip:up
+copy: a flip:left
 
 c;black red blue green yellow white orange
 copy: a translate:right:3
@@ -58,12 +58,15 @@ d;black red blue green yellow white orange
 copy: a shift:right
 
 e;black red blue green yellow white orange
-copy: a rot:right
+copy: a rot:down
 
 f;black red blue green yellow white orange
 copy: a translate:right:3 shift:right rot:right
 
-b:t1:t2:t3;black red blue green yellow white orange
+g;black red blue green yellow white orange
+copy: f flip:right translate:right:3 shift:right rot:right
+
+b:t1;black red blue green yellow white orange
 copy: a flip:t1
 
 r;red
@@ -79,10 +82,10 @@ COLLISIONLAYERS
 ================
 Background
 Player
-a,b,c,d,e,f
-b:t1
+a,b,c,d,e,f,g
 r
 y
+b:t1
 ======
 RULES
 ======
