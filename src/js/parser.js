@@ -867,7 +867,6 @@ var codeMirrorFn = function() {
                     lexer.checkComment(state);
 
                     token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
-                    //token = lexer.match(/^[a-z^><]+/i, true);
                     const dirs = toValidDirections(token);
                     if (dirs == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
@@ -1214,73 +1213,79 @@ var codeMirrorFn = function() {
 
         function setState() {
 
-            function expandParts(ident, index, values) {
-                const parts = ident.split(':');
-                return values.map(v => [ ...parts.slice(0, index), v, ...parts.slice(index + 1) ].join(':'));
-            }
-            function expandIdent(ident, prefixes) {
-                const parts = ident.split(':');
-                // maybe use recursion rather than overwrite?
-                let expident = [ ident ];
-                for (const prefix of prefixes) {
-                    const index = parts.indexOf(prefix);
-                    expident = expident.map(e => 
-                        expandParts(e, index, state.tags[prefix]))
-                    .flat();
-                }
-                return expident;
-            }
-            function expandLevels(prefixes, idents) { // return [ { level:, ident: }]
-                const levels = [];
-                for (const ident of idents) {
-                    levels.push(expandIdent(ident, prefixes));
-                }    
-                return levels;
-            }
-
             // check for divider first
             if (divider) {
-                state.collisionLayers.push({ divider: divider.slice(2) });
+                state.collisionLayerGroups.push({ 
+                    lineNumber: state.lineNumber, 
+                    divider: divider.slice(2), 
+                    layer: state.collisionLayers.length });
                 return;
             }
     
-            // expand tags first and assign levels
-            // then expand properties within each level
-            const lhs = idents.slice(0, prearrow);
+            // // expand tags first and assign levels
+            // // then expand properties within each level
+
+            const keylayers = [];
+            function addToLayer(key, obj) {
+                if (keylayers[key]) 
+                    keylayers[key].layer.push(...obj);
+                else keylayers[key] = { lineNumber: state.lineNumber, layer: obj };
+            }
+
+            // add new objects to the proper layer based on ident and prefixes
+            function addNewObjects(newobjs, ident, prefixes) {
+                const parts = ident.split(':');
+                const prefs = prefixes.filter(p => parts.includes(p));
+                if (parts.length == 1 || prefixes.length == 0) addToLayer('+', newobjs);
+                else {
+                    const indexes = prefs.map(p => parts.indexOf(p));
+                    for (const obj of newobjs) {
+                        const parts = obj.split(':');
+                        const key = indexes.map(i => parts[i]).join('+');
+                        addToLayer(key, [ obj ]);
+                    }
+                }
+            }
+
+            // expand rhs first
+            // the use lhs to assign to layers
+            const prefixes = idents.slice(0, prearrow);
             const rhs = idents.slice(prearrow)
-            for (const prefix of lhs) {
+            for (const prefix of prefixes) {
                 if (!(state.tags[prefix] || state.legend_properties.find(s => s[0] == prefix))) {
                     logError(`A layer prefix must be a tag or property but ${prefix} is not.`, state.lineNumber);
                     return;
                 }
             }
             
-            const explevels =  expandLevels(lhs, rhs);
-            const newlevels = [];
+            for (const ident of rhs) {
+                const newobjs = expandSymbol(state, ident, false, n => logError(
+                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
 
-            for (const levelidents of explevels) {
-                for (const ident of levelidents) {
-                    const newobjs = expandSymbol(state, ident, false, n => logError(
-                        `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
-                    newlevels.push({ level: newobjs });
-
-                    // do we care about possible in-layer duplicates?
-                    const dups = new Set();
-                    state.collisionLayers.forEach((layer, layerno) => {
-                        if (layer.level) {
-                            for (const obj of newobjs) {
-                                if (layer.level.includes(obj))
-                                    dups.add(layerno + 1);
-                            }
+                // do we care about possible in-layer duplicates?
+                const dups = new Set();
+                state.collisionLayers.forEach((layer, layerno) => {
+                    if (layer.level) {
+                        for (const obj of newobjs) {
+                            if (layer.level.includes(obj))
+                                dups.add(layerno + 1);
                         }
-                    });
-                    if (dups.size != 0) {
-                        const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
-                        logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                     }
+                });
+                if (dups.size != 0) {
+                    const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
+                    logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                 }
+
+                addNewObjects(newobjs, ident, prefixes);
             }
-            state.collisionLayers.push(...newlevels);  // bug: this will break
+            // remove the keys and push one or more layers
+            // bug: this will break
+            const newlayers = Object.values(keylayers);
+            console.log('collision', newlayers);
+            state.collisionLayers.push(...newlayers);
+
+
         }
     }
 
@@ -1456,6 +1461,7 @@ var codeMirrorFn = function() {
 
                 objects: deepClone(state.objects),
                 collisionLayers: state.collisionLayers.map(p => p.slice()),
+                collisionLayerGroups: state.collisionLayerGroups.map(p => p.slice()),
 
                 commentLevel: state.commentLevel,
                 commentStyle: state.commentStyle,
@@ -1788,6 +1794,7 @@ var codeMirrorFn = function() {
                 objects_spritematrix: [],
 
                 collisionLayers: [],
+                collisionLayerGroups: [],
 
                 tokenIndex: 0,
 

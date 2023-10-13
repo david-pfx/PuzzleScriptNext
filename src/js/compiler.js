@@ -6,24 +6,24 @@ var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 
+// https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+// const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
+// const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
+// function cartesian(...arrays) {
+//     return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+// }
+
+function cartesianProduct(...arrays) {
+    return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+}
+
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
     constructor(state, parts) {
         [ this.stem, ...this.tail ] = parts;
         this.tags = this.tail.filter(p => state.tags[p]);
         this.values = this.tags.map(t => state.tags[t]);
-        this.expansion = this.cartesian(...this.values);
-    }
-
-    // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
-    // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
-    // const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
-    // function cartesian(...arrays) {
-    //     return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
-    // }
-
-    cartesian(...arrays) {
-        return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+        this.expansion = cartesianProduct(...this.values);
     }
 
     getExpandedTags() {
@@ -3249,7 +3249,8 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
-    console.log(state.objects)
+    console.log('Objects', state.objects);
+    console.log('Collision Layers', state.collisionLayers);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
