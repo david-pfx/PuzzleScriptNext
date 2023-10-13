@@ -5,14 +5,12 @@
 var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
-const clockwiseDirections = ['up', 'right', 'down', 'left'];
 
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
-    constructor(state, ident) {
-        this.ident = ident;
-        [ this.stem, ...this.parts ] = ident.split(':');
-        this.tags = this.parts.filter(p => state.tags[p]);
+    constructor(state, parts) {
+        [ this.stem, ...this.tail ] = parts;
+        this.tags = this.tail.filter(p => state.tags[p]);
         this.values = this.tags.map(t => state.tags[t]);
         this.expansion = this.cartesian(...this.values);
     }
@@ -32,16 +30,18 @@ class TagExpander {
         return this.expansion;
     }
 
-    getExpandedKey(exp) {
-        return this.stem + ':' + this.parts.map(p => 
-            this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p).join(':');
+    getExpandedKey(exp, delim = ':') {
+        return [ this.stem, ...this.tail.map(p => 
+            this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
+            .join(delim);
     }
 
-    getExpandedAlt(exp, ident) {
-        const [ stem, ...parts ] = ident.split(':');
-        return (parts.length == 0) ? stem
-            : stem + ':' + parts.map(p => 
-                this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p).join(':');
+    getExpandedAlt(exp, parts, delim = ':') {
+        const [ stem, ...tail ] = parts;
+        return (tail.length == 0) ? stem
+            : [ stem, ...tail.map(p => 
+                this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
+                .join(delim);
     }
 
     getExpandedItem(exp, ident) {
@@ -49,25 +49,27 @@ class TagExpander {
     }
 
     // return array of base idents, one for each expansion
-    getExpansion() {
+    getExpansion(delim = ':') {
         return this.expansion.map(e => 
-            this.stem + ':' + this.parts.map(p => 
-                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p).join(':'));
+            [ this.stem, this.tail.map(p => 
+                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+            ].join(delim));
     }
 
     // return array of (possibly expanded) idents, one for each expansion
-    getExpanded(ident) {
-        const [ stem, ...parts ] = ident.split(':');
+    getExpanded(parts, delim = ':') {
+        const [ stem, ...tail ] = parts;
         return this.expansion.map(e =>
-            (parts.length == 0) ? stem
-            : stem + ':' + parts.map(p => 
-                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p).join(':') );
+            (tail.length == 0) ? stem
+            : [ stem, ...tail.map(p => 
+                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+            ].join(delim) );
     }
 }
 
 // expand sprites with tags into new objects, replace object by property
 function expandSpriteTags(state, objkey, objvalue) {
-    const expander = new TagExpander(state, objkey);
+    const expander = new TagExpander(state, objkey.split(':'));
     const newobjects = Object.fromEntries(expander.getExpandedTags().map(exp => {
             const newkey = expander.getExpandedKey(exp);
             const newvalue = {
@@ -76,7 +78,7 @@ function expandSpriteTags(state, objkey, objvalue) {
             spritematrix: [],
         };
         if (objvalue.cloneSprite) {
-            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
+            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite.split(':'));
             if (state.objects[altspriteid])
                 newvalue.spritematrix = [ ...state.objects[altspriteid].spritematrix ]; // row-wise clone
             else logError(`Source ${altspriteid} for sprite clone not found.`);
@@ -85,8 +87,11 @@ function expandSpriteTags(state, objkey, objvalue) {
 
         if (objvalue.modifiers) {
             newvalue.modifiers = objvalue.modifiers.map(m => {
-                const newm1 = expander.getExpandedItem(exp, m[1]);
-                return (newm1 == m[1]) ? m : [ m[0], newm1, ...m.slice(2) ];
+                const op = m.shift();
+                const newm = [ expander.getExpandedItem(exp, m.shift()) ];
+                if (op == 'rot' && m.length > 0)
+                    newm.push(expander.getExpandedItem(exp, m.shift()));
+                return [ op, ...newm, ...m ];
             })
         }
         return [newkey, newvalue];

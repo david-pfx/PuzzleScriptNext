@@ -1,0 +1,1972 @@
+title Tapaban
+author Menderbug
+homepage menderbug.itch.io
+background_color #ddd
+text_color #222
+
+game_uri https://menderbug.itch.io/tapaban
+
+sprite_size 15x15
+
+run_rules_on_level_start
+
+again_interval 0.1
+key_repeat_interval 0.2
+
+auto_level_titles
+
+=====
+TAGS
+=====
+
+U_ = up
+L_ = left
+R_ = right
+D_ = down
+
+Position = First Second Third Fourth
+Value = _0 _1 _2 _3 _4 _5 _6 _7 _8 _Q
+Validity = Valid Invalid
+Frame = _8 _7 _6 _5 _4 _3 _2 _1 _0
+
+Position1 = Position
+Position2 = Position
+
+Value1 = Value
+Value2 = Value
+
+Validity1 = Validity
+Validity2 = Validity
+
+Neighbor = _TL _T _TR _R _BR _B _BL _L
+Neighbor1 = Neighbor
+Neighbor2 = Neighbor
+Neighbor3 = Neighbor
+Neighbor4 = Neighbor
+Neighbor5 = Neighbor
+Neighbor6 = Neighbor
+Neighbor7 = Neighbor
+Neighbor8 = Neighbor
+
+LessThan_1 = _0
+LessThan_2 = _1 LessThan_1
+LessThan_3 = _2 LessThan_2
+LessThan_4 = _3 LessThan_3
+LessThan_5 = _4 LessThan_4
+LessThan_6 = _5 LessThan_5
+LessThan_7 = _6 LessThan_6
+LessThan_8 = _7 LessThan_7
+
+LaterThan_Third = Fourth
+LaterThan_Second = Third LaterThan_Third
+LaterThan_First = Second LaterThan_Second
+
+directions1 = directions
+
+=========
+MAPPINGS
+=========
+
+( Iterate through positions in reading order )
+Position => NextPosition
+First Second Third Fourth -> Third First Fourth Second
+
+Frame => NextFrame
+_8 _7 _6 _5 _4 _3 _2 _1 _0 -> _7 _6 _5 _4 _3 _2 _1 _0 _0
+
+========
+OBJECTS
+========
+
+Background 
+#111 #222
+111111111111111
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+111111111111111
+
+CorrectBackground
+#002200 #003300
+copy: Background
+
+InvalidBackground
+#ac2e47 transparent
+copy: Background
+
+Wall 
+#ddd
+
+GridLines:down
+#eeeeee 
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+000000000000000
+
+GridLines:directions
+#eeeeee
+copy: GridLines:down rot:down:>
+
+GridLines:directions:directions1
+transparent
+
+GridLines:down:right
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+...............
+...............
+...............
+...............
+..............0
+..............0
+..............1
+..............1
+..............2
+..............2
+..............3
+..............3
+..............4
+..............4
+..............5
+
+GridLines:down:left
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:right |
+
+GridLines:right:up
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:right rot:down:right
+
+GridLines:right:down
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:left rot:down:right
+
+GridLines:left:down
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:right rot:down:left
+
+GridLines:left:up
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:left rot:down:left
+
+GridLines:up:left
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:right rot:down:up
+
+GridLines:up:right
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLines:down:left rot:down:up
+
+GridLinesBoth:right
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+..............5
+..............4
+..............4
+..............3
+..............3
+..............2
+..............2
+..............2
+..............2
+..............2
+..............3
+..............3
+..............4
+..............4
+..............5
+
+GridLinesBoth:directions
+#e0e0e0 #e3e3e3 #e6e6e6 #e9e9e9 #ececec #eeeeee 
+copy: GridLinesBoth:right rot:right:>
+
+Player 
+#888
+...............
+.....00.00.....
+......0.0......
+......0.0......
+......0.0......
+.0....0.0....0.
+.000000.000000.
+...............
+.000000.000000.
+.0....0.0....0.
+......0.0......
+......0.0......
+......0.0......
+.....00.00.....
+...............
+
+WinAnimation:Frame
+#888
+copy: Player
+
+WinAnimation:_6 StartWinAnimation
+#888
+....00...00....
+.....0...0.....
+.....0...0.....
+.....0...0.....
+0....0...0....0
+000000...000000
+...............
+...............
+...............
+000000...000000
+0....0...0....0
+.....0...0.....
+.....0...0.....
+.....0...0.....
+....00...00....
+
+( WinAnimation:_5 is identical to Player sprite )
+
+WinAnimation:_4
+#999
+...............
+...............
+......000......
+.......0.......
+.......0.......
+.......0.......
+..0....0....0..
+..00000000000..
+..0....0....0..
+.......0.......
+.......0.......
+.......0.......
+......000......
+...............
+...............
+
+WinAnimation:_3
+#aaa
+...............
+...............
+.....00.00.....
+...............
+...............
+..0....0....0..
+..0....0....0..
+.....00000.....
+..0....0....0..
+..0....0....0..
+...............
+...............
+.....00.00.....
+...............
+...............
+
+WinAnimation:_2
+#bbb
+...............
+...............
+.....0...0.....
+...............
+...............
+..0.........0..
+...............
+.......0.......
+...............
+..0.........0..
+...............
+...............
+.....0...0.....
+...............
+...............
+
+WinAnimation:_1
+#ccc
+...............
+...............
+....0.....0....
+...............
+..0.........0..
+...............
+...............
+...............
+...............
+...............
+..0.........0..
+...............
+....0.....0....
+...............
+...............
+
+WinAnimation:_0
+transparent
+
+PlayerStuck:directions
+#888
+copy: Player shift:>:1
+
+BlankCrate 
+#ddd #bbb
+111111111111111
+111000000000111
+111100000001111
+101110000011101
+100111000111001
+100011101110001
+100001111100001
+100000111000001
+100001111100001
+100011101110001
+100111000111001
+101110000011101
+111100000001111
+111000000000111
+111111111111111
+
+
+ClueCrate 
+#111 #bbb
+111111111111111
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+100000000000001
+111111111111111
+
+CrateFrame
+#bbb
+000000000000000
+00...........00
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+0.............0
+00...........00
+000000000000000
+
+Clue:Position:Value
+transparent
+
+Clue:First:_1
+#ddd #bbb transparent
+...............
+.0000000.......
+.0022000.......
+.0002000.......
+.0002000.......
+.0002000.......
+.0022200.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_2
+#ddd #bbb transparent
+...............
+.0000000.......
+.0022000.......
+.0000200.......
+.0002000.......
+.0020000.......
+.0022200.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_3
+#ddd #bbb transparent
+...............
+.0000000.......
+.0022000.......
+.0000200.......
+.0002000.......
+.0000200.......
+.0022000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_4
+#ddd #bbb transparent
+...............
+.0000000.......
+.0020000.......
+.0020200.......
+.0022200.......
+.0000200.......
+.0000200.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_5
+#ddd #bbb transparent
+...............
+.0000000.......
+.0022200.......
+.0020000.......
+.0022000.......
+.0000200.......
+.0022000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_6
+#ddd #bbb transparent
+...............
+.0000000.......
+.0002200.......
+.0020000.......
+.0022000.......
+.0020200.......
+.0002000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_7
+#ddd #bbb transparent
+...............
+.0000000.......
+.0022200.......
+.0000200.......
+.0002000.......
+.0002000.......
+.0002000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_8
+#ddd #bbb transparent
+...............
+.0000000.......
+.0002000.......
+.0020200.......
+.0002000.......
+.0020200.......
+.0002000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:First:_Q
+#ddd #bbb transparent
+...............
+.0000000.......
+.0022000.......
+.0000200.......
+.0002000.......
+.0000000.......
+.0002000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+Clue:Second:Value
+#ddd #bbb transparent
+copy: Clue:First:Value shift:down:6 shift:right:6
+
+Clue:Third:Value
+#ddd #bbb transparent
+copy: Clue:First:Value shift:right:6
+
+Clue:Fourth:Value
+#ddd #bbb transparent
+copy: Clue:First:Value shift:down:6
+
+NoClueCover:First
+#ddd
+...............
+.0000000.......
+.0000000.......
+.0000000.......
+.0000000.......
+.0000000.......
+.0000000.......
+.0000000.......
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+
+NoClueCover:Second
+#ddd
+copy: NoClueCover:First shift:down:6 shift:right:6
+
+NoClueCover:Third
+#ddd
+copy: NoClueCover:First shift:right:6
+
+NoClueCover:Fourth
+#ddd
+copy: NoClueCover:First shift:down:6
+
+SingleClue:Value
+transparent
+
+SingleClue:_0
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000222220000.
+.0002222222000.
+.0002200022000.
+.0002200022000.
+.0002200022000.
+.0002200022000.
+.0002200022000.
+.0002222222000.
+.0000222220000.
+.0000000000000.
+.0000000000000.
+...............
+
+( Alternative sprite 
+
+...............
+...............
+..00000000000..
+..00000000000..
+..00002220200..
+..00020002000..
+..00200020200..
+..00200200200..
+..00202000200..
+..00020002000..
+..00202220000..
+..00000000000..
+..00000000000..
+...............
+...............
+)
+
+SingleClue:_1
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000022200000.
+.0002222200000.
+.0002222200000.
+.0000022200000.
+.0000022200000.
+.0000022200000.
+.0000022200000.
+.0002222222000.
+.0002222222000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_2
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000222220000.
+.0002222222000.
+.0002200022000.
+.0000000222000.
+.0000002220000.
+.0000022200000.
+.0000222000000.
+.0002222222000.
+.0002222222000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_3
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000222220000.
+.0002222222000.
+.0002200022000.
+.0000000022000.
+.0000002220000.
+.0000000022000.
+.0002200022000.
+.0002222222000.
+.0000222220000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_4
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000022000000.
+.0000022000000.
+.0000220000000.
+.0000220220000.
+.0002200220000.
+.0002222222000.
+.0002222222000.
+.0000000220000.
+.0000000220000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_5
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0002222222000.
+.0002222222000.
+.0002200000000.
+.0002222220000.
+.0002222222000.
+.0000000022000.
+.0002200022000.
+.0002222222000.
+.0000222220000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_6
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000222222000.
+.0002222222000.
+.0002200000000.
+.0002222220000.
+.0002222222000.
+.0002200022000.
+.0002200022000.
+.0002222222000.
+.0000222220000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_7
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0002222222000.
+.0002222222000.
+.0000000022000.
+.0000000220000.
+.0000002200000.
+.0000002200000.
+.0000022000000.
+.0000022000000.
+.0000022000000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_8
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000222220000.
+.0002222222000.
+.0002200022000.
+.0002200022000.
+.0000222220000.
+.0002200022000.
+.0002200022000.
+.0002222222000.
+.0000222220000.
+.0000000000000.
+.0000000000000.
+...............
+
+SingleClue:_Q
+#ddd #bbb transparent
+...............
+.0000000000000.
+.0000000000000.
+.0000222220000.
+.0002222222000.
+.0002200022000.
+.0000000222000.
+.0000002220000.
+.0000002200000.
+.0000000000000.
+.0000002200000.
+.0000002200000.
+.0000000000000.
+.0000000000000.
+...............
+
+UncluedBlock:Neighbor
+transparent
+(
+UncluedBlock:_TL
+darkred
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+............000
+............000
+............000
+
+UncluedBlock:_TR
+darkred
+copy: UncluedBlock:_TL rot:right:down
+
+UncluedBlock:_BL
+darkred
+copy: UncluedBlock:_TL rot:down:right
+
+UncluedBlock:_BR
+darkred
+copy: UncluedBlock:_TL rot:down:up
+
+UncluedBlock:_T
+darkred
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+000000000000000
+000000000000000
+000000000000000
+
+UncluedBlock:_R
+darkred
+copy: UncluedBlock:_T rot:right:down
+
+UncluedBlock:_L
+darkred
+copy: UncluedBlock:_T rot:left:down
+
+UncluedBlock:_B
+darkred
+copy: UncluedBlock:_T rot:down:up
+)
+
+InstructionsBasic
+#eeeeee #111111 #bbbbbb #222222 #dddddd #448c41 #777777
+.............................................
+.............................................
+...000000000000000000000000000000000000000...
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0002222222222233333333333000000000000001..
+...0002244444442231111111113000000000000001..
+...0002444444444231111111113000000000550001..
+...0002444414444231111111113000000005550001..
+...0002444114444231111111113000000055500001..
+...0002444414444231111111113000550555000001..
+...0002444414444231111111113000555550000001..
+...0002444111444231111111113000055500000001..
+...0002444444444231111111113000005000000001..
+...0002244444442231111111113000000000000001..
+...0002222222222233333333333000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0066066066066066066066066066066066066001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0002222222222233333333333000000000000001..
+...0002244444442231111111113000000000000001..
+...0002444444444231111111113000000000550001..
+...0002444114444231111111113000000005550001..
+...0002444441444231111111113000000055500001..
+...0002444414444231111111113000550555000001..
+...0002444144444231111111113000555550000001..
+...0002444111444231111111113000055500000001..
+...0002444444444231111111113000005000000001..
+...0002244444442231111111113000000000000001..
+...0002222222222233333333333000000000000001..
+...0000000000000033333333333000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000031111111113000000000000001..
+...0000000000000033333333333000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0066066066066066066066066066066066066001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0002222222222233333333333000000000000001..
+...0002244444442231111111113000000000000001..
+...0002444444444231111111113000000000550001..
+...0002444114444231111111113000000005550001..
+...0002444441444231111111113000000055500001..
+...0002444414444231111111113000550555000001..
+...0002444441444231111111113000555550000001..
+...0002444114444231111111113000055500000001..
+...0002444444444231111111113000005000000001..
+...0002244444442231111111113000000000000001..
+...0002222222222233333333333000000000000001..
+...0003333333333333333333333000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003333333333333333333333000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+....111111111111111111111111111111111111111..
+.............................................
+translate:left:30 translate:up:8
+
+InstructionsContiguous
+#eeeeee #111111 #222222 #bbbbbb #dddddd #ac2e47 #777777 #448c41 
+.............................................
+.............................................
+.............................................
+.............................................
+...000000000000000000000000000000000000000...
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0002222222222200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002111111111200000000000000000000000001..
+...0002222222222200000000000000000000000001..
+...0003333333333300000000000000000000000001..
+...0003344444443300000000000000000000000001..
+...0003444444444300000000000000550005500001..
+...0003444554444300000000000000555055500001..
+...0003444445444300000000000000055555000001..
+...0003444454444300000000000000005550000001..
+...0003444445444300000000000000055555000001..
+...0003444554444300000000000000555055500001..
+...0003444444444300000000000000550005500001..
+...0003344444443300000000000000000000000001..
+...0003333333333300000000000000000000000001..
+...0002222222222222222222222000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002222222222222222222222000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0066066066066066066066066066066066066001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0003333333333322222222222000000000000001..
+...0003344444443321111111112000000000000001..
+...0003444444444321111111112000000000770001..
+...0003444114444321111111112000000007770001..
+...0003444441444321111111112000000077700001..
+...0003444414444321111111112000770777000001..
+...0003444441444321111111112000777770000001..
+...0003444114444321111111112000077700000001..
+...0003444444444321111111112000007000000001..
+...0003344444443321111111112000000000000001..
+...0003333333333322222222222000000000000001..
+...0002222222222222222222222000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002111111111221111111112000000000000001..
+...0002222222222222222222222000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+....111111111111111111111111111111111111111..
+.............................................
+.............................................
+.............................................
+.............................................
+translate:left:30 translate:up:8
+
+InstructionsMultiClue
+#eeeeee #111111 #bbbbbb #222222 #dddddd #ac2e47 #777777 #448c41 
+.............................................
+.............................................
+.............................................
+.............................................
+...000000000000000000000000000000000000000...
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0002222222222233333333333000000000000001..
+...0002244444442231111111113000000000000001..
+...0002445444444231111111113000550005500001..
+...0002455444444231111111113000555055500001..
+...0002445445544231111111113000055555000001..
+...0002445444454231111111113000005550000001..
+...0002455544544231111111113000055555000001..
+...0002444445444231111111113000555055500001..
+...0002444445554231111111113000550005500001..
+...0002244444442231111111113000000000000001..
+...0002222222222233333333333000000000000001..
+...0003333333333333333333333000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003333333333333333333333000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0066066066066066066066066066066066066001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0003333333333300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003111111111300000000000000000000000001..
+...0003333333333300000000000000000000000001..
+...0002222222222200000000000000000000000001..
+...0002244444442200000000000000000000000001..
+...0002441444444200000000000000000000770001..
+...0002411444444200000000000000000007770001..
+...0002441441144200000000000000000077700001..
+...0002441444414200000000000000770777000001..
+...0002411144144200000000000000777770000001..
+...0002444441444200000000000000077700000001..
+...0002444441114200000000000000007000000001..
+...0002244444442200000000000000000000000001..
+...0002222222222200000000000000000000000001..
+...0003333333333333333333333000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003111111111331111111113000000000000001..
+...0003333333333333333333333000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+...0000000000000000000000000000000000000001..
+....111111111111111111111111111111111111111..
+.............................................
+.............................................
+.............................................
+.............................................
+translate:left:30 translate:up:8
+
+WinPrompt:Invalid
+transparent
+
+WinPrompt:Valid
+#111111 #111111 #111111 #111111 #111111 #111111
+........................................................................................................................
+........................................................................................................................
+...00000................................00...00.........................................................................
+...111111...............................11...11....11...................................11...11.........................
+...11..11...............................11...11....11...................................11...11.........................
+...22..22................................22.22.....22...................................22..............................
+...22..22.22.22..2222...2222...2222......22222....22222..2222......2222...2222..22222..22222.22.22222..22..22..2222.....
+...333333.33333.333333.333333.333333......333.....33333.333333....333333.333333.333333.33333.33.333333.33..33.333333....
+...33333..333...33..33.33.....33.........33333.....33...33..33....33.....33..33.33..33..33...33.33..33.33..33.33..33....
+...44.....44....444444.444444.444444.....44.44.....44...44..44....44.....44..44.44..44..44...44.44..44.44..44.444444....
+...44.....44....44.........44.....44....44...44....44...44..44....44.....44..44.44..44..44...44.44..44.44..44.44........
+...55.....55....555555.555555.555555....55...55....5555.555555....555555.555555.55..55..5555.55.55..55.555555.555555....
+...55.....55.....5555...5555...5555.....55...55.....555..5555......5555...5555..55..55...555.55.55..55..55555..5555.....
+........................................................................................................................
+........................................................................................................................
+translate:left:105
+
+WinPromptAnimation:Frame
+transparent
+
+WinPromptAnimation:_2 StartWinPromptAnimation
+#aaa #aaa #aaa #aaa #aaa #aaa
+copy: WinPrompt:Valid translate:up:1
+
+WinPromptAnimation:_1
+#777 #777 #777 #777 #777 #777
+copy: WinPrompt:Valid translate:up:2
+
+WinPromptAnimation:_0
+#444 #444 #444 #444 #444 #444
+copy: WinPrompt:Valid translate:up:1
+
+_MergeWarning
+transparent
+
+_DisplayMergeWarning
+transparent
+
+_KonamiCode:Frame
+transparent
+
+_Temp
+pink
+
+_ProcessingClues
+pink
+
+_ProcessedClues
+pink
+
+_Processing:Neighbor
+pink
+
+_Above
+pink
+
+_Below
+pink
+
+_SplitterTarget:Position
+pink
+
+_StartList
+pink
+
+_EndList
+pink
+
+_Black
+pink
+
+_White
+pink
+
+_StartBlock
+pink
+
+_EndBlock
+pink
+
+_Source:Neighbor
+pink
+
+_StartCluedBlock
+pink
+
+_WildCardBlock
+pink
+
+_UnsortedClue:Position:Value
+pink
+
+_SortCursor:Position
+pink
+
+_InvalidClue:Position
+pink
+copy: NoClueCover:Position
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = BlankCrate
+0 = ClueCrate and SingleClue:_0
+1 = ClueCrate and SingleClue:_1
+2 = ClueCrate and SingleClue:_2
+3 = ClueCrate and SingleClue:_3
+4 = ClueCrate and SingleClue:_4
+5 = ClueCrate and SingleClue:_5
+6 = ClueCrate and SingleClue:_6
+7 = ClueCrate and SingleClue:_7
+8 = ClueCrate and SingleClue:_8
+
+a = ClueCrate and Clue:First:_1 and Clue:Second:_1
+b = ClueCrate and Clue:First:_1 and Clue:Second:_2
+c = ClueCrate and Clue:First:_1 and Clue:Second:_3
+d = ClueCrate and Clue:First:_1 and Clue:Second:_4
+e = ClueCrate and Clue:First:_1 and Clue:Second:_5
+f = ClueCrate and Clue:First:_2 and Clue:Second:_2
+g = ClueCrate and Clue:First:_2 and Clue:Second:_3
+h = ClueCrate and Clue:First:_2 and Clue:Second:_4
+i = ClueCrate and Clue:First:_3 and Clue:Second:_3
+
+j = ClueCrate and Clue:First:_1 and Clue:Second:_1 and Clue:Third:_1
+k = ClueCrate and Clue:First:_1 and Clue:Second:_2 and Clue:Third:_1
+l = ClueCrate and Clue:First:_1 and Clue:Second:_3 and Clue:Third:_1
+m = ClueCrate and Clue:First:_1 and Clue:Second:_2 and Clue:Third:_2
+
+n = ClueCrate and Clue:First:_1 and Clue:Second:_1 and Clue:Third:_1 and Clue:Fourth:_1
+
+o = ClueCrate and Clue:First:_3 and Clue:Second:_4
+
+? = ClueCrate and SingleClue:_Q
+r = ClueCrate and Clue:First:_Q and Clue:Second:_Q
+s = ClueCrate and Clue:First:_Q and Clue:Second:_Q and Clue:Third:_Q
+t = ClueCrate and Clue:First:_Q and Clue:Second:_Q and Clue:Third:_Q and Clue:Fourth:_Q
+
+¹ = Wall and InstructionsBasic
+² = Wall and InstructionsContiguous
+³ = Wall and InstructionsMultiClue
+
+! = Wall and WinPrompt:Invalid and _KonamiCode:_0
+
+X = Wall and _MergeWarning
+
+Crate = BlankCrate or ClueCrate
+
+Pushable = Player or Crate
+
+TapaBlank = Crate or Wall
+
+_TapaValue = _Black or _White
+_TapaValue1 = _TapaValue
+_TapaValue2 = _TapaValue
+_TapaValue3 = _TapaValue
+_TapaValue4 = _TapaValue
+_TapaValue5 = _TapaValue
+_TapaValue6 = _TapaValue
+
+Invalidator = InvalidBackground
+WinPrompt = WinPrompt:Valid or WinPrompt:Invalid
+
+Instructions = InstructionsBasic or InstructionsContiguous or InstructionsMultiClue
+
+=======
+SOUNDS
+=======
+
+sfx1 3186302:5 ( Merge two crates )
+Player Move 60013507:12
+PlayerStuck:directions Create 83704304:6
+StartWinPromptAnimation Create 46953300:6
+WinAnimation:_4 Create 94359908:14
+Crate Move 90858507
+
+================
+COLLISIONLAYERS
+================
+
+Background
+CorrectBackground
+UncluedBlock:Neighbor
+Player, PlayerStuck:directions, Wall, Crate
+InvalidBackground
+Position -> Clue:Position:Value, NoClueCover:Position
+SingleClue:Value
+CrateFrame
+
+directions -> GridLines:directions
+directions, directions1 -> GridLines:directions:directions1
+directions -> GridLinesBoth:directions
+
+Instructions
+WinPrompt:Validity, WinPromptAnimation:Frame
+WinAnimation:Frame
+
+_KonamiCode:Frame
+_Temp
+_Above, _Below, _SplitterTarget:Position
+_ProcessingClues, _ProcessedClues
+_Processing:Neighbor
+_StartList, _EndList
+_TapaValue
+_StartBlock, _StartCluedBlock
+_EndBlock
+_Source:Neighbor
+Position -> _UnsortedClue:Position:Value
+_SortCursor:Position
+Position -> _InvalidClue:Position
+_WildCardBlock
+_MergeWarning, _DisplayMergeWarning
+
+======
+RULES
+======
+
+( On first turn, generate grid lines on walls )
+[ Wall | no Wall ] -> [ Wall GridLines:> | ]
+[ GridLines:> no GridLines:^ ] -> [ GridLines:> GridLines:>:^ ]
+[ GridLines:> no GridLines:v ] -> [ GridLines:> GridLines:>:v ]
+[ GridLines:v:> | no GridLines:v:< ] -> [ GridLines:v:> | GridLines:v:< ]
+[ GridLines:^:> | no GridLines:^:< ] -> [ GridLines:^:> | GridLines:^:< ]
+[ GridLines:v:> GridLines:^:> ] -> [ GridLinesBoth:> ]
+
+[ _DisplayMergeWarning ] -> [ ] message Shhhhh! You weren't supposed to see this yet. Just pretend it never happened. It will be fairly obvious once you actually need this.
+
+[ PlayerStuck:directions ] -> [ Player ]
+
+( Normalise clues so they're all represented as multiclues:
+  - Remove 0 clues
+  - Represent single clues as multiclues with a single entry
+  - Remove no-clue covers as they're only visual )
+[ SingleClue:_0 ] -> [ ]
+Value [ SingleClue:Value ] -> [ Clue:First:Value ]
+[ NoClueCover:Position ] -> [ ]
+[ CrateFrame ] -> [ ]
+
+( Animate win prompt )
+[ WinPromptAnimation:_0 ] -> [ WinPrompt:Valid ]
+Frame [ WinPromptAnimation:Frame no _Temp ] -> [ WinPromptAnimation:NextFrame _Temp ] again
+[ _Temp ] -> [ ]
+
+( Press X on a valid solution to complete the level )
+[ WinAnimation:_0 ] -> [ ] win
+Frame [ WinAnimation:Frame no _Temp ] -> [ WinAnimation:NextFrame _Temp ] again
+[ _Temp ] -> [ ]
+[ action Player CorrectBackground ] -> [ StartWinAnimation CorrectBackground ] again
+[ _KonamiCode:_8 ] [ action Player ] -> [ ] [ StartWinAnimation ] again
+
+( Process Konami code to skip level )
+[ _KonamiCode:_7 no _Temp ] [ right Player ] -> [ _KonamiCode:_8 _Temp ] [ right Player ]
+[ _KonamiCode:_6 no _Temp ] [ left Player ] -> [ _KonamiCode:_7 _Temp ] [ left Player ]
+[ _KonamiCode:_5 no _Temp ] [ right Player ] -> [ _KonamiCode:_6 _Temp ] [ right Player ]
+[ _KonamiCode:_4 no _Temp ] [ left Player ] -> [ _KonamiCode:_5 _Temp ] [ left Player ]
+[ _KonamiCode:_3 no _Temp ] [ down Player ] -> [ _KonamiCode:_4 _Temp ] [ down Player ]
+[ _KonamiCode:_2 no _Temp ] [ down Player ] -> [ _KonamiCode:_3 _Temp ] [ down Player ]
+[ _KonamiCode:_2 no _Temp ] [ up Player ] -> [ _KonamiCode:_2 _Temp ] [ up Player ]
+[ _KonamiCode:_1 no _Temp ] [ up Player ] -> [ _KonamiCode:_2 _Temp ] [ up Player ]
+[ _KonamiCode:Frame no _Temp ] [ up Player ] -> [ _KonamiCode:_1 _Temp ] [ up Player ]
+[ _KonamiCode:Frame no _Temp ] [ moving Player ] -> [ _KonamiCode:_0 _Temp ] [ moving Player ]
+[ _Temp ] -> [ ]
+
+( Player can push multiple crates )
+[ > Pushable | Pushable ] -> [ > Pushable | > Pushable ]
+
+( Walls block movement. )
+[ > Player | Wall ] -> [ PlayerStuck:> | Wall ] again
+[ > Pushable | Wall ] -> [ Pushable | Wall ]
+
+( Pushing two crates into a wall attempts to combine the clues. )
+
+( Check if the clues from both crates can fit on a single crate, otherwise propagate blocking. )
++ [ > Player | stationary Crate ] -> [ PlayerStuck:> | Crate ] again
++ [ > Crate | stationary BlankCrate ] -> [ Crate | BlankCrate ]
++ [ > BlankCrate | stationary ClueCrate ] -> [ BlankCrate | ClueCrate ]
++ [ > ClueCrate Clue:Fourth:Value | stationary ClueCrate Clue:First:Value ] -> [ ClueCrate Clue:Fourth:Value | ClueCrate Clue:First:Value ]
++ [ > ClueCrate Clue:Third:Value | stationary ClueCrate Clue:Second:Value ] -> [ ClueCrate Clue:Third:Value | ClueCrate Clue:Second:Value ]
++ [ > ClueCrate Clue:Second:Value | stationary ClueCrate Clue:Third:Value ] -> [ ClueCrate Clue:Second:Value | ClueCrate Clue:Third:Value ]
++ [ > ClueCrate Clue:First:Value | stationary ClueCrate Clue:Fourth:Value ] -> [ ClueCrate Clue:First:Value | ClueCrate Clue:Fourth:Value ]
+
+( Otherwise, merge the two crates. )
+[ > ClueCrate | stationary ClueCrate ] [ _MergeWarning ] -> [ > ClueCrate | stationary ClueCrate ] [ _DisplayMergeWarning ] again
+Value1 Position1 [ > ClueCrate Clue:Position:Value1 | stationary ClueCrate no Clue:Position1:Value ] -> [ > ClueCrate | ClueCrate Clue:Position1:Value1 ]
+[ > ClueCrate no Clue:Position:Value | stationary ClueCrate ] -> [  | ClueCrate ] sfx1
+
+( Propagate crate movement to clues. )
+[ > Crate Clue:Position:Value ] -> [ > Crate > Clue:Position:Value ]
+
+(------------- late rules -------------)
+
+( Collapse remaining clues into the lowest positions )
+late Value1 [ Clue:Second:Value1 no Clue:First:Value ] -> [ Clue:First:Value1 ]
++ late Value1 [ Clue:Third:Value1 no Clue:Second:Value ] -> [ Clue:Second:Value1 ]
++ late Value1 [ Clue:Fourth:Value1 no Clue:Third:Value ] -> [ Clue:Third:Value1 ]
+
+( Sort clues via Selection Sort)
+late Value Position [ Clue:Position:Value ] -> [ Clue:Position:Value _UnsortedClue:Position:Value _SortCursor:First ]
+
+late Position [ _SortCursor:Position _Temp ] -> [ _SortCursor:NextPosition ]
++ late [ _SortCursor:Position no _UnsortedClue:Position:Value ] -> [ ]
++ late Position [ _SortCursor:Position no Clue:Position:Value ] -> [ _SortCursor:NextPosition ]
+( Expand by value first so lower values get processed earlier )
++ late Value Position [ _UnsortedClue:Position1:Value _SortCursor:Position no _Temp ] -> [ Clue:Position:Value _SortCursor:Position _Temp ]
+
+( Cover unused clue positions )
+late [ Clue:Second:Value no Clue:Third:Value ] -> [ Clue:Second:Value NoClueCover:Third ]
+late [ Clue:Second:Value no Clue:Fourth:Value ] -> [ Clue:Second:Value NoClueCover:Fourth ]
+late [ ClueCrate ] -> [ ClueCrate CrateFrame ] 
+
+((( VALIDATION )))
+
+( Validate Tapa clues )
+late [ InvalidBackground ] -> [ ]
+startloop
+	( Pick a random clue crate to process and set up list markers )
+	late random [ ClueCrate no _ProcessedClues ] -> [ ClueCrate _ProcessingClues _Temp ]
+    late right [ _Temp ] [ | | | | | | | ] -> [ ] [ _StartList _Black _Source:_TL | _Black  _Source:_T | _Black  _Source:_TR | _Black _Source:_R | _Black _Source:_BR | _Black _Source:_B | _Black _Source:_BL | _Black _Source:_L _EndList ]
+    
+    ( Mark neighbors )
+    late down [ | _ProcessingClues | ] -> [ _Above | _ProcessingClues | _Below ]
+    late right [ | _Above | ] -> [ _Processing:_TL |  _Processing:_T | _Processing:_TR ]
+    late right [ | _ProcessingClues | ] -> [ _Processing:_L |  _ProcessingClues | _Processing:_R ]
+    late right [ | _Below | ] -> [ _Processing:_BL |  _Processing:_B | _Processing:_BR ]
+    
+    ( Record neighbors into list )
+    late Neighbor [ _Source:Neighbor _Black ] [ _Processing:Neighbor TapaBlank ] -> [ _Source:Neighbor _White ] [ _Processing:Neighbor TapaBlank ]
+    
+    ( Rotate neighbours until start and end and aren't both black )
+    late right [ _StartList _Black _Source:Neighbor | ... | _Black _EndList | no _TapaValue ] [ _White ] -> [ _StartList | ... | _Black _EndList | _Black _Source:Neighbor ] [ _White ]
+    + late right [ no _TapaValue | _TapaValue _Source:Neighbor ] -> [ _TapaValue _Source:Neighbor | ]
+	
+    ( Mark the start and end of each block of black )
+    late [ _StartList _Black ] -> [ _StartList _StartBlock _Black ]
+    late [ _Black _EndList ] -> [ _Black _EndBlock _EndList ]
+    late right [ _White | _Black ] -> [ _White | _StartBlock _Black ]
+    late right [ _Black | _White ] -> [ _Black _Endblock | _White ]
+    
+    ( Mark all clues and neighbors as invalid )
+    late Position [ _ProcessingClues Clue:Position:Value ] -> [ _ProcessingClues Clue:Position:Value _InvalidClue:Position ]
+    late Neighbor [ _Processing:Neighbor no TapaBlank ] -> [ _Processing:Neighbor UncluedBlock:Neighbor ]
+    
+    ( Clear valid clues )
+    late right Position [ _StartBlock _EndBlock ] [ _ProcessingClues Clue:Position:_1 _InvalidClue:Position ] -> [ _StartCluedBlock _EndBlock ] [ _ProcessingClues Clue:Position:_1 ]
+	late right Position [ _StartBlock | _EndBlock ] [ _ProcessingClues Clue:Position:_2 _InvalidClue:Position ] -> [ _StartCluedBlock | _EndBlock ] [ _ProcessingClues Clue:Position:_2 ]
+	late right Position [ _StartBlock | _Black |  _EndBlock ] [ _ProcessingClues Clue:Position:_3 _InvalidClue:Position ] -> [ _StartCluedBlock | | _EndBlock ] [ _ProcessingClues Clue:Position:_3 ]
+	late right Position [ _StartBlock | _Black | _Black |  _EndBlock ] [ _ProcessingClues Clue:Position:_4 _InvalidClue:Position ] -> [ _StartCluedBlock | | | _EndBlock ] [ _ProcessingClues Clue:Position:_4 ]
+	late right Position [ _StartBlock | _Black | _Black | _Black |  _EndBlock ] [ _ProcessingClues Clue:Position:_5 _InvalidClue:Position ] -> [ _StartCluedBlock | | | | _EndBlock ] [ _ProcessingClues Clue:Position:_5 ]
+	late right Position [ _StartBlock | _Black | _Black | _Black | _Black |  _EndBlock ] [ _ProcessingClues Clue:Position:_6 _InvalidClue:Position ] -> [ _StartCluedBlock | | | | | _EndBlock ] [ _ProcessingClues Clue:Position:_6 ]
+	late right Position [ _StartBlock | _Black | _Black | _Black | _Black | _Black |  _EndBlock ] [ _ProcessingClues Clue:Position:_7 _InvalidClue:Position ] -> [ _StartCluedBlock | | | | | | _EndBlock ] [ _ProcessingClues Clue:Position:_7 ]
+	late right Position [ _StartBlock | _Black | _Black | _Black | _Black | _Black | _Black |  _EndBlock ] [ _ProcessingClues Clue:Position:_8 _InvalidClue:Position ] -> [ _StartCluedBlock | | | | | | | _EndBlock ] [ _ProcessingClues Clue:Position:_8 ]
+
+	( Process wildcard clues )
+    late right Position [ _StartBlock ] [ _ProcessingClues Clue:Position:_Q _InvalidClue:Position ] -> [ _StartCluedBlock _WildCardBlock ] [ _ProcessingClues Clue:Position:_Q ]
+    late right [ _WildCardBlock | _Black ] -> [ | _WildCardBlock ]
+    late [ _WildCardBlock ] -> [ ]
+
+	( Clear valid neighbors )
+    late right Neighbor [ _StartCluedBlock _Source:Neighbor no _EndBlock | ] [ _Processing:Neighbor UncluedBlock:Neighbor ] -> [ | _StartCluedBlock ] [ _Processing:Neighbor ]
+    late right Neighbor [ _StartCluedBlock _Source:Neighbor _EndBlock ] [ _Processing:Neighbor UncluedBlock:Neighbor ] -> [ ] [ _Processing:Neighbor ]
+
+	( If there are any unclued neighbors, mark a clue as invalid )
+    late [ _ProcessingClues ] [ UncluedBlock:Neighbor ] -> [ _ProcessingClues _InvalidClue:First ] [ UncluedBlock:Neighbor ]
+
+	( Clean up )
+    late [ _StartList ] -> [ ]
+    late [ _EndList ] -> [ ]
+    late [ _StartBlock ] -> [ ]
+    late [ _EndBlock ] -> [ ]
+    late [ _TapaValue ] -> [ ]
+    late [ _Above ] -> [ ]
+    late [ _Below ] -> [ ]
+    late [ _Source:Neighbor ] -> [ ]
+    late [ _ProcessingClues ] -> [ _ProcessedClues ]
+    late [ _Processing:Neighbor ] -> [ ]
+    late [ UncluedBlock:Neighbor ] -> [ ]
+endloop
+late [ _ProcessedClues ] -> [ ]
+
+late [ _InvalidClue:Position ] -> [ InvalidBackground ]
+
+( Mark floor as valid if no rules were violated )
+late [ Background ] -> [ CorrectBackground ]
+late [ CorrectBackground ] [ Invalidator ] -> [ Background ] [ Invalidator ]
+
+( Update win prompt )
+late [ WinPrompt:Invalid ] ->  [ WinPrompt:Invalid _Temp ]
+late [ WinPrompt ] -> [ WinPrompt:Invalid ]
+late [ WinPrompt:Invalid CorrectBackground ] -> [ WinPrompt:Valid CorrectBackground ]
+late [ WinPrompt:Valid _Temp ] -> [ StartWinPromptAnimation ] sfx0 again
+late [ _Temp ] -> [ ]
+
+( Undo clue normalisation:
+  - Display empty clues as zero-clues.
+  - Display single clues with special full-size sprites.
+)
+late [ ClueCrate no Clue:First:Value ] -> [ ClueCrate SingleClue:_0 ]
+late Value1 [ Clue:First:Value1 no Clue:Second:Value ] -> [ SingleClue:Value1 ]
+
+==============
+WINCONDITIONS
+==============
+
+=======     
+LEVELS
+=======
+
+(
+Level design goals:
+
+- Final position of clues should be unique.
+- Way to get there doesn't have to be unique, but should be "conceptually" unique.
+- Make sure levels are never "just Sokoban" or "just Tapa". I.e. it should be possible
+  to use the Tapa rules to deduce something about the final level state, but the Tapa
+  rules alone shouldn't make the solution unique. The constraints of Sokoban movement
+  can rule out some of the theoretically valid solutions.
+- Every valid Tapa clue should appear in at least one solution:
+
+  ✓ 1
+  ✓ 2
+  ✓ 3
+  ✓ 4
+  ✓ 5
+  ✓ 6
+  ✓ 7
+  ✓ 8
+  ✓ 1 1
+  ✗ 1 2
+  ✓ 1 3
+  ✗ 1 4
+  ✓ 1 5
+  ✓ 2 2
+  ✗ 2 3
+  ✗ 2 4
+  ✓ 3 3
+  ✓ 1 1 1
+  ✗ 1 1 2
+  ✓ 1 1 3
+  ✓ 1 2 2
+  ✓ 1 1 1 1
+  ✓ ?
+  ✓ ? ?
+  ✓ ? ? ?
+  ✓ ? ? ? ?
+  
+)
+
+( Single clues )
+
+level Level 1
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+X#########
+#####...p#
+#####....#
+####..4###
+####...###
+##¹#######
+########!#
+
+level Level 2
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+X########
+####...##
+##..7..##
+##.p.7###
+##.....##
+#########
+########!
+
+level Level 3
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+X#############
+##########...#
+####.p..4....#
+####.#..4.####
+####...#######
+##²###########
+##########!###
+
+( Blank crates )
+
+level Level 4
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+X##########
+#.....##2##
+#.###.#...#
+#.***...p.#
+#.###.#...#
+#.....#111#
+###########
+#########!#
+
+level Level 5
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+X##########
+#######1###
+######.####
+#1###...###
+##.....####
+##...1**.##
+#1#..#...p#
+###########
+#########!#
+
+( Multi-clues )
+
+level Level 6
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+X#########
+#####...p#
+#####c..##
+####...###
+####...###
+##³#######
+########!#
+
+level Level 7
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+X########
+##...####
+##.7.p###
+###.i..##
+###..e.##
+####...##
+#########
+########!
+
+level Level 8
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+X###########
+#...####.###
+#..l.##...##
+#.j.c......#
+#..p.##...##
+#...########
+############
+#########!##
+
+( Merging clues )
+
+level Level 1 1
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+###########
+#...###...#
+#...###...#
+#...1p1...#
+#...###...#
+#...###...#
+###########
+#########!#
+
+level Level 1 2
+( Introduce unmergeability of blank crates )
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+##########
+##1##...##
+###......#
+###..##..#
+##..2*2..#
+#3..##..##
+##.p....##
+##....##1#
+####3#####
+##########
+########!#
+
+level Level 1 3
+( Introduce maximum clue count of 4 )
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+###############
+######.....####
+#####..111.#.##
+#1......p.....#
+#####..111.#.##
+######.....####
+###############
+###########!###
+
+level Level 1 4
+( Introduce unmergeability of 2- and 3-clues )
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state, probably )
+###############
+##..#........##
+#3.2.2.p..1..3#
+##.#1#.#.#1#.##
+##.....#..1..##
+###############
+###########!###
+
+( unused variations )
+(
+#############
+#..#..#.....#
+#.2.2.p.2.2.#
+#.#1#.#.#1#.#
+#.....#.....#
+########.#.##
+#############
+
+#############
+#..#.....p..#
+#.2.2...1.1.#
+#.#1#.#.#1#.#
+#.....#.....#
+#############
+
+###########
+#....#....#
+#..12121..#
+##..#1#..##
+##...p...##
+###########
+)
+
+level Level 1 5
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+##########
+##.......#
+#3.#1#3#.#
+##.11##3.#
+##.#1###.#
+##.1.111.#
+#3.#1#1#.#
+##p......#
+###3###3##
+##########
+########!#
+
+( Question mark clues )
+
+level Level 2 2
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+#########
+###..####
+#..p.#..#
+#...r.s.#
+####....#
+#########
+########!
+
+level Level 2 3
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+#########
+#...#.p.#
+#.#.#.#.#
+#.#.#.#.#
+#...3.?.#
+#.#.#####
+#...#####
+#########
+########!
+
+(
+
+#########
+#...#####
+#.#.#...#
+#.#p#.#.#
+#...?...#
+###.#3###
+###...###
+#########
+
+
+#########
+#...#####
+#.#.#..p#
+#.#.#.#.#
+#....3?.#
+###.#.###
+###...###
+#########
+
+)
+
+level Level 2 4
+( Merge question mark and regular clue )
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+#########
+##...#.##
+##p..?..#
+###..1..#
+#####..##
+#########
+########!
+
+level Level 3 3
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+#########
+##p.?..##
+#r.*.*.##
+##?.t.?##
+##.*.*.##
+##..?..##
+####r####
+########!
+
+( Finale )
+
+
+level Level 1 1 1
+( ✗ Non-unique tapa
+  ✓ Unique tapaban end state )
+#########
+##****###
+##?..*###
+##1..***#
+##2*p..*#
+##3..?.*#
+##?..***#
+##****###
+#########
+########!
+
+( Original version without question mark clues )
+(
+#########
+##1*2*###
+##*..2###
+##1..*2*#
+##**p..2#
+##3..1.*#
+##*..4*1#
+##1*2*###
+#########
+)
+
+level Level 1 1 2
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+##########
+####2#####
+#2#..#3###
+#..*.*...#
+#..5.1...#
+#2#..#3###
+####p#####
+##########
+########!#
+
+( Back up in case of cheese... )
+(
+##########
+####2#####
+#2#..#3###
+#..*.*...#
+#..5.1...#
+#2#..#3###
+##r#p#####
+###.######
+##########
+)
+level Level 1 1 3
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state )
+##########
+###...####
+###.28.###
+###.54.###
+###p...###
+##########
+########!#
+
+level Level 1 2 2
+( ✓ Non-unique tapa
+  ✗ Unique tapaban end state, 7 and ? can be swapped but they're equivalent )
+#########
+####..p##
+##...7.##
+##.6m..##
+##..?.###
+####..###
+#########
+########!
+
+level Level 1 1 1 1
+( Final level! )
+( ✓ Non-unique tapa
+  ✓ Unique tapaban end state ... probably )
+###################
+#...#.#########.###
+#...#...##..#...###
+#...#...#...#...###
+##8###6###4###2####
+#p................#
+#.................#
+####7###5###3###1##
+###...#...#...##..#
+###...#...##..##..#
+###.#.######..##..#
+###################
+#############!#####
+
+message Thank you for playing!
+
+(
+
+###############
+#.............#
+#.p.012345678.#
+#.............#
+#.*.abcdefghi.#
+#.............#
+#...jklm...n..#
+#.............#
+#...?rst......#
+#.............#
+###############
+
+#########
+#.......#
+#.*****.#
+#.*...*.#
+#p*.0.*.#
+#.*...*.#
+#.*****.#
+#.......#
+#########
+
+)
+
+( Don't see how I could make something like this unique )
+(
+##########
+#***#****#
+#*.*#*..*#
+#*.***..*#
+#*..66..*#
+#**.p..**#
+##******##
+##########
+)
+( Has two symmetric solutions... don't see a way to prevent either via sokoban alone)
+(
+#########
+###....##
+##.ei..##
+##.si.###
+##...p.##
+##..#..##
+#########
+)
+
+( Has an unintended solution where you put two 1 1s with a 7 each in the upper corners,
+  and the other two 7s together further down, or at the corners of the single wall tile
+  at the bottom.
+  
+  Possible fixes: put 1 clues just outside the upper corners. Or carve out some tiles at
+  the top.
+  
+  Other issue: there's otherwise only one valid Tapa configuration. )
+(#########
+##.....##
+##.171.##
+##.7.7.##
+##.171.##
+##..p..##
+##..#..##
+#########)

@@ -44,6 +44,8 @@ let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'act
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
+const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<'];
+
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
     throw new Error("Too many errors/warnings; aborting compilation.");
@@ -224,7 +226,7 @@ var codeMirrorFn = function() {
 
     //returns null if not delcared, otherwise declaration
     //note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
-    function wordAlreadyDeclared(state, id) {
+    function isAlreadyDeclared(state, id) {
         let def
         if (id in state.objects) 
             return state.objects[id];
@@ -606,7 +608,7 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.id = token;
-                if (wordAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
+                if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${token.toUpperCase()}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else if (hasParts(token)) {
@@ -819,7 +821,8 @@ var codeMirrorFn = function() {
             if (state.tags[arg]) {
                 return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
             }
-            return clockwiseDirections.includes(arg) ? arg : null;
+            // convert symbols to words
+            return clockwiseDirections.includes(arg) ? clockwiseDirections[clockwiseDirections.indexOf(arg) % 4] : null;
         }
 
         // build a list of tokens and kinds
@@ -862,7 +865,9 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.match(/^flip:/)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
-                    token = lexer.match(/^\w+/, true);
+
+                    token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
+                    //token = lexer.match(/^[a-z^><]+/i, true);
                     const dirs = toValidDirections(token);
                     if (dirs == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
@@ -876,7 +881,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.match(/^\w+/, true);
+                    token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
                     const dirs = toValidDirections(token);
                     if (dirs == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
@@ -890,10 +895,10 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.match(/^\w+:\d+/, true);
+                    token = lexer.matchObjectName(true) || lexer.match(/^[^>v<]:\d+/i, true);
                     const args = token ? token.split(':') : null;
                     const dirs = args && toValidDirections(args[0]);
-                    if (dirs == null)
+                    if (dirs == null || args.length != 2)
                         logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
                     else {
                         symbols.modifiers.push([ 'translate', dirs, +args[1] ]);
@@ -905,7 +910,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.match(/^\w+(:\w+)/, true);
+                    token = lexer.matchObjectName(true) || lexer.match(/^[v^<>](:[v^<>])?/i, true);
                     const parts = token && token.split(':');
                     const dirs = parts && parts.length <= 2 && parts.map(p => toValidDirections(p));
                     if (dirs == null)
@@ -985,7 +990,7 @@ var codeMirrorFn = function() {
                 }
             } else if (token = lexer.matchName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
-                if (wordAlreadyDeclared(state, token)) {
+                if (isAlreadyDeclared(state, token)) {
                     lexer.pushToken(token, 'NAME');
                     const tobject = token;
 
@@ -1063,7 +1068,7 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 symbols.newname = token;
-                const defname = wordAlreadyDeclared(state, token);
+                const defname = isAlreadyDeclared(state, token);
                 if (defname)
                     logError(`Name "${token.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${defname.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${defname.lineNumber}</span></a>).`, state.lineNumber);
                 else if (keyword_array.includes(token))
@@ -1083,7 +1088,7 @@ var codeMirrorFn = function() {
 
             while (true) {
                 if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
-                    const defname = wordAlreadyDeclared(state, token);
+                    const defname = isAlreadyDeclared(state, token);
                     const ownname = (token == symbols.newname);
                     if (!defname)
                         logError(`You're talking about "${token.toUpperCase()}" but it's not defined anywhere.`, state.lineNumber);
@@ -1141,9 +1146,20 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse and store a collision layer line
+    // [ tag [, ...] -> ] ( object | property) [, ...]
+    // -- [-^<>-|]...
+
+    // tag prefixes and objects and properties in the body:
+    //      Position -> Clue:Position:Value, NoClueCover:Position
+    //      dirs -> vs_any_under:dirs:offs
+    //      directions, directions1 -> GridLines:directions:directions1
+    
     function parseCollisionLayer(stream, state) {
         const lexer = new Lexer(stream, state);
+        let divider
         const idents = [];
+        let prearrow = 0;         // how many layers prefixes
 
         if (getTokens())
             setState();
@@ -1154,9 +1170,20 @@ var codeMirrorFn = function() {
             let token = null;
             // start of parse
             while (true) {
-                if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+                if (token = lexer.match(/^--[-^v<>-|]*/)) {
+                    lexer.pushToken(token, 'LOGICWORD');
+                    divider = token;
+                    if (lexer.checkEolSemi(state)) break;
+                } else if (token = lexer.match(/^->/)) {
+                    if (idents.length == 0 || prearrow != 0)
+                        logError(`Cannot use arrow syntax here.`, state.lineNumber);
+                    else {
+                        prearrow = idents.length;
+                        lexer.pushToken(token, 'LOGICWORD');
+                    }
+                } else if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     let kind = 'ERROR';
-                    if (!wordAlreadyDeclared(state, token))
+                    if (!isAlreadyDeclared(state, token))
                         logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
                     else if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
@@ -1186,26 +1213,74 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            const newobjs = [];
-            for (const ident of idents) {
-                const objs = expandSymbol(state, ident, false, n => logError(
-                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
-                newobjs.push(...objs);     // do we care about possible in-layer duplicates?
 
-                const dups = new Set();
-                state.collisionLayers.forEach((layer, layerno) => {
-                    for (const obj of objs) {
-                        if (layer.includes(obj))
-                            dups.add(layerno + 1);
-                    }
-                });
-                if (dups.size != 0) {
-                    const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
-                    logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
+            function expandParts(ident, index, values) {
+                const parts = ident.split(':');
+                return values.map(v => [ ...parts.slice(0, index), v, ...parts.slice(index + 1) ].join(':'));
+            }
+            function expandIdent(ident, prefixes) {
+                const parts = ident.split(':');
+                // maybe use recursion rather than overwrite?
+                let expident = [ ident ];
+                for (const prefix of prefixes) {
+                    const index = parts.indexOf(prefix);
+                    expident = expident.map(e => 
+                        expandParts(e, index, state.tags[prefix]))
+                    .flat();
                 }
+                return expident;
+            }
+            function expandLevels(prefixes, idents) { // return [ { level:, ident: }]
+                const levels = [];
+                for (const ident of idents) {
+                    levels.push(expandIdent(ident, prefixes));
+                }    
+                return levels;
             }
 
-            state.collisionLayers.push(newobjs);
+            // check for divider first
+            if (divider) {
+                state.collisionLayers.push({ divider: divider.slice(2) });
+                return;
+            }
+    
+            // expand tags first and assign levels
+            // then expand properties within each level
+            const lhs = idents.slice(0, prearrow);
+            const rhs = idents.slice(prearrow)
+            for (const prefix of lhs) {
+                if (!(state.tags[prefix] || state.legend_properties.find(s => s[0] == prefix))) {
+                    logError(`A layer prefix must be a tag or property but ${prefix} is not.`, state.lineNumber);
+                    return;
+                }
+            }
+            
+            const explevels =  expandLevels(lhs, rhs);
+            const newlevels = [];
+
+            for (const levelidents of explevels) {
+                for (const ident of levelidents) {
+                    const newobjs = expandSymbol(state, ident, false, n => logError(
+                        `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
+                    newlevels.push({ level: newobjs });
+
+                    // do we care about possible in-layer duplicates?
+                    const dups = new Set();
+                    state.collisionLayers.forEach((layer, layerno) => {
+                        if (layer.level) {
+                            for (const obj of newobjs) {
+                                if (layer.level.includes(obj))
+                                    dups.add(layerno + 1);
+                            }
+                        }
+                    });
+                    if (dups.size != 0) {
+                        const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
+                        logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
+                    }
+                }
+            }
+            state.collisionLayers.push(...newlevels);  // bug: this will break
         }
     }
 
@@ -1263,7 +1338,7 @@ var codeMirrorFn = function() {
             let token
             if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
-                if (!wordAlreadyDeclared(state, token))
+                if (!isAlreadyDeclared(state, token))
                     logError(`Error in win condition: "${token.toUpperCase()}" is not a valid object name.`, state.lineNumber);
                 else {
                     names.push(token);
