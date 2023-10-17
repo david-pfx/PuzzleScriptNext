@@ -66,30 +66,5 @@ var messageselected=false;
 
 var textImages={};
 var initLevel = {};
-//     width: 5,
-//     height: 5,
-//     layerCount: 2,
-//     dat: [
-//     1, 3, 3, 1, 1, 2, 2, 3, 3, 1,
-//     2, 1, 2, 2, 3, 3, 1, 1, 2, 2,
-//     3, 2, 1, 3, 2, 1, 3, 2, 1, 3,
-//     1, 3, 3, 1, 1, 2, 2, 3, 3, 1,
-//     2, 1, 2, 2, 3, 3, 1, 1, 2, 2
-//     ],
-//     movementMask:[
-//     1, 3, 3, 1, 1, 2, 2, 3, 3, 1,
-//     2, 1, 2, 2, 3, 3, 1, 1, 2, 2,
-//     3, 2, 1, 3, 2, 1, 3, 2, 1, 3,
-//     1, 3, 3, 1, 1, 2, 2, 3, 3, 1,
-//     2, 1, 2, 2, 3, 3, 1, 1, 2, 2
-//     ],
-//     rigidGroupIndexMask:[],//[indexgroupNumber, masked by layer arrays]
-//     rigidMovementAppliedMask:[],//[indexgroupNumber, masked by layer arrays]
-//     bannedGroup:[],
-//     colCellContents:[],
-//     rowCellContents:[],
-//     colCellContents_Movements:[],
-//     rowCellContents_Movements:[],
-// };
-
 var level = initLevel;
+

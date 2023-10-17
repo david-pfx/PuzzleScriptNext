@@ -6,6 +6,15 @@ var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 
+var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
+//I use _par/_perp just to keep track of providence for replacement purposes later.
+var relativeDict = {
+    'right': ['up', 'down', 'left', 'right', 'horizontal_par', 'vertical_perp'],
+    'up': ['left', 'right', 'down', 'up', 'vertical_par', 'horizontal_perp'],
+    'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
+    'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
+};
+
 // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
 // const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
@@ -21,7 +30,7 @@ function cartesianProduct(...arrays) {
 class TagExpander {
     constructor(state, parts) {
         [ this.stem, ...this.tail ] = parts;
-        this.tags = this.tail.filter(p => state.tags[p]);
+        this.tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
         this.values = this.tags.map(t => state.tags[t]);
         this.expansion = cartesianProduct(...this.values);
     }
@@ -87,11 +96,12 @@ function expandSpriteTags(state, objkey, objvalue) {
 
         if (objvalue.modifiers) {
             newvalue.modifiers = objvalue.modifiers.map(m => {
-                const op = m.shift();
-                const newm = [ expander.getExpandedItem(exp, m.shift()) ];
-                if (op == 'rot' && m.length > 0)
-                    newm.push(expander.getExpandedItem(exp, m.shift()));
-                return [ op, ...newm, ...m ];
+                const modi = [ ... m ];
+                const op = modi.shift();
+                const newm = [ expander.getExpandedItem(exp, modi.shift()) ];
+                if (op == 'rot' && modi.length > 0)
+                    newm.push(expander.getExpandedItem(exp, modi.shift()));
+                return [ op, ...newm, ...modi ];
             })
         }
         return [newkey, newvalue];
@@ -99,6 +109,47 @@ function expandSpriteTags(state, objkey, objvalue) {
     
     if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
     return newobjects;
+}
+
+function generateSpriteMatrix(state) {
+    const modifunc = {
+        'flip': (mat,_,dir) => [
+            (m => m.reverse()),
+		    (m => m.map(row => row.reverse())),
+        ][dir % 2](mat),
+        'shift': (mat,_,dir,amt) => [ // up right down left
+            (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
+            (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
+            (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
+            (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
+        ][dir](mat),
+        'rot': (mat,_,angle) => [
+            m => m, // 0°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
+            m => Array.from(m, l => l.reverse() ).reverse(), // 180°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
+        ][angle](mat),
+        'translate': (m,off,dir,amt) => {
+            off.x += [0,1,0,-1][dir] * amt;
+            off.y += [-1,0,1,0][dir] * amt;
+            return m;
+        }
+    };
+    for (const obj of Object.values(state.objects)) {
+        if (obj.colors.length == 0) 
+            obj.colors.push('#ff00ff');
+        if (obj.cloneSprite) {
+            obj.spritematrix = state.objects[obj.cloneSprite].spritematrix.map(row => [ ...row ]);
+        } else if (obj.spritematrix.length == 0) {
+            obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
+        }
+        
+        obj.spriteoffset = { x: 0, y: 0 };
+        for (const modi of obj.modifiers ||  []) {
+            obj.spritematrix = modifunc[modi[0]](obj.spritematrix, obj.spriteoffset, clockwiseDirections.indexOf(modi[1]), ...modi.slice(2));
+        }
+    }
+    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
 }
 
 function isColor(str) {
@@ -478,47 +529,6 @@ function generateExtraMembers(state) {
     state.backgroundlayer = backgroundlayer;
 }
 
-function generateSpriteMatrix(state) {
-    const modifunc = {
-        'flip': (mat,_,dir) => [
-            (m => m.reverse()),
-		    (m => m.map(row => row.reverse())),
-        ][dir % 2](mat),
-        'shift': (mat,_,dir,amt) => [ // up right down left
-            (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
-            (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
-            (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
-            (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
-        ][dir](mat),
-        'rot': (mat,_,angle) => [
-            m => m, // 0°
-            m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
-            m => Array.from(m, l => l.reverse() ).reverse(), // 180°
-            m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
-        ][angle](mat),
-        'translate': (m,off,dir,amt) => {
-            off.x += [0,1,0,-1][dir] * amt;
-            off.y += [-1,0,1,0][dir] * amt;
-            return m;
-        }
-    };
-    for (const obj of Object.values(state.objects)) {
-        if (obj.colors.length == 0) 
-            obj.colors.push('#ff00ff');
-        if (obj.cloneSprite) {
-            obj.spritematrix = state.objects[obj.cloneSprite].spritematrix.map(row => [ ...row ]);
-        } else if (obj.spritematrix.length == 0) {
-            obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
-        }
-        
-        obj.spriteoffset = { x: 0, y: 0 };
-        for (const modi of obj.modifiers ||  []) {
-            obj.spritematrix = modifunc[modi[0]](obj.spritematrix, obj.spriteoffset, clockwiseDirections.indexOf(modi[1]), ...modi.slice(2));
-        }
-        console.log(JSON.stringify(obj));
-    }
-}
-
 function generateExtraMembersPart2(state) {
 	function assignMouseObject(preludeTerm, defaultName) {
 		if (preludeTerm in state.metadata) {
@@ -799,35 +809,17 @@ var directionaggregates = {
     'parallel': ['<', '>']
 };
 
+// return true if this is a directional rule
 function directionalRule(rule) {
-    for (var i = 0; i < rule.lhs.length; i++) {
-        var cellRow = rule.lhs[i];
-        if (cellRow.length > 1) {
+    for (const row of [ ...rule.lhs, ...rule.rhs ]) {
+        if (row.length > 1)
             return true;
-        }
-        for (var j = 0; j < cellRow.length; j++) {
-            var cell = cellRow[j];
+        for (const cell of row) {
             for (var k = 0; k < cell.length; k += 2) {
-                if (relativeDirections.indexOf(cell[k]) >= 0) {
+                if (relativeDirections.includes(cell[k]))
                     return true;
-                }
-                if (cell[k + 1].match(/(:<|:>|:\^|:v)$/)) {     //@@ PS>
+                if (cell[k + 1].split(':').some(p => relativeDirections.includes(p)))
                     return true;
-                }
-            }
-        }
-    }
-    for (var i = 0; i < rule.rhs.length; i++) {
-        var cellRow = rule.rhs[i];
-        if (cellRow.length > 1) {
-            return true;
-        }
-        for (var j = 0; j < cellRow.length; j++) {
-            var cell = cellRow[j];
-            for (var k = 0; k < cell.length; k += 2) {
-                if (relativeDirections.indexOf(cell[k]) >= 0) {
-                    return true;
-                }
             }
         }
     }
@@ -977,7 +969,7 @@ function processRuleString(rule, state, curRules) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
                         logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
-                    } else if (state.tags.find(s => s.id == token)) {       //@@ PS> tags 
+                    } else if (Object.hasOwn(state.tags, token)) {       //@@ PS> tags 
                         prefixes.push(token);
                     } else if (token == '[') {
                         if (directions.length == 0) {
@@ -1178,14 +1170,24 @@ function deepCloneRule(rule, fnlhs, fnrhs) {
 	};
 }
 
+// make multiple passes to parse and expand rules, with absolute directions and objects
 function rulesToArray(state) {
-    var oldrules = state.rules;
-    var rules = [];
+    let rules = parseRulesToArray(state);
+    rules = expandRulesWithTags(state, rules);
+    rules = expandRulesWithMultipleDirections(state, rules);
+    //rules = checkRuleObjects(rules);
+    state.rules = convertObjectsAndDirections(state, rules);
+}
+
+// find and filter out start and end loop, subroutines PS>
+function parseRulesToArray(state) {
+    const oldrules = state.rules;
+    var newrules = [];
     var loops = [];
     var subroutines = [];
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
-        var newrule = processRuleString(oldrules[i], state, rules);
+        var newrule = processRuleString(oldrules[i], state, newrules);
         if (newrule.bracket) {
             loops.push([lineNumber, newrule.bracket]);
         } else if (newrule.label) {      // PS>
@@ -1199,54 +1201,74 @@ function rulesToArray(state) {
                     lineNumber: newrule.lineNumber,
                 });
             }
-        } else rules.push(newrule);
+        } else newrules.push(newrule);
     }
     state.loops = loops;
     state.subroutines = subroutines;
+    return newrules;
+}
 
-    //@@ PS> expand rules with tags
-
-    var rules1 = [];
+//@@ PS> expand rules with tags
+function expandRulesWithTags(state, rules) {
+    var newrules = [];
     for (const rule of rules) {
         // for every prefix.id found in a cell, clone the entire rule once for every prefix.member
-        const rlen = rules1.length;
+        const rlen = newrules.length;
         for (const prefix of rule.prefixes) {
-            const tag = state.tags.find(t => t.id == prefix);
-            for (const member of tag.members) {
+            for (const value of state.tags[prefix]) {
                 const lhs = cell => cell.map((c,x) => (x % 2 == 0) ? c
-                    : (c == tag.id) ? member 
-                    : (c.includes(`:${tag.id}`)) ? c.replace(`:${tag.id}`, `:${member}`)
+                    : (c == prefix) ? value 
+                    : (c.includes(`:${prefix}`)) ? c.replace(`:${prefix}`, `:${value}`)
                     : c);
-                // rhs will be different with mapping
+                // todo: rhs will be different with mapping
                 const newrule = deepCloneRule(rule, lhs, lhs);
                 newrule.directions = rule.directions; // not expanded yet
-                rules1.push(newrule);
+                newrules.push(newrule);
             }
         }    
-        if (rlen == rules1.length)  // warning?
-            rules1.push(rule);
+        if (rlen == newrules.length)  // warning?
+            newrules.push(rule);
     }
-    rules = [];
-    for (const rule of rules1) {
+    return newrules;
+}
+
+function checkRuleObjects(state, rules) {
+    const newrules = [];
+    for (const rule of rules) {
         let ok = true;
         for (const side of [rule.lhs, rule.rhs]) {
             for (const cellrow of side) {
                 for (const cell of cellrow) {
                     for (let i = 1; i < cell.length; i += 2) {
                         if (!state.names.includes(cell[i]) && cell[i] != '...') {
-                            logError(`Name "${cell[i]}", referred to in a rule, does not exist.`, rule.lineNumber);
                             ok = false;
+                            const parts = cell[i].split(':');
+                            const tags = parts.filter(p => state.tags[p]);
+                            if (tags.length == 1) {  // any more left to trigger
+                                const newobjs = state.tags[tags].map(v => 
+                                        parts.map(p => p == tags[0] ? v : p).join(':'));
+                                if (newobjs.every(n => state.names.includes(n))) {
+                                    state.legend_properties.push([ cell[i], ...newobjs ]);
+                                    state.names.push(cell[i]);
+                                    ok = true;
+                                }
+                            }
+                            if (!ok)
+                                logError(`Name "${cell[i]}", referred to in a rule, does not exist.`, rule.lineNumber);
                         }
                     }
                 }
             }
         }
         if (ok)
-            rules.push(rule);
+            newrules.push(rule);
     }
+    return newrules;
+}
 
-    //now expand out rules with multiple directions
-    var rules2 = [];
+//now expand out rules with multiple directions
+function expandRulesWithMultipleDirections(state, rules) {
+    var newrules = [];
     for (var i = 0; i < rules.length; i++) {
         var rule = rules[i];
         var ruledirs = rule.directions;
@@ -1257,22 +1279,25 @@ function rulesToArray(state) {
                 for (var k = 0; k < dirs.length; k++) {
                     var modifiedrule = deepCloneRule(rule);
                     modifiedrule.direction = dirs[k];
-                    rules2.push(modifiedrule);
+                    newrules.push(modifiedrule);
                 }
             } else {
                 var modifiedrule = deepCloneRule(rule);
                 modifiedrule.direction = dir;
-                rules2.push(modifiedrule);
+                newrules.push(modifiedrule);
             }
         }
     }
+    return newrules;
+}
 
+function convertObjectsAndDirections(state, rules2) {
     for (var i = 0; i < rules2.length; i++) {
         var rule = rules2[i];
         // remove object suffixes       // PS>
-        replaceObjectSuffixes(state, rule);
+        //replaceObjectSuffixes(state, rule);
         //remove relative directions
-        convertRelativeDirsToAbsolute(rule);
+        convertRelativeDirsToAbsolute(state, rule);
         //optional: replace up/left rules with their down/right equivalents
         rewriteUpLeftRules(rule);
         //replace aggregates with what they mean
@@ -1297,13 +1322,14 @@ function rulesToArray(state) {
     for (var i = 0; i < rules3.length; i++) {
         var rule = rules3[i];
         rules4 = rules4.concat(concretizePropertyRule(state, rule, rule.lineNumber));
-
     }
+
+    rules4 = checkRuleObjects(state, rules4);
 
     for (var i=0;i<rules4.length;i++){
         makeSpawnedObjectsStationary(state,rules4[i],rule.lineNumber);
     }
-    state.rules = rules4;
+    return rules4;
 }
 
 function containsEllipsis(rule) {
@@ -1850,6 +1876,7 @@ function concretizeMovingRule(state, rule, lineNumber) {
     return result;
 }
 
+// replace all synonyms in a rule by the object they refer to
 function rephraseSynonyms(state, rule) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cellrow_l = rule.lhs[i];
@@ -1875,6 +1902,7 @@ function rephraseSynonyms(state, rule) {
     }
 }
 
+// replace all aggregates in a rule by the set of objects they refer to
 function atomizeAggregates(state, rule) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cellrow = rule.lhs[i];
@@ -1910,68 +1938,18 @@ function atomizeCellAggregates(state, cell, lineNumber) {
     }
 }
 
-function convertRelativeDirsToAbsolute(rule) {
-    var forward = rule.direction;
-    for (var i = 0; i < rule.lhs.length; i++) {
-        var cellrow = rule.lhs[i];
-        for (var j = 0; j < cellrow.length; j++) {
-            var cell = cellrow[j];
-            absolutifyRuleCell(forward, cell);
-        }
-    }
-    for (var i = 0; i < rule.rhs.length; i++) {
-        var cellrow = rule.rhs[i];
-        for (var j = 0; j < cellrow.length; j++) {
-            var cell = cellrow[j];
-            absolutifyRuleCell(forward, cell);
-        }
-    }
-}
-
-//@@ PS>
-function replaceObjectSuffixes(state, rule) {
-    for (const side of [rule.lhs, rule.rhs]) {
-        for (const cellrow of side) {
-            for (const cell of cellrow) {
-                replaceObjectSuffix(state, rule, cell);
-            }
-        }
-    }
-}
-
-var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
-//I use _par/_perp just to keep track of providence for replacement purposes later.
-var relativeDict = {
-    'right': ['up', 'down', 'left', 'right', 'horizontal_par', 'vertical_perp'],
-    'up': ['left', 'right', 'down', 'up', 'vertical_par', 'horizontal_perp'],
-    'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
-    'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
-};
-
-//@@ PS> replace a suffix on thing:> with thingup  ???
-function replaceObjectSuffix(state, rule, cell) {
-    for (let i = 1; i < cell.length; i += 2) {
-        const c = cell[i];
-        if (c.match(/(:<|:>|:\^|:v)$/)) {
-            const s = c.slice(-1);
-            const newc = c.slice(0, -2) + relativeDict[rule.direction][relativeDirs.indexOf(s)];
-            if (!state.names.includes(newc)) {
-                logError(`Invalid direction expansion: "${c}" expands to "${newc}" which is not a defined object.`, rule.lineNumber);
-                cell[i] = 'background';
-            } else 
-                cell[i] = newc;
-
-        }
-    }
+// replace all relative directions in a rule by absolute based on rule direction
+function convertRelativeDirsToAbsolute(state, rule) {
+    [ ...rule.lhs, ...rule.rhs ].flat().forEach(cell => {
+        absolutifyRuleCell(rule.direction, cell);
+    });
 }
 
 function absolutifyRuleCell(forward, cell) {
+    const absOf = dir => relativeDirs.includes(dir) ? relativeDict[forward][relativeDirs.indexOf(dir)] : dir;
     for (var i = 0; i < cell.length; i += 2) {
-        var c = cell[i];
-        var index = relativeDirs.indexOf(c);
-        if (index >= 0) {
-            cell[i] = relativeDict[forward][index];
-        }
+        cell[i] = absOf(cell[i]);
+        cell[i + 1] = cell[i + 1].split(':').map(p => absOf(p)).join(':');
     }
 }
 
@@ -3249,8 +3227,9 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
-    console.log('Objects', state.objects);
-    console.log('Collision Layers', state.collisionLayers);
+    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+    if (debugLevel.includes('coll')) console.log('Collision Layers', state.collisionLayers);
+    if (debugLevel.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);

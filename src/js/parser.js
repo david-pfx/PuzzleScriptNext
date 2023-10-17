@@ -236,7 +236,7 @@ var codeMirrorFn = function() {
             return def;
         else if (def = state.legend_properties.find(s => s[0] == id))
             return def;
-        else if (def = state.tags[id])
+        else if (def = Object.hasOwn(state.tags, id))  // todo:@@
             return def;
         else return null;
     }
@@ -467,8 +467,6 @@ var codeMirrorFn = function() {
         // finalise previous section
         if (state.section === '') {
             state.commentStyle ||= '()';
-        } else if (state.section === 'tags') {
-            state.names.push(...Object.keys(state.tags));
         } else if (state.section === 'objects') {
             checkLastObject(state);
         } else if (state.section === 'legend') {
@@ -818,7 +816,7 @@ var codeMirrorFn = function() {
         return lexer.tokens;
 
         function toValidDirections(arg) {
-            if (state.tags[arg]) {
+            if (Object.hasOwn(state.tags, arg)) {
                 return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
             }
             // convert symbols to words
@@ -1211,25 +1209,18 @@ var codeMirrorFn = function() {
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
 
+        // further error checking and update external state
         function setState() {
 
-            // check for divider first
-            if (divider) {
-                state.collisionLayerGroups.push({ 
-                    lineNumber: state.lineNumber, 
-                    divider: divider.slice(2), 
-                    layer: state.collisionLayers.length });
-                return;
-            }
-    
-            // // expand tags first and assign levels
-            // // then expand properties within each level
-
+            // functions to manage keyed layers
             const keylayers = [];
             function addToLayer(key, obj) {
                 if (keylayers[key]) 
                     keylayers[key].layer.push(...obj);
                 else keylayers[key] = { lineNumber: state.lineNumber, layer: obj };
+            }
+            function getNewLayers() {
+                return Object.values(keylayers).map(k => k.layer);
             }
 
             // add new objects to the proper layer based on ident and prefixes
@@ -1247,8 +1238,18 @@ var codeMirrorFn = function() {
                 }
             }
 
+            // check for divider first
+            if (divider) {
+                state.collisionLayerGroups.push({ 
+                    lineNumber: state.lineNumber, 
+                    divider: divider.slice(2), 
+                    layer: state.collisionLayers.length 
+                });
+                return;
+            }
+
             // expand rhs first
-            // the use lhs to assign to layers
+            // then use lhs to assign to layers
             const prefixes = idents.slice(0, prearrow);
             const rhs = idents.slice(prearrow)
             for (const prefix of prefixes) {
@@ -1265,11 +1266,9 @@ var codeMirrorFn = function() {
                 // do we care about possible in-layer duplicates?
                 const dups = new Set();
                 state.collisionLayers.forEach((layer, layerno) => {
-                    if (layer.level) {
-                        for (const obj of newobjs) {
-                            if (layer.level.includes(obj))
-                                dups.add(layerno + 1);
-                        }
+                    for (const obj of newobjs) {
+                        if (layer.includes(obj))
+                            dups.add(layerno + 1);
                     }
                 });
                 if (dups.size != 0) {
@@ -1280,12 +1279,9 @@ var codeMirrorFn = function() {
                 addNewObjects(newobjs, ident, prefixes);
             }
             // remove the keys and push one or more layers
-            // bug: this will break
-            const newlayers = Object.values(keylayers);
-            console.log('collision', newlayers);
+            const newlayers = getNewLayers();
+            if (debugLevel.includes('coll')) console.log('collision', newlayers);
             state.collisionLayers.push(...newlayers);
-
-
         }
     }
 
@@ -1461,7 +1457,7 @@ var codeMirrorFn = function() {
 
                 objects: deepClone(state.objects),
                 collisionLayers: state.collisionLayers.map(p => p.slice()),
-                collisionLayerGroups: state.collisionLayerGroups.map(p => p.slice()),
+                collisionLayerGroups: state.collisionLayerGroups.slice(),
 
                 commentLevel: state.commentLevel,
                 commentStyle: state.commentStyle,
@@ -1484,6 +1480,7 @@ var codeMirrorFn = function() {
                 legend_synonyms: state.legend_synonyms.map(p => p.slice()),
                 legend_aggregates: state.legend_aggregates.map(p => p.slice()),
                 legend_properties: state.legend_properties.map(p => p.slice()),
+                tags: Object.assign({}, state.tags),
 
                 sounds: state.sounds.map(p => p.slice()),
 
@@ -1506,8 +1503,6 @@ var codeMirrorFn = function() {
                 case_sensitive : state.case_sensitive,
 
                 levels: state.levels.map(p => p.slice()),
-
-                tags: Object.assign({}, state.tags),
 
                 STRIDE_OBJ : state.STRIDE_OBJ,
                 STRIDE_MOV : state.STRIDE_MOV
@@ -1619,7 +1614,7 @@ var codeMirrorFn = function() {
                         state.objects_section = 1;
                     }
 
-                    if (sol) console.log(`${state.lineNumber}: (${state.section}:${state.objects_section}): ${stream.string}`);
+                    //if (sol) console.log(`${state.lineNumber}: (${state.section}:${state.objects_section}): ${stream.string}`);
                     if (sol)
                         state.current_line_wip_array['mixed'] = mixedCase;
                     else mixedCase = state.current_line_wip_array['mixed'];
