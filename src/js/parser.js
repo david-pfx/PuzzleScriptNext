@@ -224,23 +224,6 @@ var codeMirrorFn = function() {
         return ident.split(':').length > 1;
     }
 
-    //returns null if not delcared, otherwise declaration
-    //note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
-    function isAlreadyDeclared(state, id) {
-        let def
-        if (id in state.objects) 
-            return state.objects[id];
-        else if (def = state.legend_synonyms.find(s => s[0] == id))
-            return def;
-        else if (def = state.legend_aggregates.find(s => s[0] == id))
-            return def;
-        else if (def = state.legend_properties.find(s => s[0] == id))
-            return def;
-        else if (def = Object.hasOwn(state.tags, id))  // todo:@@
-            return def;
-        else return null;
-    }
-
     // recursively expand a symbol into its ultimate constituents of objects
     // callback to handle error
     function expandSymbol(state, name, isand, cbError) {
@@ -449,7 +432,7 @@ var codeMirrorFn = function() {
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
-            checkLastObject(state);
+            expandLastObject(state);
             state.objects_section = 0;
         }
     }
@@ -468,7 +451,7 @@ var codeMirrorFn = function() {
         if (state.section === '') {
             state.commentStyle ||= '()';
         } else if (state.section === 'objects') {
-            checkLastObject(state);
+            expandLastObject(state);
         } else if (state.section === 'legend') {
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
@@ -934,7 +917,7 @@ var codeMirrorFn = function() {
     }
 
     // if the last object has tags, expand it, delete original name and add property
-    function checkLastObject(state) {
+    function expandLastObject(state) {
         const candname = state.objects_candname;
         if (!candname || !hasParts(candname)) return;
         const obj = state.objects[candname];
@@ -948,6 +931,7 @@ var codeMirrorFn = function() {
             newlegend.lineNumber = state.lineNumber;  // bug:
             state.legend_properties.push(newlegend);
         }
+        expandObjectTags(state, candname);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1608,7 +1592,7 @@ var codeMirrorFn = function() {
                             state.objects_section = 0;
                     }
                     if (state.objects_section == 0) {
-                        checkLastObject(state);
+                        expandLastObject(state);
                         state.objects_candname = null;
                         state.current_line_wip_array = [];
                         state.objects_section = 1;
@@ -1701,7 +1685,7 @@ var codeMirrorFn = function() {
                             } else if (state.tokenIndex == 0 && m.toLowerCase() == 'subroutine') {
                                 state.tokenIndex = -4;
                                 return 'BRACKET';
-                            } else if (state.tokenIndex === 1 && directions_table.includes(m)) {
+                            } else if (state.tokenIndex === 1 && (directions_table.includes(m)) || Object.hasOwn(state.tags, m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else {
@@ -1713,6 +1697,8 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
+                                } else if (m.match(reg_objectname) && checkTaggedObject(state, m)) {
+                                    return 'NAME';
                                 }
                                 
                                 m = m.toLowerCase();
@@ -1723,8 +1709,6 @@ var codeMirrorFn = function() {
                                         state.tokenIndex=-4;
                                     }                                	
                                     return 'COMMAND';
-                                } else if (m.match(reg_objectname)) {
-                                    return 'NAME';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
                                     return 'ERROR';
@@ -1759,7 +1743,7 @@ var codeMirrorFn = function() {
                 return null;
             }
 
-            // flush token and kind list back to caller
+            // flush token and kind list back to caller -- move it???
             function flushToken() {
                 if (state.current_line_wip_array.length > 0) {
                     const token = state.current_line_wip_array.shift();

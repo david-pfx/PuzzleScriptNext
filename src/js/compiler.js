@@ -111,6 +111,24 @@ function expandSpriteTags(state, objkey, objvalue) {
     return newobjects;
 }
 
+// create new legenr properties when objects contain tags
+function expandObjectTags(state, ident) {
+    const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
+
+    const tags = ident.split(':').filter(p => Object.hasOwn(state.tags, p));
+    //const tags = ident.split(':').filter(p => p in state.tags);
+    if (tags.length >= 2) {
+        state.tags[tags[0]].forEach(v => {
+            const newident = fnRep(ident, tags[0], v);
+            const newvalues = state.tags[tags[1]].map(v => fnRep(newident, tags[1], v));
+            const newlegend = [ newident, ...newvalues ];
+            newlegend.lineNumber = state.lineNumber;  // bug:
+            state.legend_properties.push(newlegend);
+        });
+    }
+}
+
+// generate a new sprite matrix based on transforms
 function generateSpriteMatrix(state) {
     const modifunc = {
         'flip': (mat,_,dir) => [
@@ -150,6 +168,22 @@ function generateSpriteMatrix(state) {
         }
     }
     if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+}
+
+// an object with tag/dir parts is valid if every tag/dir exists (combos come later)
+function checkTaggedObject(state, ident) {
+    const parts = ident.split(':');
+    if (parts.length == 1) return false;
+    if (parts.slice(1).every(p => Object.hasOwn(state.tags, p) || relativeDirections.includes(p))) return true;
+    return false;
+}
+
+function isAlreadyDeclared(state, id) {
+    return Object.hasOwn(state.objects, id)
+        || state.legend_synonyms.find(s => s[0] == id)
+        || state.legend_aggregates.find(s => s[0] == id)
+        || state.legend_properties.find(s => s[0] == id)
+        || Object.hasOwn(state.tags, id)  // todo:@@
 }
 
 function isColor(str) {
@@ -1150,6 +1184,7 @@ var rule_line = {
 return rule_line;
 }
 
+// function is passed a cell which we may modify
 function deepCloneHS(HS, fn) {
     return HS.map(row => row.map(cell => fn ? fn(cell) : [ ...cell ]));
 }
@@ -1173,10 +1208,19 @@ function deepCloneRule(rule, fnlhs, fnrhs) {
 // make multiple passes to parse and expand rules, with absolute directions and objects
 function rulesToArray(state) {
     let rules = parseRulesToArray(state);
-    rules = expandRulesWithTags(state, rules);
+    rules = expandRulesWithPrefix(state, rules);
     rules = expandRulesWithMultipleDirections(state, rules);
-    //rules = checkRuleObjects(rules);
-    state.rules = convertObjectsAndDirections(state, rules);
+    for (const rule of rules)
+        convertRelativeDirsToAbsolute(state, rule);
+    rules = expandRulesWithMultiDirectionObjects(state, rules);
+    for (const rule of rules) {
+        rewriteUpLeftRules(rule);
+        atomizeAggregates(state, rule);
+        rephraseSynonyms(state, rule);
+    }
+    rules = convertObjectsAndDirections(state, rules);
+    checkRuleObjects(state, rules);
+    state.rules = rules;
 }
 
 // find and filter out start and end loop, subroutines PS>
@@ -1208,11 +1252,12 @@ function parseRulesToArray(state) {
     return newrules;
 }
 
-//@@ PS> expand rules with tags
-function expandRulesWithTags(state, rules) {
+//@@ PS> expand rules with prefix and tags
+// for every prefix.id found in a cell, clone the entire rule once for every prefix.member
+// dirs [ again_col ] [ con:dirs:offs ] -> [ again_col ] [ con:dirs ]
+function expandRulesWithPrefix(state, rules) {
     var newrules = [];
     for (const rule of rules) {
-        // for every prefix.id found in a cell, clone the entire rule once for every prefix.member
         const rlen = newrules.length;
         for (const prefix of rule.prefixes) {
             for (const value of state.tags[prefix]) {
@@ -1232,40 +1277,50 @@ function expandRulesWithTags(state, rules) {
     return newrules;
 }
 
-function checkRuleObjects(state, rules) {
-    const newrules = [];
+//@@ PS> expand rules with multi direction parts
+// [ wantsToFlyTo:> wantsToFlyTo:perpendicular ] -> [ ]
+//now expand out rules with multiple directions
+function expandRulesWithMultiDirectionObjects(state, rules) {
+    var newrules = [];
     for (const rule of rules) {
-        let ok = true;
-        for (const side of [rule.lhs, rule.rhs]) {
-            for (const cellrow of side) {
-                for (const cell of cellrow) {
-                    for (let i = 1; i < cell.length; i += 2) {
-                        if (!state.names.includes(cell[i]) && cell[i] != '...') {
-                            ok = false;
-                            const parts = cell[i].split(':');
-                            const tags = parts.filter(p => state.tags[p]);
-                            if (tags.length == 1) {  // any more left to trigger
-                                const newobjs = state.tags[tags].map(v => 
-                                        parts.map(p => p == tags[0] ? v : p).join(':'));
-                                if (newobjs.every(n => state.names.includes(n))) {
-                                    state.legend_properties.push([ cell[i], ...newobjs ]);
-                                    state.names.push(cell[i]);
-                                    ok = true;
-                                }
-                            }
-                            if (!ok)
-                                logError(`Name "${cell[i]}", referred to in a rule, does not exist.`, rule.lineNumber);
-                        }
-                    }
-                }
+        const objs = [ ...rule.lhs, ...rule.rhs ].flat()
+            .map(cell => cell.filter((_,x) => x % 2 == 1))
+            .flat();
+        const dirs = objs.map(obj => obj.split(':'))
+            .flat()
+            .filter((part,x,a) => part in directionaggregates && a.indexOf(part) == x);
+        if (dirs.length == 0)
+            newrules.push(rule);
+        else {
+            const muldir = dirs[0];
+            for (const expdir of directionaggregates[muldir]) {
+                const fnsub = cell => cell.map((c,x) => (x % 2 == 0) ? c
+                    : (c == muldir) ? expdir 
+                    : (c.includes(`:${muldir}`)) ? c.replace(`:${muldir}`, `:${expdir}`)
+                    : c);
+                newrules.push(deepCloneRule(rule, fnsub, fnsub));
             }
         }
-        if (ok)
-            newrules.push(rule);
+    
     }
     return newrules;
 }
 
+function checkRuleObjects(state, rules) {
+    for (const rule of rules) {
+        const objs = [ ...rule.lhs, ...rule.rhs ].flat()
+            .map(cell => cell.filter((_,x) => x % 2 == 1))
+            .flat();
+        for (const obj of objs) {
+            if (!isAlreadyDeclared(state, obj))
+                console.log(`Not declared: ${obj}`);
+            const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
+            if (!layer)
+                console.log(`Not in a layer: ${obj}`);
+        }
+    }
+}
+ 
 //now expand out rules with multiple directions
 function expandRulesWithMultipleDirections(state, rules) {
     var newrules = [];
@@ -1292,25 +1347,6 @@ function expandRulesWithMultipleDirections(state, rules) {
 }
 
 function convertObjectsAndDirections(state, rules2) {
-    for (var i = 0; i < rules2.length; i++) {
-        var rule = rules2[i];
-        // remove object suffixes       // PS>
-        //replaceObjectSuffixes(state, rule);
-        //remove relative directions
-        convertRelativeDirsToAbsolute(state, rule);
-        //optional: replace up/left rules with their down/right equivalents
-        rewriteUpLeftRules(rule);
-        //replace aggregates with what they mean
-        atomizeAggregates(state, rule);
-
-        if (state.invalid){
-            return;
-        }
-        
-        //replace synonyms with what they mean
-        rephraseSynonyms(state, rule);
-    }
-
     var rules3 = [];
     //expand property rules
     for (var i = 0; i < rules2.length; i++) {
@@ -1323,8 +1359,6 @@ function convertObjectsAndDirections(state, rules2) {
         var rule = rules3[i];
         rules4 = rules4.concat(concretizePropertyRule(state, rule, rule.lineNumber));
     }
-
-    rules4 = checkRuleObjects(state, rules4);
 
     for (var i=0;i<rules4.length;i++){
         makeSpawnedObjectsStationary(state,rules4[i],rule.lineNumber);
@@ -1342,6 +1376,7 @@ function containsEllipsis(rule) {
     return false;
 }
 
+//optional: replace up/left rules with their down/right equivalents
 function rewriteUpLeftRules(rule) {
     if (containsEllipsis(rule)) {
         return;
@@ -1680,6 +1715,7 @@ function makeSpawnedObjectsStationary(state,rule,lineNumber){
                     continue;
                 }
                 //@@ dies here if invalid object name
+                //console.log(`dies here ${name}`);
                 var r_layer = state.objects[name].layer;
                 if (layers.indexOf(r_layer)===-1){
                     cell[l]='stationary';
