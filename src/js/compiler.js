@@ -35,7 +35,10 @@ class TagExpander {
         this.expansion = cartesianProduct(...this.values);
     }
 
-    getExpandedTags() {
+    get rawTags() {
+        return this.tags;
+    }
+    get expandedTags() {
         return this.expansion;
     }
 
@@ -79,7 +82,8 @@ class TagExpander {
 // expand sprites with tags into new objects, replace object by property
 function expandSpriteTags(state, objkey, objvalue) {
     const expander = new TagExpander(state, objkey.split(':'));
-    const newobjects = Object.fromEntries(expander.getExpandedTags().map(exp => {
+    if (expander.rawTags.length == 0) return;
+    const newobjects = Object.fromEntries(expander.expandedTags.map(exp => {
             const newkey = expander.getExpandedKey(exp);
             const newvalue = {
             lineNumber: objvalue.lineNumber,
@@ -170,7 +174,7 @@ function generateSpriteMatrix(state) {
     if (debugLevel.includes('obj')) console.log('Objects', state.objects);
 }
 
-// an object with tag/dir parts is valid if every tag/dir exists (combos come later)
+// PS> an object with tag/dir parts is valid if every tag/dir exists (combos come later)
 function checkTaggedObject(state, ident) {
     const parts = ident.split(':');
     if (parts.length == 1) return false;
@@ -178,6 +182,7 @@ function checkTaggedObject(state, ident) {
     return false;
 }
 
+// PS> check whether a name has been used and is not available
 function isAlreadyDeclared(state, id) {
     return Object.hasOwn(state.objects, id)
         || state.legend_synonyms.find(s => s[0] == id)
@@ -232,6 +237,15 @@ function generateExtraMembers(state) {
                 idcount++;
             }
         }
+    }
+
+    // @@PS> fill in start and length of each group of objects
+    let prevObjectNo = idcount;
+    for (let i = state.collisionLayerGroups.length - 1; i >= 0; --i) {
+        const group = state.collisionLayerGroups[i];
+        group.firstObjectNo = state.objects[state.collisionLayers[group.layer][0]].id;
+        group.numObjects = prevObjectNo - group.firstObjectNo;
+        prevObjectNo = group.firstObjectNo;
     }
 
     //set object count
@@ -1310,12 +1324,13 @@ function checkRuleObjects(state, rules) {
     for (const rule of rules) {
         const objs = [ ...rule.lhs, ...rule.rhs ].flat()
             .map(cell => cell.filter((_,x) => x % 2 == 1))
-            .flat();
+            .flat()
+            .filter(o => o != '...');
         for (const obj of objs) {
             if (!isAlreadyDeclared(state, obj))
                 console.log(`Not declared: ${obj}`);
             const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
-            if (!layer)
+            if (!(layer >= 0))
                 console.log(`Not in a layer: ${obj}`);
         }
     }

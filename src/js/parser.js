@@ -930,8 +930,8 @@ var codeMirrorFn = function() {
             //const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = state.lineNumber;  // bug:
             state.legend_properties.push(newlegend);
+            expandObjectTags(state, candname);
         }
-        expandObjectTags(state, candname);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1224,12 +1224,23 @@ var codeMirrorFn = function() {
 
             // check for divider first
             if (divider) {
+                const chars = '^>v<|-';
+                const dirs = ['up', 'right', 'down', 'left', 'down', 'right' ];
                 state.collisionLayerGroups.push({ 
                     lineNumber: state.lineNumber, 
-                    divider: divider.slice(2), 
-                    layer: state.collisionLayers.length 
+                    layer: state.collisionLayers.length,
+                    dirMajor: dirs[chars.indexOf(divider[2] || '>')],
+                    dirMinor: dirs[chars.indexOf(divider[3] || 'v')],
                 });
                 return;
+            } else if (state.collisionLayerGroups.length == 0) {
+                state.collisionLayerGroups.push({ 
+                    lineNumber: state.lineNumber, 
+                    layer: 0,
+                    dirMajor: 'right',
+                    dirMinor: 'down',
+                });
+
             }
 
             // expand rhs first

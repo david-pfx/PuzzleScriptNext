@@ -32,7 +32,7 @@ function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
         row.forEach((col,x) => {
             if (col >= 0) {
                 spritectx.fillStyle = colors[col];
-                spritectx.fillRect(origin.x + x * pixelsize, origin.y + y * pixelsize, pixelsize, pixh);  //@@
+                spritectx.fillRect(origin.x + x * pixelsize, origin.y + y * pixelsize, pixelsize, pixh);
             }            
         });
     });
@@ -547,15 +547,50 @@ function redrawCellGrid() {
     // global flag to force redraw
     isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
-    const iter = [
-        Math.max(minMaxIJ[0] - renderBorderSize, 0),
-        Math.max(minMaxIJ[1] - renderBorderSize, 0),
-        Math.min(minMaxIJ[2] + renderBorderSize, curlevel.width),
-        Math.min(minMaxIJ[3] + renderBorderSize, curlevel.height)
-    ];
+////////////////////////////////////////////////////////////////////////////////
+    class RenderOrder {  // @@PS>
+        constructor(minMax) {
+            this.minMax = minMax;
+            // the iteration limits still used by smooth screen renderer
+            this.iter = [
+                Math.max(this.minMax[0] - renderBorderSize, 0),
+                Math.max(this.minMax[1] - renderBorderSize, 0),
+                Math.min(this.minMax[2] + renderBorderSize, curlevel.width),
+                Math.min(this.minMax[3] + renderBorderSize, curlevel.height)
+            ];
+        }
+        getIter() {
+            return this.iter;
+        }
+        getSheetPos(objid) {
+            return { 
+                x: ~~(objid % spritesheetSize) * cellwidth, // globals
+                y: ~~(objid / spritesheetSize) * cellheight
+            };
+        }
+        // the position indexes to render, taking into account layer groups, zoomscreen etc
+        getPosIndexes(group) {  // todo:
+            const posindexes = [];
+            for (let i = this.iter[0]; i < this.iter[2]; i++) {
+                for (let j = this.iter[1]; j < this.iter[3]; j++) {
+                    posindexes.push(j + i * curlevel.height); // global
+                }
+            }
+            return posindexes;
+        }
+        getDrawPos(posindex, obj) {
+            const ij = [~~(posindex / curlevel.height), posindex % curlevel.height]; // globals
+            return {
+                x: xoffset + (ij[0] - this.minMax[0]-cameraOffset.x) * cellwidth + obj.spriteoffset.x * ~~(cellwidth / state.sprite_size),
+                y: yoffset + (ij[1] - this.minMax[1]-cameraOffset.y) * cellheight + obj.spriteoffset.y * ~~(cellheight / state.sprite_size)
+            };
 
-    if (tweening) drawObjectsTweening(iter);
-    else drawObjects(iter);
+        }
+    }
+
+    const render = new RenderOrder(minMaxIJ);
+    if (tweening) drawObjectsTweening(render.getIter());
+    else drawObjects(render);
 
     if (state.metadata.status_line)
         drawTextWithFont(ctx, statusText, state.fgcolor, 
@@ -574,7 +609,7 @@ function redrawCellGrid() {
 
     //----- functions -----
     // Default draw loop, including when animating
-    function drawObjects(iter) {
+    function drawObjects(render) {
         showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
         const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
         if (tween == 0) 
@@ -587,17 +622,11 @@ function redrawCellGrid() {
             pivoty: 1.0 
         } : null;
 
-        // draw each object in all the places it occurs, in layer order
-        for (let k = 0; k < state.objectCount; k++) { 
-            const sheetpos = { 
-                x: ~~(k % spritesheetSize) * cellwidth, 
-                y: ~~(k / spritesheetSize) * cellheight
-            };
-
-            for (let i = iter[0]; i < iter[2]; i++) {
-                for (let j = iter[1]; j < iter[3]; j++) {
-                    const posindex = j + i * curlevel.height;
-                    const posmask = curlevel.getCellInto(posindex,_o12);    
+        // draw each group of objects in all the places they occur, in specified order
+        for (const group of state.collisionLayerGroups) {
+            for (const posindex of render.getPosIndexes(group)) {
+                const posmask = curlevel.getCellInto(posindex,_o12);    
+                for (let k = group.firstObjectNo; k < group.firstObjectNo + group.numObjects; ++k) {
                     const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
                     if (posmask.get(k) || animate) {
                         const obj = state.objects[state.idDict[k]];
@@ -606,10 +635,8 @@ function redrawCellGrid() {
                         let spriteScale = 1;
                         if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
-                        const drawpos = {
-                            x: xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth + obj.spriteoffset.x * ~~(cellwidth / state.sprite_size),
-                            y: yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight + obj.spriteoffset.y * ~~(cellheight / state.sprite_size)
-                        };
+                        const drawpos = render.getDrawPos(posindex, obj);
+                        const sheetpos = render.getSheetPos(k);
                         
                         let params = {
                             x: 0, y: 0,
@@ -633,7 +660,7 @@ function redrawCellGrid() {
                         ctx.globalAlpha = params.alpha;
                         ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
                         ctx.rotate(params.angle * Math.PI / 180);
-                        ctx.drawImage(  //@@
+                        ctx.drawImage(
                             spritesheetCanvas, 
                             sheetpos.x, sheetpos.y, cellwidth, cellheight,
                             -csz.x/2, -csz.y/2, rc.w, rc.h);
