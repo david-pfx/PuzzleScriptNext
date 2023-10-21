@@ -1,0 +1,138 @@
+title test min layers
+author polymino
+homepage www.polyomino.com
+
+// test program showing all layer combos
+
+verbose_logging
+debug
+
+sprite_size 7
+
+====
+tags
+====
+
+t1 = right left down up
+t2 = up left down right
+t3 = red green blue
+
+========
+OBJECTS
+========
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
+Player @
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+a;blue white
+0000000000
+0111111110
+0111111110
+0111111110
+0111111110
+0111111110
+0111111110
+0111111110
+0111111110
+0000000000
+
+rr +;red
+yy -;yellow
+
+b;green white
+copy: a
+
+c;orange white
+copy: a
+
+d;black white
+copy: a
+
+e;blue white
+copy: a
+
+f;green white
+copy: a
+
+g;orange white
+copy: a
+
+h;black white
+copy: a
+
+i;blue white
+copy: a
+
+j;green white
+copy: a
+
+k;orange white
+copy: a
+
+l;black white
+copy: a
+
+m;blue white
+copy: a
+
+n;green white
+copy: a
+
+o;orange white
+copy: a
+
+p;black white
+copy: a
+
+=======
+LEGEND
+=======
+. = Background
+
+================
+COLLISIONLAYERS
+================
+Background
+Player
+rr
+yy
+-->v
+a,b,c,d
+--<^
+e,f,g,h
+--v<
+i,j,k,l
+--^>
+m,n,o,p
+
+======
+RULES
+======
+
+[ > player | rr ] -> [ > player | > rr ]
+
+=======
+LEVELS
+=======
++...........+
+.@.+.-.......
+.............
+.ab.ef..j.mn.
+.c...h.kl.o..
++...........+
+

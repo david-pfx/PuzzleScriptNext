@@ -1226,19 +1226,27 @@ var codeMirrorFn = function() {
             if (divider) {
                 const chars = '^>v<|-';
                 const dirs = ['up', 'right', 'down', 'left', 'down', 'right' ];
+                const combos = ['downright', 'downleft', 'upright','upleft',
+                                'leftdown', 'leftup', 'rightdown', 'rightup'];
+                const dirFirst = dirs[chars.indexOf(divider[2] || '>')];
+                const dirSecond = dirs[chars.indexOf(divider[3] || 'v')];
+                if (!combos.includes(dirFirst + dirSecond)) {
+                    consoleError(`Layer divider ${divider} is not valid.`);
+                    return;
+                }
                 state.collisionLayerGroups.push({ 
                     lineNumber: state.lineNumber, 
                     layer: state.collisionLayers.length,
-                    dirMajor: dirs[chars.indexOf(divider[2] || '>')],
-                    dirMinor: dirs[chars.indexOf(divider[3] || 'v')],
+                    dirFirst: dirFirst,
+                    dirSecond: dirSecond,
                 });
                 return;
             } else if (state.collisionLayerGroups.length == 0) {
                 state.collisionLayerGroups.push({ 
                     lineNumber: state.lineNumber, 
                     layer: 0,
-                    dirMajor: 'right',
-                    dirMinor: 'down',
+                    dirFirst: 'right',
+                    dirSecond: 'down',
                 });
 
             }

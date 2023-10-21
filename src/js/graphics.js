@@ -568,15 +568,34 @@ function redrawCellGrid() {
                 y: ~~(objid / spritesheetSize) * cellheight
             };
         }
+        
         // the position indexes to render, taking into account layer groups, zoomscreen etc
         getPosIndexes(group) {  // todo:
-            const posindexes = [];
-            for (let i = this.iter[0]; i < this.iter[2]; i++) {
-                for (let j = this.iter[1]; j < this.iter[3]; j++) {
-                    posindexes.push(j + i * curlevel.height); // global
+            //const iter = iterXlate[group.dirMajor + group.dirMinor];
+            
+            const ch = curlevel.height; // global
+            const funcs = {      // outer loop            inner loop
+                downright: i => [ i[0],   i[2],    1, ch, i[1],   i[3],    1,  1 ],
+                downleft:  i => [ i[2]-1, i[0]-1, -1, ch, i[1],   i[3],    1,  1 ],
+                upright:   i => [ i[0],   i[2],    1, ch, i[3]-1, i[1]-1, -1,  1 ],
+                upleft:    i => [ i[2]-1, i[0]-1, -1, ch, i[3]-1, i[1]-1, -1,  1 ],
+                rightdown: i => [ i[1],   i[3],    1,  1, i[0],   i[2],    1, ch ],
+                leftdown:  i => [ i[3]-1, i[1]-1, -1,  1, i[0],   i[2],    1, ch ],
+                rightup:   i => [ i[1],   i[3],    1,  1, i[2]-1, i[0]-1, -1, ch ],
+                leftup:    i => [ i[3]-1, i[1]-1, -1,  1, i[2]-1, i[0]-1, -1, ch ],
+            };
+            
+            function doIter (i0, i1, ix, im, j0, j1, jx, jm) {
+                const posindexes = [];
+                for (let i = i0; i != i1; i += ix) {
+                    for (let j = j0; j != j1; j += jx) {
+                        posindexes.push(i * im + j * jm);
+                    }
                 }
+                return posindexes;
             }
-            return posindexes;
+            
+            return doIter( ...funcs[group.dirFirst + group.dirSecond](this.iter) );
         }
         getDrawPos(posindex, obj) {
             const ij = [~~(posindex / curlevel.height), posindex % curlevel.height]; // globals
