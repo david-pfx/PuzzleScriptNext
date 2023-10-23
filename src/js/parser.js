@@ -196,11 +196,12 @@ var codeMirrorFn = function() {
     const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
-        'sprite_size', 'tween_length', 'tween_snap'];
+        'tween_length', 'tween_snap'];
     const prelude_param_single = [
         'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
         'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
-        'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'text_color', 'tween_easing', 'zoomscreen'
+        'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
+        'author_color', 'title_color'
     ];
     const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
@@ -540,6 +541,8 @@ var codeMirrorFn = function() {
             } else if (prelude_param_single.includes(ident) || prelude_param_text.includes(ident)) {
                 if (args.length != 1)
                     logError(`MetaData ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                else if (ident.includes('_color') && !isColor(args[0]))
+                    logError(`MetaData ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
                 else value = [ident, args[0]];
             } else if (prelude_param_multi.includes(ident)) {
                 if (args.length < 1)
@@ -551,19 +554,20 @@ var codeMirrorFn = function() {
 
         function setState(state, value) {
             const ident = value[0];
-            if (ident == 'sprite_size')
-                state.sprite_size = Math.round(value[1]);
-            if (ident == 'case_sensitive') {
+            if (ident == 'sprite_size') {
+                const args = value[1].split('x').map(a => parseInt(a));
+                if (!(args.length == 1 || args.length == 2))
+                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
+                else state.sprite_size = args[0];
+            } else if (ident == 'case_sensitive') {
                 state.case_sensitive = true;
                 if (Object.keys(state.metadata).some(k => prelude_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
-            }
-            if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
+            } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
-            }
-            if (ident == 'youtube') {
+            } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
             }
@@ -636,7 +640,7 @@ var codeMirrorFn = function() {
 
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token list
-    // nameline ::= symbol { symbol | glyph } modifiers
+    // nameline ::= symbol { symbol | glyph } transforms
     function parseObjectName(stream, state, mixedCase) {
         const lexer = new Lexer(stream, state);
         const symbols = {};
@@ -691,6 +695,7 @@ var codeMirrorFn = function() {
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
+                transforms: [],
             };
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
@@ -785,15 +790,15 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // parse and store object modifiers
-    // modifiers ::= { COPY: name | SCALE: number 
+    // parse and store object transforms
+    // transforms ::= { COPY: name | SCALE: number 
     //               | SHIFT: <dir> | TRANSLATE: <dir> : <amount> | ROT: <dir> : <dir> }...
     // assumes object already exists
-    function parseObjectModifiers(stream, state) {
+    function parseObjectTransforms(stream, state) {
         const candname = state.objects_candname;
         const obj = state.objects[candname];
         const lexer = new Lexer(stream, state);
-        const symbols = { modifiers: [] };
+        const symbols = { transforms: [] };
         if (getTokens())
             setState();
         return lexer.tokens;
@@ -812,7 +817,7 @@ var codeMirrorFn = function() {
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^copy:/i)) {
-                    if (symbols.copy) 
+                    if (symbols.cloneSprite) 
                         logError(`You already assigned a sprite source for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
                     else kind = 'KEYWORD';
                     lexer.pushToken(token, kind);
@@ -852,7 +857,7 @@ var codeMirrorFn = function() {
                     if (dirs == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'flip', dirs ]);  // todo: P:S has -|
+                        symbols.transforms.push([ 'flip', dirs ]);  // todo: P:S has -|
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -866,7 +871,7 @@ var codeMirrorFn = function() {
                     if (dirs == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'shift', dirs, 1 ]);  // todo: optional amount
+                        symbols.transforms.push([ 'shift', dirs, 1 ]);  // todo: optional amount
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -881,7 +886,7 @@ var codeMirrorFn = function() {
                     if (dirs == null || args.length != 2)
                         logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'translate', dirs, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dirs, +args[1] ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -896,7 +901,8 @@ var codeMirrorFn = function() {
                     if (dirs == null)
                         logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.modifiers.push([ 'rot',  ...dirs ]);
+                        if (dirs.length == 1) dirs.unshift('up');
+                        symbols.transforms.push([ 'rot', ...dirs ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -912,7 +918,9 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            Object.assign(obj, symbols);
+            if (symbols.cloneSprite) obj.cloneSprite = symbols.cloneSprite;
+            if (symbols.scale) obj.scale = symbols.scale;
+            if (symbols.transforms) obj.transforms.push( ...symbols.transforms );
         }
     }
 
@@ -1629,7 +1637,7 @@ var codeMirrorFn = function() {
                             state.current_line_wip_array.push(...parseObjectName(stream, state, mixedCase));
                             if (state.objects_candname) {
                                 if (stream.match(reg_objmodi, false))
-                                    state.current_line_wip_array.push(...parseObjectModifiers(stream, state));
+                                    state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
                                 state.objects_section++;
                             }
                             return flushToken();
@@ -1648,8 +1656,7 @@ var codeMirrorFn = function() {
                             return flushToken();
                         }
                     case 5: {
-                            state.current_line_wip_array.push(...parseObjectModifiers(stream, state));
-                            state.objects_section = 0;
+                            state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
                             return flushToken();
                         }
                     }

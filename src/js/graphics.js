@@ -598,10 +598,17 @@ function redrawCellGrid() {
             return doIter( ...funcs[group.dirFirst + group.dirSecond](this.iter) );
         }
         getDrawPos(posindex, obj) {
-            const ij = [~~(posindex / curlevel.height), posindex % curlevel.height]; // globals
+            const ij = { 
+                x: ~~(posindex / curlevel.height), 
+                y: posindex % curlevel.height 
+            }; // globals
+            const offs = { 
+                x: obj.spriteoffset.x, 
+                y: obj.spriteoffset.y + state.sprite_size - obj.spritematrix.length 
+            };
             return {
-                x: xoffset + (ij[0] - this.minMax[0]-cameraOffset.x) * cellwidth + obj.spriteoffset.x * ~~(cellwidth / state.sprite_size),
-                y: yoffset + (ij[1] - this.minMax[1]-cameraOffset.y) * cellheight + obj.spriteoffset.y * ~~(cellheight / state.sprite_size)
+                x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
+                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / state.sprite_size)
             };
 
         }

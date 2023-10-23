@@ -84,8 +84,8 @@ function expandSpriteTags(state, objkey, objvalue) {
     const expander = new TagExpander(state, objkey.split(':'));
     if (expander.rawTags.length == 0) return;
     const newobjects = Object.fromEntries(expander.expandedTags.map(exp => {
-            const newkey = expander.getExpandedKey(exp);
-            const newvalue = {
+        const newkey = expander.getExpandedKey(exp);
+        const newvalue = {
             lineNumber: objvalue.lineNumber,
             colors: [ ...objvalue.colors ],
             spritematrix: [],
@@ -93,13 +93,13 @@ function expandSpriteTags(state, objkey, objvalue) {
         if (objvalue.cloneSprite) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite.split(':'));
             if (state.objects[altspriteid])
-                newvalue.spritematrix = [ ...state.objects[altspriteid].spritematrix ]; // row-wise clone
+                newvalue.cloneSprite = altspriteid;
             else logError(`Source ${altspriteid} for sprite clone not found.`);
         } else 
-            newvalue.spritematrix = [ ... objvalue.spritematrix ]; 
+            newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
 
-        if (objvalue.modifiers) {
-            newvalue.modifiers = objvalue.modifiers.map(m => {
+        if (objvalue.transforms) {
+            newvalue.transforms = objvalue.transforms.map(m => {
                 const modi = [ ... m ];
                 const op = modi.shift();
                 const newm = [ expander.getExpandedItem(exp, modi.shift()) ];
@@ -115,7 +115,7 @@ function expandSpriteTags(state, objkey, objvalue) {
     return newobjects;
 }
 
-// create new legenr properties when objects contain tags
+// create new legend properties when objects contain tags
 function expandObjectTags(state, ident) {
     const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
 
@@ -134,7 +134,8 @@ function expandObjectTags(state, ident) {
 
 // generate a new sprite matrix based on transforms
 function generateSpriteMatrix(state) {
-    const modifunc = {
+    const cwd = dir => clockwiseDirections.indexOf(dir);
+    const tranfunc = {
         'flip': (mat,_,dir) => [
             (m => m.reverse()),
 		    (m => m.map(row => row.reverse())),
@@ -145,12 +146,12 @@ function generateSpriteMatrix(state) {
             (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
             (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
         ][dir](mat),
-        'rot': (mat,_,angle) => [
+        'rot': (mat,_,dir1,dir2) => [
             m => m, // 0°
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
             m => Array.from(m, l => l.reverse() ).reverse(), // 180°
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
-        ][angle](mat),
+        ][(4 + cwd(dir2) - dir1) % 4](mat),
         'translate': (m,off,dir,amt) => {
             off.x += [0,1,0,-1][dir] * amt;
             off.y += [-1,0,1,0][dir] * amt;
@@ -167,8 +168,8 @@ function generateSpriteMatrix(state) {
         }
         
         obj.spriteoffset = { x: 0, y: 0 };
-        for (const modi of obj.modifiers ||  []) {
-            obj.spritematrix = modifunc[modi[0]](obj.spritematrix, obj.spriteoffset, clockwiseDirections.indexOf(modi[1]), ...modi.slice(2));
+        for (const tf of obj.transforms ||  []) {
+            obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
         }
     }
     if (debugLevel.includes('obj')) console.log('Objects', state.objects);
@@ -3206,25 +3207,11 @@ function generateSoundData(state) {
 
 
 function formatHomePage(state) {
-    if ('background_color' in state.metadata) {
-        state.bgcolor = colorToHex(colorPalette, state.metadata.background_color);
-    } else {
-        state.bgcolor = "#000000";
-    }
-    if ('text_color' in state.metadata) {
-        state.fgcolor = colorToHex(colorPalette, state.metadata.text_color);
-    } else {
-        state.fgcolor = "#FFFFFF";
-    }
-
-    if (isColor(state.fgcolor) === false) {
-        logError("text_color in incorrect format - found " + state.fgcolor + ", but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA').  Defaulting to white.",state.metadata_lines.text_color)
-        state.fgcolor = "#FFFFFF";
-    }
-    if (isColor(state.bgcolor) === false) {
-        logError("background_color in incorrect format - found " + state.bgcolor + ", but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA').  Defaulting to black.",state.metadata_lines.background_color)
-        state.bgcolor = "#000000";
-    }
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
+    // PS> from P:S still todo:
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
 
     if (canSetHTMLColors) {
 

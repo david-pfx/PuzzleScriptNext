@@ -13,6 +13,8 @@ sprite_size 7
 tags
 ====
 
+dirs = up down left right
+offs = up down left right
 t1 = right left down up
 t2 = up left down right
 t3 = red green blue
@@ -39,53 +41,88 @@ black orange white blue
 .333.
 .3.3.
 
-a;black red blue green yellow white orange
-0123456
-6011005
-5001004
-4001103
-3001002
-2001001
-1234560
+a;black red blue
+2222222
+2011002
+2001002
+2001102
+2001002
+2001002
+2222222
 
-b;black red blue green yellow white orange
+b;black red blue
 copy: a flip:left
 
-c;black red blue green yellow white orange
-copy: a translate:right:3
+c;black red blue
+copy: a translate:right:3 
+translate:down:2 
 
-d;black red blue green yellow white orange
+d;black red blue
 copy: a shift:right
 
-e;black red blue green yellow white orange
+e;black red blue
 copy: a rot:down
 
-f;black red blue green yellow white orange
+f;black red blue
 copy: a translate:right:3 shift:right rot:right
 
-g;black red blue green yellow white orange
-copy: f flip:right translate:right:3 shift:right rot:right
+g;black red blue
+copy: f flip:right translate:right:3 shift:right rot:up:left
 
-b:t1;black red blue green yellow white orange
+b:t1;black red blue
 copy: a flip:t1
 
 r;red
 y;yellow
 
+con:dirs
+#036965
+.....00000......
+.....00000......
+.....00.........
+.....00000......
+.....00000......
+.....00.........
+.....00.........
+.....00.........
+.....00.........
+................
+................
+................
+................
+................
+rot:up:dirs
+
+cut:dirs
+#036965
+copy: con:dirs
+
 =======
 LEGEND
 =======
 . = Background
+1 = con:up
+2 = con:right
+3 = con:down
+4 = con:left
+5 = cut:up
+6 = cut:right
+7 = cut:down
+8 = cut:left
 
 ================
 COLLISIONLAYERS
 ================
 Background
 Player
+--
 a,b,c,d,e,f,g
 r
 y
 b:t1
+--
+dirs -> con:dirs
+dirs -> cut:dirs
 ======
 RULES
 ======
@@ -101,5 +138,9 @@ LEVELS
 .a.b.c.d...
 ...........
 .e.f.g.....
+...........
+.1.2.3.4...
+...........
+.5.6.7.8...
 ...........
 
