@@ -889,7 +889,7 @@ function loadLevelFromState(state,levelindex,randomseed) {
     loadLevelFromLevelDat(state,leveldat,randomseed);
 }
 
-var sprites = [
+var objectSprites = [
 {
     color: '#423563',
     dat: [
@@ -1045,15 +1045,16 @@ function setGameState(_state, command, randomseed) {
       backups=[];
     }
     //set sprites
-    sprites = [];
-    for (var n in state.objects) {
+    objectSprites = [];
+    for (const n in state.objects) {
         if (state.objects.hasOwnProperty(n)) {
-            var object = state.objects[n];
-            var sprite = {
+            const object = state.objects[n];
+			objectSprites[object.id] = {
+                dat: object.spritematrix,
                 colors: object.colors,
-                dat: object.spritematrix
+				text: object.spriteText,
+				scale: object.scale,
             };
-            sprites[object.id] = sprite;
         }
     }
     if (state.metadata.realtime_interval!==undefined) {

@@ -1,116 +1,60 @@
-function createSprite(name,spritegrid, colors, padding) {
-	if (colors === undefined) {
-		colors = [state.bgcolor, state.fgcolor];
-	}
+// Functions to create and render text and sprites
 
-	var sprite = makeSpriteCanvas(name);
-	var spritectx = sprite.getContext('2d');
+// Create and return a graphic sprite
+function createSprite(name,spritegrid, colors, size) {
+	colors ||= [state.bgcolor, state.fgcolor];
 
-    renderSprite(spritectx, spritegrid, colors, padding, 0, 0);
+	var canvas = makeSpriteCanvas(name);
+	var context = canvas.getContext('2d');
 
-    return sprite;
+    const pixelsize = Math.min(cellwidth / size, cellheight / size);
+    canvas.width = spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelsize;
+    canvas.height = spritegrid.length * pixelsize;
+
+    renderSprite(context, spritegrid, colors, 0, 0, 0, size);
+
+    return canvas;
+}
+
+// Create and return a text sprite
+function createTextSprite(name, text, colors, scale) {
+	colors ||= [state.bgcolor, state.fgcolor];
+
+	var canvas = makeSpriteCanvas(name);
+	var context = canvas.getContext('2d');
+
+    drawTextWithFont(context, text, colors, 
+        0.5 * cellwidth, 0.5 * cellheight, 
+        scale ? (scale * cellheight) : (cellheight / text.length));
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
-function renderSprite(spritectx, spritegrid, colors, padding, x, y, align) {
+function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     colors ||= ['#00000000', state.fgcolor];
 
-    const origin = { x: x * cellwidth, y: y * cellheight };
-    spritectx.clearRect(origin.x, origin.y, cellwidth, cellheight);
-
-    const gridsize = { 
-        w: spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0),
-        h: spritegrid.length 
+    const rc = { 
+        x: x * cellwidth, // global
+        y: y * cellheight, 
+        w: size || spritegrid[0].length, 
+        h: size || spritegrid.length,
     };
 
-    // always assume square pixels at this stage
-    const pixelsize = Math.min(cellwidth / gridsize.w, cellheight / gridsize.h);
+    context.clearRect(rc.x, rc.y, rc.w, rc.h);
+
+    // always assume square pixels at this stage?
+    const pixelsize = Math.min(cellwidth / rc.w, cellheight / rc.h);
     const pixh = ("scanline" in state.metadata) ? pixelsize / 2 : pixelsize;
 
-    spritectx.fillStyle = state.fgcolor;
+    context.fillStyle = state.fgcolor;
     spritegrid.forEach((row,y) => {
         row.forEach((col,x) => {
             if (col >= 0) {
-                spritectx.fillStyle = colors[col];
-                spritectx.fillRect(origin.x + x * pixelsize, origin.y + y * pixelsize, pixelsize, pixh);
+                context.fillStyle = colors[col];
+                context.fillRect(rc.x + x * pixelsize, rc.y + y * pixelsize, pixelsize, pixh);
             }            
         });
     });
 }
-
-// draw font characters from the text sheet into the sprite sheet.
-// fix: these are bitmaps, low res. :-(
-// function renderTextBad(spritectx, text, colors, padding, x, y) {
-//     colors = colors || ['#00000000', state.fgcolor];
-
-//     var ch = text.charAt(0);
-//     if (ch in font) {
-//         var index = fontIndex[ch];
-//         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
-//         var textX = (index % textsheetSize) | 0;
-//         var textY = (index / textsheetSize) | 0;
-//         spritectx.imageSmoothingEnabled = false;
-//         spritectx.fillStyle = colors[0];  // does nothing :-(
-//         spritectx.drawImage(
-//             textsheetCanvas,
-//             textX * textcellwidth,
-//             textY * textcellheight,
-//             textcellwidth, textcellheight,
-//             x * cellwidth,
-//             y * cellheight,
-//             cellwidth, cellheight
-//         );
-//         spritectx.imageSmoothingEnabled = true;
-//     }
-// }
-
-// // draw a string of text into a cell, scaling and centring as needed
-// function renderText(spritectx, text, colors, cellx, celly) {
-//     const scale = [ 0.8, 1 ];
-//     // location of first character, centred vertically
-//     const rect = { x: cellx * cellwidth, y: celly * cellheight + (cellheight - cellheight / text.length) / 2, 
-//                    w: cellwidth / text.length, h: cellheight / text.length };
-//     function resize(rc, x, y) {
-//         return { x: rc.x + x, y: rc.y + y, w: rc.w - 2 * x, h: rc.h - 2 * y };
-//     };
-//     function rescale(rc, s) { 
-//         return resize(rc, rc.w * (1 - s[0]) / 2, rc.h * (1 - s[1]) / 2);
-//     };
-//     function translate(rc, x, y) {
-//         return { x: rc.x + x, y: rc.y + y, w: rc.w, h: rc.h };
-//     };
-//     for (let i = 0; i < text.length; i++) {
-//         const ch = text.charAt(i);
-//         if (ch in font) {
-//             const fontstr = font[ch]
-//                 .split('\n')
-//                 .map(a => a.trim().split('').map(t => parseInt(t)));
-//             fontstr.shift();
-//             const rc = rescale(translate(rect, i * cellwidth / text.length, 0), scale);
-//             renderRect(spritectx, fontstr, ['#0000', colors[0]], rc.x, rc.y, rc.w, rc.h);
-//         }
-//     }
-// }
-
-// // draw grid into a defined rectangle with a colour
-// function renderRect(ctx, grid, colors, rectx, recty, rectw, recth) {
-//     ctx.clearRect(rectx, recty, rectw, recth);
-
-//     const gridw = grid[0].length;
-//     const dw = rectw / gridw;
-//     const gridh = grid.length;
-//     const dh = recth / gridh;
-//     ctx.fillStyle = colors[1];
-//     for (let y = 0; y < gridh; y++) {
-//         for (let x = 0; x < gridw; x++) {
-//             const val = grid[y][x];
-//             if (val >= 0) {
-//                 ctx.fillStyle = colors[val];
-//                 ctx.fillRect(rectx + x * dw, recty + y * dh, dw, dh);
-//             }
-//         }
-//     }
-// }
 
 function drawTextWithFont(ctx, text, color, x, y, height) {
     const fontSize = state.metadata.font_size ? Math.max(0, parseFloat(state.metadata.font_size)) : 1;
@@ -124,12 +68,11 @@ function drawTextWithFont(ctx, text, color, x, y, height) {
     //console.log(`ctx=${ctx} color=${color} x=${x} y=${y} height=${height} font=${ctx.font} text=${text} `);
 
 }
+
 var textsheetCanvas = null;
 
-function regenText(spritecanvas,spritectx) {
-    if (textsheetCanvas == null) {
-        textsheetCanvas = document.createElement('canvas');
-    }
+function regenText() {
+    textsheetCanvas ||= document.createElement('canvas');
 
     var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
 
@@ -155,54 +98,29 @@ function regenText(spritecanvas,spritectx) {
 
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
 
-var spriteimages;
-var spritesheetCanvas = null;
+var spriteImages;
 function regenSpriteImages() {
 	if (textMode) {
-        spriteimages = [];
+        spriteImages = [];
 		regenText();
 		return;
 	} 
     
     if (IDE===true) {
-        textImages['editor_s'] = createSprite('chars',editor_s_grille,undefined);
+        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);
     }
     
     if (state.levels.length===0) {
         return;
     }
-    spriteimages = [];
+    spriteImages = [];
     
-    var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
-
-    if (spritesheetCanvas == null) {
-        spritesheetCanvas = document.createElement('canvas');
-    }
-
-    spritesheetCanvas.width = spritesheetSize * cellwidth;
-    spritesheetCanvas.height = spritesheetSize * cellheight;
-
-    var spritesheetContext = spritesheetCanvas.getContext('2d')
-
-    for (let i = 0; i < sprites.length; i++) {
-        const obj = state.objects[state.idDict[i]];
-        const spriteX = (i % spritesheetSize) | 0;
-        const spriteY = (i / spritesheetSize) | 0;
-
-        if (sprites[i] == undefined) {
-            continue;
+    objectSprites.forEach((s,i) => {
+        if (s) {
+            spriteImages[i] = s.text ? createTextSprite(s.text, s.colors, s.scale)
+                : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
-        if (canOpenEditor) {
-            spriteimages[i] = createSprite(i.toString(),sprites[i].dat, sprites[i].colors);
-        }            
-        if (obj.spritetext) {
-            drawTextWithFont(spritesheetContext, obj.spritetext, sprites[i].colors, 
-                (spriteX + 0.5) * cellwidth, (spriteY + 0.5) * cellheight, 
-                obj.scale ? (obj.scale * cellheight) : (cellheight / obj.spritetext.length));
-        } else {
-            renderSprite(spritesheetContext, sprites[i].dat, sprites[i].colors, 0, spriteX, spriteY, true);
-        }
-    }
+    });
 
     if (canOpenEditor) {
     	generateGlyphImages();
@@ -220,6 +138,7 @@ var glyphSelectedIndex=0;
 var editorRowCount=1;
 var editorGlyphMovements=[];
 
+// create or reuse a canvas by this name
 var canvasdict={};
 function makeSpriteCanvas(name) {
     var canvas;
@@ -263,7 +182,7 @@ function generateGlyphImages() {
 				if (id===-1) {
 					continue;
                 }
-				spritectx.drawImage(spriteimages[id], 0, 0);
+				spritectx.drawImage(spriteImages[id], 0, 0);
 			}
 			glyphImages.push(sprite);
 		}
@@ -541,7 +460,6 @@ function redrawCellGrid() {
     screenOffsetY = minMaxIJ[1];
 
     var renderBorderSize = smoothscreen ? 1 : 0;
-    var spritesheetSize = Math.ceil(Math.sqrt(sprites.length));
 
     var tweening = state.metadata.tween_length && currentMovedEntities;
     // global flag to force redraw
@@ -561,12 +479,6 @@ function redrawCellGrid() {
         }
         getIter() {
             return this.iter;
-        }
-        getSheetPos(objid) {
-            return { 
-                x: ~~(objid % spritesheetSize) * cellwidth, // globals
-                y: ~~(objid / spritesheetSize) * cellheight
-            };
         }
         
         // the position indexes to render, taking into account layer groups, zoomscreen etc
@@ -658,11 +570,16 @@ function redrawCellGrid() {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
                             continue;
+                        const gridSize = {
+                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0),
+                            h: obj.spritematrix.length
+                        };
+                        const pixelFactor = cellheight / state.sprite_size;
+
                         let spriteScale = 1;
                         if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = render.getDrawPos(posindex, obj);
-                        const sheetpos = render.getSheetPos(k);
                         
                         let params = {
                             x: 0, y: 0,
@@ -687,8 +604,7 @@ function redrawCellGrid() {
                         ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
                         ctx.rotate(params.angle * Math.PI / 180);
                         ctx.drawImage(
-                            spritesheetCanvas, 
-                            sheetpos.x, sheetpos.y, cellwidth, cellheight,
+                            spriteImages[k], 0, 0, gridSize.w * pixelFactor, gridSize.h * pixelFactor, 
                             -csz.x/2, -csz.y/2, rc.w, rc.h);
                         ctx.globalAlpha = 1;
                         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -767,8 +683,6 @@ function redrawCellGrid() {
                     var posMask = curlevel.getCellInto(posIndex,_o12);                
                 
                     if (posMask.get(k) != 0) {                  
-                        var spriteX = (k % spritesheetSize)|0;
-                        var spriteY = (k / spritesheetSize)|0;
 
                         var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
                         var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
@@ -787,8 +701,7 @@ function redrawCellGrid() {
                         }
                         
                         ctx.drawImage(
-                            spritesheetCanvas, 
-                            spriteX * cellwidth, spriteY * cellheight, cellwidth, cellheight,
+                            spriteImages[k], 0, 0, cellwidth, cellheight,
                             Math.floor(x), Math.floor(y), cellwidth, cellheight);
                         ctx.globalAlpha = 1;
                     }
