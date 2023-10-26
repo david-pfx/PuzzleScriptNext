@@ -2,7 +2,7 @@ title test min sprite mods
 author polymino
 homepage www.polyomino.com
 
-// test program showing sprite modifications
+// test program showing sprite transforms
 
 verbose_logging
 debug
@@ -97,6 +97,52 @@ cut:dirs
 #036965
 copy: con:dirs
 
+vs_snake_under m
+#111018 #6cd9b5
+..000..
+.00000.
+0001000
+0011100
+0001000
+.00000.
+..000..
+translate:down:1
+translate:left:1
+
+vs_active_under n
+#111018 #6cd9b5
+copy: vs_snake_under
+
+diag s
+black orange
+100100100100
+010010010010
+001001001001
+100100100100
+010010010010
+001001001001
+100100100100
+010010010010
+001001001001
+100100100100
+010010010010
+001001001001
+
+diag2 t
+black orange
+001001001001
+010010010010
+100100100100
+001001001001
+010010010010
+100100100100
+001001001001
+010010010010
+100100100100
+001001001001
+010010010010
+100100100100
+
 =======
 LEGEND
 =======
@@ -117,6 +163,7 @@ Background
 Player
 --
 a,b,c,d,e,f,g
+m,n,s,t
 r
 y
 b:t1
@@ -142,5 +189,7 @@ LEVELS
 .1.2.3.4...
 ...........
 .5.6.7.8...
+...........
+.m.n.s.t...
 ...........
 

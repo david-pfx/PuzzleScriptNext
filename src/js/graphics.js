@@ -7,9 +7,8 @@ function createSprite(name,spritegrid, colors, size) {
 	var canvas = makeSpriteCanvas(name);
 	var context = canvas.getContext('2d');
 
-    const pixelsize = Math.min(cellwidth / size, cellheight / size);
-    canvas.width = spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelsize;
-    canvas.height = spritegrid.length * pixelsize;
+    canvas.width = spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize;
+    canvas.height = spritegrid.length * pixelSize;
 
     renderSprite(context, spritegrid, colors, 0, 0, 0, size);
 
@@ -42,15 +41,14 @@ function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     context.clearRect(rc.x, rc.y, rc.w, rc.h);
 
     // always assume square pixels at this stage?
-    const pixelsize = Math.min(cellwidth / rc.w, cellheight / rc.h);
-    const pixh = ("scanline" in state.metadata) ? pixelsize / 2 : pixelsize;
+    const pixh = ("scanline" in state.metadata) ? pixelSize / 2 : pixelSize;
 
     context.fillStyle = state.fgcolor;
     spritegrid.forEach((row,y) => {
         row.forEach((col,x) => {
             if (col >= 0) {
                 context.fillStyle = colors[col];
-                context.fillRect(rc.x + x * pixelsize, rc.y + y * pixelsize, pixelsize, pixh);
+                context.fillRect(rc.x + x * pixelSize, rc.y + y * pixelSize, pixelSize, pixh);
             }            
         });
     });
@@ -303,6 +301,7 @@ var cellwidth;
 var cellheight;
 var xoffset;
 var yoffset;
+let pixelSize;
 
 window.addEventListener('resize', canvasResize, false);
 canvas = document.getElementById('gameCanvas');
@@ -574,7 +573,6 @@ function redrawCellGrid() {
                             w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0),
                             h: obj.spritematrix.length
                         };
-                        const pixelFactor = cellheight / state.sprite_size;
 
                         let spriteScale = 1;
                         if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
@@ -604,7 +602,7 @@ function redrawCellGrid() {
                         ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
                         ctx.rotate(params.angle * Math.PI / 180);
                         ctx.drawImage(
-                            spriteImages[k], 0, 0, gridSize.w * pixelFactor, gridSize.h * pixelFactor, 
+                            spriteImages[k], 0, 0, gridSize.w * pixelSize, gridSize.h * pixelSize, 
                             -csz.x/2, -csz.y/2, rc.w, rc.h);
                         ctx.globalAlpha = 1;
                         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -894,7 +892,8 @@ function drawEditorIcons(mini,minj) {
     if (tooltip_string) {
         ctx.fillStyle = state.fgcolor;
         ctx.font = `${cellheight/2}px Monospace`;
-        ctx.fillText(tooltip_string, xoffset - cellwidth, yoffset-0.3*cellheight);
+        ctx.textAlign = "center";
+        ctx.fillText(tooltip_string, xoffset + screenwidth * cellwidth / 2, yoffset-0.3*cellheight);
     }
 
 
@@ -974,11 +973,7 @@ function canvasResize() {
     }
     cellwidth =w * Math.max( ~~(cellwidth / w),1);
     cellheight = h * Math.max(~~(cellheight / h),1);
-    if ((cellwidth == 0 || cellheight == 0) && !textMode) {
-        cellwidth = w;
-        cellheight = h;
-        console.log("Resized below 1");
-    }
+    pixelSize = cellheight / h;
 
     // calculate an XY offset to position the board on the screen
     xoffset = 0;

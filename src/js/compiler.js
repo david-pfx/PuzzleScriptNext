@@ -97,7 +97,7 @@ function expandSpriteTags(state, objkey, objvalue) {
             else logError(`Source ${altspriteid} for sprite clone not found.`);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
-
+        
         if (objvalue.transforms) {
             newvalue.transforms = objvalue.transforms.map(m => {
                 const modi = [ ... m ];
@@ -159,15 +159,17 @@ function generateSpriteMatrix(state) {
         }
     };
     for (const obj of Object.values(state.objects)) {
-        if (obj.colors.length == 0) 
+        obj.spriteoffset = { x: 0, y: 0 };
+        if (obj.colors.length == 0)             // can this ever happen?
             obj.colors.push('#ff00ff');
         if (obj.cloneSprite) {
-            obj.spritematrix = state.objects[obj.cloneSprite].spritematrix.map(row => [ ...row ]);
+            const other = state.objects[obj.cloneSprite];
+            obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
+            obj.spriteoffset = other.spriteoffset;
         } else if (obj.spritematrix.length == 0) {
             obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
         }
         
-        obj.spriteoffset = { x: 0, y: 0 };
         for (const tf of obj.transforms ||  []) {
             obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
         }
