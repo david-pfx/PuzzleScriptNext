@@ -25,6 +25,8 @@ function createTextSprite(name, text, colors, scale) {
     drawTextWithFont(context, text, colors, 
         0.5 * cellwidth, 0.5 * cellheight, 
         scale ? (scale * cellheight) : (cellheight / text.length));
+
+    return canvas;
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
@@ -115,7 +117,7 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite(s.text, s.colors, s.scale)
+            spriteImages[i] = s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
@@ -569,13 +571,9 @@ function redrawCellGrid() {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
                             continue;
-                        const gridSize = {
-                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0),
-                            h: obj.spritematrix.length
-                        };
 
                         let spriteScale = 1;
-                        if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
+                        //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = render.getDrawPos(posindex, obj);
                         
@@ -588,22 +586,24 @@ function redrawCellGrid() {
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
-                        const csz = { 
-                            x: params.scalex * cellwidth * spriteScale, 
-                            y: params.scaley * cellheight * spriteScale 
+                        // size of the sprite in pixels
+                        const spriteSize = {
+                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                            h: obj.spritematrix.length * pixelSize,
                         };
+                        // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
                             y: Math.floor(drawpos.y + params.y * cellheight),
-                            w: csz.x,
-                            h: csz.y
+                            w: params.scalex * spriteSize.w * spriteScale, 
+                            h: params.scaley * spriteSize.h * spriteScale 
                         };
                         ctx.globalAlpha = params.alpha;
-                        ctx.translate(rc.x + csz.x/2, rc.y + csz.y/2);
+                        ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
                         ctx.rotate(params.angle * Math.PI / 180);
                         ctx.drawImage(
-                            spriteImages[k], 0, 0, gridSize.w * pixelSize, gridSize.h * pixelSize, 
-                            -csz.x/2, -csz.y/2, rc.w, rc.h);
+                            spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                            -rc.w/2, -rc.h/2, rc.w, rc.h);
                         ctx.globalAlpha = 1;
                         ctx.setTransform(1, 0, 0, 1, 0, 0);
                     }

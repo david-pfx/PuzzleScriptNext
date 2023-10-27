@@ -187,6 +187,21 @@ ijklmn
 opqrst
 uvwxyz
 
+j;red
+00
+00
+00
+00
+00
+00
+00
+00
+00
+
+o;red
+000000000
+000000000
+
 =======
 LEGEND
 =======
@@ -203,7 +218,7 @@ y
 Player, R, B, G
 k
 --
-s,t,u,w,x,q,z,m,n,l,c,d,e,f,h,i,0,1,9
+c,d,e,f,h,i,j,m,n,o,q,s,t,u,w,x,z,l,0,1,9
 
 ======
 RULES
@@ -225,11 +240,11 @@ LEVELS
 .............
 .rbgykprbgyk.
 .............
-.s.u.x...n.i.
-..t.w...m.l..
-...c.d.e.f.h.
+.s.u.x.m.n.i.
+..t.w.m.l.q..
+.c.d.e.z.f.h.
 .............
-..z.q.9.0.1..
+..j.o.9.0.1..
 .............
 
 message second level

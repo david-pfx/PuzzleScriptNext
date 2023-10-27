@@ -11,6 +11,7 @@ run_rules_on_level_start
 mouse_clicks
 level_select
 status_line
+sprite_size 12
 
 ========
 OBJECTS

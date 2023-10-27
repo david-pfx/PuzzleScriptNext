@@ -1052,7 +1052,7 @@ function setGameState(_state, command, randomseed) {
 			objectSprites[object.id] = {
                 dat: object.spritematrix,
                 colors: object.colors,
-				text: object.spriteText,
+				text: object.spritetext,
 				scale: object.scale,
             };
         }

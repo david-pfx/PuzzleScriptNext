@@ -173,6 +173,7 @@ RULES
 ======
 
 [done] -> cancel // it's already a win
+[moving player] -> cancel
 
 // grow the tree to the edge
 startloop

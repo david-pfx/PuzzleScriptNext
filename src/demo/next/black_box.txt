@@ -19,6 +19,7 @@ run_rules_on_level_start
 nokeyboard 
 mouse_clicks
 status_line
+sprite_size 12
 
 ========
 OBJECTS
