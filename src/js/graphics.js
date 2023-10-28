@@ -445,15 +445,6 @@ function redrawCellGrid() {
             minMaxIJ = oldflickscreendat;
         }
 
-        const iLen = (minMaxIJ[2] - minMaxIJ[0]) * cellwidth;
-        const jLen = (minMaxIJ[3] - minMaxIJ[1]) * cellheight;
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(xoffset, yoffset);
-        ctx.lineTo(xoffset + iLen, yoffset);
-        ctx.lineTo(xoffset + iLen, yoffset + jLen);
-        ctx.lineTo(xoffset, yoffset + jLen);
-        ctx.clip();
     }
     
     // used in function isInside
@@ -462,17 +453,13 @@ function redrawCellGrid() {
 
     var renderBorderSize = smoothscreen ? 1 : 0;
 
-    var tweening = state.metadata.tween_length && currentMovedEntities;
-    // global flag to force redraw
-    isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
-
 ////////////////////////////////////////////////////////////////////////////////
     class RenderOrder {  // @@PS>
         constructor(minMax) {
             this.minMax = minMax;
             // the iteration limits still used by smooth screen renderer
             this.iter = [
-                Math.max(this.minMax[0] - renderBorderSize, 0),
+                Math.max(this.minMax[0] - renderBorderSize, 0),  // globals
                 Math.max(this.minMax[1] - renderBorderSize, 0),
                 Math.min(this.minMax[2] + renderBorderSize, curlevel.width),
                 Math.min(this.minMax[3] + renderBorderSize, curlevel.height)
@@ -527,8 +514,14 @@ function redrawCellGrid() {
         }
     }
 
+    var tweening = state.metadata.tween_length && currentMovedEntities;
+    // global flag to force redraw
+    isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
+
     const render = new RenderOrder(minMaxIJ);
-    if (tweening) drawObjectsTweening(render.getIter());
+    setClip(render);
+    if (tweening) 
+        drawObjectsTweening(render.getIter());
     else drawObjects(render);
 
     if (state.metadata.status_line)
@@ -838,6 +831,22 @@ function drawSmoothScreenDebug(ctx) {
     );
 
     ctx.restore()
+}
+
+function setClip(tween) {
+    const rc = {
+        x: xoffset,
+        y: yoffset,
+        w: (tween.iter[2] - tween.iter[0]) * cellwidth,
+        h: (tween.iter[3] - tween.iter[1]) * cellheight,
+    };
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(rc.x, rc.y);
+    ctx.lineTo(rc.x + rc.w, rc.y);
+    ctx.lineTo(rc.x + rc.w, rc.y + rc.h);
+    ctx.lineTo(rc.x, rc.y + rc.h);
+    ctx.clip();
 }
 
 function drawEditorIcons(mini,minj) {

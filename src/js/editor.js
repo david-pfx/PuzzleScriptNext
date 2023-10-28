@@ -261,6 +261,9 @@ function dropdownChange() {
  		return;
  	}
 
+	document.activeElement.blur();  // unfocus dropdown
+	editor.display.input.blur();
+
 	tryLoadFile(`demo/${this.value}.txt`);
 	this.selectedIndex=0;
 }

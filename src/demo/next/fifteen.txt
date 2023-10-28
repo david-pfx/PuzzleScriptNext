@@ -81,6 +81,7 @@ grid move afx:slide
 COLLISIONLAYERS
 ================
 Background
+--
 edge W X Y Z N grid info 
 lit
 0 

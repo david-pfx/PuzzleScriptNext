@@ -599,6 +599,7 @@ var introstate = {
     objectCount: 2,
     metadata:[],
     levels:[],
+	collisionLayerGroups: [],
     bgcolor:"#000000",
     fgcolor:"#FFFFFF"
 };

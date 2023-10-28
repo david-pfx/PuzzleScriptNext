@@ -107,7 +107,7 @@ SOUNDS
 ======
 
 number create 74380707
-cancel 42189302
+cancel 64204707
 sfx0 51579108 // win
 sfx1 65275902 // lose
 

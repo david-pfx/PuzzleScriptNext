@@ -1,3 +1,4 @@
+
 title Tube Transport (WIP)
 author noa =)
 run_rules_on_level_start
@@ -734,6 +735,9 @@ transparent
 follow:dirs
 transparent
 
+hasToSplit
+transparent
+
 wantsToFlyTo:dirs
 transparent
 
@@ -912,6 +916,7 @@ turnMove:dirs, wasTurnMoved:dirs
 move:dirs, wasMoved:dirs
 dirs -> correctConnectDir:dirs
 follow:dirs
+hasToSplit
 ======
 RULES
 ======
@@ -1098,61 +1103,62 @@ dirs [ again_col ] [ brokenball:dirs:offs ] -> [ again_col ] [ brokenball:dirs ]
 (----MOVE OBJECTS----)
 
 ( 
-- starts from a turnMove, i.e. a snakelike move that makes a tile orient itself
-- marks all pushing and turning tiles at once, checking if anything collides
-- push markers overwrite snake movement, so you can build a contraption to push yourself without turning
-- the head pushing into the snake body makes the body split off, because push markers have priority
+- a pipe end with a turnMove moves as the head of the snake
+- multiblocks in front get pushed
+- the tail of the snake head follows - if it can not follow, for example because it got pushed or the head got pushed,
+ the head will split.
+- for any tiles that should do a normal move, collision in checked first so that ALL of them have to work out
+- actual movement transfers everything in those tiles over, tile by tile
 )
 
-(remove temp from last time)
+(remove temp markers from last time)
 [ wasMoved:dirs ] -> [ ] 
 [ wasTurnMoved:dirs ] -> [ ]
 [ follow:dirs ] -> [ ]
+[ hasToSplit ] -> [ ]
 
-(propagate forward from a pusher)
+(the initial move can push multiblocks in front)
 [ turnMove:> | snake ] -> [ turnMove:> | snake move:> ]
 
-(loop to propagate regular move forward and also through connections whenever possible.)
-(in forward direction-so with actual pressure, it can even affect the snake head doing the push, such as in a C shape)
-(otherwise, through a connection only spread if there is no turnMove:dirs there)
+(spread the move markers through any pushed multiblocks)
+(can not spread from the turnMove (head) to own tail since a push of the head only will ALWAYS split it)
 [ move:> | snake ] -> [ move:> | snake move:> ]
-+ [ move:dirs con:> | con:< no turnMove:dirs ] -> [ move:dirs con:> | con:< move:dirs ]
++ [ move:dirs con:> no turnMove:dirs | con:< ] -> [ move:dirs con:> | con:< move:dirs ]
 
-(however, IF the shape itself is pushed and it now has both turnMove and move, currently it then spreads to the whole tail.)
-(so for now, in that case there should be no snake movement at all and the whole thing just translates.)
-[ move:dirs ] -> [ move:dirs no turnMove:dirs ]
+(move fails entirely if something was pushed into non-moving obstacle:)
 
-(so far there are tiles being moved and possibly a head tile with a turnMove.)
-(check collision now, show animation and cancel any actual movement if so)
-[ move:> | it_collides no move:> ] -> [ col_effect:> | it_collides ] nosave 
-[ turnMove:> | it_collides no move:> ] -> [ col_effect:> | it_collides ] nosave
-(collision animation, remove all markers)
+(show collision animation and cancel any actual movement if collided)
+[ move:> | it_collides no any_move ] -> [ col_effect:> | it_collides ] nosave 
+[ turnMove:> | it_collides no any_move ] -> [ col_effect:> | it_collides ] nosave
 dirs [ col_effect:> ] [ move:dirs ] -> [ col_effect:> ] [ col_effect:dirs ] 
 dirs [ col_effect:> ] [ turnMove:dirs ] -> [ col_effect:> ] [ col_effect:dirs ]
-(also spread through tiles that weren't moved if they are connected)
+(to also spread through tail)
 dirs [ col_effect:dirs con:> | con:< no col_effect:dirs ] -> [ col_effect:dirs con:> | con:< col_effect:dirs ]
 
-(add marker to indicate in what direction and where the snake should be followed)
-[ con:> no move:dirs | con:< turnMove:dirs ] -> [ con:> follow:> | con:< turnMove:dirs ]
+(move can happen:)
+(add temporary follow markers along the tail)
+[ con:> | con:< turnMove:dirs ] -> [ con:> follow:> | con:< turnMove:dirs ]
+[ con:> no follow:dirs no turnMove:dirs | con:< follow:dirs ] -> [ con:> follow:> | con:< follow:dirs ]
 
-(do the movement)
+(split head off by removing all follow markers on snake that follows the player if tiles are pushed sideways)
+(also split if ONLY the front has a move marker)
+[ move:perpendicular follow:> ] -> [ move:perpendicular follow:> hasToSplit ] 
+[ no move:dirs | con:< move:dirs ] -> [ hasToSplit con:> | con:< move:dirs ]
+[ hasToSplit con:> | con:< ] -> [ hasToSplit con:> | con:< no follow:dirs hasToSplit ]
+
+(add turnMove markers to snake)
+[ follow:> ] -> [ turnMove:> no move:dirs ]
+
+(actually do the movement)
 (use markers to move all items in those tiles)
- [ move:> it_movesOnSnake | no any_move ] -> [ move:> | it_movesOnSnake ]
-+ [ move:> | no any_move ] -> [ | wasMoved:> ] sfx3
-+ [ turnMove:> it_movesOnSnake | no any_move ] -> [ turnMove:> | it_movesOnSnake ]
-+ [ turnMove:> | no any_move ] -> [ | wasTurnMoved:> ]
-
-(add turnMove markers behind the first one, starting from the follow:>)
-(exclude anything that already moved)
-[ no snake | con:< no wasMoved:dirs no wasTurnMoved:dirs follow:< ] -> [ | con:< turnMove:< ]
-[ turnMove:dirs | con:< no wasMoved:dirs no wasTurnMoved:dirs no turnMove:dirs ] -> [ turnMove:dirs | con:< turnMove:< ]
-
-(move the tail following the tile )
-(this assumes there is always one tile that can move, and moves them in order )
 startloop
+ [ move:> it_movesOnSnake | no any_move ] -> [ move:> | it_movesOnSnake ]
+ [ move:> no it_movesOnSnake | no any_move ] -> [ | wasMoved:> ] sfx3
  [ turnMove:> it_movesOnSnake | no any_move ] -> [ turnMove:> | it_movesOnSnake ]
- random [ turnMove:> | no any_move ] -> [ | wasTurnMoved:> ]
+ [ turnMove:> no it_movesOnSnake | no any_move ] -> [ | wasTurnMoved:> ]
 endloop
+
+(move done:)
 
 (fix the connections of the turning pieces )
 (former "forward" connection should now point at the front again )
@@ -1171,6 +1177,8 @@ dirs [ wasTurnMoved:< cut:dirs ] -> [ wasTurnMoved:< cut:> correctConnectDir:> ]
 (new cuts are created, this makes a splitting sound )
 [ wasMoved:dirs con:> | no con:< ] -> [ wasMoved:dirs cut:> | ] sfx1 
 [ wasTurnMoved:dirs con:> | no con:< ] -> [ wasTurnMoved:dirs cut:> | ] sfx1
+[ con:> | no con:< no wasMoved:dirs ] -> [ cut:> | ] sfx1 
+[ con:> | no con:< no wasTurnMoved:dirs ] -> [ cut:> | ] sfx1
 
 (a moved flying item will start flying if there is an open end that direction)
 [ wasMoved:> con:> it_canFly no again_fly:dirs ] -> [ wasMoved:> con:> it_canFly again_fly:> ] 
@@ -1361,36 +1369,9 @@ message > launch
 ###############
 ###############
 
-(NEW: push self to stop reorienting)
-###############
-###############
-#######..######
-#######..w#####
-#####..ss######
-#####..s...####
-#####..ss#.####
-####p.l....####
-#####.....#####
-###############
-###############
-
-(find position in C that works)
-###############
-####ss#########
-####s.e########
-####s......####
-####s......####
-####ss...a.####
-####...aaa#####
-###p.l.bb.#####
-######....#####
-###############
-###############
-
-
 message > cross
 (NEW: holes)
-(NEW INTERACTIONS: flying over hole, push *only now needed*, multipush)
+(NEW INTERACTIONS: flying over hole)
 (NEW OBSTACLES:    falling into hole)
 
 (fly over hole)
@@ -1577,13 +1558,13 @@ message > redirect
 (quarter turn pipe influences pusher parity)
 ###############
 ###############
-########dss####
-####...~~~s####
-####.d..~~l####
-####......#####
-###p...l..9w###
-####.....~~####
-###############
+#######dsss####
+#######~~~s####
+####.....~d####
+####.d.~.~j####
+####.....9e####
+###p...l.######
+####.....######
 ###############
 ###############
 
@@ -1805,45 +1786,82 @@ message > lead
 ( ########~~.tw )
 ( ############# )
 
-(slide to grow self to not fall)
-###############
-###############
-######~~~~#####
-#####.~~.~w####
-#####...~~#####
-#####.ss...####
-#####.s~.h.####
-#####.ss...####
-####p....l.####
-###############
-###############
 
-(find correct orientation to go with when using C)
+message > leave behind, pt. 1
+
+(LEVEL SERIES: SPLIT IN C)
+
+(C to split to get shorter)
 ###############
 ###############
 #####.....#####
-####p....ls####
-#####.ss..s####
-######s..######
-######ss.######
-######~~~######
-######~~~w#####
-#######~#######
+###p...ls..####
+####.......####
+####..s.s..####
+####..sss..####
+#######.#######
+######..e######
+###############
 ###############
 
-(double snake moving in double size C)
-( ############# )
-( ptl####tttttw )
-( ##s####t##### )
-( #s..s..~~...# )
-( #s..s~~.~...# )
-( #ssss.......# )
-( ############# )
+(create self-push situation)
+###############
+###############
+#####ssss.#####
+####.s..s..####
+####.....s.####
+###p.ls..s.####
+####.......####
+#######.#######
+######..e######
+###############
+###############
+
+(fill C in correct order to still have space to even move)
+###############
+###############
+#####bbbbb.####
+####.b.a.b.####
+####..ba...####
+####..ba.######
+####.....######
+###p..lss######
+#####...#######
+####..e########
+###############
+
+(split correct part)
+###############
+###############
+#####..#.s#####
+#####....s#####
+####p....l#####
+#####ss...#####
+#####s..#.w####
+#####ss.#######
+#####~~~#######
+#####~~~#######
+###############
+
+(
+(adapted from older level, currently broken)
+  ###############
+  ###############
+  ###############
+  ###ssss...~~###
+  ###s..s...~~###
+  ###......s~d###
+  ##p.lss..srj###
+  ###r.....fje###
+  ###############
+  ###############
+  ###############
+)
 
 
 (THEME: REORIENT BIG SNAKE IN SMALL SPACE, CLAUSTROPHOBIA)
 
-message > leave behind
+message > leave behind, pt. 2
 
 (find direction so oriented right way)
 ###############
@@ -1999,13 +2017,11 @@ one where possible target lengths per starting length are explored
 ( ##..{{ttw )
 ( ######### )
 
-(SPLIT TO PUSH SELF)
-(splitting possible but not always present, actually...)
 
-(6 len - self pushing)
+(RECONNECT VIA SELF PUSH)
+(COMBINATION OF BOTH SPLITTING METHODS)
 
-(sideways shape, stays entirely connected)
-(no way to use the C and approach the wall)
+(push self to avoid splitting off)
 ###############
 ###############
 ###############
@@ -2018,83 +2034,67 @@ one where possible target lengths per starting length are explored
 ###############
 ###############
 
-(disconnect head)
+(push self or create C, too difficult right now)
+(
 ###############
 ###############
 ###############
-####.ds.~~~####
-####.7s.~.~####
-###p.ls....####
-####....#i#####
-#####...hjw####
-#####...#######
+#####sss....###
+#####s.s.l..###
+#p...l.s.d..###
+#####.......###
+###.....#u#####
+###.....lse####
 ###############
 ###############
+)
 
 message > close
-message Thank you for testing this far! =)
-message WIP section: incomplete
+
+(CAN MESS WITH LEVEL STRUCTURE AT THIS POINT, CONNECTING TO EXITS DIRECTLY)
+(WIP, SINCE STILL LINEAR FOR NOW)
 
 (exit is blocked, connect to it with sliding and then split self to be able to leave)
 ###############
 ###############
-######...######
-#####.ss..#####
-#####.s..h9w###
-#####.ss..#####
+###############
 #####.....#####
-####p.ls..#####
 #####.....#####
+#####..ss.le###
+#####...s.#####
+####p.lss.#####
+###############
 ###############
 ###############
 
 (get extra length into position first, use split to make right shape needed to leave)
 ###############
 ###############
-####...########
-###p.l.ls~~####
-####...##~~w###
-####sss..~~####
-####s....h.####
-####sss....####
-####...########
-###############
-###############
-
-(obstacle course, find where to split)
-###############
-###############
-###############
-####s#....#####
-####s..#~.w####
-####rss##.#####
-###p.9s#...####
-####sss#...####
-###############
-###############
+###p.l#########
+####.s.########
+####.s.l~~~####
+####...#~~~w###
+####ss.#~~~####
+####s......####
+####s......####
+####ss#########
 ###############
 
-(become closed)
-(currently broken, but idea: 
-	close with the left shape using top c, get bottom C out of the way using closed recovery,
-    get top C on the right and use to connect with pipe, but only after setting up extra launcher
-    to allow another recovery as closed snake
-)
-(
-  ###############
-  ###############
-  ###############
-  ###.sss.....###
-  ###.s.s.....###
-  ###......s.d###
-  ###r.....srj###
-  ###a#..s..ie###
-  ##p...ls#######
-  ###############
-  ###############
-)
+(actually move for a while as closed snake and use to navigate small spaces)
+###############
+###############
+###############
+###.....#~~~###
+###.d.ss#~~~w##
+###....s#~~~###
+##p.lr9s#...###
+###...ss....###
+###############
+###############
+###############
 
 message > bounce
+message Thank you for testing this far! =)
 message WIP Section, incomplete and somewhat unsorted!
 
 (new: ball)
@@ -2336,31 +2336,6 @@ message WIP Section, incomplete and somewhat unsorted!
 ( #.s.22..~~# )
 ( ########### )
 
-(connect self with snake that has ball in it)
-###############
-###############
-#####~~~~~#####
-#####....l.w###
-####p.9..s#####
-#####.ss.2#####
-#####.s...#####
-#####.ss..#####
-######....#####
-###############
-###############
-
-(open slider combination lock test)
-( ###p########### )
-( ###t##..sss...# )
-( ###t##..48d...# )
-( ###t###....u..# )
-( ###t#tt....ss.# )
-( ###t#t#.....d.# )
-( #.u777u.......# )
-( #.sssss.......# )
-( ############t## )
-( ############w## )
-
 (opposite flying machines)
 (doesn't always move when it should hmm)
 
@@ -2387,6 +2362,85 @@ message WIP Section, incomplete and somewhat unsorted!
 ( ##...## )
 ( ####### )
 
+(connect self with snake that has ball in it)
+###############
+###############
+#####..s.######
+####p.ls.######
+#####....5e####
+#####.ss..#####
+#####.s...#####
+#####.s...#####
+######ss..#####
+###############
+###############
+
+(variation, needs more time)
+(
+    ###############
+    #####~~~~~e####
+    #####~~~.~~####
+    #####~~~~~~####
+    #####.6....####
+    #####...ss.####
+    #####..s.s.####
+    ####p.ls.s#####
+    #####...ss#####
+    ###############
+    ###############
+)
+
+(old broken combination lock idea)
+(
+    ###############
+    ######..sss...#
+    ######..48d...#
+    #######....u..#
+    ###p#f.....ss.#
+    ###.#.#.....d.#
+    #.u777u.......#
+    #.sssss.......#
+    ############w##
+    ###############
+    ###############
+
+    (weird testing)
+    ###############
+    ###############
+    ######fq#######
+    #p...q.......##
+    ##......fl...##
+    ##..iiirq....##
+    ##..iic9i....##
+    ##..iclfj....##
+    ##..chhj.....##
+    ###############
+    ###############
+
+    ###############
+    ###############
+    ####dssd#######
+    ##~~......~fe##
+    #p~~.l~~..~cq##
+    ##~~~~~~~~~~~##
+    ##~~iucjui...##
+    ##~~iaabbi...##
+    ##~~chhhhj...##
+    ###############
+    ###############
+
+    ###############
+    ###############
+    ##...........##
+    #p.l.........##
+    ##~~~~~~~~~~~##
+    ##~~~~~~~~~~~##
+    ##..auiiua...##
+    ##..a-jc9a...##
+    ##..aaaaaa...##
+    ###############
+    ###############
+)
 
 (WIP Playground)
 message That's all for now!
@@ -2439,4 +2493,23 @@ pt..l..tt##
 ##......u##
 #######.u##
 ###########
+)
+
+(all 4 len split patterns, twice)
+(
+###############
+###############
+####df###qd####
+###cjcl#rjcj###
+###rqfq#fqfl###
+####ju###uc####
+###############
+####ds###rq####
+###scfl#fbad###
+###rjqs#uabj###
+####su###cl####
+###############
+######p.l######
+###############
+###############
 )
