@@ -332,12 +332,15 @@ const textModeLine = true;
 
 function redrawTextMode() {
     ctx.fillStyle = state.bgcolor;
+    const lineColor = j => (state.metadata.author_color && j >= authorLineNos[0] && (j < authorLineNos[1])) ? state.metadata.author_color 
+        : state.metadata.title_color || state.fgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
         for (var i = 0; i < titleWidth; i++) {
             for (var j = 0; j < titleHeight; j++) {
+                ctx.fillStyle = lineColor(j);
                 var ch = titleImage[j].charAt(i);
                 if (ch in font) {
                     var index = fontIndex[ch];
@@ -359,13 +362,13 @@ function redrawTextMode() {
         }
     } else if (textModeLine) {
         for(let j = 0; j < titleHeight; j++) {
-            drawTextWithFont(ctx, titleImage[j], state.fgcolor, 
+            drawTextWithFont(ctx, titleImage[j], lineColor(j), 
                 xoffset + (titleWidth/2+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
         }
     } else {
         for (var i = 0; i < titleWidth; i++) {
             for(let j = 0; j < titleHeight; j++) {
-                drawTextWithFont(ctx, titleImage[j].slice(i, i+1), state.fgcolor, 
+                drawTextWithFont(ctx, titleImage[j].slice(i, i+1), lineColor(j), 
                     xoffset + (i+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
             }
         }

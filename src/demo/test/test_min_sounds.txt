@@ -38,8 +38,8 @@ player move up 85101706
 player cantmove up 56601502
 player action 89294300
 
-r move 89294300
-r cantmove 56601502
+r move 89294300:0.1
+r cantmove 56601502:5.5
 y destroy 45101706
 y create 55101706
 m lclick 11111106

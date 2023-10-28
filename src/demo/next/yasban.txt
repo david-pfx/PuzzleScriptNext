@@ -74,8 +74,6 @@ Crate C; Yellow DarkBrown
 Background .; LightGrey
 Void -; Blue
 Temp; transparent
-Hello H; blue yellow
-text: Hello world!
 
 =======
 LEGEND
@@ -101,9 +99,7 @@ Background
 --
 Void
 Target
-Wall, Crate
-Hello
-Player
+Wall, Crate, Player
 Temp
 
 ======

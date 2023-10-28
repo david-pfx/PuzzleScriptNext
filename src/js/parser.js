@@ -173,7 +173,6 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['tags', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b/i;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
@@ -1024,15 +1023,10 @@ var codeMirrorFn = function() {
         function parseSoundSeedsTail() {
             const tsounds = [];
             let token = null;
-            while (token = lexer.match(reg_soundseed, true)) {
+            while (token = lexer.match(/^(\d+(:[\d.]+)?|afx:[\w:=+-.]+)\b/i, true)) {
                 lexer.pushToken(token, 'SOUND');
                 tsounds.push(token);
                 lexer.checkComment();
-
-                if (token = lexer.match(/^:\d+/)) {
-                    logWarning(`Sound volume not yet implemented.`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
-                }
             }
             if (token = lexer.matchNotComment()) {
                 logError(`I wasn't expecting anything after the sound declaration ${peek(tsounds)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);

@@ -29,7 +29,6 @@ status_line
 verbose_logging
 
 //--- param single
-background_color darkblue
 color_palette amstrad
 //flickscreen 9x9
 level_select_solve_symbol ✓
@@ -43,9 +42,14 @@ mouse_rup m
 //puzzlescript_next_version
 sitelock_origin_whitelist asdf
 sitelock_hostname_whitelist asdf
-text_color #def
 tween_easing easeInQuad
 //zoomscreen 9x9
+
+// colours
+author_color red
+text_color #ff0
+background_color darkblue
+title_color #00ff00
 
 //--- param number
 again_interval 0.5
