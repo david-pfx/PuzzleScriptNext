@@ -2635,6 +2635,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 
     var result=false;
 	var anyellipses=false;
+	const cellIndexes = []; //@@
 
     //APPLY THE RULE
     for (var cellRowIndex=0;cellRowIndex<rule.patterns.length;cellRowIndex++) {
@@ -2654,6 +2655,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
             }
 
             result = preCell.replace(rule, currentIndex) || result;
+			cellIndexes.push(currentIndex);  //@@
 
             currentIndex += delta;
         }
@@ -2666,7 +2668,10 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
     }
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
-		var gapMessage="";
+		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
+		var gapMessage= (debugLevel.includes('gaploc')) ? ` at ${locations}` : '';
+
+		//var gapMessage="";
 		// var gapcount=0;
 		// if (anyellipses){
 		// 	var added=0;
@@ -2959,12 +2964,13 @@ function applyRuleGroup(ruleGroup) {
 }
 
 function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGroup){
+	//console.log(`Apply rules rules:${rules.length} objects:${level.objects}`);
 	perfCounters.tries++;
     //for each rule
     //try to match it
 
     playerPositions = getPlayerPositions();
-
+	
 	// stack of rule group index to return to at end of subroutine
 	const gosubStack = []; // PS>
 
@@ -3151,6 +3157,7 @@ var perfCounters = {};
 
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak,coord) {
+	//console.log(`Process input (${dir},${dontDoWin},${dontModify},${bak},${coord}) cmds=${level.commandQueue}`)
 	perfCounters = {
 		start: Date.now(),
 		rules: 0,
@@ -3180,9 +3187,10 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		bak = backupLevel();
 	}
   
+	// this looks dodgy, but playerPositions is not used and dir test always succeeds
   	playerPositions= [];
 	playerPositionsAtTurnStart = getPlayerPositions();
-
+	
 	if (dir < dirNames.length) {
 
 		if (verbose_logging) { 
@@ -3199,7 +3207,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			const mask = level.getCell(coord);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
-		
+
 		if (verbose_logging) { 
 			consolePrint('Applying rules');
 
@@ -3249,8 +3257,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
 
 			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
-        	var shouldUndo = resolveMovements(level, bannedGroup);
-
+			var shouldUndo = resolveMovements(level, bannedGroup);
+			
         	if (shouldUndo) {
         		rigidloop=true;
 
@@ -3421,10 +3429,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			return true;
 		}
 
-	    if (dontModify && level.commandQueue.indexOf('win')>=0) {
-	    	return true;
-		}
-		
 		var save_backup = true;
 		if(!winning && level.commandQueue.indexOf('nosave')>=0) {
 			if (verbose_logging) { 

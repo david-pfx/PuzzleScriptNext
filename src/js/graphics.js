@@ -522,7 +522,8 @@ function redrawCellGrid() {
     isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
     const render = new RenderOrder(minMaxIJ);
-    setClip(render);
+    if (!levelEditorOpened)
+        setClip(render);
     if (tweening) 
         drawObjectsTweening(render.getIter());
     else drawObjects(render);
