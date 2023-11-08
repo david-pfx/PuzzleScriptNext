@@ -15,6 +15,27 @@ var relativeDict = {
     'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
 };
 
+const directionaggregates = {
+    'horizontal': ['left', 'right'],
+    'horizontal_par': ['left', 'right'],
+    'horizontal_perp': ['left', 'right'],
+    'vertical': ['up', 'down'],
+    'vertical_par': ['up', 'down'],
+    'vertical_perp': ['up', 'down'],
+    'moving': ['up', 'down', 'left', 'right', 'action'], // todo: reaction
+    'orthogonal': ['up', 'down', 'left', 'right'],
+    'perpendicular': ['^', 'v'],
+    'parallel': ['<', '>']
+};
+
+//function expandDirections(dir) {
+    // if (simpleAbsoluteDirections.includes(dir)) return [dir];
+    // if (relativeDirs.includes(dir)) {
+    //     const exp = relativeDict['right'][relativeDirs.indexOf(dir)];
+    //     return (exp in directionaggregates) ? directionaggregates[exp] : [ exp ];
+    // }
+//}
+
 // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
 // const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
@@ -28,70 +49,92 @@ function cartesianProduct(...arrays) {
 
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
-    constructor(state, parts) {
-        [ this.stem, ...this.tail ] = parts;
+    constructor(state, ident, delim = ':') {
+        this.ident = ident;
+        this.delim = delim;
+        [ this.stem, ...this.tail ] = ident.split(delim);
         this.tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
-        this.values = this.tags.map(t => state.tags[t]);
-        this.expansion = cartesianProduct(...this.values);
+        this.tagvalues = this.tags.map(t => state.tags[t]);
+        this.tagexpansion = cartesianProduct(...this.tagvalues);
+        this.dirs = this.tail.filter(p => [ ...simpleAbsoluteDirections, ...relativeDirections ].includes(p));
+        this.dirvalues = this.dirs.map(d => simpleAbsoluteDirections.includes(d) ? [ d ] : simpleAbsoluteDirections);
     }
 
     get rawTags() {
-        return this.tags;
+        return this.tags; // ? and dirs
     }
     get expandedTags() {
-        return this.expansion;
+        return this.tagexpansion;
     }
 
-    getExpandedKey(exp, delim = ':') {
+    getExpandTagsDirs() {
+        const exp = cartesianProduct(...this.tagvalues, ...this.dirvalues);
+        if (exp.length == 0)
+            return [ this.ident ];
+        const newtails = exp.map(e =>
+                this.tail.map(p => 
+                    this.tags.includes(p) ? e[this.tags.indexOf(p)] :
+                    this.dirs.includes(p) ? e.at(-1) : p));
+        return newtails.map(t => [ this.stem, ...t ].join(this.delim));
+    }
+    // return joined key with substitutions
+    getTagExpandedIdent(exp) {
         return [ this.stem, ...this.tail.map(p => 
             this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
-            .join(delim);
+            .join(this.delim);
     }
-
-    getExpandedAlt(exp, parts, delim = ':') {
-        const [ stem, ...tail ] = parts;
+    // return alternate join key with substitutions
+    getTagExpandedAlt(exp, ident) {
+        const [ stem, ...tail ] = ident.split(':');
         return (tail.length == 0) ? stem
             : [ stem, ...tail.map(p => 
                 this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
-                .join(delim);
+                .join(this.delim);
     }
-
-    getExpandedItem(exp, ident) {
+    // return ident with substitution if available
+    getTagSubstitutedIdent(exp, ident) {
         return this.tags.includes(ident) ? exp[this.tags.indexOf(ident)] : ident;
     }
 
     // return array of base idents, one for each expansion
-    getExpansion(delim = ':') {
-        return this.expansion.map(e => 
+    getTagExpandedIdents() {
+        return this.tagexpansion.map(e => 
             [ this.stem, this.tail.map(p => 
                 this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
-            ].join(delim));
+            ].join(this.delim));
     }
 
     // return array of (possibly expanded) idents, one for each expansion
-    getExpanded(parts, delim = ':') {
-        const [ stem, ...tail ] = parts;
-        return this.expansion.map(e =>
+    getTagExpandedAltIdents(ident) {
+        const [ stem, ...tail ] = ident.split(':');
+        return this.tagexpansion.map(e =>
             (tail.length == 0) ? stem
             : [ stem, ...tail.map(p => 
                 this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
-            ].join(delim) );
+            ].join(this.delim) );
     }
 }
 
+// expand an ident seen when parsing a rule into the things it might be
+function expandIdentTags(state, ident) {
+    const expander = new TagExpander(state, ident);
+    //if (expander.rawTags.length == 0) return [ ident ];
+    return expander.getExpandTagsDirs();
+}
+
 // expand sprites with tags into new objects, replace object by property
-function expandSpriteTags(state, objkey, objvalue) {
-    const expander = new TagExpander(state, objkey.split(':'));
+function expandObjectTags(state, objkey, objvalue) {
+    const expander = new TagExpander(state, objkey);
     if (expander.rawTags.length == 0) return;
-    const newobjects = Object.fromEntries(expander.expandedTags.map(exp => {
-        const newkey = expander.getExpandedKey(exp);
+    const newobjects = expander.expandedTags.map(exp => {
+        const newkey = expander.getTagExpandedIdent(exp);
         const newvalue = {
             lineNumber: objvalue.lineNumber,
             colors: [ ...objvalue.colors ],
             spritematrix: [],
         };
         if (objvalue.cloneSprite) {
-            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite.split(':'));
+            const altspriteid = expander.getTagExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
                 newvalue.cloneSprite = altspriteid;
             else logError(`Source ${altspriteid} for sprite clone not found.`);
@@ -102,26 +145,25 @@ function expandSpriteTags(state, objkey, objvalue) {
             newvalue.transforms = objvalue.transforms.map(m => {
                 const modi = [ ... m ];
                 const op = modi.shift();
-                const newm = [ expander.getExpandedItem(exp, modi.shift()) ];
+                const newm = [ expander.getTagSubstitutedIdent(exp, modi.shift()) ];
                 if (op == 'rot' && modi.length > 0)
-                    newm.push(expander.getExpandedItem(exp, modi.shift()));
+                    newm.push(expander.getTagSubstitutedIdent(exp, modi.shift()));
                 return [ op, ...newm, ...modi ];
             })
         }
         return [newkey, newvalue];
-    }));
+    });
     
     if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
-    return newobjects;
+    return Object.fromEntries(newobjects);
 }
 
 // create new legend properties when objects contain tags
-function expandObjectTags(state, ident) {
+function createObjectTagsAsProps(state, ident) {
     const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
 
     const tags = ident.split(':').filter(p => Object.hasOwn(state.tags, p));
-    //const tags = ident.split(':').filter(p => p in state.tags);
-    if (tags.length >= 2) {
+    if (tags.length >= 2) {     // ? does this cover all the bases?
         state.tags[tags[0]].forEach(v => {
             const newident = fnRep(ident, tags[0], v);
             const newvalues = state.tags[tags[1]].map(v => fnRep(newident, tags[1], v));
@@ -175,14 +217,6 @@ function generateSpriteMatrix(state) {
         }
     }
     if (debugLevel.includes('obj')) console.log('Objects', state.objects);
-}
-
-// PS> an object with tag/dir parts is valid if every tag/dir exists (combos come later)
-function checkTaggedObject(state, ident) {
-    const parts = ident.split(':');
-    if (parts.length == 1) return false;
-    if (parts.slice(1).every(p => Object.hasOwn(state.tags, p) || relativeDirections.includes(p))) return true;
-    return false;
 }
 
 // PS> check whether a name has been used and is not available
@@ -847,19 +881,6 @@ function fixUpGosubs(state) { // PS>
     }
 }
 
-var directionaggregates = {
-    'horizontal': ['left', 'right'],
-    'horizontal_par': ['left', 'right'],
-    'horizontal_perp': ['left', 'right'],
-    'vertical': ['up', 'down'],
-    'vertical_par': ['up', 'down'],
-    'vertical_perp': ['up', 'down'],
-    'moving': ['up', 'down', 'left', 'right', 'action'], // todo: reaction
-    'orthogonal': ['up', 'down', 'left', 'right'],
-    'perpendicular': ['^', 'v'],
-    'parallel': ['<', '>']
-};
-
 // return true if this is a directional rule
 function directionalRule(rule) {
     for (const row of [ ...rule.lhs, ...rule.rhs ]) {
@@ -1231,7 +1252,7 @@ function rulesToArray(state) {
         convertRelativeDirsToAbsolute(state, rule);
     rules = expandRulesWithMultiDirectionObjects(state, rules);
     for (const rule of rules) {
-        rewriteUpLeftRules(rule);
+        if (!debugLevel.includes('noulrule')) rewriteUpLeftRules(rule);
         atomizeAggregates(state, rule);
         rephraseSynonyms(state, rule);
     }

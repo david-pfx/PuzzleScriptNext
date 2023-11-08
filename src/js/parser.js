@@ -928,7 +928,7 @@ var codeMirrorFn = function() {
         const candname = state.objects_candname;
         if (!candname || !hasParts(candname)) return;
         const obj = state.objects[candname];
-        const newobjects = expandSpriteTags(state, candname, obj);
+        const newobjects = expandObjectTags(state, candname, obj);
         if (newobjects) {
             delete state.objects[candname];
             state.objects_candname = '';
@@ -937,7 +937,7 @@ var codeMirrorFn = function() {
             //const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = state.lineNumber;  // bug:
             state.legend_properties.push(newlegend);
-            expandObjectTags(state, candname);
+            createObjectTagsAsProps(state, candname);
         }
     }
 
@@ -1717,7 +1717,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectname) && checkTaggedObject(state, m)) {
+                                } else if (m.match(reg_objectname) && expandIdentTags(state, m).every(i => state.names.includes(i))) {
                                     return 'NAME';
                                 }
                                 
