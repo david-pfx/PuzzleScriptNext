@@ -1484,7 +1484,7 @@ endloop
 
 (Vertical)
 startloop
-  +[> a] [stationary a] -> [> a] [> a]
+  [> a] [stationary a] -> [> a] [> a]
   +[> b] [stationary b] -> [> b] [> b]
   +[> c] [stationary c] -> [> c] [> c]
   +[> d] [stationary d] -> [> d] [> d]

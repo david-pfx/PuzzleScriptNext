@@ -60,8 +60,17 @@ transparent (white
 ...0.
 )
 
+crateshadowtop
+#2DB34E #66CC52 #567353 (#66CC52)(#394239 #567353 )
+.....
+.....
+.....
+....0
+...01
+
 ziehend_nördlich
 pink
+
 =======
 LEGEND
 =======
@@ -88,6 +97,7 @@ Target
 Player, Wall, Crate
 ziehend_nördlich
 StopPlay 
+crateshadowtop
 
 ======
 RULES

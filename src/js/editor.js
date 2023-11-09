@@ -106,7 +106,7 @@ var editor = window.CodeMirror.fromTextArea(code, {
 	
 editor.on('mousedown', function(cm, event) {
   if (event.target.className == 'cm-SOUND') {
-    var seed = parseInt(event.target.innerHTML);
+    const seed = event.target.innerHTML;
     playSeed(seed,true);
   } else if (event.target.className == 'cm-LEVEL') {
     if (event.ctrlKey||event.metaKey) {
@@ -260,6 +260,9 @@ function dropdownChange() {
  		this.selectedIndex = 0;
  		return;
  	}
+
+	document.activeElement.blur();  // unfocus dropdown
+	editor.display.input.blur();
 
 	tryLoadFile(`demo/${this.value}.txt`);
 	this.selectedIndex=0;

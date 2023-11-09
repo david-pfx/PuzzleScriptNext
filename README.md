@@ -7,13 +7,23 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23i20, which includes object direction suffixes and the `once` keyword, as well as:
-* New games to demonstrate text sprites, animation, GOSUB, direction suffix and `once`
-* The STATUS line is reset where needed
-* Key repeat interval default 200 (from 150) to reduce key bounce
-* Performance counters to gather timing statistics (`set debugLevel='perf'``).
+The latest version is Release v-23k10, which includes TAGS and other Pattern:Script compatible features.
+The following features are implemented.
 
-It includes the following features.
+* The prelude section: `author_color` and `title_color`.
+* The `TAGS` section: compile-time symbols that are expanded in objects, legend symbols, collision layers and rules.
+* The `OBJECTS` section: `copy:`, `translate:`, `shift:` and `rot:`.
+* Objects can be any size, and are aligned with the bottom left corner of the cell defined by `sprite_size`.
+* The `COLLISIONLAYERS` section: layer groups, delimited by `--`, `--^>` or similar.
+* The `SOUNDS` section: volume in the form `sfx1 88453607:11`.
+* The `RULES` section: tags as rule prefixes `dir [> p:dir] -> [> p:dir]` and relative direction parts `[> p:^] -> [v p:>]`.
+
+Documentation is here: https://github.com/ClementSparrow/Pattern-Script/wiki. 
+Note that `mappings` are not yet implemented.
+
+In addition:
+* In-place sprite scaling is useful for text sprites, but is otherwise deprecated.
+* The sample games provided have been updated to the new conventions.
 
 ### The `once` keyword
 
@@ -38,25 +48,6 @@ down  once [ cell count | doubley ] -> [ cell count2 | doubley ]
 left  once [ cell count | doublex ] -> [ cell count2 | doublex ]
 right once [ cell count | doublex ] -> [ cell count2 | doublex ]
 ```
-
-### Object direction suffix
-
-The intent of this feature is for an object to have 4 variants, one for each direction, and choose one depending on the direction of the rule that matches.
-A new game Black_box shows how it is used.
-
-The object rule suffix is a colon and a relative direction.
-The code looks like this (from Black_box).
-```
-[ ps ][ PP:^ | target ]       -> [ nr ][ | target ]
-[ ps ][ PP:v | target ]       -> [ nr ][ | target ]
-[ ps | PP:> | target ]        -> [ nh | | target ]
-[ ps | PP:> | x no target ]   -> [ ps | pq | x PP:> ]
-```
-
-The first rule is expanded as usual into one for each direction.
-For the rules where the direction is `right` the object `PP:^` is translated as `PPup`.
-For the direction `down` the object `PP:>` is translated as `PPdown`, and so on.
-You can easily see the expansions by switching on `verbose_logging`.
 
 ### GOSUB and SUBROUTINE
 
@@ -152,70 +143,6 @@ custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENV
 ```
 Note that text pages like the title screen and message text are displayed as full lines of text.
 This means that there will be a variation in character widths, and even in a Monospace font wide characters like `大 ⚐` will display at full width.
-### TEXT objects now use the custom font, or Monospace fallback
-This change greatly improves the visual appearance and usability of TEXT sprites.
-Use it like this:
-```
-OBJECTS
-number7
-red
-TEXT 7
-```
-
-### New STATUS_LINE setting and STATUS command
-This prelude setting reserves some space at the bottom of the screen for displaying a status line.
-
-Use it like this.
-See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_prelude) for a small example.
-
-```
-status_line
-RULES
-[ right p ] -> status You just moved the player to the right!
-
-```
-### Level editor supports zoomscreen etc
-
-Some PuzzleScript games create very large levels and divide them into 'rooms' or 'caves' using `zoomscreen`. 
-A similar approach for a large open area is to use `flickscreen`.
-Editing as one large area is hard.
-The level editor now respects `zoomscreen` and `flickscreen`, allowing editing of individual 'rooms'.
-
-### Major rework of test suite
-
-The test suite now includes far more programs and provides greater detail about test results.
-A test suite program can now be opened directly in the editor.
-The version of QUnit has been updated to the latest.
-
-### Sprites can be of any size or width
-
-Sprites can be defined as a grid of anything from 2x2 to 50x50 or even more! 
-They do not need to be square, but they must be rectangular (that is, all rows in the grid the same length).
-
-There are two options. 
-* If sprite_size is __not__ specified, sprites are scaled to the cell size and non-square sprites are centred horizontally and vertically.
-That is, all sprites are sized to fit in and fill a cell.
-* If sprite_size __is__ specified, sprites are scaled so that a sprite of that size fills a cell. 
-Smaller sprites are smaller and larger sprites are larger, and will overlap adjacent cells.
-
-The test program is [`test_min_spritesize`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_spritesize).
-Use it like this. 
-```
-sprite_size 8
-
-stripe;black red blue green yellow white orange purple
-01234567
-70123456
-```
-
-### Run button
-The console toolbar now has a 'run' button.
-The point is to make it easy to to use the mouse to clear the console and then click on run.
-
-### Show single layer
- The editor has a new button to show a single layer of a running game.
- The PgUp and PgDn keys move through the layers.
- This is a work in progress.
 
 ### Comment styles
 Like this:
@@ -267,23 +194,10 @@ s; purple; text S
 t; orange; text t
 3; pink; text: 3
 4; pink; text: 4
+number8 scale: 0.5; green; text 8
 ```
 The text is centred to fit in the cell. 
-Unfortunately the built in font is only 7x12, which is not visually attractive.
-A future release may offer a better font.
-
-### Move corresponding using property objects
-
-Property objects work as maps, to move objects in corresponding positions within the definition.
-There must be at least one on each side and all must be the same size.
-
-Use it like this. The test program is [`test_min_move_corr`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_move_corr).
-```
-rgb = r or g or b
-gbr = g or b or r
-
-[ > p | rgb ] -> [ p | gbr ]
-```
+Text objects use the custom font, or Monospace fallback, rather than the built-in font.
 
 ### Load a program from a local server
 
@@ -293,4 +207,38 @@ Start the editor with a URL like this:
 ```
 
 Due to a security restriction called CORS, this URL has to be on the local server.
+
+### STATUS_LINE setting and STATUS command
+This prelude setting reserves some space at the bottom of the screen for displaying a status line.
+
+Use it like this.
+See [`test_min_prelude`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=test/test_min_prelude) for a small example.
+
+```
+status_line
+RULES
+[ right p ] -> status You just moved the player to the right!
+
+```
+### Level editor supports zoomscreen etc
+
+Some PuzzleScript games create very large levels and divide them into 'rooms' or 'caves' using `zoomscreen`. 
+A similar approach for a large open area is to use `flickscreen`.
+Editing as one large area is hard.
+The level editor now respects `zoomscreen` and `flickscreen`, allowing editing of individual 'rooms'.
+
+### Major rework of test suite
+
+The test suite now includes far more programs and provides greater detail about test results.
+A test suite program can now be opened directly in the editor.
+The version of QUnit has been updated to the latest.
+
+### Run button
+The console toolbar now has a 'run' button.
+The point is to make it easy to to use the mouse to clear the console and then click on run.
+
+### Show single layer
+ The editor has a new button to show a single layer of a running game.
+ The PgUp and PgDn keys move through the layers.
+ This is a work in progress.
 

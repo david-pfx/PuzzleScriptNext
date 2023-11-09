@@ -1,0 +1,2515 @@
+
+title Tube Transport (WIP)
+author noa =)
+run_rules_on_level_start
+again_interval 0.08
+
+sprite_size 16x16
+background_color #a65542
+text_color #f5ad73
+author_color #f5ad73
+title_color #ffffff
+
+( flickscreen 16x12 )
+=====
+TAGS
+=====
+
+dirs = up down left right
+offs = up down left right
+hor = left right
+ver = up down
+
+( notUp = left down right )
+( notLeft = up down right )
+( notDown = up left right )
+( notRight = up left down )
+
+( MAPPINGS )
+
+( dirs => otherdirs )
+( up down left right -> notUp notLeft notDown notRight )
+========
+OBJECTS
+========
+
+(BASIC OBJECTS)
+
+player
+transparent
+
+background .
+#ffffff
+
+
+(STATIC OBJECTS)
+
+meta_exit 
+transparent
+
+spawnpoint
+transparent
+
+vs_meta_pipe:dirs
+#036965 #111018
+................
+................
+................
+.....000000.....
+....00000000....
+...0001111000...
+...0011111100...
+...0011111100...
+...0011111100...
+...0011111100...
+....00111100....
+.....000000.....
+................
+................
+................
+................
+rot:up:dirs
+
+vs_meta_pipe:dirs:offs
+#036965 #111018
+copy: vs_meta_pipe:dirs translate:offs:2
+
+vs_meta_pipe_closed:dirs
+#036965 #036965
+copy: vs_meta_pipe:dirs
+
+vs_meta_pipe_closed:dirs:offs
+#036965 #036965
+copy: vs_meta_pipe:dirs translate:offs:2
+
+floor
+#036965
+..000000000000000000..
+.00000000000000000000.
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+0000000000000000000000
+.00000000000000000000.
+..000000000000000000..
+translate:down:3
+translate:left:3
+
+checker
+#067872
+000000....000000
+0000000..0000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+.00000000000000.
+..000000000000..
+..000000000000..
+.00000000000000.
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000..0000000
+000000....000000
+
+wall
+#111018 #c75c2a #f5ad73
+...00000..00000...
+..00000011000000..
+.0002222222222000.
+000222222222222000
+002222222222222200
+002222111111222200
+002221111111122200
+002221111111122200
+.1222111111112221.
+.1222111111112221.
+002221111111122200
+002221111111122200
+002222111111222200
+002222222222222200
+000222222222222000
+.0002222222222000.
+..00000011000000..
+...00000..00000...
+translate:down:1
+translate:left:1 
+
+vs_wall_con:dirs
+#c75c2a
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+rot:up:dirs
+
+vs_wall_inner:dirs
+#f5ad73
+................
+...0000000000...
+...0000000000...
+...0000000000...
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+rot:up:dirs
+
+vs_wall_inner_deco:dirs
+#f5ad73
+................
+...0000000000...
+...0000000000...
+...0000000000...
+....00000000....
+.....000000.....
+.....00..00.....
+.....00..00.....
+.....00..00.....
+.....000000.....
+......0000......
+................
+................
+................
+................
+................
+rot:up:dirs
+
+vs_wall_inner_corner:dirs
+#f5ad73 #111018
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+......................
+....................00
+...................000
+..................0000
+.................00001
+................000011
+...............0000111
+...............000111.
+translate:down:3
+translate:left:3
+rot:up:dirs
+
+vs_wall_edge:dirs
+#111018
+....0000000000....
+....0000000000....
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+vs_wall_edge_1:dirs
+#f5ad73 #111018
+.111..............
+.111..............
+.000..............
+.000..............
+.000..............
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+vs_wall_edge_2:dirs
+#f5ad73 #111018
+..............111.
+..............111.
+..............000.
+..............000.
+..............000.
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+vs_outside
+#a65542
+
+vs_outside_pattern:dirs
+#a65542
+.......000000000
+......0000000000
+.....000........
+....000.........
+...000...0000000
+..000...00000000
+.000...000......
+000...000.......
+00...000...00000
+00..000...000000
+00..00...0000000
+00..00..00000000
+00..00..00000000
+00..00..00000000
+00..00..00000000
+00..00..00000000
+rot:up:dirs
+
+vs_hole_edge:dirs
+#111018
+..000000..000000..
+..000000..000000..
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+hole ~
+#111018
+
+
+(MOVING OBJECTS)
+
+snake
+transparent
+
+con:dirs
+#036965
+.......00.......
+.......00.......
+.......00.......
+.......00.......
+.......00.......
+.......00.......
+.......00.......
+.......00.......
+................
+................
+................
+................
+................
+................
+................
+................
+rot:up:dirs
+
+con:dirs:offs
+#036965
+copy: con:dirs translate:offs:2
+
+vs_snake_edge:dirs
+#111018
+........00........
+........00........
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+vs_snake_edge:dirs:offs
+#111018
+copy: vs_snake_edge:dirs translate:offs:2
+
+vs_snake_opening:dirs
+#111018
+.0000000..0000000.
+.0000000000000000.
+.......0000.......
+........00........
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+vs_snake_opening:dirs:offs
+#111018
+copy: vs_snake_opening:dirs translate:offs:2
+
+cut:dirs
+#036965
+copy: con:dirs
+
+cut:dirs:offs
+#036965
+copy: cut:dirs translate:offs:2
+
+vs_any_under:dirs
+#111018
+..................
+000000000000000000
+000000000000000000
+000000000000000000
+000000000000000000
+000000000000000000
+000000000000000000
+.0000000000000000.
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+..................
+rot:up:dirs
+translate:down:1
+translate:left:1
+
+vs_any_under:dirs:offs
+#111018
+copy: vs_any_under:dirs translate:offs:2
+
+vs_snake_under
+#111018 #6cd9b5
+...00000..00000...
+..00000011000000..
+.0001111111111000.
+000111111111111000
+001111111111111100
+001111111111111100
+001111111111111100
+001111111111111100
+.1111111111111111.
+.1111111111111111.
+001111111111111100
+001111111111111100
+001111111111111100
+001111111111111100
+000111111111111000
+.0001111111111000.
+..00000011000000..
+...00000..00000...
+translate:down:1
+translate:left:1
+
+vs_snake_under:offs
+#111018 #6cd9b5
+copy: vs_snake_under translate:offs:2
+
+vs_active_under
+#111018 #6cd9b5
+copy: vs_snake_under
+
+vs_active_under:offs
+#111018 #6cd9b5
+copy: vs_snake_under translate:offs:2
+
+vs_con:dirs
+#6cd9b5
+.000000..000000.
+.000000..000000.
+.000000..000000.
+.000000..000000.
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+rot:up:dirs
+
+vs_con:dirs:offs
+#6cd9b5
+copy: vs_con:dirs translate:offs:2
+
+vs_con_active:dirs
+#6cd9b5
+copy: vs_con:dirs
+
+vs_con_active:dirs:offs
+#6cd9b5
+copy: vs_con:dirs translate:offs:2
+
+vs_player:dirs
+#111018 #ffffff
+................
+................
+................
+.....000000.....
+....00000000....
+...0001111000...
+...0011001100...
+...0011001100...
+...0011001100...
+...0011111100...
+...0001111000...
+....00000000....
+.....000000.....
+................
+................
+................
+rot:up:dirs
+
+vs_player:dirs:offs
+#111018 #ffffff
+copy: vs_player:dirs translate:offs:2
+
+brokenplayer:dirs
+#111018 #ffffff
+.......000000.......
+......00000000......
+......00111100......
+......00011000......
+.......000000.......
+........0000........
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+....................
+rot:up:dirs
+translate:down:2
+translate:left:2
+
+brokenplayer:dirs:offs
+#111018 #ffffff
+copy: brokenplayer:dirs translate:offs:2
+
+ball
+#111018 #f5ad73
+................
+................
+................
+................
+.....000000.....
+....00000000....
+....00111100....
+....00111100....
+....00111100....
+....00111100....
+....00000000....
+.....000000.....
+................
+................
+................
+................
+
+ball:offs
+#111018 #f5ad73
+copy: ball translate:offs:2
+
+brokenball:dirs
+#111018 #f5ad73
+copy: brokenplayer:dirs
+
+brokenball:dirs:offs
+#111018 #f5ad73
+copy: brokenball:dirs translate:offs:2
+
+
+(markers)
+again_col
+transparent
+
+again_gravity
+transparent
+
+again_exit
+transparent
+
+again_spawn
+transparent
+
+again_fly:dirs
+transparent
+
+
+init
+transparent
+
+init_conAnotB
+transparent
+
+init_conBnotA
+transparent
+
+init_noMoreCon
+transparent
+
+
+playerFacing:dirs
+transparent
+
+push:dirs
+transparent
+
+col_effect:dirs
+transparent
+
+supported
+transparent
+
+any:dirs
+transparent
+
+move:dirs
+#FF6000
+................
+.......00.......
+......0000......
+.....000000.....
+....000..000....
+...000....000...
+................
+................
+................
+................
+................
+................
+................
+................
+................
+................
+rot:up:dirs
+
+wasMoved:dirs
+transparent #0080FF
+copy: move:dirs
+
+turnMove:dirs
+#FF9000
+................
+................
+................
+................
+.......00.......
+......0000......
+.....000000.....
+................
+................
+................
+................
+................
+................
+................
+................
+................
+rot:up:dirs
+
+wasTurnMoved:dirs
+transparent #00B0FF
+copy: turnMove:dirs
+
+correctConnectDir:dirs
+transparent
+
+follow:dirs
+transparent
+
+hasToSplit
+transparent
+
+wantsToFlyTo:dirs
+transparent
+
+init_notOutside:dirs
+transparent
+=======
+LEGEND
+=======
+
+# = wall and vs_outside
+s = snake
+
+p = player and snake and init and spawnpoint
+* = player and snake and init and cut:right
+w = snake and meta_exit
+
+e = snake and meta_exit and cut:left
+
+u = snake and cut:up
+d = snake and cut:down
+l = snake and cut:left
+r = snake and cut:right
+
+h = snake and init_noMoreCon and cut:left and cut:right
+i = snake and init_noMoreCon and cut:up and cut:down
+
+c = snake and init_noMoreCon and cut:right and cut:up
+f = snake and init_noMoreCon and cut:right and cut:down
+q = snake and init_noMoreCon and cut:left and cut:down
+j = snake and init_noMoreCon and cut:left and cut:up
+
+a = snake and init_conAnotB
+b = snake and init_conBnotA
+
+2 = snake and ball
+3 = snake and ball and cut:up
+4 = snake and ball and cut:down
+5 = snake and ball and cut:left
+6 = snake and ball and cut:right
+
+7 = snake and init_noMoreCon and cut:up
+8 = snake and init_noMoreCon and cut:down
+9 = snake and init_noMoreCon and cut:left
+- = snake and init_noMoreCon and cut:right
+
+$ = snake and ball and init_noMoreCon and cut:up
+
+it_collides = wall or snake
+it_canFly = player or ball
+init_connectRules = init_conAnotB or init_conBnotA
+
+(these items get removed with the snake over holes)
+(ball and player fall depending on if they are stationary, which is done via rules)
+it_canFall = any:dirs or brokenplayer:dirs or brokenball:dirs or con:dirs or cut:dirs or meta_exit or spawnpoint
+
+it_movesOnSnake = snake or con:dirs or cut:dirs or ball or brokenplayer:dirs or brokenball:dirs or player or again_fly:dirs or meta_exit or spawnpoint
+
+tempVisualObjects = vs_any_under:dirs or vs_snake_under or vs_player:dirs or vs_any_under:dirs:offs or vs_snake_under:offs or vs_player:dirs:offs or vs_snake_opening:dirs or vs_snake_opening:dirs:offs or vs_snake_edge:dirs or vs_snake_edge:dirs:offs or vs_con:dirs or vs_con:dirs:offs or vs_active_under or vs_active_under:offs or vs_con_active:dirs or vs_con_active:dirs:offs or vs_meta_pipe:dirs or vs_meta_pipe:dirs:offs or vs_meta_pipe_closed:dirs or vs_meta_pipe_closed:dirs:offs
+
+any_move = move:dirs or turnMove:dirs
+=======
+SOUNDS
+=======
+
+sfx1 88453607:11 (splitting)
+sfx2 70320807:13 (block collision)
+sfx3 10671307:10 (pushing) 
+sfx4 5902408:10  (filling hole, falling in exit)
+sfx5 22278107:10 (connecting)
+sfx6 33719604:8  (destroy item)
+sfx7 17689803:10 (bounce item)
+sfx8 65801209:10 (appearing from spawn)
+sfx9 37864003:5  (win, UNUSED)
+================
+COLLISIONLAYERS
+================
+
+background
+
+--
+
+hole
+--
+floor
+--
+checker
+--
+dirs -> vs_hole_edge:dirs
+
+--
+
+wall
+--
+dirs -> vs_wall_con:dirs
+--
+dirs -> vs_wall_inner:dirs
+vs_wall_inner_deco:dirs
+--
+dirs -> vs_wall_edge:dirs
+--
+dirs -> vs_wall_edge_1:dirs
+dirs -> vs_wall_edge_2:dirs
+--
+dirs -> vs_wall_inner_corner:dirs
+--
+vs_outside, vs_outside_pattern:dirs 
+
+--
+
+(SNAKE: STATIONARY)
+dirs -> vs_any_under:dirs
+--
+vs_snake_under, vs_active_under
+--
+dirs -> vs_con:dirs, vs_con_active:dirs
+--
+dirs -> con:dirs
+dirs -> cut:dirs
+--
+dirs -> vs_snake_opening:dirs
+--
+dirs -> vs_snake_edge:dirs
+--
+vs_meta_pipe:dirs, vs_meta_pipe_closed:dirs
+
+--
+
+(SNAKE: ANIMATED)
+dirs -> vs_any_under:dirs:offs
+--
+vs_snake_under:offs, vs_active_under:offs
+--
+dirs -> vs_con:dirs:offs, vs_con_active:dirs:offs
+--
+dirs -> con:dirs:offs
+dirs -> cut:dirs:offs
+--
+dirs -> vs_snake_opening:dirs:offs
+--
+dirs -> vs_snake_edge:dirs:offs
+--
+vs_meta_pipe:dirs:offs, vs_meta_pipe_closed:dirs:offs
+
+--
+
+ball, ball:offs
+vs_player:dirs, vs_player:dirs:offs
+--
+brokenplayer:dirs, brokenball:dirs, brokenplayer:dirs:offs, brokenball:dirs:offs
+
+--
+
+(invsible markers)
+meta_exit, spawnpoint
+snake
+player
+
+init
+init_conAnotB, init_conBnotA
+init_noMoreCon
+dirs -> init_notOutside:dirs
+playerFacing:dirs
+
+dirs -> again_fly:dirs
+again_col
+again_exit, again_spawn
+again_gravity
+col_effect:dirs
+
+push:dirs
+supported
+dirs -> any:dirs
+dirs -> wantsToFlyTo:dirs
+
+turnMove:dirs, wasTurnMoved:dirs
+move:dirs, wasMoved:dirs
+dirs -> correctConnectDir:dirs
+follow:dirs
+hasToSplit
+======
+RULES
+======
+
+
+(----AGAIN TURN----)
+(these are in a previously started again turn)
+
+(stuff on snake falls into hole)
+(ball and player fall into hole if not flying)
+[ hole again_gravity it_canFall ] -> [ hole again_gravity ]
+[ hole again_gravity no again_fly:dirs ball ] -> [ hole again_gravity ] 
+[ hole again_gravity no again_fly:dirs player ] -> [ hole again_gravity ]
+(replace snake and hole itself with floor)
+[ hole again_gravity snake ] -> [ floor ]
+
+
+(items appear from spawn)
+[ con:> again_spawn ] -> [ con:> again_fly:> playerFacing:> ] 
+[ cut:> again_spawn ] -> [ cut:> again_fly:> playerFacing:> ]
+(no place to go? ... WIP, should later send it back)
+[ again_spawn ] -> [ playerFacing:right ]
+
+(items fall into meta exit, winning the level)
+[ it_canFly again_exit ] -> [ ] win
+
+
+(revert collision)
+(swap the shifted collision anim objects out with the regular ones)
+(other objects get regenerated every turn anyway & don't need to be swapped back here)
+[ again_col ] [ ball:offs ] -> [ again_col ] [ ball ]
+dirs [ again_col ] [ con:dirs:offs ] -> [ again_col ] [ con:dirs ]
+dirs [ again_col ] [ cut:dirs:offs ] -> [ again_col ] [ cut:dirs ]
+dirs [ again_col ] [ brokenplayer:dirs:offs ] -> [ again_col ] [ brokenplayer:dirs ]
+dirs [ again_col ] [ brokenball:dirs:offs ] -> [ again_col ] [ brokenball:dirs ]
+[ again_col ] -> [ ]
+
+
+
+(----INIT----)
+(do these at the start of the turn, then remove the init marker.)
+
+(connect any snakes in level)
+[ init ] [ snake no init_conBnotA no init_noMoreCon no cut:> | snake no init_conBnotA no init_noMoreCon no cut:< ] -> [ init ] [ snake con:> | snake con:< ] 
+[ init ] [ snake no init_conAnotB no init_noMoreCon no cut:> | snake no init_conAnotB no init_noMoreCon no cut:< ] -> [ init ] [ snake con:> | snake con:< ]
+[ init ] [ player con:> | con:< init_connectRules ] -> [ init ] [ player | ]
+
+(spawnpoints/meta_exit)
+[ init ] [ spawnpoint no con:dirs no cut:dirs | no wall ] -> [ init ] [ spawnpoint cut:> | ] 
+[ init ] [ meta_exit no con:dirs no cut:dirs | no wall ] -> [ init ] [ meta_exit cut:> | ]
+
+(connect walls)
+[ init ] [ wall ] -> [ init ] [ wall vs_any_under:> vs_wall_con:> ]
+[ init ] [ wall vs_any_under:> vs_wall_con:> | no wall ] -> [ init ] [ wall | ]
+
+(wall edge)
+[ init ] [ wall | no wall ] -> [ init ] [ wall vs_wall_inner:> vs_wall_edge:> no vs_outside | ]
+[ init ] [ vs_wall_inner:v | wall no vs_wall_inner:v ] -> [ init ] [ vs_wall_inner:v | wall vs_wall_inner_corner:> no vs_outside ]
+
+[ init ] [ vs_wall_inner:^ | vs_wall_inner:^ ] -> [ init ] [ vs_wall_inner:^ vs_wall_edge_2:^ | vs_wall_inner:^ vs_wall_edge_1:^ ]
+
+(wall edge decoration)
+[ init ] [ vs_wall_inner:v | vs_wall_inner:v | vs_wall_inner:v no vs_wall_inner:^ | vs_wall_inner_corner:> ] -> [ init ] [ vs_wall_inner:v | vs_wall_inner:v | vs_wall_inner:v vs_wall_inner_deco:v | vs_wall_inner_corner:> ]
+[ init ] [ vs_wall_inner_corner:^ | vs_wall_inner:v no vs_wall_inner:^ | vs_wall_inner:v | vs_wall_inner:v ] -> [ init ] [ vs_wall_inner_corner:^ | vs_wall_inner:v vs_wall_inner_deco:v | vs_wall_inner:v | vs_wall_inner:v ]
+
+(outside decoration)
+[ init ] [ vs_outside | no vs_outside no vs_outside_pattern:dirs ] -> [ init ] [ vs_outside init_notOutside:> | ] (which other tiles do these corners face?)
+[ init ] [ init_notOutside:> init_notOutside:^ no vs_outside_pattern:dirs ] -> [ init ] [ init_notOutside:> init_notOutside:^ vs_outside_pattern:> ]
+[ init ] [ init_notOutside:> vs_outside ] -> [ init ] [ init_notOutside:> vs_outside_pattern:> ]
+[ init ] [ vs_outside_pattern:^ | vs_outside_pattern:^ ] -> [ init ] [ vs_outside_pattern:^ | vs_outside_pattern:> ]
+[ init ] [ vs_outside_pattern:> | vs_outside_pattern:> ] -> [ init ] [ vs_outside_pattern:^ | vs_outside_pattern:> ]
+(hole border)
+[ init ] [ no hole ] -> [ init ] [ floor ]
+[ init ] [ hole | floor ] -> [ init ] [ hole vs_hole_edge:> | floor ]
+
+(add checker to initial floor)
+[ init ] [ player | ] -> [ init ] [ player | checker ]
+[ init ] [ checker | | ] -> [ init ] [ checker | | checker ]
+[ init ] [ no floor checker ] -> [ init ] [ ]
+
+(from a spawnpoint, the player appears)
+[ init ] [ spawnpoint player ] -> [ init ] [ spawnpoint player again_spawn ]
+
+(remove markers only used for init)
+[ init ] [ init_conAnotB ] -> [ init ] [ ] 
+[ init ] [ init_conBnotA ] -> [ init ] [ ]
+[ init ] [ init_noMoreCon ] -> [ init ] [ ]
+
+(remove init) 
+[ init ] -> [ ]
+
+
+
+(----SET AT START OF ROUND ---)
+
+(any markers, these are used to sometimes ignore which kind of connections are actually present)
+(but record the directions of connection for later in the turn)
+[ any:dirs ] -> [ ]
+[ con:> ] -> [ con:> any:> ] 
+[ cut:> ] -> [ cut:> any:> ]
+
+
+
+(----PLAYER INPUT---)
+
+(always face the right way when starting a move)
+[ > player ] [ playerFacing:dirs ] -> [ > player ] [ playerFacing:> ]
+
+(move out of connector starts flight)
+[ any:> > player ] -> [ any:> stationary player again_fly:> ]
+
+(move in any other direction, trying to pilot the object)
+[ wall > player ] -> [ wall stationary player col_effect:> ] nosave
+
+(works for snake)
+[ > player ] -> [ stationary player turnMove:> ]
+
+
+
+(----FLY----)
+
+(reorient sliding direction based on pipe around)
+(the stationary makes sure they can only do this once)
+(if anything else, like pushing leads to flying, on the initial turn this isn't done...)
+[ any:v no wasMoved:> stationary again_fly:> ] -> [ any:v v again_fly:v ]
+[ any:^ no wasMoved:> stationary again_fly:> ] -> [ any:^ ^ again_fly:^ ]
+
+(reset temporary marker)
+[ again_fly:dirs ] -> [ stationary again_fly:dirs ]
+
+
+(check what should happen this turn) 
+(if there's a match, skip all remaining cases using a temporary action marker)
+
+(if flying into snake end, stop and collide)
+[ it_canFly snake no any:> stationary again_fly:> ] -> [ it_canFly snake col_effect:> ]
+
+(if flying into wall, remove and leave broken effect)
+[ stationary again_fly:> player | wall ] -> [ | wall brokenplayer:< ] sfx6 ( b r e a k i n g s o u n d )
+[ stationary again_fly:> ball | wall ] -> [ | wall brokenball:< ] sfx6
+
+(if flying into snake, try to push the snake)
+[ stationary again_fly:> player | snake no any:< ] -> [ | snake brokenplayer:< move:> ] sfx6 ( b r e a k i n g s o u n d )
+[ stationary again_fly:> ball | snake no any:< ] -> [ | snake brokenball:< move:> ] sfx6
+
+(if flying into another flying object, both repel)
+[ it_canFly stationary again_fly:> | it_canFly stationary again_fly:< ] -> [ it_canFly action again_fly:< | it_canFly action again_fly:> ] sfx7
+
+(if flying into stationary object at snake end, repel and steer)
+[ it_canFly stationary again_fly:> | snake it_canFly no any:> no any:perpendicular ] -> [ it_canFly action again_fly:< | snake it_canFly turnMove:> ] sfx7
+
+(if flying into stationary object that could move, both repel)
+[ it_canFly stationary again_fly:> | it_canFly ] -> [ it_canFly action again_fly:< | it_canFly action again_fly:> ] sfx7
+
+(if flying into empty space that another object wants to fly into)
+(first place directional markers in the empty space)
+[ it_canFly stationary again_fly:> | ] -> [ it_canFly stationary again_fly:> | wantsToFlyTo:> ]
+(remove the markers if there is overlap)
+[ wantsToFlyTo:> wantsToFlyTo:< ] -> [ ] 
+[ wantsToFlyTo:> wantsToFlyTo:perpendicular ] -> [ ]
+(now check for moving into empty space with the marker missing)
+[ it_canFly stationary again_fly:> | no wantsToFlyTo:> ] -> [ it_canFly action again_fly:> | ]
+(clear the markers)
+[ wantsToFlyTo:dirs ] -> [ ]
+
+(if flying into any other tile, just move one tile)
+[ it_canFly stationary again_fly:> | ] -> [ | it_canFly action again_fly:> ]
+
+
+
+(----FLYING DONE----)
+
+(reset temporary markers)
+[ again_fly:dirs ] -> [ stationary again_fly:dirs ]
+
+(if flying, set player facing)
+[ player again_fly:> ] [ playerFacing:dirs ] -> [ player again_fly:> ] [ playerFacing:> ]
+
+(spread collisions)
+[ col_effect:dirs con:> | ] -> [ col_effect:dirs con:> | col_effect:dirs ]
+
+
+
+(----MOVE OBJECTS----)
+
+( 
+- a pipe end with a turnMove moves as the head of the snake
+- multiblocks in front get pushed
+- the tail of the snake head follows - if it can not follow, for example because it got pushed or the head got pushed,
+ the head will split.
+- for any tiles that should do a normal move, collision in checked first so that ALL of them have to work out
+- actual movement transfers everything in those tiles over, tile by tile
+)
+
+(remove temp markers from last time)
+[ wasMoved:dirs ] -> [ ] 
+[ wasTurnMoved:dirs ] -> [ ]
+[ follow:dirs ] -> [ ]
+[ hasToSplit ] -> [ ]
+
+(the initial move can push multiblocks in front)
+[ turnMove:> | snake ] -> [ turnMove:> | snake move:> ]
+
+(spread the move markers through any pushed multiblocks)
+(can not spread from the turnMove (head) to own tail since a push of the head only will ALWAYS split it)
+[ move:> | snake ] -> [ move:> | snake move:> ]
++ [ move:dirs con:> no turnMove:dirs | con:< ] -> [ move:dirs con:> | con:< move:dirs ]
+
+(move fails entirely if something was pushed into non-moving obstacle:)
+
+(show collision animation and cancel any actual movement if collided)
+[ move:> | it_collides no any_move ] -> [ col_effect:> | it_collides ] nosave 
+[ turnMove:> | it_collides no any_move ] -> [ col_effect:> | it_collides ] nosave
+dirs [ col_effect:> ] [ move:dirs ] -> [ col_effect:> ] [ col_effect:dirs ] 
+dirs [ col_effect:> ] [ turnMove:dirs ] -> [ col_effect:> ] [ col_effect:dirs ]
+(to also spread through tail)
+dirs [ col_effect:dirs con:> | con:< no col_effect:dirs ] -> [ col_effect:dirs con:> | con:< col_effect:dirs ]
+
+(move can happen:)
+(add temporary follow markers along the tail)
+[ con:> | con:< turnMove:dirs ] -> [ con:> follow:> | con:< turnMove:dirs ]
+[ con:> no follow:dirs no turnMove:dirs | con:< follow:dirs ] -> [ con:> follow:> | con:< follow:dirs ]
+
+(split head off by removing all follow markers on snake that follows the player if tiles are pushed sideways)
+(also split if ONLY the front has a move marker)
+[ move:perpendicular follow:> ] -> [ move:perpendicular follow:> hasToSplit ] 
+[ no move:dirs | con:< move:dirs ] -> [ hasToSplit con:> | con:< move:dirs ]
+[ hasToSplit con:> | con:< ] -> [ hasToSplit con:> | con:< no follow:dirs hasToSplit ]
+
+(add turnMove markers to snake)
+[ follow:> ] -> [ turnMove:> no move:dirs ]
+
+(actually do the movement)
+(use markers to move all items in those tiles)
+startloop
+ [ move:> it_movesOnSnake | no any_move ] -> [ move:> | it_movesOnSnake ]
+ [ move:> no it_movesOnSnake | no any_move ] -> [ | wasMoved:> ] sfx3
+ [ turnMove:> it_movesOnSnake | no any_move ] -> [ turnMove:> | it_movesOnSnake ]
+ [ turnMove:> no it_movesOnSnake | no any_move ] -> [ | wasTurnMoved:> ]
+endloop
+
+(move done:)
+
+(fix the connections of the turning pieces )
+(former "forward" connection should now point at the front again )
+(if that one already exist, just keep it )
+dirs [ wasTurnMoved:< | wasTurnMoved:dirs con:< ] -> [ wasTurnMoved:< | wasTurnMoved:dirs con:< correctConnectDir:< ]
+dirs [ wasTurnMoved:< | wasTurnMoved:dirs no correctConnectDir:< con:dirs ] -> [ wasTurnMoved:< | wasTurnMoved:dirs con:< correctConnectDir:< ]
+(if there is another connection or cut, make it face backwards again )
+dirs [ wasTurnMoved:< no correctConnectDir:dirs con:dirs ] -> [ wasTurnMoved:< con:> correctConnectDir:> ]
+dirs [ wasTurnMoved:< cut:dirs ] -> [ wasTurnMoved:< cut:> correctConnectDir:> ]
+[ correctConnectDir:dirs ] -> [ ]
+
+(a moved cut next to a stationary one will make a sound because it reconnects )
+[ wasMoved:dirs cut:> | cut:< no wasMoved:dirs no wasTurnMoved:dirs] -> sfx5 
+[ wasTurnMoved:dirs cut:> | cut:< no wasMoved:dirs no wasTurnMoved:dirs] -> sfx5
+
+(new cuts are created, this makes a splitting sound )
+[ wasMoved:dirs con:> | no con:< ] -> [ wasMoved:dirs cut:> | ] sfx1 
+[ wasTurnMoved:dirs con:> | no con:< ] -> [ wasTurnMoved:dirs cut:> | ] sfx1
+[ con:> | no con:< no wasMoved:dirs ] -> [ cut:> | ] sfx1 
+[ con:> | no con:< no wasTurnMoved:dirs ] -> [ cut:> | ] sfx1
+
+(a moved flying item will start flying if there is an open end that direction)
+[ wasMoved:> con:> it_canFly no again_fly:dirs ] -> [ wasMoved:> con:> it_canFly again_fly:> ] 
+[ wasMoved:> cut:> it_canFly no again_fly:dirs ] -> [ wasMoved:> cut:> it_canFly again_fly:> ]
+[ wasTurnMoved:> con:> it_canFly no again_fly:dirs | no it_canFly ] -> [ wasTurnMoved:> con:> it_canFly again_fly:> | ] 
+[ wasTurnMoved:> cut:> it_canFly no again_fly:dirs | no it_canFly ] -> [ wasTurnMoved:> cut:> it_canFly again_fly:> | ]
+
+(for turnMoved, perpendicular is fine too, as in when a ball was dragged around a corner of the snake)
+[ wasTurnMoved:perpendicular con:> it_canFly no again_fly:dirs | no it_canFly ] -> [ wasTurnMoved:perpendicular con:> it_canFly again_fly:> | ] 
+[ wasTurnMoved:perpendicular cut:> it_canFly no again_fly:dirs | no it_canFly ] -> [ wasTurnMoved:perpendicular cut:> it_canFly again_fly:> | ]
+
+(remove effect of broken player/ball if snake was turnmoved)
+[ wasTurnMoved:> brokenplayer:dirs ] -> [ wasTurnMoved:> ] 
+[ wasTurnMoved:> brokenball:dirs ] -> [ wasTurnMoved:> ]
+
+
+
+(----AFTER MOVE IS DONE----)
+
+("any" markers indicate every kind of connection, reset those for the next turn)
+[ any:dirs ] -> [ ]
+[ con:> ] -> [ con:> any:> ] 
+[ cut:> ] -> [ cut:> any:> ]
+
+(reconnect cuts)
+[ cut:> | cut:< ] -> [ con:> | con:< ]
+
+(find which snake multiblocks are partially not over a hole)
+[ supported ] -> [ ]
+[ snake no hole ] -> [ snake supported ]
+[ supported con:> | con:< ] -> [ supported con:> | con:< supported ]
+
+(the rest fall into hole)
+[ snake no supported ] -> [ snake again_gravity ]
+
+(items fall into meta exit)
+[ it_canFly meta_exit ] -> [ it_canFly meta_exit again_exit ]
+
+
+
+(----VISUAL ONLY----)
+
+[ tempVisualObjects ] -> [ ]
+
+(update edge of hole)
+[ floor | hole ] -> [ floor vs_hole_edge:> | hole ] (not actually a temp object, but sometimes needs to get added)
+
+(default/ active snake detail)
+[ snake ] -> [ snake vs_snake_under ] 
+[ snake player ] -> [ snake player vs_active_under ]
+[ vs_active_under con:> | ] -> [ vs_active_under con:> | vs_active_under ]
+
+(connections/ cuts)
+[ any:> snake ] -> [ any:> snake vs_any_under:> vs_con:> ] 
+[ any:> vs_active_under ] -> [ any:> vs_active_under vs_any_under:> vs_con_active:> ]
+[ cut:> ] -> [ cut:> vs_snake_opening:> ]
+[ snake no con:> no cut:> ] -> [ snake vs_snake_edge:> ]
+
+(direction for eye)
+[ playerFacing:> ] [ player ] -> [ playerFacing:> ] [ player vs_player:> ] 
+[ player no vs_player:dirs ] -> [ player vs_player:right ]
+
+( spawn point - show as filled when entering the level and hide the player )
+[ spawnpoint con:> ] -> [ spawnpoint con:> vs_meta_pipe:< ] 
+[ spawnpoint cut:> ] -> [ spawnpoint cut:> vs_meta_pipe:< ]
+[ again_spawn vs_meta_pipe:> ] -> [ again_spawn vs_meta_pipe_closed:> no vs_player:dirs ]
+
+( meta exit - show as filled when exiting and hide the player)
+[ meta_exit con:> ] -> [ meta_exit con:> vs_meta_pipe:< ] 
+[ meta_exit cut:> ] -> [ meta_exit cut:> vs_meta_pipe:< ]
+[ again_exit vs_meta_pipe:> ] -> [ again_exit vs_meta_pipe_closed:> no vs_player:dirs ]
+
+(animate tiles in collision by replacing them with offset variants)
+[ col_effect:> ball ] -> [ col_effect:> ball:> ] 
+[ col_effect:> vs_snake_under ] -> [ col_effect:> vs_snake_under:> ] 
+[ col_effect:> vs_active_under ] -> [ col_effect:> vs_active_under:> ] 
+dirs [ col_effect:> con:dirs ] -> [ col_effect:> con:dirs:> ]
+dirs [ col_effect:> cut:dirs ] -> [ col_effect:> cut:dirs:> ]
+dirs [ col_effect:> brokenplayer:dirs ] -> [ col_effect:> brokenplayer:dirs:> ]
+dirs [ col_effect:> brokenball:dirs ] -> [ col_effect:> brokenball:dirs:> ]
+dirs [ col_effect:> vs_any_under:dirs ] -> [ col_effect:> vs_any_under:dirs:> ]
+dirs [ col_effect:> vs_con:dirs ] -> [ col_effect:> vs_con:dirs:> ]
+dirs [ col_effect:> vs_con_active:dirs ] -> [ col_effect:> vs_con_active:dirs:> ]
+dirs [ col_effect:> vs_player:dirs ] -> [ col_effect:> vs_player:dirs:> ]
+dirs [ col_effect:> vs_snake_edge:dirs ] -> [ col_effect:> vs_snake_edge:dirs:> ]
+dirs [ col_effect:> vs_snake_opening:dirs ] -> [ col_effect:> vs_snake_opening:dirs:> ]
+dirs [ col_effect:> vs_meta_pipe:dirs ] -> [ col_effect:> vs_meta_pipe:dirs:> ]
+dirs [ col_effect:> vs_meta_pipe_closed:dirs ] -> [ col_effect:> vs_meta_pipe_closed:dirs:> ]
+
+
+
+(----START AGAIN TURNS----)
+
+(fall into hole/exit after shown over it)
+[ again_gravity ] -> sfx4 again ( f a l l i n g s o u n d )
+[ again_exit ] -> sfx4 again
+
+(come out of spawn)
+[ again_spawn ] -> sfx8 again (appear sound)
+
+(fly again)
+[ again_fly:> it_canFly ] -> again
+
+(to go back from the collision animation to default state)
+[ col_effect:dirs ] -> [ again_col ] sfx2 again
+==============
+WINCONDITIONS
+==============
+
+( I don't use win conditions at this point, instead starting the next level via rules )
+
+=======
+LEVELS
+=======
+
+
+(INTRO) 
+message U/Z: undo a step, R: restart
+
+message > launch
+(NEW: use launchers for flying, swapping launchers, moving to reorient self)
+
+(move / move backwards to launch, switch between launchers)
+###############
+###############
+###############
+#########.#####
+####*..l..w####
+#####..##.#####
+#####....u#####
+###############
+###############
+###############
+###############
+
+(become launcher that was in the way)
+###############
+###############
+###############
+######...######
+#####.....#####
+####p..l..#####
+#####....7w####
+######...######
+###############
+###############
+###############
+
+(find way to move away from exit to launch)
+###############
+###############
+###############
+######...######
+######.#.######
+#####p.l.w#####
+######.#.######
+######...######
+###############
+###############
+###############
+
+(message > push)
+(NEW: pushing other launchers)
+
+(move out of the way, then switch back)
+###############
+###############
+###############
+###############
+######...######
+#####p.l.######
+######...######
+#######77.w####
+########.######
+###############
+###############
+
+(requires position you cant move from, use extra launcher as recovery)
+###############
+###############
+###############
+########...####
+###p...l...####
+####.......####
+####.u.#8r.w###
+########.######
+########.######
+###############
+###############
+
+message > cross
+(NEW: holes)
+(NEW INTERACTIONS: flying over hole)
+(NEW OBSTACLES:    falling into hole)
+
+(fly over hole)
+###############
+###############
+########...####
+####.......####
+####....~~~####
+###p.l.~~~~####
+####...~~.9w###
+####.u.~~..####
+###############
+###############
+###############
+
+(trick: cant cross without flying, get destination snake in place)
+###############
+###############
+###############
+#########..####
+####p.l....####
+#####..#~~#####
+####..l#~~#####
+####...u..w####
+###############
+###############
+###############
+
+message > bridge
+(NEW OBJECTS:      closed multiblocks)
+(NEW INTERACTIONS: push into hole to create bridge, move in C-shape to prevent reorienting)
+
+(multipush into hole)
+(push in right order into hole to make launch platform)
+###############
+########~~~~w##
+########~~~~###
+###...~~~~~~###
+###.d.~~~~~~###
+###...~......##
+##p.l.~...b..##
+###...~.aabb.##
+#######..a...##
+###############
+###############
+
+(swap between pushing and snake move to get into place)
+###############
+###############
+###############
+##########..w##
+###.d#....~~###
+##p...l.....###
+###.....#...###
+#########..####
+###############
+###############
+###############
+
+(use big one to push smaller one that would otherwise not be pushable because of hole)
+###############
+###############
+####.....######
+###p.l.d.######
+####....~~~####
+####.ss.~~~####
+#####....~~####
+#####..~~~~####
+#######~~~~w###
+###############
+###############
+
+(remote push)
+( ########### )
+( pt.l.#~~~tw )
+( ##...#.~~## )
+( ##.aa..~.## )
+( ##.bb..~.## )
+( ####...#### )
+( ########### )
+
+(
+    potential uses of open blocks for puzzles:
+    - can be pushed as usual, but also inhabited.
+    - push to:
+        - push into hole to fill and create more floor
+        - get into position for entry
+    - move within to:
+        - recover from wall
+        - use to launch somewhere else
+    - entry side effects/ requirements:
+        - leaves other open block (usually with opposite orientation, parity)
+        - at least two open tiles in the direction of the opening
+    - exit side effects/ requirements:
+        - need another block to fly to
+        - need one space to move even just to reorient (L-Shape)
+)
+
+message > connect
+
+(CONNECTING SHAPES)
+
+(avoid connecting shape so it can sink in hole) 
+###############
+###############
+######...######
+#####p.9-~#####
+######...~#####
+########.~w####
+#######...#####
+#######...#####
+########..#####
+###############
+###############
+
+(connect shapes before pushing over hole)
+###############
+###############
+###############
+#####.....#####
+####.......####
+###p.l.....####
+####...ll~.####
+####...#~~~w###
+###############
+###############
+###############
+
+(connecting shapes right on top of hole)
+###############
+###############
+######...######
+######-.l######
+#####....######
+#####..~..#####
+####p.~~l.#####
+#####~~~~~w####
+#####~~~~~#####
+###############
+###############
+
+(connect one that can't leave)
+( ######## )
+( ##....## )
+( ##...l## )
+( pt.l.~## )
+( ##...l## )
+( ##~~~~tw )
+( ######## )
+
+(NEW: PIPE PIECES - use as paths)
+(introduce open pipes, make sure no extra snakes in these levels)
+
+message > pipes
+
+(figure out how to connect straight pieces)
+###############
+###############
+#####~~~~~#####
+#####~~~~~w####
+#####~~~~~#####
+#####.h.h.#####
+#####..h..#####
+#####.....#####
+####p..l..#####
+###############
+###############
+
+(fly through, then drop)
+###############
+###############
+####..~....####
+####r.~.~..####
+####....~~~####
+####~~~.h.~####
+#####.....#####
+#####.....#####
+####p~~l~~w####
+###############
+###############
+
+message > redirect
+
+(quarter turn pipe influences pusher parity)
+###############
+###############
+#######dsss####
+#######~~~s####
+####.....~d####
+####.d.~.~j####
+####.....9e####
+###p...l.######
+####.....######
+###############
+###############
+
+(NO HOLES VER! - WIP, integrate)
+(
+    ###############
+    ###############
+    ###############
+    #####..ls######
+    ###...##d######
+    ###.l.#..#8.###
+    ##p...l.....###
+    ###....###c.e##
+    ###############
+    ###############
+    ###############
+)
+
+(use curve piece as path)
+###############
+###############
+###############
+#####...~~#####
+#####.#.~~w####
+#####...~~#####
+####p.l.f.#####
+#####.....#####
+###############
+###############
+###############
+
+(combine corners to make path and also have something to push)
+###############
+###############
+###############
+#####....~#####
+####p.l#~~w####
+#####....~#####
+#####.c.q.#####
+#####.....#####
+###############
+###############
+###############
+
+(connect, but only used to have something to push)
+###############
+###############
+###############
+#####....######
+####p....q#####
+#####.r..jw####
+#####.r.l.#####
+#####.....#####
+###############
+###############
+###############
+
+(launch area in hole, connect correctly)
+###############
+###############
+#####.....#####
+#####.r.l.#####
+####p.l...#####
+#####...h######
+#####....######
+#####~~~~######
+#####~~~~w#####
+###############
+###############
+
+(open slider test)
+( ######### )
+( ##~~~~~## )
+( ##~...~## )
+( ##~~.~~## )
+( ##...ls## )
+( pt.ll.stw )
+( ##...ls## )
+( ##sr...## )
+( ##s..h.## )
+( ##sr...## )
+( ######### )
+
+(NEW: BECOME SNAKE)
+
+message > lead
+
+(big snake but no place to move....mysterious...)
+(close big snake and only use to have something to push)
+###############
+###############
+###############
+####p.l########
+#####...#d#####
+#####.l.hjw####
+#####.....#####
+#######...#####
+###############
+###############
+###############
+
+(reveal)
+(flip and connect to make snake, then leave wall)
+###############
+#######.#######
+######...######
+#####.....#####
+####.......####
+###p..l.l.qw###
+####......j####
+#####.....#####
+######...######
+#######.#######
+###############
+
+(use longer snake to launch from tile that's still hole)
+(same thing, but reduce hole first)
+###############
+###############
+###############
+#####~~~~~#####
+#####~~~~~w####
+#####~...~#####
+####p..l..#####
+#####.....#####
+######su#######
+###############
+###############
+
+(shape into hook to leave wall, then shape it again to actually use as bridge)
+###############
+###############
+######ssr..####
+#####......####
+####p...l.#####
+#####.....#####
+######~~~~#####
+######~~~~w####
+######~~~~#####
+###############
+###############
+
+( ######## )
+( ##.ds.## )
+( ##....## )
+( pt.l..## )
+( ##....## )
+( ##~~.~## )
+( ##~~~~tw )
+( ######## )
+
+( ######## )
+( ##...### )
+( pt..l.## )
+( ###t#.## )
+( ##.u~.## )
+( ##.s~.## )
+( ##.s~.## )
+( ###~~~tw )
+( ######## )
+
+(triple: drop single one, use the rest to orient right)
+( ######## )
+( pt.l..## )
+( ##..u.## )
+( ##.ss.## )
+( ###~~.## )
+( ###~~~## )
+( ###~.~## )
+( ###~~~tw )
+( ######## )
+
+(triple: make shape that can be pushed around over holes)
+( ######## )
+( pt.l..## )
+( ##..u.## )
+( ##..s.## )
+( ##..s.## )
+( ###.~~## )
+( ###.~~## )
+( ###~~~tw )
+( ######## )
+
+(INSERT level where you push the bridge piece to connect with the corner 1tile snake)
+(to make it possible to become that snake and clear the exit)
+
+( ########## )
+( #####...## )
+( #####r..## )
+( ##..h~l.tw )
+( pt.l.~..## )
+( ########## )
+( ########## )
+
+( ######### )
+( ##~~~~~tw )
+( ##.....## )
+( pt.l.f.## )
+( ##.....## )
+( ##~~u~~## )
+( ######### )
+
+( ######### )
+( ##.....## )
+( ##...c.## )
+( ##.....## )
+( ##...~~## )
+( pt.l.~ltw )
+( ######### )
+
+(INSERT level where you actually have to close two snakes instead of using them)
+(one snake is longer and still not useful over the hole...)
+
+( ############# )
+( ##.......#### )
+( pt.l.l.ls#### )
+( ##.......#### )
+( ##.......~.## )
+( ########~~.tw )
+( ############# )
+
+
+message > leave behind, pt. 1
+
+(LEVEL SERIES: SPLIT IN C)
+
+(C to split to get shorter)
+###############
+###############
+#####.....#####
+###p...ls..####
+####.......####
+####..s.s..####
+####..sss..####
+#######.#######
+######..e######
+###############
+###############
+
+(create self-push situation)
+###############
+###############
+#####ssss.#####
+####.s..s..####
+####.....s.####
+###p.ls..s.####
+####.......####
+#######.#######
+######..e######
+###############
+###############
+
+(fill C in correct order to still have space to even move)
+###############
+###############
+#####bbbbb.####
+####.b.a.b.####
+####..ba...####
+####..ba.######
+####.....######
+###p..lss######
+#####...#######
+####..e########
+###############
+
+(split correct part)
+###############
+###############
+#####..#.s#####
+#####....s#####
+####p....l#####
+#####ss...#####
+#####s..#.w####
+#####ss.#######
+#####~~~#######
+#####~~~#######
+###############
+
+(
+(adapted from older level, currently broken)
+  ###############
+  ###############
+  ###############
+  ###ssss...~~###
+  ###s..s...~~###
+  ###......s~d###
+  ##p.lss..srj###
+  ###r.....fje###
+  ###############
+  ###############
+  ###############
+)
+
+
+(THEME: REORIENT BIG SNAKE IN SMALL SPACE, CLAUSTROPHOBIA)
+
+message > leave behind, pt. 2
+
+(find direction so oriented right way)
+###############
+###############
+######...######
+#####.#.#.#####
+####.ssss.w####
+####.s#.#.#####
+#####s.....####
+####.s#.#..####
+###p.l...######
+#######.#######
+###############
+
+(SPLIT TO CHANGE LENGTH)
+
+(SPLIT)
+(split to get shorter)
+###############
+###############
+###############
+#####.....#####
+####p.lss.#####
+#####...s.#####
+#######.#######
+######..w######
+#######.#######
+###############
+###############
+
+(WIP, IMPROVE AND ADD - split to change launcher parity)
+(
+    ###############
+    ###############
+    ###############
+    ####......#####
+    ###p.lsss.#####
+    ####......#####
+    ####..u#.######
+    ########.9w####
+    ########~~#####
+    ###############
+    ###############
+)
+
+(length math....wip, explain this better)
+(split and combine to get different length)
+###############
+###############
+###############
+####......s####
+####......s####
+###p.ls..ls####
+####.......####
+#####.###.#####
+#####~~~~~~w###
+###############
+###############
+
+(
+wip teach splitting granularily for different lengths, 
+maybe a bunch of forced examples?
+one with two orientations or mirroring, one with rotation...
+one with different ends to get the same shape
+one where possible target lengths per starting length are explored
+)
+
+(teach)
+( ############## )
+( ##ds~~###..### )
+( ##7d.~##...ltw )
+( ###t####.s.~## )
+( ##....###s#### )
+( pt.l..ttls#### )
+( ##....######## )
+( ####.######### )
+( ##ds.~~####### )
+( ##7r..~~###### )
+( ############## )
+
+(SPLIT TO MAKE SHAPE)
+
+(split to throw into hole, len 2)
+(idea: allows turning over the hole while having a return platform)
+###############
+###############
+#####~~~~~~####
+####~~~~~~~w###
+####~~~~~~~####
+####~~~~~~~####
+###p..l...l####
+####....sss####
+#####.....#####
+###############
+###############
+
+(SPLIT AND CARE ABOUT OPENINGS)
+
+(split to use corner)
+###############
+###############
+####....#######
+####.fqfqw#####
+####.iiii######
+####..cj...####
+####..#....####
+###p..lsss.####
+#####.....#####
+###############
+###############
+
+
+(connect with existing piece)
+(variation: make hook)
+(the corners make this more difficult, can't use L shape, only S)
+(maybe do variant that explores both?)
+###############
+###############
+###############
+#####....######
+####p.lss.#####
+#####...s.#####
+#####.....#####
+######...jw####
+###############
+###############
+###############
+
+(variation: fill the hole, actually avoid connection)
+###############
+###############
+######..w######
+#####sd~#######
+#####r~~..#####
+######.....####
+####p...hl.####
+#####...ss.####
+######...######
+###############
+###############
+
+(variation: make long to exit without falling)
+( ######### )
+( ##.....## )
+( pt...l.## )
+( ##.....## )
+( ##ssssu## )
+( ##~~.~~## )
+( ##~~~~~## )
+( ###~~~### )
+( ###~~~### )
+( ###~~~### )
+( ##..{{ttw )
+( ######### )
+
+
+(RECONNECT VIA SELF PUSH)
+(COMBINATION OF BOTH SPLITTING METHODS)
+
+(push self to avoid splitting off)
+###############
+###############
+###############
+##p..ls.s.#####
+###...sss.#####
+###.......hqw##
+#####.....#i###
+######......###
+#######.....###
+###############
+###############
+
+(push self or create C, too difficult right now)
+(
+###############
+###############
+###############
+#####sss....###
+#####s.s.l..###
+#p...l.s.d..###
+#####.......###
+###.....#u#####
+###.....lse####
+###############
+###############
+)
+
+message > close
+
+(CAN MESS WITH LEVEL STRUCTURE AT THIS POINT, CONNECTING TO EXITS DIRECTLY)
+(WIP, SINCE STILL LINEAR FOR NOW)
+
+(exit is blocked, connect to it with sliding and then split self to be able to leave)
+###############
+###############
+###############
+#####.....#####
+#####.....#####
+#####..ss.le###
+#####...s.#####
+####p.lss.#####
+###############
+###############
+###############
+
+(get extra length into position first, use split to make right shape needed to leave)
+###############
+###############
+###p.l#########
+####.s.########
+####.s.l~~~####
+####...#~~~w###
+####ss.#~~~####
+####s......####
+####s......####
+####ss#########
+###############
+
+(actually move for a while as closed snake and use to navigate small spaces)
+###############
+###############
+###############
+###.....#~~~###
+###.d.ss#~~~w##
+###....s#~~~###
+##p.lr9s#...###
+###...ss....###
+###############
+###############
+###############
+
+message > bounce
+message Thank you for testing this far! =)
+message WIP Section, incomplete and somewhat unsorted!
+
+(new: ball)
+(launch ball to kick boxes)
+###############
+###############
+###############
+###.....#######
+##p..l.~#.~~w##
+###....~~ss.###
+###..6..~...###
+###.....#######
+###############
+###############
+###############
+
+(new: ball in closed shapes, hole to launch)
+###############
+###############
+#####......####
+####....~~7w###
+###p.l..~~~####
+####....~~~####
+####..2..~~####
+####..s....####
+#####......####
+###############
+###############
+
+( ######### )
+( pt..l..## )
+( ##.....## )
+( ##..2s.## )
+( ##..s..## )
+( ##.....## )
+( ##.....## )
+( ##.....tw )
+( ######### )
+
+(U shape with ball: parity)
+###############
+######~~#~~####
+######ss.r9w###
+####..~~.~~####
+###p.l~~~~~####
+####..~~.~~####
+####...sss.####
+#####..s.2.####
+######.....####
+###############
+###############
+
+(new: can also fly into ball itself to move that snake)
+(launch ball to catch, launch self to kick)
+###############
+###############
+#####.....#####
+####p.l.4.#####
+#####.....#####
+#####~~~~~#####
+#####~~u~~#####
+#####..~..w####
+#####~~~~~#####
+###############
+###############
+
+(launch ball to catch, launch self to kick)
+###############
+###############
+#####~~~~~#####
+#####.d~d.w####
+#####~~~~~#####
+#####~~~~~#####
+#####.....#####
+####p.l.3.#####
+#####.....#####
+###############
+###############
+
+(avoid kicking of one into wall by removing other first?)
+( ############# )
+( ############# )
+( #####~~~ttttw )
+( #####~.~##### )
+( ##...6..5..## )
+( pt..l......## )
+( ##.........## )
+( ############# )
+( ############# )
+
+(find place to get rid of ball so that snake can be turned around)
+###############
+###############
+###############
+###p.l~~~~~####
+####.......####
+####....4..####
+######.....####
+######~~.~~w###
+######$$$$$####
+###############
+###############
+
+(WIP)
+(INSERT level about moving a snake with ball around for far enough with bounces until there is a way to actually PUSH it into a wall facing spot, so the ball can escape)
+
+(new: balls actually also pilot snakes)
+(new: use a ball to hit a ball to avoid dying)
+(launch ball to catch, launch another to kick)
+###############
+###############
+###############
+###.....~~~.###
+###.66.#~~~s###
+###......~~l###
+##p.l...##..w##
+###....########
+###############
+###############
+###############
+
+(place catcher for the automatic return of player after snake change)
+###############
+###############
+###############
+######~~~######
+###.6r~~~.q.###
+###.........###
+##p.l.###c.~###
+###...####..w##
+###############
+###############
+###############
+
+( aug 29         )
+( ############## )
+( ############## )
+( ######...##### )
+( ####...d..#### )
+( ####.6..~~#### )
+( ####.....~#### )
+( ###p.l#~~jw### )
+( ####..######## )
+( ############## )
+( ############## )
+
+(
+    ##############
+    ####......####
+    ####.7##..####
+    ####..#2~~####
+    ###r.l.l.~####
+    ##ps....~~####
+    ####.....~sw##
+    ########~~s###
+    ######.~~~l###
+    ##############
+)
+
+(align snake before adding ball so it works in the desired direction)
+###############
+###############
+####.......####
+####...d.4.####
+####~~~~~~~####
+####~~~.~~~####
+####~~~s~~~####
+###p~~~l~~~w###
+####~~~.~~~####
+###############
+###############
+
+(align snake and catchers for the perfect loop that fills in the ground)
+###############
+###############
+##.....~~#...##
+##6.s2.~~#.#.##
+##..r..~~~~..##
+###....~~f~.###
+##p.l..~~j..w##
+###.......#####
+######.3..#####
+###############
+###############
+
+
+(double balls that hit each other in middle of a shape just bounce back)
+
+(double ball in snake causes double movement)
+###############
+###############
+#####...#dw####
+####.....cq####
+####...2...####
+###p.l.s..~####
+####...2..~####
+####......~####
+#####......####
+###############
+###############
+
+(balls in end of corner piece allow changing it into different straight piece)
+(wait, why does the one next to the wall survive? long enough from the snake move?)
+###############
+###############
+###.......#####
+##p.l.....#####
+###.......#####
+###~~~.....qw##
+###.....2..u###
+###....2s..2###
+###.........###
+###############
+###############
+
+(test)
+###############
+###############
+###......######
+###......######
+###.2ss.~~~~9w#
+###...2.~~~~.##
+##p.l...#######
+###.....#######
+###############
+###############
+###############
+
+(push snake right so it moves left automatically, away from wall)
+(by using a double mover that has a ball bounce back)
+( ########### )
+( #####~~tttw )
+( ####d2~#### )
+( ##....##### )
+( pt..l..#### )
+( ##.....#### )
+( #...u2.#### )
+( #.s....#### )
+( #.s.22..~~# )
+( ########### )
+
+(opposite flying machines)
+(doesn't always move when it should hmm)
+
+( ############ )
+( ########...w )
+( ##...rhq.~~# )
+( ##...s2i.~~# )
+( ##.......~~# )
+( pt..l....~~# )
+( ##.......~~# )
+( ##...s2.i~~# )
+( ##...rhhj~~# )
+( ############ )
+
+( ####### )
+( ##...## )
+( ptlss#w )
+( ##...## )
+( ##sd.## )
+( ##s..## )
+( ##d..## )
+( ##i2.## )
+( ##us.## )
+( ##...## )
+( ####### )
+
+(connect self with snake that has ball in it)
+###############
+###############
+#####..s.######
+####p.ls.######
+#####....5e####
+#####.ss..#####
+#####.s...#####
+#####.s...#####
+######ss..#####
+###############
+###############
+
+(variation, needs more time)
+(
+    ###############
+    #####~~~~~e####
+    #####~~~.~~####
+    #####~~~~~~####
+    #####.6....####
+    #####...ss.####
+    #####..s.s.####
+    ####p.ls.s#####
+    #####...ss#####
+    ###############
+    ###############
+)
+
+(old broken combination lock idea)
+(
+    ###############
+    ######..sss...#
+    ######..48d...#
+    #######....u..#
+    ###p#f.....ss.#
+    ###.#.#.....d.#
+    #.u777u.......#
+    #.sssss.......#
+    ############w##
+    ###############
+    ###############
+
+    (weird testing)
+    ###############
+    ###############
+    ######fq#######
+    #p...q.......##
+    ##......fl...##
+    ##..iiirq....##
+    ##..iic9i....##
+    ##..iclfj....##
+    ##..chhj.....##
+    ###############
+    ###############
+
+    ###############
+    ###############
+    ####dssd#######
+    ##~~......~fe##
+    #p~~.l~~..~cq##
+    ##~~~~~~~~~~~##
+    ##~~iucjui...##
+    ##~~iaabbi...##
+    ##~~chhhhj...##
+    ###############
+    ###############
+
+    ###############
+    ###############
+    ##...........##
+    #p.l.........##
+    ##~~~~~~~~~~~##
+    ##~~~~~~~~~~~##
+    ##..auiiua...##
+    ##..a-jc9a...##
+    ##..aaaaaa...##
+    ###############
+    ###############
+)
+
+(WIP Playground)
+message That's all for now!
+
+(message Levels beyond this point are merely for testing.)
+
+(
+    ###############
+    ###############
+    ###############
+    ###############
+    ######pss######
+    ######.#s######
+    ######..s######
+    ###############
+    ###############
+    ###############
+    ###############
+)
+
+(
+###############
+##...........##
+##...........##
+##..2d.......##
+##.....2s.2s.##
+##..2u..s..s.##
+pt.l....s..2.##
+##.....2s....tw
+##...........##
+##...6..5....##
+##...........##
+##.2s.u..2...##
+##..s.2..srss##
+##.2s.......s##
+##.........ss##
+###############
+
+(WIP exit of 3 rooms)
+###########
+###.~tttttw
+###.~######
+###.~######
+pt..l..tt##
+##.....#t##
+##d#d#d#t##
+##t#t#t#t##
+##t#t#t#t##
+##......u##
+##......u##
+#######.u##
+###########
+)
+
+(all 4 len split patterns, twice)
+(
+###############
+###############
+####df###qd####
+###cjcl#rjcj###
+###rqfq#fqfl###
+####ju###uc####
+###############
+####ds###rq####
+###scfl#fbad###
+###rjqs#uabj###
+####su###cl####
+###############
+######p.l######
+###############
+###############
+)

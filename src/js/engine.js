@@ -154,6 +154,7 @@ var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
+let authorLineNos = []; //author lines for colouring
 
 function showContinueOptionOnTitleScreen(){
 	if (state.metadata.level_select !== undefined) {
@@ -238,6 +239,7 @@ function generateTitleScreen()
 		title=state.metadata.title;
 	}
 
+	authorLineNos = [0, 0];
 	if (titleMode===0) {
         titleSelectOptions = 1;
 		if (titleSelected) {
@@ -269,6 +271,7 @@ function generateTitleScreen()
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
+		authorLineNos = [0, 0];
 		titleImage = deepClone(titletemplate_empty);
 
 		titleSelectOptions = titleAvailableOptions.length;
@@ -383,6 +386,7 @@ function generateTitleScreen()
 			var row = titleImage[3+i];
 			titleImage[3+i]=row.slice(0,width-line.length)+line;
 		}
+		authorLineNos = [ 3, 3+i ]
 	}
 
 }
@@ -450,7 +454,7 @@ function generateLevelSelectScreen() {
 	}
 
 	amountOfLevelsOnScreen = 9;
-
+	authorLineNos = [ 0, 0];
 	titleSelectOptions = state.sections.length;
 
 	if(titleSelection < levelSelectScrollPos) { //Up
@@ -599,6 +603,7 @@ var introstate = {
     objectCount: 2,
     metadata:[],
     levels:[],
+	collisionLayerGroups: [],
     bgcolor:"#000000",
     fgcolor:"#FFFFFF"
 };
@@ -691,6 +696,7 @@ function drawMessageScreen() {
 
 	titleMode=0;
 	textMode=true;
+	authorLineNos = [0, 0];
 	if ("text_message_continue" in state.metadata) {
 		titleImage = deepClone(messagecontainer_template);
 
@@ -889,7 +895,7 @@ function loadLevelFromState(state,levelindex,randomseed) {
     loadLevelFromLevelDat(state,leveldat,randomseed);
 }
 
-var sprites = [
+var objectSprites = [
 {
     color: '#423563',
     dat: [
@@ -1045,15 +1051,16 @@ function setGameState(_state, command, randomseed) {
       backups=[];
     }
     //set sprites
-    sprites = [];
-    for (var n in state.objects) {
+    objectSprites = [];
+    for (const n in state.objects) {
         if (state.objects.hasOwnProperty(n)) {
-            var object = state.objects[n];
-            var sprite = {
+            const object = state.objects[n];
+			objectSprites[object.id] = {
+                dat: object.spritematrix,
                 colors: object.colors,
-                dat: object.spritematrix
+				text: object.spritetext,
+				scale: object.scale,
             };
-            sprites[object.id] = sprite;
         }
     }
     if (state.metadata.realtime_interval!==undefined) {
@@ -2628,6 +2635,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 
     var result=false;
 	var anyellipses=false;
+	const cellIndexes = []; //@@
 
     //APPLY THE RULE
     for (var cellRowIndex=0;cellRowIndex<rule.patterns.length;cellRowIndex++) {
@@ -2647,6 +2655,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
             }
 
             result = preCell.replace(rule, currentIndex) || result;
+			cellIndexes.push(currentIndex);  //@@
 
             currentIndex += delta;
         }
@@ -2659,7 +2668,10 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
     }
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
-		var gapMessage="";
+		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
+		var gapMessage= (debugLevel.includes('gaploc')) ? ` at ${locations}` : '';
+
+		//var gapMessage="";
 		// var gapcount=0;
 		// if (anyellipses){
 		// 	var added=0;
@@ -2952,12 +2964,13 @@ function applyRuleGroup(ruleGroup) {
 }
 
 function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGroup){
+	//console.log(`Apply rules rules:${rules.length} objects:${level.objects}`);
 	perfCounters.tries++;
     //for each rule
     //try to match it
 
     playerPositions = getPlayerPositions();
-
+	
 	// stack of rule group index to return to at end of subroutine
 	const gosubStack = []; // PS>
 
@@ -3144,6 +3157,7 @@ var perfCounters = {};
 
 /* returns a bool indicating if anything changed */
 function processInput(dir,dontDoWin,dontModify,bak,coord) {
+	//console.log(`Process input (${dir},${dontDoWin},${dontModify},${bak},${coord}) cmds=${level.commandQueue}`)
 	perfCounters = {
 		start: Date.now(),
 		rules: 0,
@@ -3173,9 +3187,10 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		bak = backupLevel();
 	}
   
+	// this looks dodgy, but playerPositions is not used and dir test always succeeds
   	playerPositions= [];
 	playerPositionsAtTurnStart = getPlayerPositions();
-
+	
 	if (dir < dirNames.length) {
 
 		if (verbose_logging) { 
@@ -3192,7 +3207,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			const mask = level.getCell(coord);
 			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
 		}
-		
+
 		if (verbose_logging) { 
 			consolePrint('Applying rules');
 
@@ -3242,8 +3257,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
 
 			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
-        	var shouldUndo = resolveMovements(level, bannedGroup);
-
+			var shouldUndo = resolveMovements(level, bannedGroup);
+			
         	if (shouldUndo) {
         		rigidloop=true;
 
@@ -3414,10 +3429,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			return true;
 		}
 
-	    if (dontModify && level.commandQueue.indexOf('win')>=0) {
-	    	return true;
-		}
-		
 		var save_backup = true;
 		if(!winning && level.commandQueue.indexOf('nosave')>=0) {
 			if (verbose_logging) { 
@@ -3590,7 +3601,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 
 // play a seed which could be a sound or an animation
 function playSeed(seed, ignore) {
-	if (seed > 0)
+	if (seed)
 		playSound(seed, ignore);
 	// else nothing yet
 

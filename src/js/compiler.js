@@ -6,6 +6,228 @@ var relativeDirections = ['^', 'v', '<', '>', 'perpendicular', 'parallel'];
 var simpleAbsoluteDirections = ['up', 'down', 'left', 'right'];
 var simpleRelativeDirections = ['^', 'v', '<', '>'];
 
+var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
+//I use _par/_perp just to keep track of providence for replacement purposes later.
+var relativeDict = {
+    'right': ['up', 'down', 'left', 'right', 'horizontal_par', 'vertical_perp'],
+    'up': ['left', 'right', 'down', 'up', 'vertical_par', 'horizontal_perp'],
+    'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
+    'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
+};
+
+const directionaggregates = {
+    'horizontal': ['left', 'right'],
+    'horizontal_par': ['left', 'right'],
+    'horizontal_perp': ['left', 'right'],
+    'vertical': ['up', 'down'],
+    'vertical_par': ['up', 'down'],
+    'vertical_perp': ['up', 'down'],
+    'moving': ['up', 'down', 'left', 'right', 'action'], // todo: reaction
+    'orthogonal': ['up', 'down', 'left', 'right'],
+    'perpendicular': ['^', 'v'],
+    'parallel': ['<', '>']
+};
+
+//function expandDirections(dir) {
+    // if (simpleAbsoluteDirections.includes(dir)) return [dir];
+    // if (relativeDirs.includes(dir)) {
+    //     const exp = relativeDict['right'][relativeDirs.indexOf(dir)];
+    //     return (exp in directionaggregates) ? directionaggregates[exp] : [ exp ];
+    // }
+//}
+
+// https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+// const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
+// const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
+// function cartesian(...arrays) {
+//     return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+// }
+
+function cartesianProduct(...arrays) {
+    return arrays.reduce((a, b) => a.flatMap(x => b.map(y => x.concat([y]))), [ [] ]);
+}
+
+// a combinatorial ident expander based on embedded tags and ':' delimiters
+class TagExpander {
+    constructor(state, ident, delim = ':') {
+        this.ident = ident;
+        this.delim = delim;
+        [ this.stem, ...this.tail ] = ident.split(delim);
+        this.tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
+        this.tagvalues = this.tags.map(t => state.tags[t]);
+        this.tagexpansion = cartesianProduct(...this.tagvalues);
+        this.dirs = this.tail.filter(p => [ ...simpleAbsoluteDirections, ...relativeDirections ].includes(p));
+        this.dirvalues = this.dirs.map(d => simpleAbsoluteDirections.includes(d) ? [ d ] : simpleAbsoluteDirections);
+    }
+
+    get rawTags() {
+        return this.tags; // ? and dirs
+    }
+    get expandedTags() {
+        return this.tagexpansion;
+    }
+
+    getExpandTagsDirs() {
+        const exp = cartesianProduct(...this.tagvalues, ...this.dirvalues);
+        if (exp.length == 0)
+            return [ this.ident ];
+        const newtails = exp.map(e =>
+                this.tail.map(p => 
+                    this.tags.includes(p) ? e[this.tags.indexOf(p)] :
+                    this.dirs.includes(p) ? e.at(-1) : p));
+        return newtails.map(t => [ this.stem, ...t ].join(this.delim));
+    }
+    // return joined key with substitutions
+    getTagExpandedIdent(exp) {
+        return [ this.stem, ...this.tail.map(p => 
+            this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
+            .join(this.delim);
+    }
+    // return alternate join key with substitutions
+    getTagExpandedAlt(exp, ident) {
+        const [ stem, ...tail ] = ident.split(':');
+        return (tail.length == 0) ? stem
+            : [ stem, ...tail.map(p => 
+                this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
+                .join(this.delim);
+    }
+    // return ident with substitution if available
+    getTagSubstitutedIdent(exp, ident) {
+        return this.tags.includes(ident) ? exp[this.tags.indexOf(ident)] : ident;
+    }
+
+    // return array of base idents, one for each expansion
+    getTagExpandedIdents() {
+        return this.tagexpansion.map(e => 
+            [ this.stem, this.tail.map(p => 
+                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+            ].join(this.delim));
+    }
+
+    // return array of (possibly expanded) idents, one for each expansion
+    getTagExpandedAltIdents(ident) {
+        const [ stem, ...tail ] = ident.split(':');
+        return this.tagexpansion.map(e =>
+            (tail.length == 0) ? stem
+            : [ stem, ...tail.map(p => 
+                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+            ].join(this.delim) );
+    }
+}
+
+// expand an ident seen when parsing a rule into the things it might be
+function expandIdentTags(state, ident) {
+    const expander = new TagExpander(state, ident);
+    //if (expander.rawTags.length == 0) return [ ident ];
+    return expander.getExpandTagsDirs();
+}
+
+// expand sprites with tags into new objects, replace object by property
+function expandObjectTags(state, objkey, objvalue) {
+    const expander = new TagExpander(state, objkey);
+    if (expander.rawTags.length == 0) return;
+    const newobjects = expander.expandedTags.map(exp => {
+        const newkey = expander.getTagExpandedIdent(exp);
+        const newvalue = {
+            lineNumber: objvalue.lineNumber,
+            colors: [ ...objvalue.colors ],
+            spritematrix: [],
+        };
+        if (objvalue.cloneSprite) {
+            const altspriteid = expander.getTagExpandedAlt(exp, objvalue.cloneSprite);
+            if (state.objects[altspriteid])
+                newvalue.cloneSprite = altspriteid;
+            else logError(`Source ${altspriteid} for sprite clone not found.`);
+        } else 
+            newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
+        
+        if (objvalue.transforms) {
+            newvalue.transforms = objvalue.transforms.map(m => {
+                const modi = [ ... m ];
+                const op = modi.shift();
+                const newm = [ expander.getTagSubstitutedIdent(exp, modi.shift()) ];
+                if (op == 'rot' && modi.length > 0)
+                    newm.push(expander.getTagSubstitutedIdent(exp, modi.shift()));
+                return [ op, ...newm, ...modi ];
+            })
+        }
+        return [newkey, newvalue];
+    });
+    
+    if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
+    return Object.fromEntries(newobjects);
+}
+
+// create new legend properties when objects contain tags
+function createObjectTagsAsProps(state, ident) {
+    const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
+
+    const tags = ident.split(':').filter(p => Object.hasOwn(state.tags, p));
+    if (tags.length >= 2) {     // ? does this cover all the bases?
+        state.tags[tags[0]].forEach(v => {
+            const newident = fnRep(ident, tags[0], v);
+            const newvalues = state.tags[tags[1]].map(v => fnRep(newident, tags[1], v));
+            const newlegend = [ newident, ...newvalues ];
+            newlegend.lineNumber = state.lineNumber;  // bug:
+            state.legend_properties.push(newlegend);
+        });
+    }
+}
+
+// generate a new sprite matrix based on transforms
+function generateSpriteMatrix(state) {
+    const cwd = dir => clockwiseDirections.indexOf(dir);
+    const tranfunc = {
+        'flip': (mat,_,dir) => [
+            (m => m.reverse()),
+		    (m => m.map(row => row.reverse())),
+        ][dir % 2](mat),
+        'shift': (mat,_,dir,amt) => [ // up right down left
+            (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
+            (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
+            (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
+            (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
+        ][dir](mat),
+        'rot': (mat,_,dir1,dir2) => [
+            m => m, // 0°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
+            m => Array.from(m, l => l.reverse() ).reverse(), // 180°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
+        ][(4 + cwd(dir2) - dir1) % 4](mat),
+        'translate': (m,off,dir,amt) => {
+            off.x += [0,1,0,-1][dir] * amt;
+            off.y += [-1,0,1,0][dir] * amt;
+            return m;
+        }
+    };
+    for (const obj of Object.values(state.objects)) {
+        obj.spriteoffset = { x: 0, y: 0 };
+        if (obj.colors.length == 0)             // can this ever happen?
+            obj.colors.push('#ff00ff');
+        if (obj.cloneSprite) {
+            const other = state.objects[obj.cloneSprite];
+            obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
+            obj.spriteoffset = other.spriteoffset;
+        } else if (obj.spritematrix.length == 0) {
+            obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
+        }
+        
+        for (const tf of obj.transforms ||  []) {
+            obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
+        }
+    }
+    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+}
+
+// PS> check whether a name has been used and is not available
+function isAlreadyDeclared(state, id) {
+    return Object.hasOwn(state.objects, id)
+        || state.legend_synonyms.find(s => s[0] == id)
+        || state.legend_aggregates.find(s => s[0] == id)
+        || state.legend_properties.find(s => s[0] == id)
+        || Object.hasOwn(state.tags, id)  // todo:@@
+}
+
 function isColor(str) {
 	str = str.trim();
 	if (str in colorPalettes.arnecolors)
@@ -52,6 +274,15 @@ function generateExtraMembers(state) {
                 idcount++;
             }
         }
+    }
+
+    // @@PS> fill in start and length of each group of objects
+    let prevObjectNo = idcount;
+    for (let i = state.collisionLayerGroups.length - 1; i >= 0; --i) {
+        const group = state.collisionLayerGroups[i];
+        group.firstObjectNo = state.objects[state.collisionLayers[group.layer][0]].id;
+        group.numObjects = prevObjectNo - group.firstObjectNo;
+        prevObjectNo = group.firstObjectNo;
     }
 
     //set object count
@@ -126,42 +357,7 @@ function generateExtraMembers(state) {
         }
     }
 
-    //generate sprite matrix
-    for (var n in state.objects) {
-        if (state.objects.hasOwnProperty(n)) {
-            var o = state.objects[n];
-            if (o.colors.length==0) {
-                logError('color not specified for object "' + n +'".',o.lineNumber);
-                o.colors=["#ff00ff"];
-            }
-           if (o.cloneSprite !== "") {
-              //console.log("To clone: "+o.cloneSprite);
-              if (state.objects.hasOwnProperty(o.cloneSprite)) {
-                  
-                  if (state.objects[o.cloneSprite].cloneSprite === "") {
-                      o.spritematrix = deepClone(state.objects[o.cloneSprite].spritematrix);
-                      //console.log(o.spritematrix);
-                  } else {
-                      logError("The sprite that "+n+" attempted to clone ("+o.cloneSprite+") clones a sprite itself ("+state.objects[o.cloneSprite].cloneSprite + "), so it can't clone the sprite! You'll need to set up the cloning differently.",o.lineNumber);
-                  }
-              } else {
-                  logError(n +" attempted to clone the sprite matrix of "+o.cloneSprite+", but that object doesn't exist?!",o.lineNumber);
-              }
-           } else if (o.spritematrix.length===0) {
-              o.spritematrix = new Array(state.sprite_size);
-              var zeros = new Array(state.sprite_size);
-              for(var i = 0; i < state.sprite_size; i++) {
-                  zeros[i] = 0;
-              }
-              for(var i = 0; i < state.sprite_size; i++) {
-                  o.spritematrix[i] = zeros;
-              }
-          } else {
-            // we now allow sprites of any length and width
-              //o.spritematrix = generateSpriteMatrix(o.spritematrix);
-          }
-        }
-    }
+    generateSpriteMatrix(state);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -685,48 +881,17 @@ function fixUpGosubs(state) { // PS>
     }
 }
 
-var directionaggregates = {
-    'horizontal': ['left', 'right'],
-    'horizontal_par': ['left', 'right'],
-    'horizontal_perp': ['left', 'right'],
-    'vertical': ['up', 'down'],
-    'vertical_par': ['up', 'down'],
-    'vertical_perp': ['up', 'down'],
-    'moving': ['up', 'down', 'left', 'right', 'action'], // todo: reaction
-    'orthogonal': ['up', 'down', 'left', 'right'],
-    'perpendicular': ['^', 'v'],
-    'parallel': ['<', '>']
-};
-
+// return true if this is a directional rule
 function directionalRule(rule) {
-    for (var i = 0; i < rule.lhs.length; i++) {
-        var cellRow = rule.lhs[i];
-        if (cellRow.length > 1) {
+    for (const row of [ ...rule.lhs, ...rule.rhs ]) {
+        if (row.length > 1)
             return true;
-        }
-        for (var j = 0; j < cellRow.length; j++) {
-            var cell = cellRow[j];
+        for (const cell of row) {
             for (var k = 0; k < cell.length; k += 2) {
-                if (relativeDirections.indexOf(cell[k]) >= 0) {
+                if (relativeDirections.includes(cell[k]))
                     return true;
-                }
-                if (cell[k + 1].match(/(:<|:>|:\^|:v)$/)) {     //@@ PS>
+                if (cell[k + 1].split(':').some(p => relativeDirections.includes(p)))
                     return true;
-                }
-            }
-        }
-    }
-    for (var i = 0; i < rule.rhs.length; i++) {
-        var cellRow = rule.rhs[i];
-        if (cellRow.length > 1) {
-            return true;
-        }
-        for (var j = 0; j < cellRow.length; j++) {
-            var cell = cellRow[j];
-            for (var k = 0; k < cell.length; k += 2) {
-                if (relativeDirections.indexOf(cell[k]) >= 0) {
-                    return true;
-                }
             }
         }
     }
@@ -790,15 +955,14 @@ function processRuleString(rule, state, curRules) {
 	1 - reading cell contents LHS
 	2 - reading cell contents RHS
 */
-var parsestate = 0;
-var directions = [];
+    var parsestate = 0;
+    var directions = [];
 
-var curcell = null; // [up, cat, down mouse]
-var curcellrow = []; // [  [up, cat]  [ down, mouse ] ]
+    var curcell = null; // [up, cat, down mouse]
+    var curcellrow = []; // [  [up, cat]  [ down, mouse ] ]
 
-var incellrow = false;
+    var incellrow = false;
 
-    var appendGroup = false;
     var rhs = false;
     var lhs_cells = [];
     var rhs_cells = [];
@@ -808,8 +972,9 @@ var incellrow = false;
     var commands = [];
     var randomRule = false;
     var has_plus = false;
-    var globalRule=false;
+    var globalRule = false;
     let isOnce = false;
+    const prefixes = [];
 
     if (tokens.length===1) {
         if (tokens[0]==="startloop" ) {
@@ -865,19 +1030,19 @@ var incellrow = false;
                         rigid = true;
                     } else if (token === 'random') {
                         randomRule = true;
-                        if (has_plus)
-                        {
+                        if (has_plus) {
                             logError(`A rule-group can only be marked random by the opening rule in the group (aka, a '+' and 'random' can't appear as rule modifiers on the same line).  Why? Well, you see "random" isn't a property of individual rules, but of whole rule groups.  It indicates that a single possible application of some rule from the whole group should be applied at random.`, lineNumber) 
                         }
-
-                    }else if (token==='global') {
-                        globalRule=true;
-                    }else if (token==='once') {
+                    } else if (token == 'global') {
+                        globalRule = true;
+                    } else if (token == 'once') {
                         isOnce = true;
                     } else if (simpleAbsoluteDirections.indexOf(token) >= 0) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
                         logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
+                    } else if (Object.hasOwn(state.tags, token)) {       //@@ PS> tags 
+                        prefixes.push(token);
                     } else if (token == '[') {
                         if (directions.length == 0) {
                             directions = directions.concat(directionaggregates['orthogonal']);
@@ -886,9 +1051,9 @@ var incellrow = false;
                         i--;
                     } else {
                         logError("The start of a rule must consist of some number of directions (possibly 0), before the first bracket, specifying in what directions to look (with no direction specified, it applies in all four directions).  It seems you've just entered \"" + token.toUpperCase() + '\".', lineNumber);
+                    }
+                break;
             }
-            break;
-        }
             case 1:
                 {                                        
             if (token == '[') {
@@ -915,13 +1080,12 @@ var incellrow = false;
                 if (!incellrow) {
                     logWarning('Janky syntax.  "|" should only be used inside cell rows (the square brackety bits).',lineNumber);
                 } else if (curcell.length % 2 == 1) {
-                            logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
+                    logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
                 } else {
                     curcellrow.push(curcell);
                     curcell = [];
                 }
             } else if (token === ']') {
-                
                 bracketbalance--;
                 if(bracketbalance<0){
                     logWarning("Multiple closing brackets without corresponding opening brackets.  Something fishy here.  Every '[' has to be closed by a ']', and you can't nest them.", lineNumber);
@@ -931,7 +1095,7 @@ var incellrow = false;
                     if (curcell[0]==='...') {
                         logError('Cannot end a rule with ellipses.', lineNumber);
                     } else {
-                                logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
+                        logError('In a rule, if you specify a movement, it has to act on an object.', lineNumber);
                     }
                 } else {
                     curcellrow.push(curcell);
@@ -959,11 +1123,11 @@ var incellrow = false;
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.indexOf(token) >= 0 || token.match(/[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
+            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  //@@ PS>
+                // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
-                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
-                 }
-                 else if (curcell.length % 2 == 0) {
+                    logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
+                } else if (curcell.length % 2 == 0) {
                     curcell.push('');
                     curcell.push(token);
                 } else if (curcell.length % 2 == 1) {
@@ -1000,7 +1164,7 @@ var incellrow = false;
                 }  else {
                     commands.push([tok]);
                 }
-            } else {
+                        } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
             }
         }
@@ -1046,6 +1210,7 @@ var rule_line = {
     randomRule: randomRule,
     globalRule: globalRule,
     isOnce: isOnce,
+    prefixes: prefixes,
 };
 
     if (directionalRule(rule_line) === false && rule_line.directions.length>1) {
@@ -1057,16 +1222,16 @@ var rule_line = {
 return rule_line;
 }
 
-function deepCloneHS(HS) {
-    var cloneHS = HS.map(function(arr) { return arr.map(function(deepArr) { return deepArr.slice(); }); });
-    return cloneHS;
+// function is passed a cell which we may modify
+function deepCloneHS(HS, fn) {
+    return HS.map(row => row.map(cell => fn ? fn(cell) : [ ...cell ]));
 }
 
-function deepCloneRule(rule) {
-	var clonedRule = {
+function deepCloneRule(rule, fnlhs, fnrhs) {
+	return {
 		direction: rule.direction,
-		lhs: deepCloneHS(rule.lhs),
-		rhs: deepCloneHS(rule.rhs),
+		lhs: deepCloneHS(rule.lhs, fnlhs),
+		rhs: deepCloneHS(rule.rhs, fnrhs),
 		lineNumber: rule.lineNumber,
 		late: rule.late,
 		rigid: rule.rigid,
@@ -1076,17 +1241,35 @@ function deepCloneRule(rule) {
 		globalRule:rule.globalRule,
         isOnce: rule.isOnce,
 	};
-	return clonedRule;
 }
 
+// make multiple passes to parse and expand rules, with absolute directions and objects
 function rulesToArray(state) {
-    var oldrules = state.rules;
-    var rules = [];
+    let rules = parseRulesToArray(state);
+    rules = expandRulesWithPrefix(state, rules);
+    rules = expandRulesWithMultipleDirections(state, rules);
+    for (const rule of rules)
+        convertRelativeDirsToAbsolute(state, rule);
+    rules = expandRulesWithMultiDirectionObjects(state, rules);
+    for (const rule of rules) {
+        if (!debugLevel.includes('noulrule')) rewriteUpLeftRules(rule);
+        atomizeAggregates(state, rule);
+        rephraseSynonyms(state, rule);
+    }
+    rules = convertObjectsAndDirections(state, rules);
+    checkRuleObjects(state, rules);
+    state.rules = rules;
+}
+
+// find and filter out start and end loop, subroutines PS>
+function parseRulesToArray(state) {
+    const oldrules = state.rules;
+    var newrules = [];
     var loops = [];
     var subroutines = [];
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
-        var newrule = processRuleString(oldrules[i], state, rules);
+        var newrule = processRuleString(oldrules[i], state, newrules);
         if (newrule.bracket) {
             loops.push([lineNumber, newrule.bracket]);
         } else if (newrule.label) {      // PS>
@@ -1095,20 +1278,91 @@ function rulesToArray(state) {
                 logError(`Duplicate subroutine, "${newrule.label}" already defined at line ${other.lineNumber}`, newrule.lineNumber);
             else {
                 // target for gosub is next groupno, or next lineno if none
-                //const groupno = (i + 1 < oldrules.length) ? oldrules[i + 1][1].groupNumber : newrule.lineNumber + 1;
                 subroutines.push({
                     label: newrule.label,
                     lineNumber: newrule.lineNumber,
-                    //groupNumber: groupno,
                 });
             }
-        } else rules.push(newrule);
+        } else newrules.push(newrule);
     }
     state.loops = loops;
     state.subroutines = subroutines;
+    return newrules;
+}
 
-    //now expand out rules with multiple directions
-    var rules2 = [];
+//@@ PS> expand rules with prefix and tags
+// for every prefix.id found in a cell, clone the entire rule once for every prefix.member
+// dirs [ again_col ] [ con:dirs:offs ] -> [ again_col ] [ con:dirs ]
+function expandRulesWithPrefix(state, rules) {
+    var newrules = [];
+    for (const rule of rules) {
+        const rlen = newrules.length;
+        for (const prefix of rule.prefixes) {
+            for (const value of state.tags[prefix]) {
+                const lhs = cell => cell.map((c,x) => (x % 2 == 0) ? c
+                    : (c == prefix) ? value 
+                    : (c.includes(`:${prefix}`)) ? c.replace(`:${prefix}`, `:${value}`)
+                    : c);
+                // todo: rhs will be different with mapping
+                const newrule = deepCloneRule(rule, lhs, lhs);
+                newrule.directions = rule.directions; // not expanded yet
+                newrules.push(newrule);
+            }
+        }    
+        if (rlen == newrules.length)  // warning?
+            newrules.push(rule);
+    }
+    return newrules;
+}
+
+//@@ PS> expand rules with multi direction parts
+// [ wantsToFlyTo:> wantsToFlyTo:perpendicular ] -> [ ]
+//now expand out rules with multiple directions
+function expandRulesWithMultiDirectionObjects(state, rules) {
+    var newrules = [];
+    for (const rule of rules) {
+        const objs = [ ...rule.lhs, ...rule.rhs ].flat()
+            .map(cell => cell.filter((_,x) => x % 2 == 1))
+            .flat();
+        const dirs = objs.map(obj => obj.split(':'))
+            .flat()
+            .filter((part,x,a) => part in directionaggregates && a.indexOf(part) == x);
+        if (dirs.length == 0)
+            newrules.push(rule);
+        else {
+            const muldir = dirs[0];
+            for (const expdir of directionaggregates[muldir]) {
+                const fnsub = cell => cell.map((c,x) => (x % 2 == 0) ? c
+                    : (c == muldir) ? expdir 
+                    : (c.includes(`:${muldir}`)) ? c.replace(`:${muldir}`, `:${expdir}`)
+                    : c);
+                newrules.push(deepCloneRule(rule, fnsub, fnsub));
+            }
+        }
+    
+    }
+    return newrules;
+}
+
+function checkRuleObjects(state, rules) {
+    for (const rule of rules) {
+        const objs = [ ...rule.lhs, ...rule.rhs ].flat()
+            .map(cell => cell.filter((_,x) => x % 2 == 1))
+            .flat()
+            .filter(o => o != '...');
+        for (const obj of objs) {
+            if (!isAlreadyDeclared(state, obj))
+                console.log(`Not declared: ${obj}`);
+            const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
+            if (!(layer >= 0))
+                console.log(`Not in a layer: ${obj}`);
+        }
+    }
+}
+ 
+//now expand out rules with multiple directions
+function expandRulesWithMultipleDirections(state, rules) {
+    var newrules = [];
     for (var i = 0; i < rules.length; i++) {
         var rule = rules[i];
         var ruledirs = rule.directions;
@@ -1119,35 +1373,19 @@ function rulesToArray(state) {
                 for (var k = 0; k < dirs.length; k++) {
                     var modifiedrule = deepCloneRule(rule);
                     modifiedrule.direction = dirs[k];
-                    rules2.push(modifiedrule);
+                    newrules.push(modifiedrule);
                 }
             } else {
                 var modifiedrule = deepCloneRule(rule);
                 modifiedrule.direction = dir;
-                rules2.push(modifiedrule);
+                newrules.push(modifiedrule);
             }
         }
     }
+    return newrules;
+}
 
-    for (var i = 0; i < rules2.length; i++) {
-        var rule = rules2[i];
-        // remove object suffixes       // PS>
-        replaceObjectSuffixes(state, rule);
-        //remove relative directions
-        convertRelativeDirsToAbsolute(rule);
-        //optional: replace up/left rules with their down/right equivalents
-        rewriteUpLeftRules(rule);
-        //replace aggregates with what they mean
-        atomizeAggregates(state, rule);
-
-        if (state.invalid){
-            return;
-        }
-        
-        //replace synonyms with what they mean
-        rephraseSynonyms(state, rule);
-    }
-
+function convertObjectsAndDirections(state, rules2) {
     var rules3 = [];
     //expand property rules
     for (var i = 0; i < rules2.length; i++) {
@@ -1159,13 +1397,12 @@ function rulesToArray(state) {
     for (var i = 0; i < rules3.length; i++) {
         var rule = rules3[i];
         rules4 = rules4.concat(concretizePropertyRule(state, rule, rule.lineNumber));
-
     }
 
     for (var i=0;i<rules4.length;i++){
         makeSpawnedObjectsStationary(state,rules4[i],rule.lineNumber);
     }
-    state.rules = rules4;
+    return rules4;
 }
 
 function containsEllipsis(rule) {
@@ -1178,6 +1415,7 @@ function containsEllipsis(rule) {
     return false;
 }
 
+//optional: replace up/left rules with their down/right equivalents
 function rewriteUpLeftRules(rule) {
     if (containsEllipsis(rule)) {
         return;
@@ -1516,6 +1754,7 @@ function makeSpawnedObjectsStationary(state,rule,lineNumber){
                     continue;
                 }
                 //@@ dies here if invalid object name
+                //console.log(`dies here ${name}`);
                 var r_layer = state.objects[name].layer;
                 if (layers.indexOf(r_layer)===-1){
                     cell[l]='stationary';
@@ -1712,6 +1951,7 @@ function concretizeMovingRule(state, rule, lineNumber) {
     return result;
 }
 
+// replace all synonyms in a rule by the object they refer to
 function rephraseSynonyms(state, rule) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cellrow_l = rule.lhs[i];
@@ -1737,6 +1977,7 @@ function rephraseSynonyms(state, rule) {
     }
 }
 
+// replace all aggregates in a rule by the set of objects they refer to
 function atomizeAggregates(state, rule) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cellrow = rule.lhs[i];
@@ -1772,68 +2013,18 @@ function atomizeCellAggregates(state, cell, lineNumber) {
     }
 }
 
-function convertRelativeDirsToAbsolute(rule) {
-    var forward = rule.direction;
-    for (var i = 0; i < rule.lhs.length; i++) {
-        var cellrow = rule.lhs[i];
-        for (var j = 0; j < cellrow.length; j++) {
-            var cell = cellrow[j];
-            absolutifyRuleCell(forward, cell);
-        }
-    }
-    for (var i = 0; i < rule.rhs.length; i++) {
-        var cellrow = rule.rhs[i];
-        for (var j = 0; j < cellrow.length; j++) {
-            var cell = cellrow[j];
-            absolutifyRuleCell(forward, cell);
-        }
-    }
-}
-
-//@@ PS>
-function replaceObjectSuffixes(state, rule) {
-    for (const side of [rule.lhs, rule.rhs]) {
-        for (const cellrow of side) {
-            for (const cell of cellrow) {
-                replaceObjectSuffix(state, rule, cell);
-            }
-        }
-    }
-}
-
-var relativeDirs = ['^', 'v', '<', '>', 'parallel', 'perpendicular']; //used to index the following
-//I use _par/_perp just to keep track of providence for replacement purposes later.
-var relativeDict = {
-    'right': ['up', 'down', 'left', 'right', 'horizontal_par', 'vertical_perp'],
-    'up': ['left', 'right', 'down', 'up', 'vertical_par', 'horizontal_perp'],
-    'down': ['right', 'left', 'up', 'down', 'vertical_par', 'horizontal_perp'],
-    'left': ['down', 'up', 'right', 'left', 'horizontal_par', 'vertical_perp']
-};
-
-//@@ PS> replace a suffix on thing:> with thingup  ???
-function replaceObjectSuffix(state, rule, cell) {
-    for (let i = 1; i < cell.length; i += 2) {
-        const c = cell[i];
-        if (c.match(/(:<|:>|:\^|:v)$/)) {
-            const s = c.slice(-1);
-            const newc = c.slice(0, -2) + relativeDict[rule.direction][relativeDirs.indexOf(s)];
-            if (!state.names.includes(newc)) {
-                logError(`Invalid direction expansion: "${c}" expands to "${newc}" which is not a defined object.`, rule.lineNumber);
-                cell[i] = 'background';
-            } else 
-                cell[i] = newc;
-
-        }
-    }
+// replace all relative directions in a rule by absolute based on rule direction
+function convertRelativeDirsToAbsolute(state, rule) {
+    [ ...rule.lhs, ...rule.rhs ].flat().forEach(cell => {
+        absolutifyRuleCell(rule.direction, cell);
+    });
 }
 
 function absolutifyRuleCell(forward, cell) {
+    const absOf = dir => relativeDirs.includes(dir) ? relativeDict[forward][relativeDirs.indexOf(dir)] : dir;
     for (var i = 0; i < cell.length; i += 2) {
-        var c = cell[i];
-        var index = relativeDirs.indexOf(c);
-        if (index >= 0) {
-            cell[i] = relativeDict[forward][index];
-        }
+        cell[i] = absOf(cell[i]);
+        cell[i + 1] = cell[i + 1].split(':').map(p => absOf(p)).join(':');
     }
 }
 
@@ -3039,25 +3230,11 @@ function generateSoundData(state) {
 
 
 function formatHomePage(state) {
-    if ('background_color' in state.metadata) {
-        state.bgcolor = colorToHex(colorPalette, state.metadata.background_color);
-    } else {
-        state.bgcolor = "#000000";
-    }
-    if ('text_color' in state.metadata) {
-        state.fgcolor = colorToHex(colorPalette, state.metadata.text_color);
-    } else {
-        state.fgcolor = "#FFFFFF";
-    }
-
-    if (isColor(state.fgcolor) === false) {
-        logError("text_color in incorrect format - found " + state.fgcolor + ", but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA').  Defaulting to white.",state.metadata_lines.text_color)
-        state.fgcolor = "#FFFFFF";
-    }
-    if (isColor(state.bgcolor) === false) {
-        logError("background_color in incorrect format - found " + state.bgcolor + ", but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA').  Defaulting to black.",state.metadata_lines.background_color)
-        state.bgcolor = "#000000";
-    }
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
+    // PS> from P:S still todo:
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
 
     if (canSetHTMLColors) {
 
@@ -3111,6 +3288,9 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
+    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+    if (debugLevel.includes('coll')) console.log('Collision Layers', state.collisionLayers);
+    if (debugLevel.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -3214,7 +3394,8 @@ function compile(command, text, randomseed) {
         var state = loadFile(text);
     } catch(error) {
         consolePrint(error);
-        console.log(`Compile error: ${error}`);
+        console.error(`Compile error: ${error}`);
+        console.error(`${error.stack}`);
         errorStrings.push(error);
         //errorCount++;
     } finally {

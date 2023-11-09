@@ -1,0 +1,481 @@
+title Magiciban v1
+author Tom Hermans [@Auroriax]
+tween_length 0.05
+text_controls Arrows/WASD: Move    Space: Select\nZ: Undo  R: Reset  Esc: Lvl Select\n    For the Thinky Puzzle Jam 2
+
+background_color #2B1634
+text_color #F5D1B3
+
+sprite_size 10
+
+noaction
+run_rules_on_level_start
+
+level_select
+level_select_lock
+level_select_unlocked_rollover 5
+
+(
+Come and see the great Sokoban magician Spades! As if by magic they shift the stage and move the rabbits below the floating hats to the audience's delight! Prepare for a jam-packed show that you'll never forget. 
+
+This is short Sokoban variant that is loosely based on the 15 Puzzle and Rosden's Sliding Ground. It was made for the Thinky Puzzle Jam 2.
+)
+
+(
+COLOR SCHEMES
+https://www.schemecolor.com/magical-place.php
+https://www.schemecolor.com/magic-is-magic.php
+https://www.schemecolor.com/ethereal.php
+)
+
+========
+OBJECTS
+========
+
+background .
+#2B1634
+
+player white
+black #F5D1B3 #F2EAF5
+..........
+..........
+....00....
+...0000...
+..010100..
+.00000200.
+.00022000.
+..000000..
+....00....
+...0000...
+
+Tile t
+#C7305D transparent
+1000000001
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+1000000001
+
+TileDeco1
+#E2A3B440
+..........
+..........
+......0...
+......00..
+..........
+..........
+.0........
+00........
+..........
+..........
+
+TileDeco2
+#E2A3B440
+..00......
+...0......
+..........
+..........
+..........
+..........
+......00..
+......0...
+..........
+..........
+
+AntiTile ,
+#3D2D5F
+..000000..
+.00000000.
+00......00
+00..00..00
+00.0000.00
+00.0000.00
+00..00..00
+00......00
+.00000000.
+..000000..
+
+AntiTileHor
+#3D2D5F
+..........
+..........
+0000000000
+0000000000
+...0..0...
+..0....0..
+0000000000
+0000000000
+..........
+..........
+
+AntiTileVer
+#3D2D5F
+..00..00..
+..00..00..
+..000.00..
+..00.000..
+..00..00..
+..00..00..
+..00.000..
+..000.00..
+..00..00..
+..00..00..
+
+FeedbackOrigin
+transparent
+
+FeedbackU
+#F5D1B3 transparent
+..........
+..........
+..111111..
+...1111...
+....11....
+....00....
+...0000...
+..000000..
+..........
+..........
+
+FeedbackL
+#F5D1B3 transparent
+..........
+..........
+..1....0..
+..11..00..
+..111000..
+..111000..
+..11..00..
+..1....0..
+..........
+..........
+
+FeedbackR copy:FeedbackL
+transparent #F5D1B3
+
+FeedbackD copy:FeedbackU
+transparent #F5D1B3
+
+NormalRabbit
+#F2EAF5 black
+..........
+..........
+..00.00...
+..00000...
+..01010...
+..01010...
+..00000...
+..001000..
+..000000..
+...0..0...
+
+HappyRabbit
+#F2EAF5 black
+..........
+..........
+..00.00...
+..00000...
+..01010...
+..00000...
+..01010...
+..001000..
+..000000..
+...0..0...
+
+SurprisedRabbit
+#F2EAF5 black
+..........
+..00.00...
+..00000...
+..01010...
+..01010...
+..000000..
+..001000..
+..00000...
+...0..0...
+..........
+
+Target
+#F5D1B3 #6752AF
+...111....
+...111....
+...000....
+..11111...
+..........
+..........
+..........
+..........
+..........
+..........
+
+TargetShadow copy:NormalRabbit
+#2B163440 #2B163460
+
+Temp
+transparent
+=======
+LEGEND
+=======
+p = player and tile
+b = NormalRabbit and tile
+o = Target and TargetShadow and tile
+- = Target and TargetShadow
+v = Target and TargetShadow and NormalRabbit and Tile
+
+Rabbit = NormalRabbit or HappyRabbit or SurprisedRabbit
+MustStayOnTile = Player or Rabbit
+Feedback = FeedbackU or FeedbackL or FeedbackR or FeedbackD
+AntiTiles = AntiTile or AntiTileHor or AntiTileVer
+Deco = TileDeco1 or TileDeco2
+Shiftable = Player or Tile or Rabbit or Deco
+
+=======
+SOUNDS
+=======
+
+sfx1 4527907 (SHIFT!)
+sfx2 48808307 (Push!)
+
+player move horizontal 6491307
+player move vertical 6368107
+
+HappyRabbit Create 75743100
+
+cancel 94782507
+
+endlevel 16003308
+
+================
+COLLISIONLAYERS
+================
+background
+tile AntiTiles
+Deco
+
+TargetShadow
+player Rabbit
+
+Target
+
+FeedbackOrigin
+Feedback
+Temp
+
+======
+RULES
+======
+(Cleanup)
+[Feedback] -> []
+[FeedbackOrigin] -> []
+
+(Generate decoration for tiles)
+horizontal [AntiTiles | AntiTile | AntiTiles] -> [AntiTiles | AntiTileHor | AntiTiles]
+vertical [AntiTiles | AntiTile | AntiTiles] -> [AntiTiles | AntiTileVer | AntiTiles]
+[Tile no Deco] -> [Tile random Deco]
+
+(Push boxes)
+[> Player | stationary Rabbit] -> [> Player | > Rabbit] sfx2
+
+(Blocking illegal movement)
+[> Player] [> Rabbit | no Tile] -> [Player] [Rabbit | ] cancel
+[> Player | AntiTiles] -> [Player | AntiTiles] cancel
+
+(Shifting)
+[> Player Tile | no tile no antitile] -> [> Player > Tile | ] sfx1
+[< tile | stationary tile] -> [< tile | < tile]
+[> tile stationary Shiftable] -> [> tile > Shiftable]
+
+(Create hints)
+[> Player stationary Tile | ] -> [> Player Tile | FeedbackOrigin]
+[> Player > Tile | ] -> [> Player > Tile | FeedbackOrigin]
+[stationary Player] -> [Player FeedbackOrigin]
+[action Player] -> [Player FeedbackOrigin]
+
+up    [FeedbackOrigin | no Tile no antitiles] -> [FeedbackOrigin | action FeedbackU]
+down  [FeedbackOrigin | no Tile no antitiles] -> [FeedbackOrigin | action FeedbackD]
+left  [FeedbackOrigin | no Tile no antitiles] -> [FeedbackOrigin | action FeedbackL]
+right [FeedbackOrigin | no Tile no antitiles] -> [FeedbackOrigin | action FeedbackR]
+
+up    [no Tile | > Player | no Tile] -> [| > Player action FeedbackD |]
+down  [no Tile | > Player | no Tile] -> [| > Player action FeedbackU |]
+left  [no Tile | > Player | no Tile] -> [| > Player action FeedbackR |]
+right [no Tile | > Player | no Tile] -> [| > Player action FeedbackL |]
+
+(Rabbit emotions)
+[stationary Rabbit no Target] -> [NormalRabbit]
+[> Rabbit | Target] -> [> HappyRabbit | target]
+[> Rabbit | no Target] -> [> SurprisedRabbit | ]
+
+(Require_player_movement)
+[moving Player] -> [moving Player Temp]
+late [Player Temp] -> cancel
+late [Temp] -> []
+
+==============
+WINCONDITIONS
+==============
+
+all target on Rabbit
+all Rabbit on target
+some target
+
+=======
+LEVELS
+=======
+
+section 0:00 Opening Act
+,,,,,,,,,
+,..ttotb,
+,,,,t,,,,
+,otttbt,.
+,,,,,,t,.
+,pt.t.t,.
+,,,,,,,,.
+
+section 0:05 Levitation
+,,,,,,
+,opt.,
+,,ttt,
+.,tbt,
+.,,,,,
+(38 steps, 105 positions explored)
+(rrddl ululr rdrud ldrul ldurr dlulu rddlu rul)
+
+section 0:13 Zig Zag Girl
+,,,,,,
+,tttt,
+,tt.t,
+,t.,t,
+,ttop,
+,tttb,
+,,,,,,
+(25 steps, 340 positions explored)
+(uulur dulld ldrdr drllu ldrul)
+
+section 0:22 The Houdini Escape
+.,,,,,.
+.,tbt,.
+.,tpt,.
+.,o-o,.
+.,btb,.
+.,,,,,.
+(37 steps, 2675 positions explored)
+(dluur rddll uurrd dldlu rrdul ldrur uuldu ld)
+
+section 0:29 Metamorphosis
+,,,,,,,
+,ot.tb,
+,tt,pt,
+,.,,,.,
+,tt,tt,
+,bt.to,
+,,,,,,,
+(39 steps, 328 positions explored)
+(rddld lrurd lllul uuurr ldlur rrdrd dldll uluu)
+
+section 0:35 Zarrow Shuffle
+,,,,,,
+,...-,
+,..b.,
+,.p..,
+,t..,,
+,,,,,.
+(23 steps, 624 positions explored)
+(luudr urrdd lurdl urudl lur)
+
+section 0:43 Quick-Change
+,,,,,,
+,b..b,
+,.--.,
+,p--.,
+,b..b,
+,,,,,,
+(39 steps, 110 positions explored)
+(lurdr rulul dldrr lldrr urulr ddlll uurul ddrd)
+
+section 0:51 Faster than Magic
+,,,,,,,,
+,...b,b,
+,p--v.-,
+,t..b,.,
+,,,,,,,,
+(46 steps, 6303 positions explored)
+(drrll uurrl ldrru ldurd dlurl drrur ldllu dludr rrurr d)
+
+section 1:02 Hat Foil Trick
+,,,,,,,
+,btttt,
+,tt-,t,
+,ttptt,
+,t,-tt,
+,ttttb,
+,,,,,,,
+(50 steps, 8332 positions explored)
+(dudrd lurrd luulu urrdd lddlr urduu lluur rddll luuld rdlur)
+
+section 1:08 Origami Illusion
+,,,,..
+,tt,..
+,bbt,.
+,.tp.,
+.,too,
+..,tt,
+..,,,,
+(78 steps, 892 positions explored)
+(rdllu druul dlrrd rudld ruldu ulurd llurd lrrdr udldr uldru ulull drrdr dlurd luulu udldr urd)
+
+section 1:11 Bending the Spoon
+,,,,,,,
+,,,ttb,
+,,pttb,
+,ttttb,
+,o-o,,,
+,,,,,,,
+(109 steps, 685 positions explored)
+(dduru lrurd rlldl udldr uldru lrurd urrdl luldu rurrd ulldr ruldd rluur dlldl lrrur rdluu rldlu rddll rdluu rdruu lrdru lddru llld)
+
+section 1:15 Grand Finale
+,,,,,,
+,-..-,
+,tbb.,
+,tpb.,
+,ttt-,
+,,,,,,
+(88 steps, 42139 positions explored)
+(luudd rdrru uulll ddrul ddrrr uuldu lrrul rdldr dulld ruurd ludll ruudr rulrd lurdl lurdl rrldl uludr rul)
+message Tadaah! You win the game! Congrats.
+
+section Credits
+message Game by Tom Hermans for the Thinky Puzzle Jam 2 in 2022.
+message Inspired by the 15 Puzzle and Rosden's Sliding Ground.
+message Main color palette "Magical Place" by Color Man\nhttps://www.schemecolor.com/magical-place.php
+message Thank you for playing!
+
+section Encore 1
+message Here are some extra difficult bonus puzzles that were scrapped for the base game.
+,,,,,,,,
+,b....b,
+,.,,,,.,
+,..--..,
+,p.--..,
+,.,,,,.,
+,b....b,
+,,,,,,,,
+(103 steps, 2250 positions explored)
+(duurd rrurr uddll rulll dluud rldrr urrdr duuuu lllll ddddd rrrrr uuudd dllll luuur luurr rrrdd dulld llldd rrrrr uullr ulr)
+
+section Encore 2
+.,,,,,,,.
+,,tt,tt,,
+,ttb,tot,
+,tbt.tpo,
+,ttb,tot,
+,,tt,tt,,
+.,,,,,,,.
+(100 steps, 690823 positions explored)
+(lllld drulu rrrdr ullll uurdl drrru rdrll lldlu lurdr rrrrl llllu urdld rrrrd lulll lrrrr drudr udlul uurdr luldr uldru)

@@ -1,0 +1,92 @@
+title test min tags
+author polymino
+homepage www.polyomino.com
+
+// test program for new TAG section
+
+//sprite_size 7x7
+
+verbose_logging
+debug
+
+====
+TAGS
+====
+tag1 = t11 t12 t13 t14
+tag2 = t21 t22 t23 t24
+dirs = up down left right
+
+========
+OBJECTS
+========
+Background .;grey
+PLAYER P;yellow
+r; red
+
+obj1
+white red
+00111
+00100
+01100
+00100
+00100
+
+obj2:dirs
+white blue
+00111
+00100
+01100
+00100
+00100
+rot:up:dirs
+
+obj3:dirs
+white green
+copy: obj1 rot:right:dirs
+
+obj4:dirs
+white purple
+copy: obj2:dirs rot:down:dirs
+
+obj5:tag1:dirs
+white brown
+copy: obj3:dirs rot:left:dirs
+
+=======
+LEGEND
+=======
+1 = obj1
+2 = obj2:left
+3 = obj3:left
+4 = obj4:left
+5 = obj5:t11:left
+
+================
+COLLISIONLAYERS
+================
+Background
+Player, r
+obj1, obj2:dirs, obj3:dirs, obj4:dirs, obj5:tag1:dirs
+
+======
+RULES
+======
+
+right [ > p | r ] -> [ > p | > r ]
+right [ ^ p | obj1 ] -> [ p | ]
+right [ v p | obj2:< ] -> [ p | ]
+right [ v p | obj3:perpendicular ] -> [ p | ]
+right [ ^ p | obj2:dirs ] -> [ p | ]
+right [ ^ p | obj3:dirs ] -> [ p | ]
+right [ ^ p | obj4:dirs ] -> [ p | ]
+right [ v p | obj1 ] -> [ p | ]
+
+=======
+LEVELS
+=======
+
+...........
+..1....2...
+....pr.3...
+.......4...
+...........

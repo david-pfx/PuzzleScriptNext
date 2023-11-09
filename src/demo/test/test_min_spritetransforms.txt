@@ -1,0 +1,195 @@
+title test min sprite mods
+author polymino
+homepage www.polyomino.com
+
+// test program showing sprite transforms
+
+verbose_logging
+debug
+
+sprite_size 7
+
+====
+tags
+====
+
+dirs = up down left right
+offs = up down left right
+t1 = right left down up
+t2 = up left down right
+t3 = red green blue
+
+========
+OBJECTS
+========
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+a;black red blue
+2222222
+2011002
+2001002
+2001102
+2001002
+2001002
+2222222
+
+b;black red blue
+copy: a flip:left
+
+c;black red blue
+copy: a translate:right:3 
+translate:down:2 
+
+d;black red blue
+copy: a shift:right
+
+e;black red blue
+copy: a rot:down
+
+f;black red blue
+copy: a translate:right:3 shift:right rot:right
+
+g;black red blue
+copy: f flip:right translate:right:3 shift:right rot:up:left
+
+b:t1;black red blue
+copy: a flip:t1
+
+r;red
+y;yellow
+
+con:dirs
+#036965
+.....00000......
+.....00000......
+.....00.........
+.....00000......
+.....00000......
+.....00.........
+.....00.........
+.....00.........
+.....00.........
+................
+................
+................
+................
+................
+rot:up:dirs
+
+cut:dirs
+#036965
+copy: con:dirs
+
+vs_snake_under m
+#111018 #6cd9b5
+..000..
+.00000.
+0001000
+0011100
+0001000
+.00000.
+..000..
+translate:down:1
+translate:left:1
+
+vs_active_under n
+#111018 #6cd9b5
+copy: vs_snake_under
+
+diag s
+black orange
+100100100100
+010010010010
+001001001001
+100100100100
+010010010010
+001001001001
+100100100100
+010010010010
+001001001001
+100100100100
+010010010010
+001001001001
+
+diag2 t
+black orange
+001001001001
+010010010010
+100100100100
+001001001001
+010010010010
+100100100100
+001001001001
+010010010010
+100100100100
+001001001001
+010010010010
+100100100100
+
+=======
+LEGEND
+=======
+. = Background
+1 = con:up
+2 = con:right
+3 = con:down
+4 = con:left
+5 = cut:up
+6 = cut:right
+7 = cut:down
+8 = cut:left
+
+================
+COLLISIONLAYERS
+================
+Background
+Player
+--
+a,b,c,d,e,f,g
+m,n,s,t
+r
+y
+b:t1
+--
+dirs -> con:dirs
+dirs -> cut:dirs
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+=======
+LEVELS
+=======
+...........
+.p.r.y.....
+...........
+.a.b.c.d...
+...........
+.e.f.g.....
+...........
+.1.2.3.4...
+...........
+.5.6.7.8...
+...........
+.m.n.s.t...
+...........
+

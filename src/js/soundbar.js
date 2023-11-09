@@ -10,7 +10,6 @@ function newSound(instrument) {
 	var code = document.getElementById('consoletextarea');
 	consolePrint(generatorNames[instrument] + ' : ' + '<span class="cm-SOUND" onclick="playSound(' + seed.toString() + ',true)">' + seed.toString() + '</span>',true);
 	var params = generateFromSeed(seed);
-	params.sound_vol = SOUND_VOL;
 	params.sample_rate = SAMPLE_RATE;
 	params.bit_depth = BIT_DEPTH;
 	var sound = SoundEffect.generate(params);
@@ -21,7 +20,6 @@ function buttonPress() {
 	var generatortype = 3;
 	var seed = document.getElementById('sounddat').value;
 	var params = generateFromSeed(seed);
-	params.sound_vol = SOUND_VOL;
 	params.sample_rate = SAMPLE_RATE;
 	params.bit_depth = BIT_DEPTH;
 	var sound = SoundEffect.generate(params);

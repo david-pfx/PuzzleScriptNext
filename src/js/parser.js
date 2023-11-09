@@ -28,6 +28,9 @@ var errorCount=0;//only counts errors
 
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub)$/u;
+const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
+const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
+
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
 const commandargs_table = ['message', 'goto', 'status', 'gosub'];
@@ -40,6 +43,8 @@ let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', 
 let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'action', 'moving', 
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
+
+const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<'];
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -166,9 +171,8 @@ if (typeof Object.assign != 'function') {
 var codeMirrorFn = function() {
     'use strict';
 
-    const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
+    const sectionNames = ['tags', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
-    const reg_soundseed = /^(\d+|afx:[\w:=+-.]+)\b/i;
     const reg_equalsrow = /[\=]+/;
     const reg_csv_separators = /[ \,]*/;
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
@@ -191,11 +195,12 @@ var codeMirrorFn = function() {
     const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
-        'sprite_size', 'tween_length', 'tween_snap'];
+        'tween_length', 'tween_snap'];
     const prelude_param_single = [
         'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
         'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
-        'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'text_color', 'tween_easing', 'zoomscreen'
+        'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
+        'author_color', 'title_color'
     ];
     const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
@@ -215,19 +220,8 @@ var codeMirrorFn = function() {
         return a && a.length > 0 ? a[a.length - 1] : null;
     }
 
-    //returns null if not delcared, otherwise declaration
-    //note to self: I don't think that aggregates or properties know that they're aggregates or properties in and of themselves.
-    function wordAlreadyDeclared(state, name) {
-        let def
-        if (name in state.objects) 
-            return state.objects[name];
-        else if (def = state.legend_synonyms.find(s => s[0] == name))
-            return def;
-        else if (def = state.legend_aggregates.find(s => s[0] == name))
-            return def;
-        else if (def = state.legend_properties.find(s => s[0] == name))
-            return def;
-        else return null;
+    function hasParts(ident) {
+        return ident.split(':').length > 1;
     }
 
     // recursively expand a symbol into its ultimate constituents of objects
@@ -252,6 +246,8 @@ var codeMirrorFn = function() {
                 return sym.slice(1).flatMap(s => expandSymbol(state, s, true));
             }
         }
+        logError(`Cannot expand symbol ${name}`, state.lineNumber);
+        return [name];
     }
 
     function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
@@ -296,6 +292,10 @@ var codeMirrorFn = function() {
             this.matchPos = this.stream.pos;
         }
 
+        pushTokens(tokens) {
+            this.tokens.push(tokens);
+        }
+
         get tokens() {
             return this.tokens;
         }
@@ -304,10 +304,18 @@ var codeMirrorFn = function() {
             this.stream.pos = this.matchPos;
         }
 
+        check(regex) {
+            const token = this.stream.match(regex, false);
+            return !token ? null : token[0];
+        }
+
         checkComment() {
-            const token = matchComment(this.stream, this.state);
-            if (token != null)
-                this.pushToken(token, 'comment');
+            while (true) {
+                const token = matchComment(this.stream, this.state);
+                if (token)
+                    this.pushToken(token, 'comment');
+                else break;
+            }
         }
         
         checkEol() { 
@@ -355,10 +363,13 @@ var codeMirrorFn = function() {
             return this.match(/^[\p{L}\p{N}_$]+/u, tolower);
         }
     
-        matchNameOrGlyph(tolower) {
-            return this.match(/^[\p{L}\p{N}_$]+/u, tolower) || this.match(/^\S/, tolower);
+        matchObjectName(tolower) {
+            return this.match(/^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u, tolower);
         }
     
+        matchObjectGlyph(tolower) {
+            return this.match(/^\S/, tolower);
+        }
     }
 
     // match by regex, eat white space, optional return tolower, with pushback
@@ -372,14 +383,6 @@ var codeMirrorFn = function() {
     
     function pushBack(stream) {
         stream.pos = matchPos;
-    }
-
-    function matchName(stream, tolower) {
-        return matchRegex(stream, /^[\p{L}\p{N}_$]+/u, tolower);
-    }
-
-    function matchNameOrGlyph(stream, tolower) {
-        return matchRegex(stream, /^[\p{L}\p{N}_$]+/u, tolower) || matchRegex(stream, /^\S/, tolower);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -429,6 +432,7 @@ var codeMirrorFn = function() {
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
+            expandLastObject(state);
             state.objects_section = 0;
         }
     }
@@ -443,6 +447,22 @@ var codeMirrorFn = function() {
             return false;
         }
 
+        // finalise previous section
+        if (state.section === '') {
+            state.commentStyle ||= '()';
+        } else if (state.section === 'objects') {
+            expandLastObject(state);
+        } else if (state.section === 'legend') {
+            state.names.push(...Object.keys(state.objects));
+            state.names.push(...state.legend_synonyms.map(s => s[0]));
+            state.names.push(...state.legend_aggregates.map(s => s[0]));
+            state.names.push(...state.legend_properties.map(s => s[0]));
+        } else if (section === 'levels') {
+            state.abbrevNames.push(...Object.keys(state.objects));
+            state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
+            state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
+        }
+
         state.section = section;
         if (state.visitedSections.includes(state.section)) {
             logError(`cannot duplicate sections (you tried to duplicate "${state.section.toUpperCase()}").`, state.lineNumber);
@@ -452,38 +472,12 @@ var codeMirrorFn = function() {
         state.visitedSections.push(state.section);
         const sectionIndex = sectionNames.indexOf(state.section);
 
-        const name_plus = state.case_sensitive ? state.section : state.section.toUpperCase();
-        if (sectionIndex == 0) {
-            state.objects_section = 0;
-            if (state.visitedSections.length > 1) {
-                logError(`section "${name_plus}" must be the first section`, state.lineNumber);
-            }
-        } else if (state.visitedSections.indexOf(sectionNames[sectionIndex - 1]) == -1) {
-            if (sectionIndex===-1) {
-                logError(`no such section as "${name_plus}".`, state.lineNumber);
-            } else {
-                logError(`section "${name_plus}" is out of order, must follow  "${sectionNames[sectionIndex - 1].toUpperCase()}" (or it could be that the section "${sectionNames[sectionIndex - 1].toUpperCase()}"is just missing totally.  You have to include all section headings, even if the section itself is empty).`, state.lineNumber);
-            }
-        }
-
-        // finalise previous section, based on assumed ordering. Yuck!
-        if (state.section === 'objects'){
-            state.commentStyle ||= '()';
-        } else if (state.section === 'sounds') {
-            state.names.push(...Object.keys(state.objects));
-            state.names.push(...state.legend_synonyms.map(s => s[0]));
-            state.names.push(...state.legend_aggregates.map(s => s[0]));
-            state.names.push(...state.legend_properties.map(s => s[0]));
-        } else if (state.section === 'levels') {
-            state.abbrevNames.push(...Object.keys(state.objects));
-            state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
-            state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
-        }
         return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////
     // parse a PRELUDE line, extract parsed information, return array of tokens
+    // also updates state.metadata
     function parsePrelude(stream, state) {
         const lexer = new Lexer(stream, state);
         let value = null;
@@ -546,6 +540,8 @@ var codeMirrorFn = function() {
             } else if (prelude_param_single.includes(ident) || prelude_param_text.includes(ident)) {
                 if (args.length != 1)
                     logError(`MetaData ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                else if (ident.includes('_color') && !isColor(args[0]))
+                    logError(`MetaData ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
                 else value = [ident, args[0]];
             } else if (prelude_param_multi.includes(ident)) {
                 if (args.length < 1)
@@ -557,19 +553,20 @@ var codeMirrorFn = function() {
 
         function setState(state, value) {
             const ident = value[0];
-            if (ident == 'sprite_size')
-                state.sprite_size = Math.round(value[1]);
-            if (ident == 'case_sensitive') {
+            if (ident == 'sprite_size') {
+                const args = value[1].split('x').map(a => parseInt(a));
+                if (!(args.length == 1 || args.length == 2))
+                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
+                else state.sprite_size = args[0];
+            } else if (ident == 'case_sensitive') {
                 state.case_sensitive = true;
                 if (Object.keys(state.metadata).some(k => prelude_param_text.includes(k)))
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
-            }
-            if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
+            } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
-            }
-            if (ident == 'youtube') {
+            } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
             }
@@ -578,8 +575,71 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // parse and store an object name, return token token list
-    // nameline ::= symbol { symbol | glyph | COPY: symbol | SIZE: number }... 
+    // parse and store a TAG definition
+    //  <tagid> = { id | tagid }...
+    //
+    function parseTagsLine(stream, state) {
+        const lexer = new Lexer(stream, state);
+        const symbols = {};
+
+        if (getTokens())
+            setState();
+        return lexer.tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            // start of parse
+            if (token = lexer.matchName(!state.case_sensitive)) {
+                symbols.id = token;
+                if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
+                    logError(`You cannot define a tag called "${token.toUpperCase()}" because the name is already in use.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                } else if (hasParts(token)) {
+                    logError(`You cannot use "${token.toUpperCase()}" to define a tag because it contains colons (":").`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                } else lexer.pushToken(token, 'NAME');
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Expected a name for a new tag, but found "${token}".`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            lexer.checkEol(state);
+            if (token = lexer.match(/^=/, true)) {
+                lexer.pushToken(token, 'ASSIGNMENT');
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Expected an equals sign "=" after the tag name but got "${token}".`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            symbols.members = [];
+            while (true) {
+                if (token = lexer.matchName(!state.case_sensitive)) {
+                    symbols.members.push(token);
+                    lexer.pushToken(token, 'NAME');
+                } else {
+                    token = lexer.matchNotComment();
+                    logError(`Expected a name for a new tag member, but found "${token}".`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
+                }
+                if (lexer.checkEol(state)) break;
+            }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
+        }
+
+        function setState() {
+            state.tags[symbols.id] = symbols.members;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // parse and store an object name, return token list
+    // nameline ::= symbol { symbol | glyph } transforms
     function parseObjectName(stream, state, mixedCase) {
         const lexer = new Lexer(stream, state);
         const symbols = {};
@@ -592,52 +652,18 @@ var codeMirrorFn = function() {
         function getTokens() {
             if (state.case_sensitive)
                 stream.string = mixedCase;
+            lexer.checkComment(state);
 
             while (true) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = lexer.match(/^copy:/i)) {
-                    if (!symbols.candname)
-                        logError(`Must define a sprite to copy first`, state.lineNumber);
-                    else if (symbols.parent) 
-                        logError(`You already assigned a sprite parent for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
-                    else kind = 'KEYWORD';
-                    lexer.pushToken(token, kind);
-                    lexer.checkComment(state);
-
-                    kind = 'ERROR';
-                    if (!(token = lexer.matchNameOrGlyph(!state.case_sensitive)))
-                        logError(`Missing sprite parent.`, state.lineNumber);
-                    else if (token == symbols.candname) 
-                        logError(`You attempted to set the sprite parent for ${symbols.candname} to itself! Please don't."`, state.lineNumber)
-                    else {
-                        kind = 'NAME';
-                        symbols.parent = token;
-                    }
-                    lexer.pushToken(token, kind);
-                    if (lexer.checkEolSemi()) break;
-
-                } else if (token = lexer.match(/^scale:/i)) {
-                    if (!symbols.candname)
-                        logError(`Must define a sprite first`, state.lineNumber);
-                    else kind = 'KEYWORD';
-                    lexer.pushToken(token, kind);
-                    lexer.checkComment(state);
-
-                    kind = 'ERROR';
-                    token = lexer.match(/^[0-9.]+/);
-                    const scale = parseFloat(token);
-                    if (scale == NaN)
-                        logError(`Scale requires a numeric argument.`, state.lineNumber);
-                    else {
-                        symbols.scale = scale;
-                        kind = 'METADATATEXT';  //???
-                    }
-                    lexer.pushToken(token, kind);
-                    if (lexer.checkEolSemi()) break;
-
-                    // first name must be an object, glyph allowed after that
-                } else if ((token = !symbols.candname ? lexer.matchName(!state.case_sensitive) : lexer.matchNameOrGlyph(!state.case_sensitive))) {
+                
+                // special for PS+, because otherwise it might get parsed as a name
+                if (symbols.candname && lexer.check(reg_objmodi)) {
+                    break;
+                // first name must be an object, glyph allowed after that
+                } else if ((token = lexer.matchObjectName(!state.case_sensitive) 
+                    || (symbols.candname && lexer.matchObjectGlyph(!state.case_sensitive)))) {
                     if (state.legend_synonyms.some(s => s[0] == token))
                         logError(`Name "${token.toUpperCase()}" already in use.`, state.lineNumber);
                     else if (state.objects[token])
@@ -651,7 +677,6 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
                     if (lexer.checkEolSemi()) break;
-
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid object name in OBJECT section: "${token}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -669,9 +694,7 @@ var codeMirrorFn = function() {
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
-                cloneSprite: symbols.parent || '',
-                spritetext: null,
-                scale: symbols.scale
+                transforms: [],
             };
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
@@ -686,20 +709,20 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     function parseObjectColors(stream, state) {
         const lexer = new Lexer(stream, state);
-        const colours = [];
-
+        const colors = [];
+        
         if (getTokens())
-            state.objects[state.objects_candname].colors = colours;
-        return lexer.tokens;
+            state.objects[state.objects_candname].colors = colors;
+                return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
-            while (true) {
+            while (!lexer.checkEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^[#\w]+/, true)) {
                     if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
-                        colours.push(token);
+                        colors.push(token);
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
@@ -708,10 +731,8 @@ var codeMirrorFn = function() {
                     logError(`Was looking for color for object "${state.objects_candname.toUpperCase()}", got "${token}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     lexer.matchNotComment();
-                } else throw 'color';
+                } else throw 'obj-color';
                 lexer.pushToken(token, kind);
-
-                if (lexer.checkEolSemi()) break;
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
@@ -767,6 +788,158 @@ var codeMirrorFn = function() {
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // parse and store object transforms
+    // transforms ::= { COPY: name | SCALE: number 
+    //               | SHIFT: <dir> | TRANSLATE: <dir> : <amount> | ROT: <dir> : <dir> }...
+    // assumes object already exists
+    function parseObjectTransforms(stream, state) {
+        const candname = state.objects_candname;
+        const obj = state.objects[candname];
+        const lexer = new Lexer(stream, state);
+        const symbols = { transforms: [] };
+        if (getTokens())
+            setState();
+        return lexer.tokens;
+
+        function toValidDirections(arg) {
+            if (Object.hasOwn(state.tags, arg)) {
+                return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
+            }
+            // convert symbols to words
+            return clockwiseDirections.includes(arg) ? clockwiseDirections[clockwiseDirections.indexOf(arg) % 4] : null;
+        }
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            while (!lexer.checkEolSemi()) { 
+                let token = null;
+                let kind = 'ERROR';
+                if (token = lexer.match(/^copy:/i)) {
+                    if (symbols.cloneSprite) 
+                        logError(`You already assigned a sprite source for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                    else kind = 'KEYWORD';
+                    lexer.pushToken(token, kind);
+                    lexer.checkComment(state);
+
+                    kind = 'ERROR';
+                    if (!(token = lexer.matchObjectName(!state.case_sensitive)))      // ?? glyph too?
+                        logError(`Missing sprite to copy from.`, state.lineNumber);
+                    else if (token == symbols.candname) 
+                        logError(`You attempted to set the sprite ${symbols.candname} to copy from itself! Please don't."`, state.lineNumber)
+                    else {
+                        kind = 'NAME';
+                        symbols.cloneSprite = token;
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^scale:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.match(/^[0-9.]+/);
+                    const arg = parseFloat(token);
+                    if (arg == NaN)
+                        logError(`Scale requires a numeric argument.`, state.lineNumber);
+                    else {
+                        symbols.scale = arg;
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^flip:/)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
+                    const dirs = toValidDirections(token);
+                    if (dirs == null)
+                        logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
+                    else {
+                        symbols.transforms.push([ 'flip', dirs ]);  // todo: P:S has -|
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^shift:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
+                    const dirs = toValidDirections(token);
+                    if (dirs == null)
+                        logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
+                    else {
+                        symbols.transforms.push([ 'shift', dirs, 1 ]);  // todo: optional amount
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^translate:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.matchObjectName(true) || lexer.match(/^[^>v<]:\d+/i, true);
+                    const args = token ? token.split(':') : null;
+                    const dirs = args && toValidDirections(args[0]);
+                    if (dirs == null || args.length != 2)
+                        logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
+                    else {
+                        symbols.transforms.push([ 'translate', dirs, +args[1] ]);
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^rot:/i)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+
+                    token = lexer.matchObjectName(true) || lexer.match(/^[v^<>](:[v^<>])?/i, true);
+                    const parts = token && token.split(':');
+                    const dirs = parts && parts.length <= 2 && parts.map(p => toValidDirections(p));
+                    if (dirs == null)
+                        logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${token}.`, state.lineNumber);
+                    else {
+                        if (dirs.length == 1) dirs.unshift('up');
+                        symbols.transforms.push([ 'rot', ...dirs ]);
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (token = lexer.matchToken()) {
+                    logError(`Invalid token in OBJECT modifier section: "${token}".`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    lexer.matchNotComment();
+                    break;
+                } else throw 'obj-modi';
+            }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
+        }
+
+        function setState() {
+            if (symbols.cloneSprite) obj.cloneSprite = symbols.cloneSprite;
+            if (symbols.scale) obj.scale = symbols.scale;
+            if (symbols.transforms) obj.transforms.push( ...symbols.transforms );
+        }
+    }
+
+    // if the last object has tags, expand it, delete original name and add property
+    function expandLastObject(state) {
+        const candname = state.objects_candname;
+        if (!candname || !hasParts(candname)) return;
+        const obj = state.objects[candname];
+        const newobjects = expandObjectTags(state, candname, obj);
+        if (newobjects) {
+            delete state.objects[candname];
+            state.objects_candname = '';
+            Object.assign(state.objects, newobjects);
+            const newlegend = [ candname, ...Object.keys(newobjects)];
+            //const newlegend = [ candname, ...newobjects.map(n => n[0])];
+            newlegend.lineNumber = state.lineNumber;  // bug:
+            state.legend_properties.push(newlegend);
+            createObjectTagsAsProps(state, candname);
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     // SOUND DEFINITION:
@@ -805,7 +978,7 @@ var codeMirrorFn = function() {
                 }
             } else if (token = lexer.matchName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
-                if (wordAlreadyDeclared(state, token)) {
+                if (isAlreadyDeclared(state, token)) {
                     lexer.pushToken(token, 'NAME');
                     const tobject = token;
 
@@ -850,7 +1023,7 @@ var codeMirrorFn = function() {
         function parseSoundSeedsTail() {
             const tsounds = [];
             let token = null;
-            while (token = lexer.match(reg_soundseed, true)) {
+            while (token = lexer.match(/^(\d+(:[\d.]+)?|afx:[\w:=+-.]+)\b/i, true)) {
                 lexer.pushToken(token, 'SOUND');
                 tsounds.push(token);
                 lexer.checkComment();
@@ -876,9 +1049,9 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+            if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 symbols.newname = token;
-                const defname = wordAlreadyDeclared(state, token);
+                const defname = isAlreadyDeclared(state, token);
                 if (defname)
                     logError(`Name "${token.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${defname.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${defname.lineNumber}</span></a>).`, state.lineNumber);
                 else if (keyword_array.includes(token))
@@ -892,16 +1065,13 @@ var codeMirrorFn = function() {
             } else {
                 logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
                 lexer.matchNotComment();
-                // token = lexer.match(reg_notcommentstart);
-                // logError(`Equals sign "=" expected, found ${token}`, state.lineNumber);
-                // lexer.pushToken(token, 'ERROR');
                 return;
             }
             lexer.checkComment(state);
 
             while (true) {
-                if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
-                    const defname = wordAlreadyDeclared(state, token);
+                if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+                    const defname = isAlreadyDeclared(state, token);
                     const ownname = (token == symbols.newname);
                     if (!defname)
                         logError(`You're talking about "${token.toUpperCase()}" but it's not defined anywhere.`, state.lineNumber);
@@ -959,9 +1129,20 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse and store a collision layer line
+    // [ tag [, ...] -> ] ( object | property) [, ...]
+    // -- [-^<>-|]...
+
+    // tag prefixes and objects and properties in the body:
+    //      Position -> Clue:Position:Value, NoClueCover:Position
+    //      dirs -> vs_any_under:dirs:offs
+    //      directions, directions1 -> GridLines:directions:directions1
+    
     function parseCollisionLayer(stream, state) {
         const lexer = new Lexer(stream, state);
+        let divider
         const idents = [];
+        let prearrow = 0;         // how many layers prefixes
 
         if (getTokens())
             setState();
@@ -972,9 +1153,20 @@ var codeMirrorFn = function() {
             let token = null;
             // start of parse
             while (true) {
-                if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+                if (token = lexer.match(/^--[-^v<>-|]*/)) {
+                    lexer.pushToken(token, 'LOGICWORD');
+                    divider = token;
+                    if (lexer.checkEolSemi(state)) break;
+                } else if (token = lexer.match(/^->/)) {
+                    if (idents.length == 0 || prearrow != 0)
+                        logError(`Cannot use arrow syntax here.`, state.lineNumber);
+                    else {
+                        prearrow = idents.length;
+                        lexer.pushToken(token, 'LOGICWORD');
+                    }
+                } else if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     let kind = 'ERROR';
-                    if (!wordAlreadyDeclared(state, token))
+                    if (!isAlreadyDeclared(state, token))
                         logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
                     else if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
@@ -992,27 +1184,94 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                if (lexer.checkEol(state)) break;
+                if (lexer.checkEolSemi(state)) break;
 
                 // treat the comma as optional (as PS seems to do). Trailing comma is OK too
                 if (token = lexer.match(/^,/)) {
                     lexer.pushToken(token, 'LOGICWORD');
-                    if (lexer.checkEol(state)) break;
+                    if (lexer.checkEolSemi(state)) break;
                 } 
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
 
+        // further error checking and update external state
         function setState() {
-            const allobjs = [];
-            for (const ident of idents) {
-                const objs = expandSymbol(state, ident, false, n => logError(
-                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
-                allobjs.push(...objs);     // do we care about possible in-layer duplicates?
 
+            // functions to manage keyed layers
+            const keylayers = [];
+            function addToLayer(key, obj) {
+                if (keylayers[key]) 
+                    keylayers[key].layer.push(...obj);
+                else keylayers[key] = { lineNumber: state.lineNumber, layer: obj };
+            }
+            function getNewLayers() {
+                return Object.values(keylayers).map(k => k.layer);
+            }
+
+            // add new objects to the proper layer based on ident and prefixes
+            function addNewObjects(newobjs, ident, prefixes) {
+                const parts = ident.split(':');
+                const prefs = prefixes.filter(p => parts.includes(p));
+                if (parts.length == 1 || prefixes.length == 0) addToLayer('+', newobjs);
+                else {
+                    const indexes = prefs.map(p => parts.indexOf(p));
+                    for (const obj of newobjs) {
+                        const parts = obj.split(':');
+                        const key = indexes.map(i => parts[i]).join('+');
+                        addToLayer(key, [ obj ]);
+                    }
+                }
+            }
+
+            // check for divider first
+            if (divider) {
+                const chars = '^>v<|-';
+                const dirs = ['up', 'right', 'down', 'left', 'down', 'right' ];
+                const combos = ['downright', 'downleft', 'upright','upleft',
+                                'leftdown', 'leftup', 'rightdown', 'rightup'];
+                const dirFirst = dirs[chars.indexOf(divider[2] || '>')];
+                const dirSecond = dirs[chars.indexOf(divider[3] || 'v')];
+                if (!combos.includes(dirFirst + dirSecond)) {
+                    consoleError(`Layer divider ${divider} is not valid.`);
+                    return;
+                }
+                state.collisionLayerGroups.push({ 
+                    lineNumber: state.lineNumber, 
+                    layer: state.collisionLayers.length,
+                    dirFirst: dirFirst,
+                    dirSecond: dirSecond,
+                });
+                return;
+            } else if (state.collisionLayerGroups.length == 0) {
+                state.collisionLayerGroups.push({ 
+                    lineNumber: state.lineNumber, 
+                    layer: 0,
+                    dirFirst: 'right',
+                    dirSecond: 'down',
+                });
+
+            }
+
+            // expand rhs first
+            // then use lhs to assign to layers
+            const prefixes = idents.slice(0, prearrow);
+            const rhs = idents.slice(prearrow)
+            for (const prefix of prefixes) {
+                if (!(state.tags[prefix] || state.legend_properties.find(s => s[0] == prefix))) {
+                    logError(`A layer prefix must be a tag or property but ${prefix} is not.`, state.lineNumber);
+                    return;
+                }
+            }
+            
+            for (const ident of rhs) {
+                const newobjs = expandSymbol(state, ident, false, n => logError(
+                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
+
+                // do we care about possible in-layer duplicates?
                 const dups = new Set();
                 state.collisionLayers.forEach((layer, layerno) => {
-                    for (const obj of objs) {
+                    for (const obj of newobjs) {
                         if (layer.includes(obj))
                             dups.add(layerno + 1);
                     }
@@ -1021,9 +1280,13 @@ var codeMirrorFn = function() {
                     const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
                     logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                 }
-            }
 
-            state.collisionLayers.push(allobjs);
+                addNewObjects(newobjs, ident, prefixes);
+            }
+            // remove the keys and push one or more layers
+            const newlayers = getNewLayers();
+            if (debugLevel.includes('coll')) console.log('collision', newlayers);
+            state.collisionLayers.push(...newlayers);
         }
     }
 
@@ -1079,9 +1342,9 @@ var codeMirrorFn = function() {
 
         function getIdent() {
             let token
-            if (token = matchNameOrGlyph(stream, !state.case_sensitive)) {
+            if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
-                if (!wordAlreadyDeclared(state, token))
+                if (!isAlreadyDeclared(state, token))
                     logError(`Error in win condition: "${token.toUpperCase()}" is not a valid object name.`, state.lineNumber);
                 else {
                     names.push(token);
@@ -1192,25 +1455,14 @@ var codeMirrorFn = function() {
     // return value is an object containing a specific set of named functions
     return {
         copyState: function(state) {
-            // clone one layer down
-            const newObjects = {};
-            for (const [key,obj] of Object.entries(state.objects)) {
-                newObjects[key] = {
-                    colors: obj.colors.slice(),
-                    lineNumber : obj.lineNumber,
-                    spritematrix: obj.spritematrix.slice(),
-                    spritetext: obj.spritetext
-                    // bug: why no copy of cloneSprite?
-                };
-            }
-
             return ({
                 original_case_names: Object.assign({}, state.original_case_names),
                 original_line_numbers: Object.assign({}, state.original_line_numbers),
                 lineNumber: state.lineNumber,
 
-                objects: newObjects,
+                objects: deepClone(state.objects),
                 collisionLayers: state.collisionLayers.map(p => p.slice()),
+                collisionLayerGroups: state.collisionLayerGroups.slice(),
 
                 commentLevel: state.commentLevel,
                 commentStyle: state.commentStyle,
@@ -1233,6 +1485,7 @@ var codeMirrorFn = function() {
                 legend_synonyms: state.legend_synonyms.map(p => p.slice()),
                 legend_aggregates: state.legend_aggregates.map(p => p.slice()),
                 legend_properties: state.legend_properties.map(p => p.slice()),
+                tags: Object.assign({}, state.tags),
 
                 sounds: state.sounds.map(p => p.slice()),
 
@@ -1267,8 +1520,7 @@ var codeMirrorFn = function() {
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
-            if (state.current_line_wip_array.length > 0 
-                && ['', 'prelude', 'objects', 'sounds', 'legend', 'collisionlayers', 'winconditions', 'levels'].includes(state.section))
+            if (state.current_line_wip_array.length > 0 && !['rules'].includes(state.section))
                 return flushToken();
 
            	var mixedCase = stream.string;
@@ -1344,28 +1596,44 @@ var codeMirrorFn = function() {
                     return flushToken();
 
                 }
+                case 'tags': {
+                    state.current_line_wip_array = parseTagsLine(stream, state, mixedCase);
+                    return flushToken();
+                }
                 case 'objects': {
+                    if (sol && stream.match(reg_objmodi, false)) {
+                        state.objects_section = 5;
+                    } else if (sol && state.objects_section == 3) {
+                        // no blank line: criterion for no sprite: 1 colour, first char not [.0]
+                        if (state.objects[state.objects_candname].colors.length == 1 && !stream.match(/^[.0]/, false)) 
+                            state.objects_section = 0;
+                    } else if (sol && state.objects_section == 4) {
+                        // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
+                        if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
+                            state.objects_section = 0;
+                    }
                     if (state.objects_section == 0) {
+                        expandLastObject(state);
+                        state.objects_candname = null;
                         state.current_line_wip_array = [];
                         state.objects_section = 1;
-                    } else if (state.objects_section == 3) {
-                        // if not a grid char assume missing blank line and go to next object
-                        if (sol && !stream.match(/^[.\d]/, false) && state.objects_candname
-                            && state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[\w]+:/, false)) {
-                            //if (debugLevel.includes('obj')) console.log(`${state.lineNumber}: Object ${state.objects_candname}: ${JSON.stringify(state.objects[state.objects_candname])}`)
-                            state.objects_section = 1;
-                        }
                     }
 
+                    //if (sol) console.log(`${state.lineNumber}: (${state.section}:${state.objects_section}): ${stream.string}`);
                     if (sol)
                         state.current_line_wip_array['mixed'] = mixedCase;
                     else mixedCase = state.current_line_wip_array['mixed'];
+                    if (!mixedCase) throw 'mix';
 
                     //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
-                    case 1: { 
+                    case 1: {
                             state.current_line_wip_array.push(...parseObjectName(stream, state, mixedCase));
-                            state.objects_section++;
+                            if (state.objects_candname) {
+                                if (stream.match(reg_objmodi, false))
+                                    state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
+                                state.objects_section++;
+                            }
                             return flushToken();
                         }
                     case 2: { 
@@ -1373,9 +1641,16 @@ var codeMirrorFn = function() {
                             state.objects_section++;
                             return flushToken();
                         }
-                    case 3: {
+                    case 3: 
+                    case 4: {
                             stream.string = mixedCase;
                             state.current_line_wip_array.push(...parseObjectSprite(stream, state));
+                            if (state.objects_section == 3)  // text:?
+                                state.objects_section++;
+                            return flushToken();
+                        }
+                    case 5: {
+                            state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
                             return flushToken();
                         }
                     }
@@ -1430,7 +1705,7 @@ var codeMirrorFn = function() {
                             } else if (state.tokenIndex == 0 && m.toLowerCase() == 'subroutine') {
                                 state.tokenIndex = -4;
                                 return 'BRACKET';
-                            } else if (state.tokenIndex === 1 && directions_table.includes(m)) {
+                            } else if (state.tokenIndex === 1 && (directions_table.includes(m)) || Object.hasOwn(state.tags, m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
                             } else {
@@ -1442,6 +1717,8 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
+                                } else if (m.match(reg_objectname) && expandIdentTags(state, m).every(i => state.names.includes(i))) {
+                                    return 'NAME';
                                 }
                                 
                                 m = m.toLowerCase();
@@ -1452,8 +1729,6 @@ var codeMirrorFn = function() {
                                         state.tokenIndex=-4;
                                     }                                	
                                     return 'COMMAND';
-                                } else if (m.match(/^[\p{L}\p{N}_]+(:<|:>|:\^|:v)$/u)) {  //@@ PS>
-                                    return 'NAME';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
                                     return 'ERROR';
@@ -1488,7 +1763,7 @@ var codeMirrorFn = function() {
                 return null;
             }
 
-            // flush token and kind list back to caller
+            // flush token and kind list back to caller -- move it???
             function flushToken() {
                 if (state.current_line_wip_array.length > 0) {
                     const token = state.current_line_wip_array.shift();
@@ -1518,6 +1793,7 @@ var codeMirrorFn = function() {
                 objects_spritematrix: [],
 
                 collisionLayers: [],
+                collisionLayerGroups: [],
 
                 tokenIndex: 0,
 
@@ -1547,6 +1823,8 @@ var codeMirrorFn = function() {
                 abbrevNames: [],
 
                 levels: [[]],
+
+                tags: [],
 
                 subsection: ''
             };

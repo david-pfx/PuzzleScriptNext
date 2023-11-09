@@ -34,18 +34,18 @@ s; purple; text: S
 t; orange; text: t
 u; pink;   text: Ab3
 0         ; blue; text: 0
-1 size:1  ; blue; text: 1
-2 size:1.1; blue; text: 2
-3 size:0.9; blue; text: 3
-4 size:0.8; blue; text: 4
-5 size:0.7; blue; text: 5
-6 size:0.6; blue; text: 6
-7 size:0.5; blue; text: 7
-8 size:0.4; blue; text: 8
-9 size:0.3; blue; text: 9
-x size:1  ; blue; text: 99
-w size:1  ; blue; text: 999
-z size:1  ; blue; text: 9999
+1 scale:1  ; blue; text: 1
+2 scale:1.1; blue; text: 2
+3 scale:0.9; blue; text: 3
+4 scale:0.8; blue; text: 4
+5 scale:0.7; blue; text: 5
+6 scale:0.6; blue; text: 6
+7 scale:0.5; blue; text: 7
+8 scale:0.4; blue; text: 8
+9 scale:0.3; blue; text: 9
+x scale:1  ; blue; text: 99
+w scale:1  ; blue; text: 999
+z scale:1  ; blue; text: 9999
 
 =======
 LEGEND

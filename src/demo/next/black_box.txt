@@ -19,6 +19,7 @@ run_rules_on_level_start
 nokeyboard 
 mouse_clicks
 status_line
+sprite_size 12
 
 ========
 OBJECTS
@@ -113,10 +114,10 @@ PQ;   red; text: q
 pend; red; text: e
 
 // path probes in four directions, not seen
-PPup;    red; text: u
-PPdown;  red; text: d
-PPleft;  red; text: l
-PPright; red; text: r
+PP:up;    red; text: u
+PP:down;  red; text: d
+PP:left;  red; text: l
+PP:right; red; text: r
 
 =======
 LEGEND
@@ -131,7 +132,7 @@ B = cover and ball // for ball placing
 
 player = done or nonum or ball or noball or grid
 nums = N1 or N2 or N3 or N4 or N5 or N6 or N7 or N8 or N9 or N10 or N11 or N12 or NH or NR 
-paths = PS or PQ or pend or PPup or PPdown or PPright or PPleft
+paths = PS or PQ or pend or PP:up or PP:down or PP:right or PP:left
 
 =======
 SOUNDS
