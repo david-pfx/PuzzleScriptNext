@@ -7141,8 +7141,12 @@ const textModeLine = true;
 
 function redrawTextMode() {
     ctx.fillStyle = state.bgcolor;
-    const lineColor = j => (state.metadata.author_color && j >= authorLineNos[0] && (j < authorLineNos[1])) ? state.metadata.author_color 
-        : state.metadata.title_color || state.fgcolor;
+    const lineColor = j => 
+      (state.metadata.title_color && j >= titleLineNos[0] && j < titleLineNos[1]) ? state.metadata.title_color
+    : (state.metadata.author_color && j >= authorLineNos[0] && j < authorLineNos[1]) ? state.metadata.author_color 
+    : state.fgcolor;
+    // const lineColor = j => (state.metadata.author_color && j >= authorLineNos[0] && (j < authorLineNos[1])) ? state.metadata.author_color 
+    //     : state.metadata.title_color || state.fgcolor;    
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
@@ -8062,6 +8066,7 @@ var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
+let titleLineNos = []; //title lines for colouring
 let authorLineNos = []; //author lines for colouring
 
 function showContinueOptionOnTitleScreen(){
@@ -8148,6 +8153,7 @@ function generateTitleScreen()
 	}
 
 	authorLineNos = [0, 0];
+	titleLineNos = [0, 0];
 	if (titleMode===0) {
         titleSelectOptions = 1;
 		if (titleSelected) {
@@ -8179,6 +8185,7 @@ function generateTitleScreen()
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
+		titleLineNos = [0, 0];
 		authorLineNos = [0, 0];
 		titleImage = deepClone(titletemplate_empty);
 
@@ -8276,6 +8283,8 @@ function generateTitleScreen()
 		var row = titleImage[1+i];
 		titleImage[1+i]=row.slice(0,lmargin)+titleline+row.slice(lmargin+titleline.length);
 	}
+	titleLineNos = [1, 1 + titlelines.length];
+
 	if (state.metadata.author!==undefined) {
 		var attribution="by "+state.metadata.author;
 		var attributionsplit = wordwrap(attribution,titleImage[0].length);
@@ -8362,6 +8371,7 @@ function generateLevelSelectScreen() {
 	}
 
 	amountOfLevelsOnScreen = 9;
+	titleLineNos = [0, 0];
 	authorLineNos = [ 0, 0];
 	titleSelectOptions = state.sections.length;
 
@@ -8604,6 +8614,7 @@ function drawMessageScreen() {
 
 	titleMode=0;
 	textMode=true;
+	titleLineNos = [0, 0];
 	authorLineNos = [0, 0];
 	if ("text_message_continue" in state.metadata) {
 		titleImage = deepClone(messagecontainer_template);
@@ -13951,9 +13962,9 @@ function generateSpriteMatrix(state) {
         if (obj.cloneSprite) {
             const other = state.objects[obj.cloneSprite];
             obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
-            obj.spriteoffset = other.spriteoffset;
+            obj.spriteoffset = { ...other.spriteoffset };
         } else if (obj.spritematrix.length == 0) {
-            obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
+            obj.spritematrix = Array.from( { length: state.sprite_size }, () => (new Array(state.sprite_size).fill(0)) )
         }
         
         for (const tf of obj.transforms ||  []) {
