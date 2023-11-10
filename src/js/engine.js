@@ -154,6 +154,7 @@ var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
+let titleLineNos = []; //title lines for colouring
 let authorLineNos = []; //author lines for colouring
 
 function showContinueOptionOnTitleScreen(){
@@ -240,6 +241,7 @@ function generateTitleScreen()
 	}
 
 	authorLineNos = [0, 0];
+	titleLineNos = [0, 0];
 	if (titleMode===0) {
         titleSelectOptions = 1;
 		if (titleSelected) {
@@ -271,6 +273,7 @@ function generateTitleScreen()
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
+		titleLineNos = [0, 0];
 		authorLineNos = [0, 0];
 		titleImage = deepClone(titletemplate_empty);
 
@@ -368,6 +371,8 @@ function generateTitleScreen()
 		var row = titleImage[1+i];
 		titleImage[1+i]=row.slice(0,lmargin)+titleline+row.slice(lmargin+titleline.length);
 	}
+	titleLineNos = [1, 1 + titlelines.length];
+
 	if (state.metadata.author!==undefined) {
 		var attribution="by "+state.metadata.author;
 		var attributionsplit = wordwrap(attribution,titleImage[0].length);
@@ -454,6 +459,7 @@ function generateLevelSelectScreen() {
 	}
 
 	amountOfLevelsOnScreen = 9;
+	titleLineNos = [0, 0];
 	authorLineNos = [ 0, 0];
 	titleSelectOptions = state.sections.length;
 
@@ -696,6 +702,7 @@ function drawMessageScreen() {
 
 	titleMode=0;
 	textMode=true;
+	titleLineNos = [0, 0];
 	authorLineNos = [0, 0];
 	if ("text_message_continue" in state.metadata) {
 		titleImage = deepClone(messagecontainer_template);

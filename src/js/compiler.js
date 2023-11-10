@@ -207,9 +207,9 @@ function generateSpriteMatrix(state) {
         if (obj.cloneSprite) {
             const other = state.objects[obj.cloneSprite];
             obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
-            obj.spriteoffset = other.spriteoffset;
+            obj.spriteoffset = { ...other.spriteoffset };
         } else if (obj.spritematrix.length == 0) {
-            obj.spritematrix = Array.from( {length: state.sprite_size}, () => (new Array(state.sprite_size).fill(0)) )
+            obj.spritematrix = Array.from( { length: state.sprite_size }, () => (new Array(state.sprite_size).fill(0)) )
         }
         
         for (const tf of obj.transforms ||  []) {

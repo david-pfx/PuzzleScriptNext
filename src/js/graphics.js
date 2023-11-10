@@ -332,8 +332,12 @@ const textModeLine = true;
 
 function redrawTextMode() {
     ctx.fillStyle = state.bgcolor;
-    const lineColor = j => (state.metadata.author_color && j >= authorLineNos[0] && (j < authorLineNos[1])) ? state.metadata.author_color 
-        : state.metadata.title_color || state.fgcolor;
+    const lineColor = j => 
+      (state.metadata.title_color && j >= titleLineNos[0] && j < titleLineNos[1]) ? state.metadata.title_color
+    : (state.metadata.author_color && j >= authorLineNos[0] && j < authorLineNos[1]) ? state.metadata.author_color 
+    : state.fgcolor;
+    // const lineColor = j => (state.metadata.author_color && j >= authorLineNos[0] && (j < authorLineNos[1])) ? state.metadata.author_color 
+    //     : state.metadata.title_color || state.fgcolor;    
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
