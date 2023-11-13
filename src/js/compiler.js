@@ -304,8 +304,8 @@ function generateExtraMembers(state) {
     state.STRIDE_MOV = STRIDE_MOV;
 
     //get colorpalette name
-    debugMode = false;
-    verbose_logging = false;
+    debugMode = defaultDebugMode;
+    verbose_logging = defaultVerboseLogging;
     throttle_movement = false;
     colorPalette = colorPalettes.arnecolors;
     for (var i = 0; i < state.metadata.length; i += 2) {
@@ -750,6 +750,7 @@ function levelsToArray(state) {
 		if (level[0] == '\n') {
 			o = {
 				message: level[1],
+				lineNumber: level[2],
 				section: level[3]
 			};
 			splitMessage = wordwrap(o.message,intro_template[0].length);
@@ -3428,14 +3429,11 @@ function compile(command, text, randomseed) {
         for (var i = 0; i < state.lateRules.length; i++) {
             ruleCount += state.lateRules[i].length;
         }
-        if (command[0] == "restart") {
-            consolePrint('<span class="systemMessage">Successful Compilation, generated ' + ruleCount + ' instructions.</span>');
-        } else {
-            consolePrint('<span class="systemMessage">Successful live recompilation, generated ' + ruleCount + ' instructions.</span>');
-
+        consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
+                
+        if (debugMode) {
+            consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
         }
-
-
         
         if (IDE){
             if (state.metadata.title!==undefined) {

@@ -55,6 +55,9 @@ var keybuffer = [];
 var debugLevel = '';
 var showLayers = false;
 var showLayerNo = 0;
+var defaultDebugMode = false;
+var defaultVerboseLogging = false;
+
 var tweeninterval=0;
 var tweentimer=0;
 var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
