@@ -1170,7 +1170,7 @@ function pollGamepads() {
 
 let debugTimestamp
 function checkKey(e,justPressed) {
-    if (debugLevel.includes('key')) {
+    if (debugSwitch.includes('key')) {
 		const ele = document.getElementById('debug');
 		ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 		debugTimestamp = prevTimestamp;
@@ -1535,7 +1535,7 @@ function update() {
 			keyRepeatTimer=0;	
 	    	keyRepeatIndex = (keyRepeatIndex+1)%keybuffer.length;
 	    	var key = keybuffer[keyRepeatIndex];
-			if (debugLevel.includes('key')) {
+			if (debugSwitch.includes('key')) {
 				const ele = document.getElementById('debug');
 				ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 				debugTimestamp = prevTimestamp;
@@ -1566,7 +1566,7 @@ var prevTimestamp;
 var loop = function(timestamp){
 	if (prevTimestamp !== undefined) {
 		deltatime = timestamp - prevTimestamp
-		if (debugLevel.includes('key')) {
+		if (debugSwitch.includes('key')) {
 			const ele = document.getElementById('debug');
 			ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 		}

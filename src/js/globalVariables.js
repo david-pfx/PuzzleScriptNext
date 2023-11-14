@@ -52,7 +52,7 @@ var norepeat_action=false;
 var oldflickscreendat=[];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
 var keybuffer = [];
 
-var debugLevel = '';
+var debugSwitch = '';
 var showLayers = false;
 var showLayerNo = 0;
 var defaultDebugMode = false;

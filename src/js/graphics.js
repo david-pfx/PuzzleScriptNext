@@ -321,7 +321,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (debugLevel.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
+    if (debugSwitch.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -1031,7 +1031,7 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
-    if (debugLevel.includes('cell')) {
+    if (debugSwitch.includes('cell')) {
         const ele = document.getElementById('debug');
         ele.innerHTML = `canvas=${canvas.width},${canvas.height} cell=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset} pixel=${pixelSize}`;
     }

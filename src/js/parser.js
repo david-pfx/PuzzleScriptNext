@@ -197,7 +197,7 @@ var codeMirrorFn = function() {
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
     const prelude_param_single = [
-        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
+        'background_color', 'color_palette', 'debug_switch', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
         'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
@@ -266,7 +266,7 @@ var codeMirrorFn = function() {
     }
 
     function createAlias(state, alias, candname, lineno) {
-        if (debugLevel.includes('alias')) console.log(`Create '${alias}' as alias for '${candname}'`);
+        if (debugSwitch.includes('alias')) console.log(`Create '${alias}' as alias for '${candname}'`);
         const synonym = [alias, candname];
         synonym.lineNumber = lineno;
         state.legend_synonyms.push(synonym);
@@ -553,19 +553,21 @@ var codeMirrorFn = function() {
 
         function setState(state, value) {
             const ident = value[0];
-            if (ident == 'sprite_size') {
-                const args = value[1].split('x').map(a => parseInt(a));
-                if (!(args.length == 1 || args.length == 2))
-                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
-                else state.sprite_size = args[0];
-            } else if (ident == 'case_sensitive') {
+            if (ident == 'case_sensitive') {
                 state.case_sensitive = true;
                 if (Object.keys(state.metadata).some(k => prelude_param_text.includes(k)))
-                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
+                logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
+            } else if (ident == 'debug_switch') {
+                debugSwitch = value[1];
             } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
+            } else if (ident == 'sprite_size') {
+                const args = value[1].split('x').map(a => parseInt(a));
+                if (!(args.length == 1 || args.length == 2))
+                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
+                else state.sprite_size = args[0];
             } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
@@ -1285,7 +1287,7 @@ var codeMirrorFn = function() {
             }
             // remove the keys and push one or more layers
             const newlayers = getNewLayers();
-            if (debugLevel.includes('coll')) console.log('collision', newlayers);
+            if (debugSwitch.includes('coll')) console.log('collision', newlayers);
             state.collisionLayers.push(...newlayers);
         }
     }

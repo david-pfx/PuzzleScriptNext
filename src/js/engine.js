@@ -2555,7 +2555,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
-	if (debugLevel.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
+	if (debugSwitch.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2569,7 +2569,7 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
-		if (debugLevel.includes('masks')) {
+		if (debugSwitch.includes('masks')) {
 			const cro = cellRowMasks[cellRowIndex].format();
 			const crm = cellRowMasks_Movements[cellRowIndex].format();
 			const lvo = level.mapCellContents.format();
@@ -2682,7 +2682,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
 		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
-		var gapMessage= (debugLevel.includes('gaploc')) ? ` at ${locations}` : '';
+		var gapMessage= (debugSwitch.includes('gaploc')) ? ` at ${locations}` : '';
 
 		//var gapMessage="";
 		// var gapcount=0;
@@ -3592,7 +3592,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
-		if (debugLevel.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
+		if (debugSwitch.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 

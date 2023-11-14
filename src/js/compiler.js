@@ -154,7 +154,7 @@ function expandObjectTags(state, objkey, objvalue) {
         return [newkey, newvalue];
     });
     
-    if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
+    if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
     return Object.fromEntries(newobjects);
 }
 
@@ -216,7 +216,7 @@ function generateSpriteMatrix(state) {
             obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
         }
     }
-    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
 }
 
 // PS> check whether a name has been used and is not available
@@ -1253,8 +1253,9 @@ function rulesToArray(state) {
         convertRelativeDirsToAbsolute(state, rule);
     rules = expandRulesWithMultiDirectionObjects(state, rules);
     for (const rule of rules) {
-        if (!debugLevel.includes('noulrule')) rewriteUpLeftRules(rule);
+        if (!debugSwitch.includes('noulrule')) rewriteUpLeftRules(rule);
         atomizeAggregates(state, rule);
+        if (state.invalid) return; // protect next from crash
         rephraseSynonyms(state, rule);
     }
     rules = convertObjectsAndDirections(state, rules);
@@ -3208,7 +3209,7 @@ function generateSoundData(state) {
                     layer:targetLayer,
                     seed: seed
                 };
-                if (debugLevel.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
+                if (debugSwitch.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
 
                 if (verb === 'move')
                     sfx_MovementMasks[targetLayer].push(o);
@@ -3289,9 +3290,9 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
-    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
-    if (debugLevel.includes('coll')) console.log('Collision Layers', state.collisionLayers);
-    if (debugLevel.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('coll')) console.log('Collision Layers', state.collisionLayers);
+    if (debugSwitch.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -3429,10 +3430,10 @@ function compile(command, text, randomseed) {
         for (var i = 0; i < state.lateRules.length; i++) {
             ruleCount += state.lateRules[i].length;
         }
-        consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
+        //consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
                 
         if (debugMode) {
-            consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
+            //consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
         }
         
         if (IDE){
