@@ -27,18 +27,6 @@ function jumpToLine(i) {
 
 var consolecache = [];
 
-function htmlJump(lineNumber) {	
-	return `<a onclick="jumpToLine(${lineNumber});"  href="javascript:void(0);">${lineNumber}</a>`;
-}
-
-function htmlColor(color, text) {
-	return `<font color="${color}">${text}</font>`;
-}
-
-function htmlClass(clss, text) {
-	return `<span class="${clss}">${text}</span>`;
-}
-
 function consolePrintFromRule(text,rule,urgent) {
 
 	if (urgent===undefined) {

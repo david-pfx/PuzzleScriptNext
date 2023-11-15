@@ -1356,8 +1356,8 @@ function checkRuleObjects(state, rules) {
             if (!isAlreadyDeclared(state, obj))
                 console.log(`Not declared: ${obj}`);
             const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
-            if (!(layer >= 0))
-                console.log(`Not in a layer: ${obj}`);
+            // if (!(layer >= 0))
+            //     console.log(`Not in a layer: ${obj}`);
         }
     }
 }
@@ -3417,11 +3417,11 @@ function compile(command, text, randomseed) {
     }
 
     if (errorCount > 0) {
-        if (IDE===false){
-            consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
-        } else{
+        // if (IDE===false){
+        //     consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
+        // } else{
             consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.</span>');
-        }
+        // }
     } else {
         var ruleCount = 0;
         for (var i = 0; i < state.rules.length; i++) {
@@ -3430,10 +3430,10 @@ function compile(command, text, randomseed) {
         for (var i = 0; i < state.lateRules.length; i++) {
             ruleCount += state.lateRules[i].length;
         }
-        //consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
+        consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
                 
         if (debugMode) {
-            //consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
+            consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
         }
         
         if (IDE){

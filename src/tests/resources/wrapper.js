@@ -19,12 +19,13 @@ var inputString;
 var outputString;
 
 function consolePrintFromRule(text){}
+// enable these if needed to help with debugging
 function consolePrint(text,urgent,linenumber,turnIndex) {
-	if (urgent)
-		window.console.log(text);
+	// if (urgent)
+	// 	window.console.log(text);
 }
 function consoleError(text) {
-	window.console.log(text);
+	// window.console.log(text);
 }
 
 function consoleCacheDump() {}

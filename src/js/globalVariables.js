@@ -49,7 +49,7 @@ var winning=false;
 var againing=false;
 var againinterval=150;
 var norepeat_action=false;
-var oldflickscreendat=[];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
+var oldflickscreendat = [];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
 var keybuffer = [];
 
 var debugSwitch = '';
@@ -67,7 +67,7 @@ var restarting=false;
 
 var messageselected=false;
 
-var textImages={};
+var textImages = {};
 var initLevel = {};
 var level = initLevel;
 

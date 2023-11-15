@@ -51,6 +51,19 @@ function TooManyErrors(){
     throw new Error("Too many errors/warnings; aborting compilation.");
 }
 
+function htmlJump(lineNumber, clss) {	
+	return clss ? htmlClass(clss, htmlJump(lineNumber)) 
+        : `<a onclick="jumpToLine(${lineNumber});"  href="javascript:void(0);">${lineNumber}</a>`;
+}
+
+function htmlColor(color, text) {
+	return `<font color="${color}">${text}</font>`;
+}
+
+function htmlClass(clss, text) {
+	return `<span class="${clss}">${text}</span>`;
+}
+
 function logErrorCacheable(str, lineNumber,urgent) {
     if (compiling||urgent) {
         if (lineNumber === undefined) {
@@ -172,15 +185,12 @@ var codeMirrorFn = function() {
     'use strict';
 
     const sectionNames = ['tags', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
-    const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
     const reg_equalsrow = /[\=]+/;
-    const reg_csv_separators = /[ \,]*/;
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
     const reg_sounddirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal)\b/i;
-    const reg_winconditionquantifiers = /^(all|any|no|some)$/;
 
     const keyword_array = [ 'checkpoint', 'objects', 'collisionlayers', 'legend', 'sounds', 'rules', 'winconditions', 'levels',
         '|', '[', ']', 'up', 'down', 'left', 'right', 'late', 'rigid', '^', 'v', '>', '<', 'no', 'randomdir', 'random', 'horizontal', 'vertical',
@@ -211,7 +221,6 @@ var codeMirrorFn = function() {
 
     // updated for // comment style
     let reg_notcommentstart = /[^\(]+/;
-    let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
 
     // utility functions used by parser
 
@@ -442,7 +451,8 @@ var codeMirrorFn = function() {
     function parseSection(stream, state) {
         const section = matchRegex(stream, /^\w+/, true);
 
-        if (!sectionNames.includes(section)) {
+        // only allow tags as first section, for backward compatibility
+        if (!sectionNames.includes(section) || (section == 'tags' && state.visitedSections.length != 0)) {
             pushBack(stream);
             return false;
         }
@@ -470,7 +480,6 @@ var codeMirrorFn = function() {
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
         state.visitedSections.push(state.section);
-        const sectionIndex = sectionNames.indexOf(state.section);
 
         return true;
     }
@@ -526,7 +535,7 @@ var codeMirrorFn = function() {
         function checkArguments(ident, args) {
             if (state.metadata_lines[ident]) {
                 var otherline = state.metadata_lines[ident];
-                logWarning(`You've already defined a "${ident.toUpperCase()}" in the prelude on line <a onclick="jumpToLine(${otherline})">${otherline}</a>.`, state.lineNumber);
+                logWarning(`You've already defined a "${ident.toUpperCase()}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
             }
             state.metadata_lines[ident] = state.lineNumber;                                                                                    
             if (prelude_keywords.includes(ident)) {
@@ -1055,7 +1064,7 @@ var codeMirrorFn = function() {
                 symbols.newname = token;
                 const defname = isAlreadyDeclared(state, token);
                 if (defname)
-                    logError(`Name "${token.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${defname.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${defname.lineNumber}</span></a>).`, state.lineNumber);
+                    logError(`Name "${token.toUpperCase()}" already in use (on line ${htmlJump(defname.lineNumber, 'errorTextLineNumber')}`);
                 else if (keyword_array.includes(token))
                     logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
