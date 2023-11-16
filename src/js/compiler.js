@@ -154,7 +154,7 @@ function expandObjectTags(state, objkey, objvalue) {
         return [newkey, newvalue];
     });
     
-    if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
+    if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
     return Object.fromEntries(newobjects);
 }
 
@@ -216,7 +216,7 @@ function generateSpriteMatrix(state) {
             obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
         }
     }
-    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
 }
 
 // PS> check whether a name has been used and is not available
@@ -304,8 +304,8 @@ function generateExtraMembers(state) {
     state.STRIDE_MOV = STRIDE_MOV;
 
     //get colorpalette name
-    debugMode = false;
-    verbose_logging = false;
+    debugMode = defaultDebugMode;
+    verbose_logging = defaultVerboseLogging;
     throttle_movement = false;
     colorPalette = colorPalettes.arnecolors;
     for (var i = 0; i < state.metadata.length; i += 2) {
@@ -750,6 +750,7 @@ function levelsToArray(state) {
 		if (level[0] == '\n') {
 			o = {
 				message: level[1],
+				lineNumber: level[2],
 				section: level[3]
 			};
 			splitMessage = wordwrap(o.message,intro_template[0].length);
@@ -1252,8 +1253,9 @@ function rulesToArray(state) {
         convertRelativeDirsToAbsolute(state, rule);
     rules = expandRulesWithMultiDirectionObjects(state, rules);
     for (const rule of rules) {
-        if (!debugLevel.includes('noulrule')) rewriteUpLeftRules(rule);
+        if (!debugSwitch.includes('noulrule')) rewriteUpLeftRules(rule);
         atomizeAggregates(state, rule);
+        if (state.invalid) return; // protect next from crash
         rephraseSynonyms(state, rule);
     }
     rules = convertObjectsAndDirections(state, rules);
@@ -1354,8 +1356,8 @@ function checkRuleObjects(state, rules) {
             if (!isAlreadyDeclared(state, obj))
                 console.log(`Not declared: ${obj}`);
             const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
-            if (!(layer >= 0))
-                console.log(`Not in a layer: ${obj}`);
+            // if (!(layer >= 0))
+            //     console.log(`Not in a layer: ${obj}`);
         }
     }
 }
@@ -3207,7 +3209,7 @@ function generateSoundData(state) {
                     layer:targetLayer,
                     seed: seed
                 };
-                if (debugLevel.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
+                if (debugSwitch.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
 
                 if (verb === 'move')
                     sfx_MovementMasks[targetLayer].push(o);
@@ -3288,9 +3290,9 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
-    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
-    if (debugLevel.includes('coll')) console.log('Collision Layers', state.collisionLayers);
-    if (debugLevel.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('coll')) console.log('Collision Layers', state.collisionLayers);
+    if (debugSwitch.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -3415,11 +3417,11 @@ function compile(command, text, randomseed) {
     }
 
     if (errorCount > 0) {
-        if (IDE===false){
-            consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
-        } else{
+        // if (IDE===false){
+        //     consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
+        // } else{
             consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.</span>');
-        }
+        // }
     } else {
         var ruleCount = 0;
         for (var i = 0; i < state.rules.length; i++) {
@@ -3428,14 +3430,11 @@ function compile(command, text, randomseed) {
         for (var i = 0; i < state.lateRules.length; i++) {
             ruleCount += state.lateRules[i].length;
         }
-        if (command[0] == "restart") {
-            consolePrint('<span class="systemMessage">Successful Compilation, generated ' + ruleCount + ' instructions.</span>');
-        } else {
-            consolePrint('<span class="systemMessage">Successful live recompilation, generated ' + ruleCount + ' instructions.</span>');
-
+        consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
+                
+        if (debugMode) {
+            consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
         }
-
-
         
         if (IDE){
             if (state.metadata.title!==undefined) {

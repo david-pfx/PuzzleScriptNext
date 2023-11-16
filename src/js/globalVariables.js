@@ -49,12 +49,15 @@ var winning=false;
 var againing=false;
 var againinterval=150;
 var norepeat_action=false;
-var oldflickscreendat=[];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
+var oldflickscreendat = [];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
 var keybuffer = [];
 
-var debugLevel = '';
+var debugSwitch = '';
 var showLayers = false;
 var showLayerNo = 0;
+var defaultDebugMode = false;
+var defaultVerboseLogging = false;
+
 var tweeninterval=0;
 var tweentimer=0;
 var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
@@ -64,7 +67,7 @@ var restarting=false;
 
 var messageselected=false;
 
-var textImages={};
+var textImages = {};
 var initLevel = {};
 var level = initLevel;
 

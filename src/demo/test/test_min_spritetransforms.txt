@@ -1,4 +1,4 @@
-title test min sprite mods
+title test min sprite transforms
 author polymino
 homepage www.polyomino.com
 

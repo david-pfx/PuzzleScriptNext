@@ -27,7 +27,6 @@ function jumpToLine(i) {
 
 var consolecache = [];
 
-
 function consolePrintFromRule(text,rule,urgent) {
 
 	if (urgent===undefined) {
@@ -182,19 +181,22 @@ clearConsoleClick.addEventListener("click", clearConsole, false);
 clearConsoleClick.addEventListener("click", clearConsole, false);
 
 function verboseToggle() {
-	if (!titleScreen) {
-		const verboseOn = !verbose_logging;
-		verbose_logging = verboseOn;
-		cache_console_messages = verboseOn;
-		consolePrint("Verbose logging is now " + (verbose_logging ? "ENABLED" : "DISABLED"), true);
-	} else {
-		consolePrint("When your game is running, you can use this button to toggle Verbose Logging", true);
-	}
+	defaultVerboseLogging = !defaultVerboseLogging;
+	consolePrint(`Default verbose logging is now ${defaultVerboseLogging ? 'ENABLED' : 'DISABLED'}`, true);
 }
 
 const verboseLoggingClick = document.getElementById("verboseLoggingClick");
 verboseLoggingClick.addEventListener("click", verboseToggle, false);
 verboseLoggingClick.addEventListener("click", verboseToggle, false);
+
+function debugToggle() {
+	defaultDebugMode = !defaultDebugMode;
+	consolePrint(`Default compiler debug mode is now ${defaultDebugMode ? 'ENABLED' : 'DISABLED'}`, true);
+}
+
+const debugLoggingClick = document.getElementById("debugLoggingClick");
+debugLoggingClick.addEventListener("click", debugToggle, false);
+debugLoggingClick.addEventListener("click", debugToggle, false);
 
 function showLayersToggle() {
 	showLayers = !showLayers;

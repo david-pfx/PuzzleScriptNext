@@ -221,14 +221,14 @@ function isLevelSelectOptionSelected() {
 
 function generateTitleScreen()
 {
-  tryLoadCustomFont();
+  	tryLoadCustomFont();
 
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
 
 	if (state.levels.length===0) {
 		titleImage=intro_template;
 		return;
-  }
+  	}
 
     if (isSitelocked()) {
 		titleImage = sitelock_template;
@@ -798,10 +798,10 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	titleScreen=false;
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
 	titleSelection=0;
-  titleSelected=false;
-  dragging = false;
-  rightdragging = false;
-  state.metadata = deepClone(state.default_metadata);
+  	titleSelected=false;
+  	dragging = false;
+  	rightdragging = false;
+  	state.metadata = deepClone(state.default_metadata);
     againing=false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
@@ -810,22 +810,28 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
     }
     if (leveldat.message !== undefined) {
       // This "level" is actually a message.
-      ignoreNotJustPressedAction=true;
-	  tryPlayShowMessageSound();
-	  twiddleMetadataExtras();
-      drawMessageScreen();
-      canvasResize();
-      clearInputHistory();
+		if (verbose_logging)
+			consolePrint(`Showing message (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+      	ignoreNotJustPressedAction=true;
+	  	tryPlayShowMessageSound();
+	  	twiddleMetadataExtras();
+      	drawMessageScreen();
+      	canvasResize();
+      	clearInputHistory();
     } else if (leveldat.target !== undefined) {
-      // This "level" is actually a goto.
-      //tryPlayGotoSound();
-      setSectionSolved(state.levels[Number(curlevel)].section)
-      gotoLevel(leveldat.target);
+		if (verbose_logging)
+			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+      	// This "level" is actually a goto.
+      	//tryPlayGotoSound();
+      	setSectionSolved(state.levels[Number(curlevel)].section)
+      	gotoLevel(leveldat.target);
     } else {
-      titleMode=0;
-      textMode=false;
-    level = leveldat.clone();
-    RebuildLevelArrays();
+      	titleMode=0;
+      	textMode=false;
+    	level = leveldat.clone();
+		if (verbose_logging)
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+    	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
 	            oldflickscreendat=[
@@ -872,14 +878,14 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
     var leveldat = target;    
-  curlevel=levelindex;
-  curlevelTarget=target;
+  	curlevel=levelindex;
+  	curlevelTarget=target;
     if (leveldat.message===undefined) {
-      if (levelindex=== 0){ 
-      tryPlayStartLevelSound();
-    } else {
-      tryPlayStartLevelSound();     
-    }
+      	if (levelindex=== 0){ 
+			tryPlayStartLevelSound();
+		} else {
+			tryPlayStartLevelSound();     
+		}
     }
     loadLevelFromLevelDat(state,state.levels[levelindex],randomseed);
     restoreLevel(target, true);
@@ -2549,7 +2555,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
-	if (debugLevel.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
+	if (debugSwitch.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -2563,7 +2569,7 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
-		if (debugLevel.includes('masks')) {
+		if (debugSwitch.includes('masks')) {
 			const cro = cellRowMasks[cellRowIndex].format();
 			const crm = cellRowMasks_Movements[cellRowIndex].format();
 			const lvo = level.mapCellContents.format();
@@ -2676,7 +2682,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
 		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
-		var gapMessage= (debugLevel.includes('gaploc')) ? ` at ${locations}` : '';
+		var gapMessage= (debugSwitch.includes('gaploc')) ? ` at ${locations}` : '';
 
 		//var gapMessage="";
 		// var gapcount=0;
@@ -2792,11 +2798,9 @@ Rule.prototype.queueCommands = function() {
 		level.commandQueue.push(command[0]);
 		level.commandQueueSourceRules.push(this);
 
-		if (verbose_logging){
-			var lineNumber = this.lineNumber;
-			//var ruleDirection = dirMaskName[this.direction];
-			var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
-			consolePrint(logString,false,lineNumber,null);
+		if (verbose_logging) {
+			const logString = htmlColor('green', `Rule ${htmlJump(this.lineNumber)} triggers command ${command[0]}.`);
+			consolePrint(logString, false, this.lineNumber, null);
 		}
 
 		if (command[0] == 'message') {     
@@ -3216,16 +3220,14 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		}
 
 		if (verbose_logging) { 
-			consolePrint('Applying rules');
-
-			var inspect_ID = addToDebugTimeline(level,-1);
-				
-			 if (dir===-1) {
-				 consolePrint(`Turn starts with no input.`,false,null,inspect_ID)
-			 } else {
+			const inspect_ID = addToDebugTimeline(level, -1);
+			if (dir===-1) {
+				consolePrint(`Turn starts with no input.`, false, null, inspect_ID)
+			} else {
 				//  consolePrint('=======================');
-				 consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
-			 }
+				consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
+			}
+			consolePrint('Applying rules');
 		}
 		
         var bannedGroup = [];
@@ -3590,7 +3592,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
-		if (debugLevel.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
+		if (debugSwitch.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 
@@ -3841,10 +3843,10 @@ function goToTitleScreen(){
 	doSetupTitleScreenLevelContinue();
   //titleSelection=showContinueOptionOnTitleScreen()?1:0;
   
-  state.metadata = deepClone(state.default_metadata);
-  twiddleMetadataExtras();
+  	state.metadata = deepClone(state.default_metadata);
+  	twiddleMetadataExtras();
 
-  if (canvas!==null){//otherwise triggers error in cat bastard test
+  	if (canvas!==null){//otherwise triggers error in cat bastard test
 		regenSpriteImages();
 	}
 

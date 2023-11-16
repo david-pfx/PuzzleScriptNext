@@ -1,6 +1,6 @@
 // Functions to create and render text and sprites
 
-// Create and return a graphic sprite
+// Create and return a graphic sprite canvas
 function createSprite(name,spritegrid, colors, size) {
 	colors ||= [state.bgcolor, state.fgcolor];
 
@@ -15,7 +15,7 @@ function createSprite(name,spritegrid, colors, size) {
     return canvas;
 }
 
-// Create and return a text sprite
+// Create and return a text sprite canvas
 function createTextSprite(name, text, colors, scale) {
 	colors ||= [state.bgcolor, state.fgcolor];
 
@@ -69,6 +69,7 @@ function drawTextWithFont(ctx, text, color, x, y, height) {
 
 }
 
+// create a single text sheet canvas containing all the character glyphs
 var textsheetCanvas = null;
 
 function regenText() {
@@ -320,7 +321,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (debugLevel.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
+    if (debugSwitch.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -599,12 +600,19 @@ function redrawCellGrid() {
                             w: params.scalex * spriteSize.w * spriteScale, 
                             h: params.scaley * spriteSize.h * spriteScale 
                         };
+                        //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
                         ctx.globalAlpha = params.alpha;
-                        ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
-                        ctx.rotate(params.angle * Math.PI / 180);
-                        ctx.drawImage(
-                            spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
-                            -rc.w/2, -rc.h/2, rc.w, rc.h);
+                        if (params.angle != 0) {
+                            ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
+                            ctx.rotate(params.angle * Math.PI / 180);
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                -rc.w/2, -rc.h/2, rc.w, rc.h);
+                        } else{
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                rc.x, rc.y, rc.w, rc.h);
+                        }
                         ctx.globalAlpha = 1;
                         ctx.setTransform(1, 0, 0, 1, 0, 0);
                     }
@@ -846,7 +854,7 @@ function setClip(tween) {
         x: xoffset,
         y: yoffset,
         w: (tween.iter[2] - tween.iter[0]) * cellwidth,
-        h: (tween.iter[3] - tween.iter[1]) * cellheight,
+        h: (tween.iter[3] - tween.iter[1]) * cellheight + statusLineHeight,
     };
     ctx.save();
     ctx.beginPath();
@@ -941,6 +949,7 @@ var forceRegenImages=false;
 
 var textcellwidth = 0;
 var textcellheight = 0;
+let statusLineHeight = 0;
 
 // recalculate screen layout and then call redraw
 function canvasResize() {
@@ -969,7 +978,7 @@ function canvasResize() {
     }
 
     // If we need a status line, this will reduce the cell height to allow room
-    const statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
+    statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
     if (levelEditorOpened) {
         // glyph display is level width + 1
         editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
@@ -988,20 +997,19 @@ function canvasResize() {
         const xchar = font['X'].split('\n').map(a=>a.trim());
         h = xchar.length;        
     }
-    cellwidth =w * Math.max( ~~(cellwidth / w),1);
+    cellwidth = w * Math.max( ~~(cellwidth / w),1);
     cellheight = h * Math.max(~~(cellheight / h),1);
-    pixelSize = cellheight / h;
-
-    // calculate an XY offset to position the board on the screen
-    xoffset = 0;
-    yoffset = 0;
-
+    
     if (cellwidth / w > cellheight / h  || (textMode && state.metadata.custom_font !== undefined && loadedCustomFont)) {
         cellwidth = cellheight * w / h;
     } else {
         cellheight = cellwidth * h / w;
     }
-
+    pixelSize = cellheight / h;
+    
+    // calculate an XY offset to position the board on the screen
+    xoffset = 0;
+    yoffset = 0;
     if (levelEditorOpened && !textMode) {
         xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
         yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
@@ -1023,9 +1031,9 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
-    if (debugLevel.includes('cell')) {
+    if (debugSwitch.includes('cell')) {
         const ele = document.getElementById('debug');
-        ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+        ele.innerHTML = `canvas=${canvas.width},${canvas.height} cell=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset} pixel=${pixelSize}`;
     }
     
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
