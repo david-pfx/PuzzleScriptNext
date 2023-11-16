@@ -533,12 +533,15 @@ var winning=false;
 var againing=false;
 var againinterval=150;
 var norepeat_action=false;
-var oldflickscreendat=[];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
+var oldflickscreendat = [];//used for buffering old flickscreen/scrollscreen positions, in case player vanishes
 var keybuffer = [];
 
-var debugLevel = '';
+var debugSwitch = '';
 var showLayers = false;
 var showLayerNo = 0;
+var defaultDebugMode = false;
+var defaultVerboseLogging = false;
+
 var tweeninterval=0;
 var tweentimer=0;
 var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
@@ -548,7 +551,7 @@ var restarting=false;
 
 var messageselected=false;
 
-var textImages={};
+var textImages = {};
 var initLevel = {};
 var level = initLevel;
 
@@ -6809,7 +6812,7 @@ whitingjp : {
 <script>
 // Functions to create and render text and sprites
 
-// Create and return a graphic sprite
+// Create and return a graphic sprite canvas
 function createSprite(name,spritegrid, colors, size) {
 	colors ||= [state.bgcolor, state.fgcolor];
 
@@ -6824,7 +6827,7 @@ function createSprite(name,spritegrid, colors, size) {
     return canvas;
 }
 
-// Create and return a text sprite
+// Create and return a text sprite canvas
 function createTextSprite(name, text, colors, scale) {
 	colors ||= [state.bgcolor, state.fgcolor];
 
@@ -6878,6 +6881,7 @@ function drawTextWithFont(ctx, text, color, x, y, height) {
 
 }
 
+// create a single text sheet canvas containing all the character glyphs
 var textsheetCanvas = null;
 
 function regenText() {
@@ -7129,7 +7133,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (debugLevel.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
+    if (debugSwitch.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -7408,12 +7412,19 @@ function redrawCellGrid() {
                             w: params.scalex * spriteSize.w * spriteScale, 
                             h: params.scaley * spriteSize.h * spriteScale 
                         };
+                        //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
                         ctx.globalAlpha = params.alpha;
-                        ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
-                        ctx.rotate(params.angle * Math.PI / 180);
-                        ctx.drawImage(
-                            spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
-                            -rc.w/2, -rc.h/2, rc.w, rc.h);
+                        if (params.angle != 0) {
+                            ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
+                            ctx.rotate(params.angle * Math.PI / 180);
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                -rc.w/2, -rc.h/2, rc.w, rc.h);
+                        } else{
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                rc.x, rc.y, rc.w, rc.h);
+                        }
                         ctx.globalAlpha = 1;
                         ctx.setTransform(1, 0, 0, 1, 0, 0);
                     }
@@ -7655,7 +7666,7 @@ function setClip(tween) {
         x: xoffset,
         y: yoffset,
         w: (tween.iter[2] - tween.iter[0]) * cellwidth,
-        h: (tween.iter[3] - tween.iter[1]) * cellheight,
+        h: (tween.iter[3] - tween.iter[1]) * cellheight + statusLineHeight,
     };
     ctx.save();
     ctx.beginPath();
@@ -7750,6 +7761,7 @@ var forceRegenImages=false;
 
 var textcellwidth = 0;
 var textcellheight = 0;
+let statusLineHeight = 0;
 
 // recalculate screen layout and then call redraw
 function canvasResize() {
@@ -7778,7 +7790,7 @@ function canvasResize() {
     }
 
     // If we need a status line, this will reduce the cell height to allow room
-    const statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
+    statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
     if (levelEditorOpened) {
         // glyph display is level width + 1
         editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
@@ -7797,20 +7809,19 @@ function canvasResize() {
         const xchar = font['X'].split('\n').map(a=>a.trim());
         h = xchar.length;        
     }
-    cellwidth =w * Math.max( ~~(cellwidth / w),1);
+    cellwidth = w * Math.max( ~~(cellwidth / w),1);
     cellheight = h * Math.max(~~(cellheight / h),1);
-    pixelSize = cellheight / h;
-
-    // calculate an XY offset to position the board on the screen
-    xoffset = 0;
-    yoffset = 0;
-
+    
     if (cellwidth / w > cellheight / h  || (textMode && state.metadata.custom_font !== undefined && loadedCustomFont)) {
         cellwidth = cellheight * w / h;
     } else {
         cellheight = cellwidth * h / w;
     }
-
+    pixelSize = cellheight / h;
+    
+    // calculate an XY offset to position the board on the screen
+    xoffset = 0;
+    yoffset = 0;
     if (levelEditorOpened && !textMode) {
         xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
         yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
@@ -7832,9 +7843,9 @@ function canvasResize() {
         textcellheight = cellheight;
     }
 
-    if (debugLevel.includes('cell')) {
+    if (debugSwitch.includes('cell')) {
         const ele = document.getElementById('debug');
-        ele.innerHTML = `cell WxH=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset}`;
+        ele.innerHTML = `canvas=${canvas.width},${canvas.height} cell=${cellwidth},${cellheight} text=${textcellwidth},${textcellheight} offset=${xoffset},${yoffset} pixel=${pixelSize}`;
     }
     
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
@@ -8133,14 +8144,14 @@ function isLevelSelectOptionSelected() {
 
 function generateTitleScreen()
 {
-  tryLoadCustomFont();
+  	tryLoadCustomFont();
 
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
 
 	if (state.levels.length===0) {
 		titleImage=intro_template;
 		return;
-  }
+  	}
 
     if (isSitelocked()) {
 		titleImage = sitelock_template;
@@ -8710,10 +8721,10 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	titleScreen=false;
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
 	titleSelection=0;
-  titleSelected=false;
-  dragging = false;
-  rightdragging = false;
-  state.metadata = deepClone(state.default_metadata);
+  	titleSelected=false;
+  	dragging = false;
+  	rightdragging = false;
+  	state.metadata = deepClone(state.default_metadata);
     againing=false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
@@ -8722,22 +8733,28 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
     }
     if (leveldat.message !== undefined) {
       // This "level" is actually a message.
-      ignoreNotJustPressedAction=true;
-	  tryPlayShowMessageSound();
-	  twiddleMetadataExtras();
-      drawMessageScreen();
-      canvasResize();
-      clearInputHistory();
+		if (verbose_logging)
+			consolePrint(`Showing message (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+      	ignoreNotJustPressedAction=true;
+	  	tryPlayShowMessageSound();
+	  	twiddleMetadataExtras();
+      	drawMessageScreen();
+      	canvasResize();
+      	clearInputHistory();
     } else if (leveldat.target !== undefined) {
-      // This "level" is actually a goto.
-      //tryPlayGotoSound();
-      setSectionSolved(state.levels[Number(curlevel)].section)
-      gotoLevel(leveldat.target);
+		if (verbose_logging)
+			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+      	// This "level" is actually a goto.
+      	//tryPlayGotoSound();
+      	setSectionSolved(state.levels[Number(curlevel)].section)
+      	gotoLevel(leveldat.target);
     } else {
-      titleMode=0;
-      textMode=false;
-    level = leveldat.clone();
-    RebuildLevelArrays();
+      	titleMode=0;
+      	textMode=false;
+    	level = leveldat.clone();
+		if (verbose_logging)
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+    	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
 	            oldflickscreendat=[
@@ -8784,14 +8801,14 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
     var leveldat = target;    
-  curlevel=levelindex;
-  curlevelTarget=target;
+  	curlevel=levelindex;
+  	curlevelTarget=target;
     if (leveldat.message===undefined) {
-      if (levelindex=== 0){ 
-      tryPlayStartLevelSound();
-    } else {
-      tryPlayStartLevelSound();     
-    }
+      	if (levelindex=== 0){ 
+			tryPlayStartLevelSound();
+		} else {
+			tryPlayStartLevelSound();     
+		}
     }
     loadLevelFromLevelDat(state,state.levels[levelindex],randomseed);
     restoreLevel(target, true);
@@ -10461,7 +10478,7 @@ Rule.prototype.findMatches = function() {
 
 	const d = level.delta_index(this.direction)
 
-	if (debugLevel.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
+	if (debugSwitch.includes('masks')) console.log(`Findmatches d=${d} dir=${this.direction} levobj=${level.objects} levmov=${level.movements}`);
 	var matches=[];
 	var cellRowMasks=this.cellRowMasks;
 	var cellRowMasks_Movements=this.cellRowMasks_Movements;
@@ -10475,7 +10492,7 @@ Rule.prototype.findMatches = function() {
         } else { // ellipsiscount===2
         	var match = matchCellRowWildCard(this.direction,matchFunction,cellRow,cellRowMasks[cellRowIndex],cellRowMasks_Movements[cellRowIndex],d,this.ellipsisCount[cellRowIndex]);  
         }
-		if (debugLevel.includes('masks')) {
+		if (debugSwitch.includes('masks')) {
 			const cro = cellRowMasks[cellRowIndex].format();
 			const crm = cellRowMasks_Movements[cellRowIndex].format();
 			const lvo = level.mapCellContents.format();
@@ -10588,7 +10605,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
 		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
-		var gapMessage= (debugLevel.includes('gaploc')) ? ` at ${locations}` : '';
+		var gapMessage= (debugSwitch.includes('gaploc')) ? ` at ${locations}` : '';
 
 		//var gapMessage="";
 		// var gapcount=0;
@@ -10704,11 +10721,9 @@ Rule.prototype.queueCommands = function() {
 		level.commandQueue.push(command[0]);
 		level.commandQueueSourceRules.push(this);
 
-		if (verbose_logging){
-			var lineNumber = this.lineNumber;
-			//var ruleDirection = dirMaskName[this.direction];
-			var logString = '<font color="green">Rule <a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);">' + lineNumber.toString() + '</a> triggers command '+command[0]+'.</font>';
-			consolePrint(logString,false,lineNumber,null);
+		if (verbose_logging) {
+			const logString = htmlColor('green', `Rule ${htmlJump(this.lineNumber)} triggers command ${command[0]}.`);
+			consolePrint(logString, false, this.lineNumber, null);
 		}
 
 		if (command[0] == 'message') {     
@@ -11128,16 +11143,14 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		}
 
 		if (verbose_logging) { 
-			consolePrint('Applying rules');
-
-			var inspect_ID = addToDebugTimeline(level,-1);
-				
-			 if (dir===-1) {
-				 consolePrint(`Turn starts with no input.`,false,null,inspect_ID)
-			 } else {
+			const inspect_ID = addToDebugTimeline(level, -1);
+			if (dir===-1) {
+				consolePrint(`Turn starts with no input.`, false, null, inspect_ID)
+			} else {
 				//  consolePrint('=======================');
-				 consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
-			 }
+				consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
+			}
+			consolePrint('Applying rules');
 		}
 		
         var bannedGroup = [];
@@ -11502,7 +11515,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		
 	    level.commandQueue=[];
 	    level.commandQueueSourceRules=[];
-		if (debugLevel.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
+		if (debugSwitch.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 
@@ -11753,10 +11766,10 @@ function goToTitleScreen(){
 	doSetupTitleScreenLevelContinue();
   //titleSelection=showContinueOptionOnTitleScreen()?1:0;
   
-  state.metadata = deepClone(state.default_metadata);
-  twiddleMetadataExtras();
+  	state.metadata = deepClone(state.default_metadata);
+  	twiddleMetadataExtras();
 
-  if (canvas!==null){//otherwise triggers error in cat bastard test
+  	if (canvas!==null){//otherwise triggers error in cat bastard test
 		regenSpriteImages();
 	}
 
@@ -11968,6 +11981,19 @@ function TooManyErrors(){
     throw new Error("Too many errors/warnings; aborting compilation.");
 }
 
+function htmlJump(lineNumber, clss) {	
+	return clss ? htmlClass(clss, htmlJump(lineNumber)) 
+        : `<a onclick="jumpToLine(${lineNumber});"  href="javascript:void(0);">${lineNumber}</a>`;
+}
+
+function htmlColor(color, text) {
+	return `<font color="${color}">${text}</font>`;
+}
+
+function htmlClass(clss, text) {
+	return `<span class="${clss}">${text}</span>`;
+}
+
 function logErrorCacheable(str, lineNumber,urgent) {
     if (compiling||urgent) {
         if (lineNumber === undefined) {
@@ -12089,15 +12115,12 @@ var codeMirrorFn = function() {
     'use strict';
 
     const sectionNames = ['tags', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
-    const reg_name = /([\p{L}\p{N}_]+)[\p{Z}]*/u;///\w*[a-uw-zA-UW-Z0-9_]/;
     const reg_equalsrow = /[\=]+/;
-    const reg_csv_separators = /[ \,]*/;
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
     const reg_sounddirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal)\b/i;
-    const reg_winconditionquantifiers = /^(all|any|no|some)$/;
 
     const keyword_array = [ 'checkpoint', 'objects', 'collisionlayers', 'legend', 'sounds', 'rules', 'winconditions', 'levels',
         '|', '[', ']', 'up', 'down', 'left', 'right', 'late', 'rigid', '^', 'v', '>', '<', 'no', 'randomdir', 'random', 'horizontal', 'vertical',
@@ -12114,7 +12137,7 @@ var codeMirrorFn = function() {
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
     const prelude_param_single = [
-        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
+        'background_color', 'color_palette', 'debug_switch', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
         'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
@@ -12128,7 +12151,6 @@ var codeMirrorFn = function() {
 
     // updated for // comment style
     let reg_notcommentstart = /[^\(]+/;
-    let reg_match_until_commentstart_or_whitespace = /[^\p{Z}\s\()]+[\p{Z}\s]*/u;
 
     // utility functions used by parser
 
@@ -12183,7 +12205,7 @@ var codeMirrorFn = function() {
     }
 
     function createAlias(state, alias, candname, lineno) {
-        if (debugLevel.includes('alias')) console.log(`Create '${alias}' as alias for '${candname}'`);
+        if (debugSwitch.includes('alias')) console.log(`Create '${alias}' as alias for '${candname}'`);
         const synonym = [alias, candname];
         synonym.lineNumber = lineno;
         state.legend_synonyms.push(synonym);
@@ -12359,7 +12381,8 @@ var codeMirrorFn = function() {
     function parseSection(stream, state) {
         const section = matchRegex(stream, /^\w+/, true);
 
-        if (!sectionNames.includes(section)) {
+        // only allow tags as first section, for backward compatibility
+        if (!sectionNames.includes(section) || (section == 'tags' && state.visitedSections.length != 0)) {
             pushBack(stream);
             return false;
         }
@@ -12387,7 +12410,6 @@ var codeMirrorFn = function() {
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
         state.visitedSections.push(state.section);
-        const sectionIndex = sectionNames.indexOf(state.section);
 
         return true;
     }
@@ -12443,7 +12465,7 @@ var codeMirrorFn = function() {
         function checkArguments(ident, args) {
             if (state.metadata_lines[ident]) {
                 var otherline = state.metadata_lines[ident];
-                logWarning(`You've already defined a "${ident.toUpperCase()}" in the prelude on line <a onclick="jumpToLine(${otherline})">${otherline}</a>.`, state.lineNumber);
+                logWarning(`You've already defined a "${ident.toUpperCase()}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
             }
             state.metadata_lines[ident] = state.lineNumber;                                                                                    
             if (prelude_keywords.includes(ident)) {
@@ -12470,19 +12492,21 @@ var codeMirrorFn = function() {
 
         function setState(state, value) {
             const ident = value[0];
-            if (ident == 'sprite_size') {
-                const args = value[1].split('x').map(a => parseInt(a));
-                if (!(args.length == 1 || args.length == 2))
-                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
-                else state.sprite_size = args[0];
-            } else if (ident == 'case_sensitive') {
+            if (ident == 'case_sensitive') {
                 state.case_sensitive = true;
                 if (Object.keys(state.metadata).some(k => prelude_param_text.includes(k)))
-                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
+                logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
+            } else if (ident == 'debug_switch') {
+                debugSwitch = value[1];
             } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
+            } else if (ident == 'sprite_size') {
+                const args = value[1].split('x').map(a => parseInt(a));
+                if (!(args.length == 1 || args.length == 2))
+                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
+                else state.sprite_size = args[0];
             } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
@@ -12970,7 +12994,7 @@ var codeMirrorFn = function() {
                 symbols.newname = token;
                 const defname = isAlreadyDeclared(state, token);
                 if (defname)
-                    logError(`Name "${token.toUpperCase()}" already in use (on line <a onclick="jumpToLine(${defname.lineNumber});" href="javascript:void(0);"><span class="errorTextLineNumber">line ${defname.lineNumber}</span></a>).`, state.lineNumber);
+                    logError(`Name "${token.toUpperCase()}" already in use (on line ${htmlJump(defname.lineNumber, 'errorTextLineNumber')}`);
                 else if (keyword_array.includes(token))
                     logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
@@ -13202,7 +13226,7 @@ var codeMirrorFn = function() {
             }
             // remove the keys and push one or more layers
             const newlayers = getNewLayers();
-            if (debugLevel.includes('coll')) console.log('collision', newlayers);
+            if (debugSwitch.includes('coll')) console.log('collision', newlayers);
             state.collisionLayers.push(...newlayers);
         }
     }
@@ -13909,7 +13933,7 @@ function expandObjectTags(state, objkey, objvalue) {
         return [newkey, newvalue];
     });
     
-    if (debugLevel.includes('xpand')) console.log(JSON.stringify(newobjects));
+    if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
     return Object.fromEntries(newobjects);
 }
 
@@ -13971,7 +13995,7 @@ function generateSpriteMatrix(state) {
             obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
         }
     }
-    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
 }
 
 // PS> check whether a name has been used and is not available
@@ -14059,8 +14083,8 @@ function generateExtraMembers(state) {
     state.STRIDE_MOV = STRIDE_MOV;
 
     //get colorpalette name
-    debugMode = false;
-    verbose_logging = false;
+    debugMode = defaultDebugMode;
+    verbose_logging = defaultVerboseLogging;
     throttle_movement = false;
     colorPalette = colorPalettes.arnecolors;
     for (var i = 0; i < state.metadata.length; i += 2) {
@@ -14505,6 +14529,7 @@ function levelsToArray(state) {
 		if (level[0] == '\n') {
 			o = {
 				message: level[1],
+				lineNumber: level[2],
 				section: level[3]
 			};
 			splitMessage = wordwrap(o.message,intro_template[0].length);
@@ -15007,8 +15032,9 @@ function rulesToArray(state) {
         convertRelativeDirsToAbsolute(state, rule);
     rules = expandRulesWithMultiDirectionObjects(state, rules);
     for (const rule of rules) {
-        if (!debugLevel.includes('noulrule')) rewriteUpLeftRules(rule);
+        if (!debugSwitch.includes('noulrule')) rewriteUpLeftRules(rule);
         atomizeAggregates(state, rule);
+        if (state.invalid) return; // protect next from crash
         rephraseSynonyms(state, rule);
     }
     rules = convertObjectsAndDirections(state, rules);
@@ -15109,8 +15135,8 @@ function checkRuleObjects(state, rules) {
             if (!isAlreadyDeclared(state, obj))
                 console.log(`Not declared: ${obj}`);
             const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
-            if (!(layer >= 0))
-                console.log(`Not in a layer: ${obj}`);
+            // if (!(layer >= 0))
+            //     console.log(`Not in a layer: ${obj}`);
         }
     }
 }
@@ -16962,7 +16988,7 @@ function generateSoundData(state) {
                     layer:targetLayer,
                     seed: seed
                 };
-                if (debugLevel.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
+                if (debugSwitch.includes('sfx')) console.log(`Sfx verb ${verb} o: ${JSON.stringify(o)}`);
 
                 if (verb === 'move')
                     sfx_MovementMasks[targetLayer].push(o);
@@ -17043,9 +17069,9 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
-    if (debugLevel.includes('obj')) console.log('Objects', state.objects);
-    if (debugLevel.includes('coll')) console.log('Collision Layers', state.collisionLayers);
-    if (debugLevel.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('coll')) console.log('Collision Layers', state.collisionLayers);
+    if (debugSwitch.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -17170,11 +17196,11 @@ function compile(command, text, randomseed) {
     }
 
     if (errorCount > 0) {
-        if (IDE===false){
-            consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
-        } else{
+        // if (IDE===false){
+        //     consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.  If this is an older game, and you think it just broke because of recent changes in the puzzlescript plus engine, consider letting me know via the issue tracker.</span>');
+        // } else{
             consoleError('<span class="systemMessage">Errors detected during compilation; the game may not work correctly.</span>');
-        }
+        // }
     } else {
         var ruleCount = 0;
         for (var i = 0; i < state.rules.length; i++) {
@@ -17183,14 +17209,11 @@ function compile(command, text, randomseed) {
         for (var i = 0; i < state.lateRules.length; i++) {
             ruleCount += state.lateRules[i].length;
         }
-        if (command[0] == "restart") {
-            consolePrint('<span class="systemMessage">Successful Compilation, generated ' + ruleCount + ' instructions.</span>');
-        } else {
-            consolePrint('<span class="systemMessage">Successful live recompilation, generated ' + ruleCount + ' instructions.</span>');
-
+        consolePrint(htmlClass('systemMessage', `Successful ${command[0] == "restart" ? "compilation" : "live recompilation"}, generated ${ruleCount} instructions.`));
+                
+        if (debugMode) {
+            consolePrint(htmlClass('systemMessage', `Tags: ${Object.keys(state.tags).length} Objects: ${state.objectCount} Layers: ${state.collisionLayers.length} Sounds: ${state.sounds.length} Levels: ${state.levels.length}.`));
         }
-
-
         
         if (IDE){
             if (state.metadata.title!==undefined) {
@@ -18457,7 +18480,7 @@ function pollGamepads() {
 
 let debugTimestamp
 function checkKey(e,justPressed) {
-    if (debugLevel.includes('key')) {
+    if (debugSwitch.includes('key')) {
 		const ele = document.getElementById('debug');
 		ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 		debugTimestamp = prevTimestamp;
@@ -18822,7 +18845,7 @@ function update() {
 			keyRepeatTimer=0;	
 	    	keyRepeatIndex = (keyRepeatIndex+1)%keybuffer.length;
 	    	var key = keybuffer[keyRepeatIndex];
-			if (debugLevel.includes('key')) {
+			if (debugSwitch.includes('key')) {
 				const ele = document.getElementById('debug');
 				ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 				debugTimestamp = prevTimestamp;
@@ -18853,7 +18876,7 @@ var prevTimestamp;
 var loop = function(timestamp){
 	if (prevTimestamp !== undefined) {
 		deltatime = timestamp - prevTimestamp
-		if (debugLevel.includes('key')) {
+		if (debugSwitch.includes('key')) {
 			const ele = document.getElementById('debug');
 			ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 		}

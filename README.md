@@ -7,7 +7,8 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23k10, which includes TAGS and other Pattern:Script compatible features.
+The latest version is Release v-23k16, which fixes bugs in the `translate:` transform and the clip area.
+It also includes TAGS and other Pattern:Script compatible features.
 The following features are implemented.
 
 * The prelude section: `author_color` and `title_color`.
