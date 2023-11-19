@@ -216,3 +216,11 @@ function callRunClick() {
 const runProgramClick = document.getElementById("runProgramClick");
 runProgramClick.addEventListener("click", callRunClick, false);
 runProgramClick.addEventListener("click", callRunClick, false);
+
+function callMakeGifClick() {
+	makeGIF();
+}
+
+const makeGifClick = document.getElementById("makeGifClick");
+makeGifClick.addEventListener("click", callMakeGifClick, false);
+makeGifClick.addEventListener("click", callMakeGifClick, false);
