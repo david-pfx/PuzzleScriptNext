@@ -1,13 +1,15 @@
 # PuzzleScript Next
 
 PuzzleScript Next is your next version of PuzzleScript, 100% upwardly compatible and with all the latest features needed by more advanced developers.
-[You can try it out here](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html).
+[The updated gallery is here](https://david-pfx.github.io/PuzzleScriptNext/src/index.html).
 
 PuzzleScript Next is based on the latest version of the original fantastic [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript), the great features added in [Puzzlescript Plus by Auroriax](https://github.com/Auroriax/PuzzleScriptPlus) by many authors, plus a few contributions from [my own PuzzleFAB](https://github.com/david-pfx/PuzzleFAB).
 
 ## New Features
 
-The latest version is Release v-23k16, which fixes bugs in the `translate:` transform and the clip area.
+The latest version is Release v-23k19, with a reworked gallery.
+Making GIFs is now supported for mouse games, and various new GIFs have been created.
+
 It also includes TAGS and other Pattern:Script compatible features.
 The following features are implemented.
 

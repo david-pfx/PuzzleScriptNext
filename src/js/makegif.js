@@ -40,13 +40,16 @@ function makeGIF() {
   	for(var i=0;i<inputDat.length;i++) {
   		var realtimeframe=false;
 		var val=inputDat[i];
-		if (val==="undo") {
+		if (val == "undo") {
 			DoUndo(false,true);
-		} else if (val==="restart") {
+		} else if (val == "restart") {
 			DoRestart();
-		} else if (val=="tick") {			
+		} else if (val == "tick") {			
 			processInput(-1);
 			realtimeframe=true;
+		} else if (String(val).startsWith('mouse')) {
+			const args = val.split(',');
+			mouseInput(args[1], args[2]);
 		} else {
 			processInput(val);
 		}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="description" content="A game made with the PuzzleScript Next game engine.">
+<meta name="description" content="A game made with the PuzzleScriptNext game engine.">
 <title>PuzzleScript Next Game</title>
 <style>
 body {
@@ -241,7 +241,7 @@ a {
 </div> 
 <div class="footer">
 <span id="errormessage" style="color:red;"></span>
-<a id="homepagelink" href="https://github.com/david-pfx/PuzzleScriptNext">Made with Puzzlescript Next</a> <span id="separator">|</span> <a id="hacklink" href="#">hack</a>
+<a id="homepagelink" href="https://github.com/david-pfx/PuzzleScriptNext">Made with PuzzlescriptNext</a> <span id="separator">|</span> <a id="hacklink" href="#">hack</a>
 </div>
 
 <!--___SCRIPTINSERT___-->
@@ -280,14 +280,22 @@ function strip_http(url) {
    return url;
 }
 
-function getData(){ 
-	var id = getParameterByName("p").replace(/[\\\/]/,"");
-	if (id===null||id.length===0) {
-		displayError("No ID specified in URL.")
-		return;
+function getData() { 
+	let id = getParameterByName("p").replace(/[\\\/]/,"");
+	if (id && id.length > 0) {
+        tryLoadGist(id, `https://api.github.com/gists/${id}`);
+    } else {
+        id = getParameterByName("demo");
+	    if (id && id.length > 0) {
+            tryLoadFile(id, `demo/${id}.txt`);
+        } else {
+		    displayError("No ID specified in URL.")
+		    return;
+        }
 	}
+}
 
-	var githubURL = 'https://api.github.com/gists/'+id;
+function tryLoadGist(id, githubURL) {
 
 	var githubHTTPClient = new XMLHttpRequest();
 	githubHTTPClient.open('GET', githubURL);
@@ -302,42 +310,8 @@ function getData(){
 			displayError("HTTP Error "+ githubHTTPClient.status + ' - ' + githubHTTPClient.statusText);
 		}
 		var result = JSON.parse(githubHTTPClient.responseText);
-		var code=result["files"]["script.txt"]["content"];
-		compile(["restart"],code);
-
-		if (state.metadata.homepage!==undefined) {
-			var homepage=state.metadata.homepage;
-			var homepageLink = document.getElementById("homepagelink");
-            if (id==="2fe3172d2b9fe684977d184f1b6226d5"){
-                // https://github.com/increpare/PuzzleScript/issues/829
-                // Supporting vulnerability on legacy grounds to enable Pushing It:
-                // https://www.puzzlescript.net/play.html?p=2fe3172d2b9fe684977d184f1b6226d5
-			    homepageLink.innerHTML=strip_http(homepage);
-            } else {
-                //sanitize tags from title   
-                homepageLink.textContent=strip_http(homepage);
-            }
-			
- 			if (!homepage.match(/^https?:\/\//)) {
- 				homepage = "https://" + homepage;
- 			}
- 			homepageLink.href = homepage;
-		}
-		if (state.metadata.title!==undefined) {
-			var title=state.metadata.title;
-			var gametitle = document.getElementById("gametitle");
-            gametitle.textContent=title;
-			window.document.title=title+" - PuzzleScript Game";
-		}
-                
-		var hacklink = document.getElementById("hacklink");
-
-		var url = "editor.html?hack="+id;
-		url=qualifyURL(url);
-
-		hacklink.href=url;
-        
-	}
+		prepareForPlay(`hack=${id}`, result["files"]["script.txt"]["content"]);
+    }
     // if (storage_has('oauth_access_token')) {
     //     var oauthAccessToken = storage_get("oauth_access_token");
     //     if (typeof oauthAccessToken === "string") {
@@ -348,10 +322,60 @@ function getData(){
 	githubHTTPClient.send();
 }
 
+function tryLoadFile(id, fileName) {
+	var fileOpenClient = new XMLHttpRequest();
+	fileOpenClient.open('GET', fileName);
+	fileOpenClient.onreadystatechange = function() {
+		
+  		if (fileOpenClient.readyState!=4)
+  			return;
+		if (fileOpenClient.status != 200 && fileOpenClient.status != 201) {
+			displayError("HTTP Error "+ fileOpenClient.status + ' - ' + fileOpenClient.statusText);
+		} else {
+			prepareForPlay(`demo=${id}`, fileOpenClient.responseText);
+		}
+	}
+	fileOpenClient.send();
+}
+
+function prepareForPlay(hackArg, code) {
+    compile(["restart"],code);
+
+    if (state.metadata.homepage!==undefined) {
+        var homepage=state.metadata.homepage;
+        var homepageLink = document.getElementById("homepagelink");
+        // refers to a specific simple game -- with an embedded exploit!
+        // if (id==="2fe3172d2b9fe684977d184f1b6226d5"){
+        //     // https://github.com/increpare/PuzzleScript/issues/829
+        //     // Supporting vulnerability on legacy grounds to enable Pushing It:
+        //     // https://www.puzzlescript.net/play.html?p=2fe3172d2b9fe684977d184f1b6226d5
+        //     homepageLink.innerHTML=strip_http(homepage);
+        // } else {
+        //sanitize tags from title   
+        homepageLink.textContent=strip_http(homepage);
+        // }
+        
+        if (!homepage.match(/^https?:\/\//)) {
+            homepage = "https://" + homepage;
+        }
+        homepageLink.href = homepage;
+    }
+    if (state.metadata.title!==undefined) {
+        var title=state.metadata.title;
+        var gametitle = document.getElementById("gametitle");
+        gametitle.textContent=title;
+        window.document.title=title+" - PuzzleScriptNext Game";
+    }
+            
+    var hacklink = document.getElementById("hacklink");
+    var url = `editor.html?${hackArg}`;
+    url=qualifyURL(url);
+    hacklink.href=url;
+}
+
 getData();
 
 </script>
-
 
 <div style = "z-index: 2; background: transparent; position: absolute; top: 0.5em; right: 1em;">
   <img alt="mute" id="muteButton" width=32px height=32px onClick="muteAudio()" style="display:none"  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xOdTWsmQAAAIGSURBVFhH3ZchcsJAGIURiApEBbIH6BEqOQASWYHoESoQFcwgOAaiEsEBKip6BERlBQJRwQEqtu/tvj+TLMnAJpntTL+ZP/De7p/9k102YUCcc0tEbpbx4MHIAMcKQ2LM4ktmOCYH9gXIawXzQasLYGKnAphryErC53VJLiPvhNgjtog54tZ3bgDt7QpgTkyD/42Y+aQa2CG5APYvMdGnFTBC3COeEG8IY4M4uxtsSCqAfQ1ZhSdZATangdNCvhCVImheVQC6FFdKZHtkeQ8fB8QOsUCM5N0hPhBkQ8+gEQ5BXLUb+swSsu0cZXjFE/kswu7ElB6hCAeJS/isCDXZOcaIKeKdHvhBPKiN00F4l+zu1BaQtKkop1Ic5BCx8g3OfSJu5Fthj9LnBfB7Ckqzc/Dq1oihtA34LP0SpHuV7r0AYyXN6SC7SO+ley9gFpQ7SHNNkFifpP9fAcZaOvsUNC3ChbQtwq30eQGg88+QwLKNjRuS/e6toLl0bQGNsF+MmuwcdRuR7Ya2EfEJ6Z8JFOEQRK6tuHg8U4TDBdClr4eRn3uDRjhcCfsasgpPsgLs8uP4iBiryUMzqQDC/iXiFxJbA1zttg4IX9EqgxM2JBdAmBPT4Pf/SmYwr4y8PC+lBnMNWUn4vLbJBvNBtz8m4E//mtkGlK0IjhWG1Jj8EnRWMPhg8AvjeqPLyfe3igAAAABJRU5ErkJggg==" />
