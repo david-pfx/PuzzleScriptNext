@@ -109,6 +109,8 @@ function replaceContent() {
     if(startNewRow) data.push(rowEnd, rowStart);
     
     dat=games_gallery[i];
+    if (dat.url.startsWith('play.html'))
+      dat.url = '../' + dat.url;        // fix relative link when accessed from Gallery
     dat.imgurl = "./gifs/"+dat.thumb;
     dat.gameurl = dat.url;
     if (dat.hasOwnProperty("homepage")===false){
