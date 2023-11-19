@@ -13,7 +13,7 @@ homepage www.polyomino.com
 // For more information, don't forget to check out the NEW EXAMPLES. PuzzleScriptPlus
 // features are in the DOCS link, PuzzleScriptNext are in the readme for now.
 
-// This program can be found in next_starter.txt.
+// This program can be found in next/starter.txt.
 
 tween_length 0.03
 smoothscreen 5x5

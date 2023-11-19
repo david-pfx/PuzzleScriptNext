@@ -615,52 +615,45 @@ function mouseAction(event,click,id) {
 				if (againing) {
 					//consolePrint("no mouse, againing",false);
 				} else {
-					try {
-						var bak = backupLevel();
-						var cell = level.getCell(coordIndex);
-						cell.ibitset(id);
-						level.setCell(coordIndex, cell);
-						var inputdir = 5;
-						pushInput(inputdir);
-						if (processInput(inputdir,false,false,bak)) {
-							redraw();
-						}
-					} catch(e) {
-						console.log(e);
-						consolePrint(e,true);
-					}
+					pushInput(`mouse,${id},${coordIndex}`);
+					mouseInput(id, coordIndex);  // refactor for makeGIF()
+					event.handled = true;
 				}
 			}
 		} else if (mouseCoordX>=0 && mouseCoordY>=0 && mouseCoordX<screenwidth && mouseCoordY<screenheight) {
 			var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*level.height;
-			
-			lastCoord = coordIndex;
 			if (againing) {
 				//consolePrint("no mouse, againing",false);
-			} else if (id >= 0) {
-				try {
-					var bak = backupLevel();
-					var cell = level.getCell(coordIndex);
-					cell.ibitset(id);
-					level.setCell(coordIndex, cell);
-					var inputdir = 5;
-					pushInput(inputdir);
-					if (processInput(inputdir,false,false,bak)) {
-						redraw();
-					}
-				} catch(e) {
-					console.log(e);
-					consolePrint(e,true);
-				}
 			} else {
-				// don't drop an object, feed in a movement instead
-				const inputdir = (id == -1) ? 6 : 7;  // todo: mclick
-				pushInput(inputdir);
-				if (processInput(inputdir, false, false, bak, lastCoord)) {
-					redraw();
-				}
+				pushInput(`mouse,${id},${coordIndex}`);
+				mouseInput(id, coordIndex);  // refactor for makeGIF()
 				event.handled = true;
 			}
+		}
+	}
+}
+
+function mouseInput(id, coordIndex) {
+	if (id >= 0) {
+		// drop an object at this location
+		try {
+			var bak = backupLevel();
+			var cell = level.getCell(coordIndex);
+			cell.ibitset(id);
+			level.setCell(coordIndex, cell);
+			var inputdir = 5;
+			if (processInput(inputdir,false,false,bak)) {
+				redraw();
+			}
+		} catch(e) {
+			console.log(e);
+			consolePrint(e,true);
+		}
+	} else {
+		// don't drop an object, feed in a movement instead
+		const inputdir = (id == -1) ? 6 : 7;  // todo: mclick
+		if (processInput(inputdir, false, false, bak, coordIndex)) {
+			redraw();
 		}
 	}
 }
