@@ -21,7 +21,7 @@ var games_gallery = [
     "homepage": "https://auroriax.itch.io/"
   },
   {
-    "url": "/src/play.html?demo=plus/kye",
+    "url": "play.html?demo=plus/kye",
     "thumb": "plus_kye.gif",
     "title": "Kye.ps",
     "author": "vexorian",
