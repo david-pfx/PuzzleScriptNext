@@ -49,95 +49,96 @@ function cartesianProduct(...arrays) {
 
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
-    constructor(state, ident, delim = ':') {
+    constructor(state, ident, usedirs = false, delim = ':') {
         this.ident = ident;
         this.delim = delim;
         [ this.stem, ...this.tail ] = ident.split(delim);
-        this.tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
-        this.tagvalues = this.tags.map(t => state.tags[t]);
-        this.tagexpansion = cartesianProduct(...this.tagvalues);
-        this.dirs = this.tail.filter(p => [ ...simpleAbsoluteDirections, ...relativeDirections ].includes(p));
-        this.dirvalues = this.dirs.map(d => simpleAbsoluteDirections.includes(d) ? [ d ] : simpleAbsoluteDirections);
+        const tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
+        const tagvalues = tags.map(t => state.tags[t]);
+        if (usedirs) {
+            const reldirs = this.tail.filter(p => relativeDirections.includes(p));
+            const reldirvalues = reldirs.map(d => simpleAbsoluteDirections);
+            this.keys = [ ...tags, ...reldirs ];
+            this.expansion = cartesianProduct(...tagvalues, ...reldirvalues);
+        } else {
+            this.keys = tags;
+            this.expansion = cartesianProduct(...tagvalues);
+        }
     }
 
-    get rawTags() {
-        return this.tags; // ? and dirs
+    get expKeys() {
+        return this.keys;
     }
-    get expandedTags() {
-        return this.tagexpansion;
+    get expValues() {
+        return this.expansion;
     }
 
-    getExpandTagsDirs() {
-        const exp = cartesianProduct(...this.tagvalues, ...this.dirvalues);
-        if (exp.length == 0)
+    // get array of base idents, one for each expansion
+    getExpandedIdents() {
+        if (this.keys.length == 0)
             return [ this.ident ];
-        const newtails = exp.map(e =>
-                this.tail.map(p => 
-                    this.tags.includes(p) ? e[this.tags.indexOf(p)] :
-                    this.dirs.includes(p) ? e.at(-1) : p));
-        return newtails.map(t => [ this.stem, ...t ].join(this.delim));
-    }
-    // return joined key with substitutions
-    getTagExpandedIdent(exp) {
-        return [ this.stem, ...this.tail.map(p => 
-            this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
-            .join(this.delim);
-    }
-    // return alternate join key with substitutions
-    getTagExpandedAlt(exp, ident) {
-        const [ stem, ...tail ] = ident.split(':');
-        return (tail.length == 0) ? stem
-            : [ stem, ...tail.map(p => 
-                this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
-                .join(this.delim);
-    }
-    // return ident with substitution if available
-    getTagSubstitutedIdent(exp, ident) {
-        return this.tags.includes(ident) ? exp[this.tags.indexOf(ident)] : ident;
-    }
-
-    // return array of base idents, one for each expansion
-    getTagExpandedIdents() {
-        return this.tagexpansion.map(e => 
+        return this.expansion.map(e => 
             [ this.stem, this.tail.map(p => 
-                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
             ].join(this.delim));
     }
 
-    // return array of (possibly expanded) idents, one for each expansion
-    getTagExpandedAltIdents(ident) {
+    // get an expanded ident based on a single expansion
+    getExpandedIdent(exp) {
+        return [ this.stem, ...this.tail.map(p => 
+            this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
+            ].join(this.delim);
+    }
+
+    // return alternate join key with substitutions based on a specific expansion
+    getExpandedAlt(exp, ident) {
         const [ stem, ...tail ] = ident.split(':');
-        return this.tagexpansion.map(e =>
+        return (tail.length == 0) ? stem
+            : [ stem, ...tail.map(p => 
+                this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
+            ].join(this.delim);
+    }
+
+    // return ident with substitution if available based on a specific expansion
+    getSubstitutedIdent(exp, ident) {
+        return this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
+    }
+
+    // return array of (possibly expanded) idents, one for each expansion
+    getExpandedAltIdents(ident) {
+        const [ stem, ...tail ] = ident.split(':');
+        return this.expansion.map(e =>
             (tail.length == 0) ? stem
             : [ stem, ...tail.map(p => 
-                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
             ].join(this.delim) );
     }
 }
 
-// expand an ident seen when parsing a rule into the things it might be
-function expandIdentTags(state, ident) {
-    const expander = new TagExpander(state, ident);
+// expand a reference to an object from legend, layers and rules (rel dirs no expanded)
+function expandObjectRef(state, objid, usedirs = false) {
+    const expander = new TagExpander(state, objid, usedirs);
     //if (expander.rawTags.length == 0) return [ ident ];
-    return expander.getExpandTagsDirs();
+    return expander.getExpandedIdents();
 }
 
-// expand sprites with tags into new objects, replace object by property
-function expandObjectTags(state, objkey, objvalue) {
-    const expander = new TagExpander(state, objkey);
-    if (expander.rawTags.length == 0) return;
-    const newobjects = expander.expandedTags.map(exp => {
-        const newkey = expander.getTagExpandedIdent(exp);
+// expand object defined with tags/directions into new objects, replace object by property
+function expandObjectDef(state, objid, objvalue) {
+    const expander = new TagExpander(state, objid, true);
+    if (expander.keys.length == 0) return;
+    const newobjects = expander.expansion.map(exp => {
+        const newid = expander.getExpandedIdent(exp);
         const newvalue = {
             lineNumber: objvalue.lineNumber,
             colors: [ ...objvalue.colors ],
             spritematrix: [],
+            canRedef: true,
         };
         if (objvalue.cloneSprite) {
-            const altspriteid = expander.getTagExpandedAlt(exp, objvalue.cloneSprite);
+            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
                 newvalue.cloneSprite = altspriteid;
-            else logError(`Source ${altspriteid} for sprite clone not found.`);
+            else logError(`Source ${altspriteid} for sprite clone not found.`, objvalue.lineNumber);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
         
@@ -145,13 +146,13 @@ function expandObjectTags(state, objkey, objvalue) {
             newvalue.transforms = objvalue.transforms.map(m => {
                 const modi = [ ... m ];
                 const op = modi.shift();
-                const newm = [ expander.getTagSubstitutedIdent(exp, modi.shift()) ];
+                const newm = [ expander.getSubstitutedIdent(exp, modi.shift()) ];
                 if (op == 'rot' && modi.length > 0)
-                    newm.push(expander.getTagSubstitutedIdent(exp, modi.shift()));
+                    newm.push(expander.getSubstitutedIdent(exp, modi.shift()));
                 return [ op, ...newm, ...modi ];
             })
         }
-        return [newkey, newvalue];
+        return [newid, newvalue];
     });
     
     if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
@@ -220,12 +221,31 @@ function generateSpriteMatrix(state) {
 }
 
 // PS> check whether a name has been used and is not available
-function isAlreadyDeclared(state, id) {
-    return Object.hasOwn(state.objects, id)
-        || state.legend_synonyms.find(s => s[0] == id)
-        || state.legend_aggregates.find(s => s[0] == id)
-        || state.legend_properties.find(s => s[0] == id)
-        || Object.hasOwn(state.tags, id)  // todo:@@
+function isAlreadyDeclared(state, ident) {
+    return Object.hasOwn(state.objects, ident)
+        || state.legend_synonyms.find(s => s[0] == ident)
+        || state.legend_aggregates.find(s => s[0] == ident)
+        || state.legend_properties.find(s => s[0] == ident)
+        || Object.hasOwn(state.tags, ident)
+        || Object.hasOwn(state.mappings, ident)
+}
+
+// PS> check how a name has been used if at all
+function isDeclaredAs(state, ident) {
+    return Object.hasOwn(state.objects, ident) ? 'object'
+        : state.legend_synonyms.find(s => s[0] == ident) ? 'alias'
+        : state.legend_aggregates.find(s => s[0] == ident) ? 'and'
+        : state.legend_properties.find(s => s[0] == ident) ? 'or'
+        : Object.hasOwn(state.tags, ident) ? 'tag' 
+        : Object.hasOwn(state.mappings, ident) ? 'map' 
+        : null;
+}
+
+// get the object(s) referred to if declared, or null otherwise
+function getObjectRefs(state, ident) {
+    if (isAlreadyDeclared(state, ident)) return [ ident ];
+    const idents = expandObjectRef(state, ident);
+    return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
 }
 
 function isColor(str) {
@@ -3290,6 +3310,8 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
+    if (debugSwitch.includes('tag')) console.log('Tags', state.tags);
+    if (debugSwitch.includes('map')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
     if (debugSwitch.includes('coll')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);

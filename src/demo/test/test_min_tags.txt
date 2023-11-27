@@ -4,10 +4,9 @@ homepage www.polyomino.com
 
 // test program for new TAG section
 
-//sprite_size 7x7
-
 verbose_logging
 debug
+debug_switch tag,map,obj
 
 ====
 TAGS
@@ -15,6 +14,13 @@ TAGS
 tag1 = t11 t12 t13 t14
 tag2 = t21 t22 t23 t24
 dirs = up down left right
+nums = n1 n2 n3 n4 n5
+
+========
+MAPPINGS
+========
+nums => nexts
+n1 n2 n3 n4 n5 -> n2 n3 n4 n5 n1
 
 ========
 OBJECTS
@@ -30,6 +36,18 @@ white red
 01100
 00100
 00100
+
+obj1a
+white darkred
+copy: obj1 rot:down:>
+
+obj1b
+white lightred
+copy: obj1 |
+
+obj1c
+white orange
+copy: obj1 -
 
 obj2:dirs
 white blue
@@ -60,13 +78,14 @@ LEGEND
 3 = obj3:left
 4 = obj4:left
 5 = obj5:t11:left
+objax = obj1 or obj1a or obj1b or obj1c
 
 ================
 COLLISIONLAYERS
 ================
 Background
 Player, r
-obj1, obj2:dirs, obj3:dirs, obj4:dirs, obj5:tag1:dirs
+objax, obj2:dirs, obj3:dirs, obj4:dirs, obj5:tag1:dirs
 
 ======
 RULES
