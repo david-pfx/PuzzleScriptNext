@@ -1,0 +1,63 @@
+title Freeze Bug
+author lazugod
+
+noaction
+require_player_movement
+verbose_logging
+
+========
+OBJECTS
+========
+
+Background .
+green
+
+Wall #
+brown
+
+Player p
+white
+
+Crate *
+orange
+
+anim
+red
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player, Crate, Wall
+anim
+
+======
+RULES
+======
+
+[ anim ] -> [] again
+
+[ > Player ] -> [ > player anim ] again
+
+[ > Player | Crate ] -> Message This message won't play when pushing into a wall, but the next "again" will crash
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+#####
+#*p.#
+#####

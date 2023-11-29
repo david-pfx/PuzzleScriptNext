@@ -1374,6 +1374,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
     }
 
     againing=false;
+	messagetext = "";  //fix for hang
     level.commandQueue=[];
     level.commandQueueSourceRules=[];
 }
