@@ -77,10 +77,11 @@ class TagExpander {
     getExpandedIdents() {
         if (this.keys.length == 0)
             return [ this.ident ];
-        return this.expansion.map(e => 
-            [ this.stem, this.tail.map(p => 
+        return this.expansion.map(e => [ 
+            this.stem, 
+            ...this.tail.map(p => 
                 this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
-            ].join(this.delim));
+        ].join(this.delim));
     }
 
     // get an expanded ident based on a single expansion
@@ -122,7 +123,7 @@ function expandObjectRef(state, objid, usedirs = false) {
     return expander.getExpandedIdents();
 }
 
-// expand object defined with tags/directions into new objects, replace object by property
+// expand object defined with tags/directions into new objects
 function expandObjectDef(state, objid, objvalue) {
     const expander = new TagExpander(state, objid, true);
     if (expander.keys.length == 0) return;
@@ -156,7 +157,7 @@ function expandObjectDef(state, objid, objvalue) {
     });
     
     if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
-    return Object.fromEntries(newobjects);
+    return newobjects;
 }
 
 // create new legend properties when objects contain tags
@@ -176,7 +177,7 @@ function createObjectTagsAsProps(state, ident) {
 }
 
 // generate a new sprite matrix based on transforms
-function generateSpriteMatrix(state) {
+function generateSpriteMatrix(state, obj) {
     const cwd = dir => clockwiseDirections.indexOf(dir);
     const tranfunc = {
         'flip': (mat,_,dir) => [
@@ -201,23 +202,22 @@ function generateSpriteMatrix(state) {
             return m;
         }
     };
-    for (const obj of Object.values(state.objects)) {
-        obj.spriteoffset = { x: 0, y: 0 };
-        if (obj.colors.length == 0)             // can this ever happen?
-            obj.colors.push('#ff00ff');
-        if (obj.cloneSprite) {
-            const other = state.objects[obj.cloneSprite];
-            obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
-            obj.spriteoffset = { ...other.spriteoffset };
-        } else if (obj.spritematrix.length == 0) {
-            obj.spritematrix = Array.from( { length: state.sprite_size }, () => (new Array(state.sprite_size).fill(0)) )
-        }
-        
-        for (const tf of obj.transforms ||  []) {
-            obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
-        }
+
+    obj.spriteoffset = { x: 0, y: 0 };
+    if (obj.cloneSprite) {
+        const other = state.objects[obj.cloneSprite];
+        obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
+        obj.spriteoffset = { ...other.spriteoffset };
+    } else if (obj.spritematrix.length == 0) {
+        obj.spritematrix = Array.from( 
+            { length: state.sprite_size }, 
+            () => (new Array(state.sprite_size).fill(0)) 
+        );
     }
-    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    
+    for (const tf of obj.transforms || []) {
+        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
+    }
 }
 
 // PS> check whether a name has been used and is not available
@@ -287,9 +287,9 @@ function generateExtraMembers(state) {
         for (var j = 0; j < state.collisionLayers[layerIndex].length; j++) {
             var n = state.collisionLayers[layerIndex][j];
             if (n in state.objects) {
-                var o = state.objects[n];
-                o.layer = layerIndex;
-                o.id = idcount;
+                var obj = state.objects[n];
+                obj.layer = layerIndex;
+                obj.id = idcount;
                 state.idDict[idcount] = n;
                 idcount++;
             }
@@ -355,40 +355,43 @@ function generateExtraMembers(state) {
         }
     }
 
-    //convert colors to hex
-    for (var n in state.objects) {
-        const maxColours = 36; // now 0-9 and a-z
-        if (state.objects.hasOwnProperty(n)) {
-            //convert color to hex
-            var o = state.objects[n];
-            if (o.colors.length > maxColours) {
-                logError(`a sprite cannot have more than ${maxColours} colors.  Why you would want more than ${maxColours} is beyond me.`, o.lineNumber + 1);
-            }
-            for (var i = 0; i < o.colors.length; i++) {
-                var c = o.colors[i];
-                if (isColor(c)) {
-                    c = colorToHex(colorPalette, c);
-                    o.colors[i] = c;
-                } else {
-                    logError('Invalid color specified for object "' + n + '", namely "' + o.colors[i] + '".', o.lineNumber + 1);
-                    o.colors[i] = '#ff00ff'; // magenta error color
-                }
+    // fix and convert colors to hex
+    const maxColours = 36; // now 0-9 and a-z
+    for (const obj of Object.values(state.objects)) {
+        if (obj.colors.length == 0) {
+            logWarning(`A sprite must have at least one color. However did this happen?`, obj.lineNumber + 1);
+            obj.colors.push('#ff00ff');
+        } else if (obj.colors.length > maxColours) {
+            logError(`A sprite cannot have more than ${maxColours} colors.  Why you would want more than ${maxColours} is beyond me.`, obj.lineNumber + 1);
+        }
+        for (let i = 0; i < obj.colors.length; i++) {
+            let c = obj.colors[i];
+            if (isColor(c)) {
+                c = colorToHex(colorPalette, c);
+                obj.colors[i] = c;
+            } else {
+                logError(`Invalid color specified for object "${n}", namely ${obj.colors[i]}".`, obj.lineNumber + 1);
+                obj.colors[i] = '#ff00ff'; // magenta error color
             }
         }
     }
 
-    generateSpriteMatrix(state);
+    // fix up sprite matrix
+    for (const obj of Object.values(state.objects)) {
+        generateSpriteMatrix(state, obj);
+    }
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
 
     var glyphOrder = [];
     //calculate glyph dictionary
     var glyphDict = {};
     for (var n in state.objects) {
         if (state.objects.hasOwnProperty(n)) {
-            var o = state.objects[n];
+            var obj = state.objects[n];
             var mask = blankMask.concat([]);
-            mask[o.layer] = o.id;
+            mask[obj.layer] = obj.id;
             glyphDict[n] = mask;
-            glyphOrder.push([o.lineNumber,n]);
+            glyphOrder.push([obj.lineNumber,n]);
         }
     }
     
@@ -427,18 +430,18 @@ function generateExtraMembers(state) {
 
                 for (var j = 1; j < dat.length; j++) {
                     var n = dat[j];
-                    var o = state.objects[n];
-                    if (o == undefined) {
+                    var obj = state.objects[n];
+                    if (obj == undefined) {
                         logError('Object not found with name ' + n, state.lineNumber);
                     }
-                    if (mask[o.layer] == -1) {
-                        mask[o.layer] = o.id;
+                    if (mask[obj.layer] == -1) {
+                        mask[obj.layer] = obj.id;
                     } else {
-                        if (o.layer === undefined) {
+                        if (obj.layer === undefined) {
                             logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', dat.lineNumber);
                         } else {
                             var n1 = n.toUpperCase();
-                            var n2 = state.idDict[mask[o.layer]].toUpperCase();
+                            var n2 = state.idDict[mask[obj.layer]].toUpperCase();
                             // if (n1 !== n2) {
                                 logError(
                                     'Trying to create an aggregate object (something defined in the LEGEND section using AND) with both "' +
@@ -574,7 +577,7 @@ function generateExtraMembers(state) {
             var values = propertiesDict[key];
             var sameLayer = true;
             for (var i = 1; i < values.length; i++) {
-                if ((state.objects[values[i - 1]].layer !== state.objects[values[i]].layer)) {
+                if ((state.objects[values[i - 1]].layer !== state.objects[values[i]].layer)) { // @@ dies here if previous error
                     sameLayer = false;
                     break;
                 }
@@ -595,15 +598,15 @@ function generateExtraMembers(state) {
     if (state.objects.background === undefined) {
         if ('background' in state.synonymsDict) {
             var n = state.synonymsDict['background'];
-            var o = state.objects[n];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            var obj = state.objects[n];
+            backgroundid = obj.id;
+            backgroundlayer = obj.layer;
         } else if ('background' in state.propertiesDict) {
             var backgrounddef = state.propertiesDict['background'];
             var n = backgrounddef[0];
-            var o = state.objects[n];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            var obj = state.objects[n];
+            backgroundid = obj.id;
+            backgroundlayer = obj.layer;
             for (var i=1;i<backgrounddef.length;i++){
                 var nnew = backgrounddef[i];
                 var onew = state.objects[nnew];
@@ -613,16 +616,16 @@ function generateExtraMembers(state) {
                 }
             }
         } else if ('background' in state.aggregatesDict) {
-            var o = state.objects[state.idDict[0]];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            var obj = state.objects[state.idDict[0]];
+            backgroundid = obj.id;
+            backgroundlayer = obj.layer;
             var lineNumber = state.original_line_numbers['background'];
             logError("background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').",lineNumber);
         } else {
-            var o = state.objects[state.idDict[0]];
-            if (o!=null){
-                backgroundid = o.id;
-                backgroundlayer = o.layer;
+            var obj = state.objects[state.idDict[0]];
+            if (obj!=null){
+                backgroundid = obj.id;
+                backgroundlayer = obj.layer;
             }
             logError("you have to define something to be the background");
         }
@@ -707,8 +710,13 @@ Level.prototype.calcBackgroundMask = function(state) {
 
 function levelFromString(state,level) {
 	var backgroundlayer=state.backgroundlayer;
-	var backgroundid=state.backgroundid;
+	//var backgroundid=state.backgroundid;
 	var backgroundLayerMask = state.layerMasks[backgroundlayer];
+
+    // pad all lines to same length
+    //const width = level[2].reduce((a, b) => Math.max(a, b), 0);
+    //level[2] = level[2].map(l => l.padEnd(width, '.'));
+
 	var o = new Level(level[0], level[2].length, level.length-2, state.collisionLayers.length, null, level[1]);
 	o.objects = new Int32Array(o.width * o.height * STRIDE_OBJ);
 
@@ -767,7 +775,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
-		if (level[0] == '\n') {
+		if (level[0] == 'message') {
 			o = {
 				message: level[1],
 				lineNumber: level[2],
@@ -788,6 +796,10 @@ function levelsToArray(state) {
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
 			sectionTerminated = true;
+		} else if (level[0] == 'level') {
+            continue;       // todo:
+		} else if (level[0] == 'title') {
+            continue;       // todo:
 		} else {
 			o = levelFromString(state,level);
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
@@ -3257,6 +3269,7 @@ function formatHomePage(state) {
     // PS> from P:S still todo:
     state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
     state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
 
@@ -3313,8 +3326,8 @@ function loadFile(str) {
     if (debugSwitch.includes('tag')) console.log('Tags', state.tags);
     if (debugSwitch.includes('map')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
-    if (debugSwitch.includes('coll')) console.log('Collision Layers', state.collisionLayers);
-    if (debugSwitch.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+    if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
+    if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);

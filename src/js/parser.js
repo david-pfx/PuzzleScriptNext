@@ -207,8 +207,8 @@ var codeMirrorFn = function() {
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
     const prelude_param_single = [
-        'background_color', 'color_palette', 'debug_switch', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
-        'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
+        'background_color', 'color_palette', 'debug_switch', 'flickscreen', 'level_select_solve_symbol', 'keyhint_color', 
+        'message_text_align', 'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
     ];
@@ -652,7 +652,16 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            state.tags[symbols.id] = symbols.members;
+            state.tags[symbols.id] = symbols.members.map(m => expandTag(m)).flat();
+        }
+
+        // tags that reference other tags are expanded to the lowest level here rather than when used
+        function expandTag(arg) {
+            const ret = [];
+            if (Object.hasOwn(state.tags, arg)) 
+                ret.push(...state.tags[arg].map(t => expandTag(t)).flat())
+            else ret.push(arg);
+            return ret;
         }
     }
 
@@ -1098,9 +1107,13 @@ var codeMirrorFn = function() {
         const obj = state.objects[candname];
         const newobjects = expandObjectDef(state, candname, obj);
         if (newobjects) {
-            Object.assign(state.objects, newobjects);
-            const newlegend = [ candname, ...Object.keys(newobjects)];
+            // add new objects but do not overwrite existing
+            for (const [newid, newvalue] of newobjects)
+                if (!Object.hasOwn(state.objects, newid))
+                    state.objects[newid] = newvalue;
+            const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
+
             delete state.objects[candname];
             state.objects_candname = '';
             state.legend_properties.push(newlegend);
@@ -1143,7 +1156,7 @@ var codeMirrorFn = function() {
                 } else {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
                 }
-            } else if (token = lexer.matchName(!state.case_sensitive)) {
+            } else if (token = lexer.matchObjectName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
                 const tobjects = getObjectRefs(state, token);
                 if (!tobjects) 
@@ -1377,16 +1390,19 @@ var codeMirrorFn = function() {
 
             // functions to manage keyed layers
             const keylayers = [];
-            function addToLayer(key, obj) {
+
+            // append objects to a layer by key, or create a new one
+            function addToLayer(key, objects) {
                 if (keylayers[key]) 
-                    keylayers[key].layer.push(...obj);
-                else keylayers[key] = { lineNumber: state.lineNumber, layer: obj };
+                    keylayers[key].layer.push(...objects);
+                else keylayers[key] = { lineNumber: state.lineNumber, layer: objects };
             }
             function getNewLayers() {
                 return Object.values(keylayers).map(k => k.layer);
             }
 
             // add new objects to the proper layer based on ident and prefixes
+            // if a part is a member of a prefix it goes in a layer keyed by the part
             function addNewObjects(newobjs, ident, prefixes) {
                 const parts = ident.split(':');
                 const prefs = prefixes.filter(p => parts.includes(p));
@@ -1464,8 +1480,7 @@ var codeMirrorFn = function() {
             }
             // remove the keys and push one or more layers
             const newlayers = getNewLayers();
-            if (debugSwitch.includes('coll')) console.log('collision', newlayers);
-            state.collisionLayers.push(...newlayers);
+            newlayers.forEach(l => state.collisionLayers.push(l));
         }
     }
 
@@ -1563,7 +1578,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(message|section|goto)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(message|goto|title|level|section)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
                 symbols.text = lexer.matchAll();
@@ -1599,16 +1614,15 @@ var codeMirrorFn = function() {
                     state.levels.pop();
                     toplevel = null;
                 }
-                if (symbols.start == 'message')
-                    state.levels.push([ '\n', symbols.text, state.lineNumber, state.currentSection ]);
-                else if (symbols.start == 'goto')
-                    state.levels.push([ 'goto', symbols.text, state.lineNumber, state.currentSection ]);
+                const cmds = [ 'message', 'goto', 'level', 'title' ];
+                if (cmds.includes(symbols.start))
+                    state.levels.push([ symbols.start, symbols.text, state.lineNumber, state.currentSection ]);
                 else {
-                    if (toplevel == null || [ '\n', 'goto' ].includes(toplevel[0]))
+                    if (toplevel == null || cmds.includes(toplevel[0]))
                         state.levels.push([ state.lineNumber, state.currentSection, symbols.gridline ]);
                     else {
-                        if (symbols.gridline.length != toplevel[2].length)
-                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
+                        // if (symbols.gridline.length != toplevel[2].length)
+                        //     logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
                         toplevel.push(symbols.gridline);
                     }
                 }
