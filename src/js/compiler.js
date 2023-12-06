@@ -28,13 +28,23 @@ const directionaggregates = {
     'parallel': ['<', '>']
 };
 
-//function expandDirections(dir) {
-    // if (simpleAbsoluteDirections.includes(dir)) return [dir];
-    // if (relativeDirs.includes(dir)) {
-    //     const exp = relativeDict['right'][relativeDirs.indexOf(dir)];
-    //     return (exp in directionaggregates) ? directionaggregates[exp] : [ exp ];
-    // }
-//}
+function getTag(state, t) {
+    return Object.hasOwn(state.tags, t) && state.tags[t];
+}
+
+function getMapping(state, m) {
+    return Object.hasOwn(state.mappings, m) && state.mappings[m];
+}
+
+function isMappedTo(state, key, target) {
+    return Object.hasOwn(state.mappings, key) && state.mappings[key].fromKey == target;
+}
+
+function getMappedValue(state, key, value) {
+    const map = state.mappings[key];
+    const index = map.fromValues.indexOf(value);
+    return map.values[index];
+}
 
 // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
@@ -53,17 +63,25 @@ class TagExpander {
         this.ident = ident;
         this.delim = delim;
         [ this.stem, ...this.tail ] = ident.split(delim);
-        const tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
-        const tagvalues = tags.map(t => state.tags[t]);
-        if (usedirs) {
-            const reldirs = this.tail.filter(p => relativeDirections.includes(p));
-            const reldirvalues = reldirs.map(d => simpleAbsoluteDirections);
-            this.keys = [ ...tags, ...reldirs ];
-            this.expansion = cartesianProduct(...tagvalues, ...reldirvalues);
-        } else {
-            this.keys = tags;
-            this.expansion = cartesianProduct(...tagvalues);
+        this.keys = [];
+        this.values = [];
+
+        const tags = this.tail.filter(p => getTag(state, p));
+        if (tags.length > 0) {
+            this.keys.push(...tags);
+            this.values.push(...tags.map(t => state.tags[t]));
         }
+        const maps = this.tail.filter(p => getMapping(state, p));
+        if (maps.length > 0) {
+            this.keys.push(...maps);
+            this.values.push(...maps.map(m => state.mappings[m].values));
+        }
+        const dirs = this.tail.filter(p => relativeDirections.includes(p));
+        if (usedirs && dirs.length > 0) {
+            this.keys.push(...dirs);
+            this.values.push(...dirs.map(d => simpleAbsoluteDirections));
+        }
+        this.expansion = cartesianProduct(...this.values);
     }
 
     get expKeys() {
@@ -164,14 +182,16 @@ function expandObjectDef(state, objid, objvalue) {
 function createObjectTagsAsProps(state, ident) {
     const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
 
-    const tags = ident.split(':').filter(p => Object.hasOwn(state.tags, p));
-    if (tags.length >= 2) {     // ? does this cover all the bases?
+    const tags = ident.split(':').filter(p => getTag(state, p));
+    if (tags.length > 1) {
         state.tags[tags[0]].forEach(v => {
             const newident = fnRep(ident, tags[0], v);
-            const newvalues = state.tags[tags[1]].map(v => fnRep(newident, tags[1], v));
+            const expander = new TagExpander(state, newident, true);
+            const newvalues = expander.getExpandedIdents();
             const newlegend = [ newident, ...newvalues ];
             newlegend.lineNumber = state.lineNumber;  // bug:
             state.legend_properties.push(newlegend);
+            createObjectTagsAsProps(state, newident);
         });
     }
 }
@@ -296,7 +316,7 @@ function generateExtraMembers(state) {
         }
     }
 
-    // @@PS> fill in start and length of each group of objects
+    // PS> fill in start and length of each group of objects
     let prevObjectNo = idcount;
     for (let i = state.collisionLayerGroups.length - 1; i >= 0; --i) {
         const group = state.collisionLayerGroups[i];
@@ -381,6 +401,9 @@ function generateExtraMembers(state) {
         generateSpriteMatrix(state, obj);
     }
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('prop')) console.log('Properties', state.legend_properties);
+    if (debugSwitch.includes('agg')) console.log('Aggregates', state.legend_aggregates);
+    if (debugSwitch.includes('syn')) console.log('Synonyms', state.legend_synonyms);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -577,7 +600,8 @@ function generateExtraMembers(state) {
             var values = propertiesDict[key];
             var sameLayer = true;
             for (var i = 1; i < values.length; i++) {
-                if ((state.objects[values[i - 1]].layer !== state.objects[values[i]].layer)) { // @@ dies here if previous error
+                // dies here if previous error
+                if ((state.objects[values[i - 1]].layer !== state.objects[values[i]].layer)) { 
                     sameLayer = false;
                     break;
                 }
@@ -1074,7 +1098,7 @@ function processRuleString(rule, state, curRules) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
                         logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
-                    } else if (Object.hasOwn(state.tags, token)) {       //@@ PS> tags 
+                    } else if (getTag(state, token)) {
                         prefixes.push(token);
                     } else if (token == '[') {
                         if (directions.length == 0) {
@@ -1156,7 +1180,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  //@@ PS>
+            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  // PS>
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -1262,10 +1286,10 @@ function deepCloneHS(HS, fn) {
 
 function deepCloneRule(rule, fnlhs, fnrhs) {
 	return {
+		lineNumber: rule.lineNumber,
 		direction: rule.direction,
 		lhs: deepCloneHS(rule.lhs, fnlhs),
 		rhs: deepCloneHS(rule.rhs, fnrhs),
-		lineNumber: rule.lineNumber,
 		late: rule.late,
 		rigid: rule.rigid,
 		groupNumber: rule.groupNumber,
@@ -1279,19 +1303,20 @@ function deepCloneRule(rule, fnlhs, fnrhs) {
 // make multiple passes to parse and expand rules, with absolute directions and objects
 function rulesToArray(state) {
     let rules = parseRulesToArray(state);
-    rules = expandRulesWithPrefix(state, rules);
+    rules = expandRulesWithPrefixes(state, rules);
     rules = expandRulesWithMultipleDirections(state, rules);
     for (const rule of rules)
         convertRelativeDirsToAbsolute(state, rule);
+    rules = expandRulesWithTags(state, rules);
+    checkRuleObjects(state, rules);
     rules = expandRulesWithMultiDirectionObjects(state, rules);
     for (const rule of rules) {
-        if (!debugSwitch.includes('noulrule')) rewriteUpLeftRules(rule);
+        if (!debugSwitch.includes('noul')) rewriteUpLeftRules(rule);
         atomizeAggregates(state, rule);
         if (state.invalid) return; // protect next from crash
         rephraseSynonyms(state, rule);
     }
     rules = convertObjectsAndDirections(state, rules);
-    checkRuleObjects(state, rules);
     state.rules = rules;
 }
 
@@ -1321,37 +1346,89 @@ function parseRulesToArray(state) {
     }
     state.loops = loops;
     state.subroutines = subroutines;
+    console.log(`parseRulesToArray ${newrules.length}`);
     return newrules;
 }
 
-//@@ PS> expand rules with prefix and tags
+// PS> expand rules with prefixes
 // for every prefix.id found in a cell, clone the entire rule once for every prefix.member
 // dirs [ again_col ] [ con:dirs:offs ] -> [ again_col ] [ con:dirs ]
-function expandRulesWithPrefix(state, rules) {
+function expandRulesWithPrefixes(state, rules) {
+    const newrules = rules.map(r => expandRuleWithPrefixes(state, r)).flat();
+    console.log(`expandRulesWithPrefixes ${rules.length} -> ${newrules.length}`);
+    return newrules;
+}
+
+function expandRuleWithPrefixes(state, rule) {
+    if (rule.prefixes.length == 0) return [ rule ];
     var newrules = [];
-    for (const rule of rules) {
-        const rlen = newrules.length;
-        for (const prefix of rule.prefixes) {
-            for (const value of state.tags[prefix]) {
-                const lhs = cell => cell.map((c,x) => (x % 2 == 0) ? c
-                    : (c == prefix) ? value 
-                    : (c.includes(`:${prefix}`)) ? c.replace(`:${prefix}`, `:${value}`)
-                    : c);
-                // todo: rhs will be different with mapping
-                const newrule = deepCloneRule(rule, lhs, lhs);
-                newrule.directions = rule.directions; // not expanded yet
-                newrules.push(newrule);
-            }
-        }    
-        if (rlen == newrules.length)  // warning?
-            newrules.push(rule);
+    const cartesian = cartesianProduct(...rule.prefixes.map(p => state.tags[p]));
+    for (const exp of cartesian) {
+        const fn = cell => cell.map((atom,atomx) => (atomx % 2 == 0) ? atom
+            : replaceObjectPrefix(state, atom, rule.prefixes, exp));
+        const newrule = deepCloneRule(rule, fn, fn);
+        newrule.directions = rule.directions; // not expanded yet
+        newrules.push(newrule);
     }
     return newrules;
 }
 
-//@@ PS> expand rules with multi direction parts
+// function to be used during deep clone rule
+// note: will fail badly if map and tag are not a match, so check beforehand!
+function replaceObjectPrefix(state, objid, prefixes, exp) {
+    return objid.split(':')
+        .map(p => prefixes.includes(p) ? exp[prefixes.indexOf(p)]
+            //: Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(p)])
+            : Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(state.mappings[p].fromKey)])
+            : p)
+        .join(':');
+}
+
+//@@ PS> expand rules with tags (that are not properties)
+// [ con:dirs:offs ] -> [ con:up:up ] etc x16
+function expandRulesWithTags(state, rules) {
+    const newrules = rules.map(r => expandRuleWithTags(state, r)).flat();
+    console.log(`expandRulesWithTags ${rules.length} -> ${newrules.length}`);
+    return newrules;
+}
+
+function expandRuleWithTags(state, rule) {
+    // iterating this way means we can index directly into the new rule
+    // find and store all the changes needed
+    const todo = [];
+    rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
+        row.forEach((cell, cellx) => {     // between bars [ | ]
+            cell.forEach((atom, atomx) => {
+                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !isAlreadyDeclared(state, atom)) {
+                    todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
+                }
+            });
+        });
+    });
+    if (todo.length == 0) return [ rule ];
+
+    // apply the changes for each todo
+    let newrules = [ rule ];
+    todo.forEach((t,tx) => {
+        const temprules = [];
+        newrules.forEach(r => {
+            const expander = new TagExpander(state, t.ident, true);
+            for (const newident of expander.getExpandedIdents()) {
+                const newrule = deepCloneRule(r);
+                newrule.lhs[t.rowx][t.cellx][t.atomx] = newident;
+                if (rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
+                    newrule.rhs[t.rowx][t.cellx][t.atomx] = newident;
+                temprules.push(newrule);
+            }
+        });
+        newrules = temprules;
+    });
+    return newrules;
+}
+
+// PS> expand rules with multi direction parts
 // [ wantsToFlyTo:> wantsToFlyTo:perpendicular ] -> [ ]
-//now expand out rules with multiple directions
+// now expand out rules with multiple directions
 function expandRulesWithMultiDirectionObjects(state, rules) {
     var newrules = [];
     for (const rule of rules) {
@@ -1375,6 +1452,7 @@ function expandRulesWithMultiDirectionObjects(state, rules) {
         }
     
     }
+    console.log(`expandRulesWithMultiDirectionObjects ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -1382,19 +1460,16 @@ function checkRuleObjects(state, rules) {
     for (const rule of rules) {
         const objs = [ ...rule.lhs, ...rule.rhs ].flat()
             .map(cell => cell.filter((_,x) => x % 2 == 1))
-            .flat()
-            .filter(o => o != '...');
+            .filter(o => o != '...')
+            .flat();
         for (const obj of objs) {
             if (!isAlreadyDeclared(state, obj))
-                console.log(`Not declared: ${obj}`);
-            const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
-            // if (!(layer >= 0))
-            //     console.log(`Not in a layer: ${obj}`);
+                console.log(`Not declared`, rule.lineNumber, obj);
         }
     }
 }
  
-//now expand out rules with multiple directions
+//now expand out rules with multiple directions, and set the rule direction
 function expandRulesWithMultipleDirections(state, rules) {
     var newrules = [];
     for (var i = 0; i < rules.length; i++) {
@@ -1416,6 +1491,7 @@ function expandRulesWithMultipleDirections(state, rules) {
             }
         }
     }
+    console.log(`expandRulesWithMultipleDirections ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -1543,6 +1619,26 @@ function concretizeMovingInCellByAmbiguousMovementName(cell, ambiguousMovement, 
     }
 }
 
+function expandRuleTags(state, cell) {
+    var expanded = [];
+    for (var i = 0; i < cell.length; i += 2) {
+        var dir = cell[i];
+        var name = cell[i + 1];
+
+        if (name.includes(':') && (dir == 'no' || !(name in state.propertiesDict))) {
+            const expander = new TagExpander(state, name, true);
+            for (const newname of expander.getExpandedIdents()) {
+                expanded.push(dir);
+                expanded.push(newname);
+            }
+        } else {
+            expanded.push(dir);
+            expanded.push(name);
+        }
+    }
+    return expanded;
+
+}
 function expandNoPrefixedProperties(state, cell) {
     var expanded = [];
     for (var i = 0; i < cell.length; i += 2) {
@@ -1570,9 +1666,11 @@ function concretizePropertyRule(state, rule, lineNumber) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cur_cellrow_l = rule.lhs[i];
         for (var j = 0; j < cur_cellrow_l.length; j++) {
-            cur_cellrow_l[j] = expandNoPrefixedProperties(state, cur_cellrow_l[j]);
+            cur_cellrow_l[j] = expandNoPrefixedProperties(state, 
+                expandRuleTags(state, cur_cellrow_l[j]));
             if (rule.rhs.length > 0)
-                rule.rhs[i][j] = expandNoPrefixedProperties(state, rule.rhs[i][j]);
+                rule.rhs[i][j] = expandNoPrefixedProperties(state, 
+                    expandRuleTags(state, rule.rhs[i][j]));
         }
     }
 
@@ -1636,6 +1734,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
                 });
             });
         });
+        console.log(`replaceMappedProperties added ${rules.length} -> ${newrules.length}`);
         return newRules;
     }
 
@@ -1787,8 +1886,7 @@ function makeSpawnedObjectsStationary(state,rule,lineNumber){
                 if (name in state.propertiesDict || objects_l.indexOf(name)>=0){
                     continue;
                 }
-                //@@ dies here if invalid object name
-                //console.log(`dies here ${name}`);
+                // dies here if invalid object name
                 var r_layer = state.objects[name].layer;
                 if (layers.indexOf(r_layer)===-1){
                     cell[l]='stationary';
@@ -2047,7 +2145,7 @@ function atomizeCellAggregates(state, cell, lineNumber) {
     }
 }
 
-// replace all relative directions in a rule by absolute based on rule direction
+// replace all relative directions in every rule cell by absolute based on rule direction (direction and object)
 function convertRelativeDirsToAbsolute(state, rule) {
     [ ...rule.lhs, ...rule.rhs ].flat().forEach(cell => {
         absolutifyRuleCell(rule.direction, cell);
@@ -3325,7 +3423,6 @@ function loadFile(str) {
 
     if (debugSwitch.includes('tag')) console.log('Tags', state.tags);
     if (debugSwitch.includes('map')) console.log('Mappings', state.mappings);
-    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
     if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);

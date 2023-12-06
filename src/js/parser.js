@@ -202,12 +202,12 @@ var codeMirrorFn = function() {
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
-    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'game_uri'];
+    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'game_uri', 'debug_switch'];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
     const prelude_param_single = [
-        'background_color', 'color_palette', 'debug_switch', 'flickscreen', 'level_select_solve_symbol', 'keyhint_color', 
+        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'keyhint_color', 
         'message_text_align', 'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
@@ -725,7 +725,7 @@ var codeMirrorFn = function() {
 
         function setState() {
             state.mappings[symbols.rhs] = { 
-                fromIdent: symbols.lhs,
+                fromKey: symbols.lhs,
                 lineNumber: state.lineNumber,
              };
             state.objects_candname = symbols.rhs;
@@ -752,7 +752,7 @@ var codeMirrorFn = function() {
             
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
-                if (!state.tags[mapping.fromIdent].includes(token)) {      // todo: prop
+                if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
                     logError(`The name "${token}" needs to be defined by ${fromIdent}.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
@@ -794,8 +794,8 @@ var codeMirrorFn = function() {
                 && new Set(symbols.lhs).size == symbols.rhs.length))
                 logError(`Oops! You need the same number of symbols on both sides, and no duplicates.`, state.lineNumber);
             else {
-                state.mappings[state.objects_candname].from = symbols.rhs;
-                state.mappings[state.objects_candname].to = symbols.lhs;
+                mapping.fromValues = symbols.lhs;
+                mapping.values = symbols.rhs;
             }
         }
     }
@@ -1043,7 +1043,7 @@ var codeMirrorFn = function() {
                     const dirs = toValidDirections(parts[0]);
                     const arg = parts[1] ? +parts[1] : 1;
                     if (!(parts.length <= 2 && dirs && arg))
-                        logError(`Flip requires a direction or tag argument and optionally how many, but you gave it ${token}.`, state.lineNumber);
+                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${token}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'shift', dirs, arg ]);
                         kind = 'METADATATEXT';  //???
@@ -1355,7 +1355,7 @@ var codeMirrorFn = function() {
                     }
                 } else if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     let kind = 'ERROR';
-                    const trefs = getObjectRefs(state, token);
+                    const trefs = getObjectRefs(state, token);   // do we need this?
                     if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
                     else if (!trefs)
@@ -1363,7 +1363,7 @@ var codeMirrorFn = function() {
                     else {
                         if (idents.includes(token))
                             logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
-                        else idents.push(...trefs.filter(t => !idents.includes(t)));
+                        else idents.push(token);
                         kind = 'NAME';
                     }
                     lexer.pushToken(token, kind);
@@ -1408,10 +1408,10 @@ var codeMirrorFn = function() {
                 const prefs = prefixes.filter(p => parts.includes(p));
                 if (parts.length == 1 || prefixes.length == 0) addToLayer('+', newobjs);
                 else {
+                    // map the position of the prefix in the parts list
                     const indexes = prefs.map(p => parts.indexOf(p));
                     for (const obj of newobjs) {
-                        const parts = obj.split(':');
-                        const key = indexes.map(i => parts[i]).join('+');
+                        const key = indexes.map(i => obj.split(':')[i]).join('+');
                         addToLayer(key, [ obj ]);
                     }
                 }
@@ -1436,7 +1436,9 @@ var codeMirrorFn = function() {
                     dirSecond: dirSecond,
                 });
                 return;
-            } else if (state.collisionLayerGroups.length == 0) {
+            } 
+            
+            if (state.collisionLayerGroups.length == 0) {
                 state.collisionLayerGroups.push({ 
                     lineNumber: state.lineNumber, 
                     layer: 0,
@@ -1447,7 +1449,6 @@ var codeMirrorFn = function() {
             }
 
             // expand rhs first
-            // then use lhs to assign to layers
             const prefixes = idents.slice(0, prearrow);
             const rhs = idents.slice(prearrow)
             for (const prefix of prefixes) {
@@ -1476,6 +1477,7 @@ var codeMirrorFn = function() {
                     logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                 }
 
+                // then use lhs to assign to layers
                 addNewObjects(newobjs, ident, prefixes);
             }
             // remove the keys and push one or more layers
