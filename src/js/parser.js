@@ -585,7 +585,7 @@ var codeMirrorFn = function() {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
             } else if (ident == 'game_uri') {
-                logWarning(`Setting "${ident}" is experimental. Do not use.`,state.lineNumber);
+                logWarning(`Setting "${ident}" is an experimental Pattern:Script feature. Do not use.`,state.lineNumber);
                 return;
             }
             state.metadata.push(...value);
@@ -856,6 +856,8 @@ var codeMirrorFn = function() {
         function setState() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            // in case it already exists, to maintain the correct order of addition.
+            delete state.objects[candname];
             state.objects[candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
                 lineNumber: state.lineNumber,
                 colors: [],

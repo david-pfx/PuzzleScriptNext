@@ -174,27 +174,32 @@ function expandObjectDef(state, objid, objvalue) {
         return [newid, newvalue];
     });
     
-    if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
     return newobjects;
 }
 
-// create new legend properties when objects contain tags
+// create hierarchy of properties when property contains tags
+// do it by index because names may not be unique
 function createObjectTagsAsProps(state, ident) {
-    const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
+    const fnValues = p => getTag(state, p) || (getMapping(state, p) && getMapping(state, p).values);
+    const parts = ident.split(':');
+    const todos = parts.map((p,x) => ({ part: p, index: x, values: fnValues(p) }))
+        .filter(t => t.values);
 
-    const tags = ident.split(':').filter(p => getTag(state, p));
-    if (tags.length > 1) {
-        state.tags[tags[0]].forEach(v => {
-            const newident = fnRep(ident, tags[0], v);
+    // if only one part is a tag or map we're done
+    if (todos.length <= 1) return;
+
+    todos.forEach(todo => {
+        todo.values.forEach(value => {
+            const newident = parts.map((p,x) => x == todo.index ? value : p).join(':');
             const expander = new TagExpander(state, newident, true);
-            const newvalues = expander.getExpandedIdents();
-            const newlegend = [ newident, ...newvalues ];
-            newlegend.lineNumber = state.lineNumber;  // bug:
+            const newlegend = [ newident, ...expander.getExpandedIdents() ];
+            newlegend.lineNumber = state.lineNumber;  // bug: ?
             state.legend_properties.push(newlegend);
             createObjectTagsAsProps(state, newident);
-        });
-    }
+        })
+    })
 }
+
 
 // generate a new sprite matrix based on transforms
 function generateSpriteMatrix(state, obj) {
@@ -1346,7 +1351,7 @@ function parseRulesToArray(state) {
     }
     state.loops = loops;
     state.subroutines = subroutines;
-    console.log(`parseRulesToArray ${newrules.length}`);
+    if (debugSwitch.includes('exp')) console.log(`parseRulesToArray ${newrules.length}`);
     return newrules;
 }
 
@@ -1355,7 +1360,7 @@ function parseRulesToArray(state) {
 // dirs [ again_col ] [ con:dirs:offs ] -> [ again_col ] [ con:dirs ]
 function expandRulesWithPrefixes(state, rules) {
     const newrules = rules.map(r => expandRuleWithPrefixes(state, r)).flat();
-    console.log(`expandRulesWithPrefixes ${rules.length} -> ${newrules.length}`);
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithPrefixes ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -1388,7 +1393,7 @@ function replaceObjectPrefix(state, objid, prefixes, exp) {
 // [ con:dirs:offs ] -> [ con:up:up ] etc x16
 function expandRulesWithTags(state, rules) {
     const newrules = rules.map(r => expandRuleWithTags(state, r)).flat();
-    console.log(`expandRulesWithTags ${rules.length} -> ${newrules.length}`);
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithTags ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -1452,7 +1457,7 @@ function expandRulesWithMultiDirectionObjects(state, rules) {
         }
     
     }
-    console.log(`expandRulesWithMultiDirectionObjects ${rules.length} -> ${newrules.length}`);
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithMultiDirectionObjects ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -1491,7 +1496,7 @@ function expandRulesWithMultipleDirections(state, rules) {
             }
         }
     }
-    console.log(`expandRulesWithMultipleDirections ${rules.length} -> ${newrules.length}`);
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithMultipleDirections ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -1710,7 +1715,6 @@ function concretizePropertyRule(state, rule, lineNumber) {
         if (!mappingProperties_l.some(value => proplen(value) != len0)
             && !mappingProperties_r.some(value => proplen(value) != len0)
             && !mappingProperties_l.some(value => mappingProperties_r.includes(value))) {
-            //console.log(`go for mapping rule ${lineNumber}: ${rule}`);
             result = replaceMappedProperties(rule, len0);
         }
     }
@@ -1734,7 +1738,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
                 });
             });
         });
-        console.log(`replaceMappedProperties added ${rules.length} -> ${newrules.length}`);
+        if (debugSwitch.includes('exp')) console.log(`replaceMappedProperties added ${rules.length} -> ${newrules.length}`);
         return newRules;
     }
 
