@@ -7,26 +7,38 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23k19, with a reworked gallery.
-Making GIFs is now supported for mouse games, and various new GIFs have been created.
+The latest version is Release v-23l09, with additional Pattern:Script compatible features and some bug fixes.
+Included are:
+* MAPPINGS: compile-time symbols that convert a sete of TAGS values into a different but related set of values.
+* Fixes for some reported problems with TAGS.
+* The combination of `require_player_move, message, again` no longer hangs but works correctly.
 
-It also includes TAGS and other Pattern:Script compatible features.
+In addition:
+* In-place sprite scaling is useful for text sprites, but is otherwise deprecated.
+* The sample games provided have been updated to the new conventions.
+
+### Pattern Script compatibility
 The following features are implemented.
 
 * The prelude section: `author_color` and `title_color`.
 * The `TAGS` section: compile-time symbols that are expanded in objects, legend symbols, collision layers and rules.
+* The symbol `directions` is a pre-defined tag.
+* The `MAPPINGS` section: compile-time symbols that convert a set of TAGS values into a different but related set of values.
 * The `OBJECTS` section: `copy:`, `translate:`, `shift:` and `rot:`.
 * Objects can be any size, and are aligned with the bottom left corner of the cell defined by `sprite_size`.
 * The `COLLISIONLAYERS` section: layer groups, delimited by `--`, `--^>` or similar.
 * The `SOUNDS` section: volume in the form `sfx1 88453607:11`.
 * The `RULES` section: tags as rule prefixes `dir [> p:dir] -> [> p:dir]` and relative direction parts `[> p:^] -> [v p:>]`.
 
-Documentation is here: https://github.com/ClementSparrow/Pattern-Script/wiki. 
-Note that `mappings` are not yet implemented.
+Still to do:
+* Prelude `auto_level_titles`, `keyhint_color`.
+* Level features `TITLE`, `LEVEL`.
 
-In addition:
-* In-place sprite scaling is useful for text sprites, but is otherwise deprecated.
-* The sample games provided have been updated to the new conventions.
+Documentation is here: https://github.com/ClementSparrow/Pattern-Script/wiki. 
+
+### New Gallery
+The Gallery has been reworked with a selection of PuzzleScript Next, PuzzleScript Plus and Pattern Script games.
+Making GIFs is now supported for mouse games, and new GIFs have been created for gallery games.
 
 ### The `once` keyword
 
