@@ -4,17 +4,27 @@ homepage www.polyomino.com
 
 // test program for new TAG section
 
-//sprite_size 7x7
-
 verbose_logging
 debug
+debug_switch tag,map,obj,layer,prop
 
 ====
 TAGS
 ====
 tag1 = t11 t12 t13 t14
 tag2 = t21 t22 t23 t24
+tag3 = t31 tag1 tag2
+tagbool = true false
 dirs = up down left right
+nums = n1 n2 n3 n4 n5
+
+========
+MAPPINGS
+========
+nums => nexts
+n1 n2 n3 n4 n5 -> n2 n3 n4 n5 n1
+dirs => revs
+up down left right -> down up right left
 
 ========
 OBJECTS
@@ -30,6 +40,10 @@ white red
 01100
 00100
 00100
+
+obj1a
+white darkred
+copy: obj1 rot:down:>
 
 obj2:dirs
 white blue
@@ -52,6 +66,16 @@ obj5:tag1:dirs
 white brown
 copy: obj3:dirs rot:left:dirs
 
+obj6:tag1:dirs:tag2
+white brown
+copy: obj5:tag1:dirs shift:down
+
+obj7:true
+pink
+
+obj7:false
+purple
+
 =======
 LEGEND
 =======
@@ -60,23 +84,44 @@ LEGEND
 3 = obj3:left
 4 = obj4:left
 5 = obj5:t11:left
+6 = obj6:t12:up:t23
+objax = obj1 or obj1a
 
 ================
 COLLISIONLAYERS
 ================
 Background
 Player, r
-obj1, obj2:dirs, obj3:dirs, obj4:dirs, obj5:tag1:dirs
+--
+objax, obj2:dirs, obj3:dirs
+dirs -> obj4:dirs, obj5:tag1:dirs
+obj6:tag1:dirs:tag2
+obj7:true,obj7:false
 
 ======
 RULES
 ======
 
+// check props
+right [ ^ p | obj6:t12:up:tag2 ] -> [ p | ]
+right [ < p | obj6:t12:dirs:tag2 ] -> [ p | ]
+right [ < p | no obj6:t12:dirs:tag2 ] -> [ p | ]
+
+// check prefixes
+right dirs [ ^ p | obj2:dirs ] -> [ p | obj4:dirs ]
+right tag1 dirs [ ^ p | obj2:dirs ] -> [ p | obj5:tag1:dirs ]
+right tag1 tag2 dirs [ ^ p | obj2:dirs ] -> [ p | obj6:tag1:dirs:tag2 ]
+right [ obj7:tagbool | obj7:tagbool ] -> [ obj7:tagbool | ] 
+
+// check map
+right dirs [ ^ p | obj2:dirs ] -> [ p | obj2:revs ]
+right dirs [ ^ p | obj2:revs ] -> [ p | obj2:dirs ]
+right dirs [ ^ p | no obj2:revs ] -> [ p | obj2:dirs ]
+
 right [ > p | r ] -> [ > p | > r ]
 right [ ^ p | obj1 ] -> [ p | ]
 right [ v p | obj2:< ] -> [ p | ]
 right [ v p | obj3:perpendicular ] -> [ p | ]
-right [ ^ p | obj2:dirs ] -> [ p | ]
 right [ ^ p | obj3:dirs ] -> [ p | ]
 right [ ^ p | obj4:dirs ] -> [ p | ]
 right [ v p | obj1 ] -> [ p | ]

@@ -1,0 +1,855 @@
+title Pentaglyph
+author Menderbug
+homepage menderbug.itch.io
+
+background_color #350828
+author_color #BE7DBC
+text_color #F9CB60
+keyhint_color #BE7DBC
+
+sprite_size 9x9
+
+run_rules_on_level_start
+
+again_interval 0.1
+key_repeat_interval 0.3
+
+=====
+TAGS
+=====
+
+U__ = up
+L__ = left
+R__ = right
+D__ = down
+
+Value = W_ U_ B_ R_ G_
+WireType = Floor_ Wall_ Trigger_
+WireState = Active_ Inactive_
+DoorState = Open_ Closed_
+Frame = t6 t5 t4 t3 t2 t1 t0
+Section = U_ D_ L_ R_ UL_ UR_ DL_ DR_
+
+Value1 = Value
+Value2 = Value
+WireType1 = WireType
+WireType2 = WireType
+Section1 = Section
+Section2 = Section
+Directions1 = directions
+Directions2 = directions
+DoorState1 = DoorState
+DoorState2 = DoorState
+
+=========
+MAPPINGS
+=========
+
+Value => MergeW
+W_ U_ B_ R_ G_ -> W_ R_ U_ G_ B_
+
+Value => MergeU
+W_ U_ B_ R_ G_ -> R_ U_ G_ B_ W_
+
+Value => MergeB
+W_ U_ B_ R_ G_ -> U_ G_ B_ W_ R_
+
+Value => MergeR
+W_ U_ B_ R_ G_ -> G_ B_ W_ R_ U_
+
+Value => MergeG
+W_ U_ B_ R_ G_ -> B_ W_ R_ U_ G_
+
+Frame => NextFrame
+t6 t5 t4 t3 t2 t1 t0 -> t5 t4 t3 t2 t1 t0 t0
+
+WireState => OppositeWireState
+Active_ Inactive_ -> Inactive_ Active_
+
+DoorState => OppositeDoorState
+Open_ Closed_ -> Closed_ Open_
+
+========
+OBJECTS
+========
+
+Background
+#F9CB60 #F9960F
+000000000
+000000000
+000000000
+000000000
+000010000
+000000000
+000000000
+000000000
+000000000
+
+
+Wall
+#350828
+
+Player
+#151244 #F9960F
+0000.0000
+001111100
+011111110
+011100110
+.1100011.
+011001110
+011111110
+001111100
+0000.0000
+
+Crate:W_
+#BC2F01 #680703 #BC2F01
+000000000
+011111110
+011121110
+011111110
+011222110
+011121110
+012121210
+011111110
+000000000
+
+
+Crate:U_
+#BC2F01 #680703 #BC2F01
+000000000
+011111110
+011222110
+012111110
+012121210
+011111210
+011222110
+011111110
+000000000
+
+Crate:B_
+#BC2F01 #680703 #BC2F01
+000000000
+011111110
+011112110
+012211210
+012212210
+012112210
+011211110
+011111110
+000000000
+
+Crate:R_
+#BC2F01 #680703 #BC2F01
+000000000
+011111110
+011111210
+011121110
+012122110
+012111110
+012221110
+011111110
+000000000
+
+Crate:G_
+#BC2F01 #680703 #BC2F01
+000000000
+011111110
+011212110
+012111210
+012121210
+011222110
+011121110
+011111110
+000000000
+
+GlowingCrate:Value:Frame
+transparent
+
+GlowingCrate:Value:t2
+#BC2F01 #680703 #F9960F
+copy: Crate:Value
+
+GlowingCrate:Value:t1
+#F9960F #BC2F01 #F9CB60
+copy: Crate:Value
+
+GlowingCrate:Value:t0
+#BC2F01 #680703 #F9960F
+copy: Crate:Value
+
+ActiveCrate:Value
+#BC2F01 #680703 #F9960F
+copy: Crate:Value
+
+Trigger:Value
+transparent #F9960F #F9CB60
+copy: Crate:Value
+
+Door:DoorState
+transparent
+
+Door:Open_
+transparent #BC2F01
+000000000
+000010000
+001010100
+000000000
+011111110
+000000000
+001010100
+000010000
+000000000
+
+Door:Closed_
+#60117f #BE7DBC
+copy: Door:Open_
+
+DoorAnimation:DoorState:Frame
+transparent
+
+DoorAnimation:Closed_:t1
+#BE7DBC #F9960F
+copy: Door:Open_
+
+DoorAnimation:Closed_:t0
+#922A95 #BE7DBC
+copy: Door:Open_
+
+DoorAnimation:Open_:t1
+#922A95 #BE7DBC
+copy: Door:Open_
+
+DoorAnimation:Open_:t0
+#BE7DBC #F9960F
+copy: Door:Open_
+
+
+Goal
+#BC2F01
+.....0000
+.......00
+........0
+....00..0
+...000...
+0..00....
+0........
+00.......
+0000.....
+
+Wire:Floor_:Inactive_:right
+#F9960F #F9960F #F9960F
+.........
+.........
+.........
+.........
+....01102
+.........
+.........
+.........
+.........
+
+Wire:Floor_:Inactive_:directions
+#F9960F #F9960F #F9960F
+copy: Wire:Floor_:Inactive_:right rot:right:>
+
+Wire:Floor_:Active_:directions
+#BC2F01 #BC2F01 #BC2F01
+copy: Wire:Floor_:Inactive_:directions
+
+Wire:Wall_:Inactive_:directions
+#F9960F transparent transparent
+copy: Wire:Floor_:Inactive_:directions
+
+Wire:Wall_:Active_:directions
+#BC2F01 transparent transparent
+copy: Wire:Floor_:Inactive_:directions
+
+Wire:Trigger_:WireState:directions
+transparent transparent #F9960F
+copy: Wire:Floor_:Inactive_:directions
+
+DiagramWallLU
+#BE7DBC #60117f
+000000000
+000111111
+00111111.
+011111...
+01111....
+0111.....
+011......
+011......
+01.......
+
+DiagramWallRU
+#BE7DBC #60117f
+copy: DiagramWallLU rot:up:right
+
+DiagramWallRD
+#BE7DBC #60117f
+copy: DiagramWallLU rot:up:down
+
+DiagramWallLD
+#BE7DBC #60117f
+copy: DiagramWallLU rot:up:left
+
+DiagramWallU
+#BE7DBC #60117f
+000000000
+1.......1
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+
+DiagramWallR
+#BE7DBC #60117f
+copy: DiagramWallU rot:up:right
+
+DiagramWallD
+#BE7DBC #60117f
+copy: DiagramWallU rot:up:down
+
+DiagramWallL
+#BE7DBC #60117f
+copy: DiagramWallU rot:up:left
+
+Diagram:Section:Value
+transparent
+
+Diagram:U_:W_
+transparent #60117f
+.........
+.........
+.........
+...000...
+...010...
+..00000..
+..01110..
+.0001000.
+.0101010.
+
+Diagram:D_:W_
+transparent #60117f
+.0000000.
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+
+Diagram:L_:U_
+transparent #60117f
+........0
+.......00
+.......01
+.......01
+.......00
+........0
+........0
+.........
+.........
+
+Diagram:R_:U_
+transparent #60117f
+0000.....
+1110.....
+00000....
+01010....
+00010....
+11100....
+0000.....
+.........
+.........
+
+Diagram:UL_:B_
+transparent #60117f
+.........
+.........
+.........
+.........
+.........
+.........
+........0
+.....0000
+.....0110
+
+Diagram:UR_:B_
+transparent #60117f
+.........
+.........
+.........
+.........
+.........
+.........
+00.......
+100......
+010......
+
+Diagram:DL_:B_
+transparent #60117f
+.....0110
+.....0100
+.....0010
+......000
+.........
+.........
+.........
+.........
+.........
+
+Diagram:DR_:B_
+transparent #60117f
+110......
+110......
+000......
+.........
+.........
+.........
+.........
+.........
+.........
+
+Diagram:UL_:R_
+transparent #60117f
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+........0
+......000
+
+Diagram:UR_:R_
+transparent #60117f
+.........
+.........
+.........
+.........
+.........
+.........
+.000.....
+0010.....
+1000.....
+
+Diagram:DL_:R_
+transparent #60117f
+......010
+......010
+......011
+......000
+.........
+.........
+.........
+.........
+.........
+
+Diagram:DR_:R_
+transparent #60117f
+110......
+000......
+10.......
+00.......
+.........
+.........
+.........
+.........
+.........
+
+Diagram:L_:G_
+transparent #60117f
+.....0000
+....00101
+....01000
+....01010
+....00111
+.....0010
+......000
+.........
+.........
+
+Diagram:R_:G_
+transparent #60117f
+0........
+00.......
+10.......
+10.......
+00.......
+0........
+.........
+.........
+.........
+
+GlowingInput:Section:Value:Frame
+transparent
+
+GlowingInput:Section:Value:t2
+#922A95 #BE7DBC
+copy: Diagram:Section:Value
+
+GlowingInput:Section:Value:t1
+#60117f #BE7DBC
+copy: Diagram:Section:Value
+
+GlowingInput:Section:Value:t0
+#350828 #60117f
+copy: Diagram:Section:Value
+
+
+GlowingOutput:Section:Value:Frame
+transparent
+
+GlowingOutput:Section:Value:t2
+#922A95 #BE7DBC
+copy: Diagram:Section:Value
+
+GlowingOutput:Section:Value:t1
+#60117f #BE7DBC
+copy: Diagram:Section:Value
+
+GlowingOutput:Section:Value:t0
+#350828 #60117f
+copy: Diagram:Section:Value
+
+
+( Direction indicates which side borders non-wall tiles )
+WallDeco:right
+#BE7DBC
+........0
+........0
+........0
+........0
+........0
+........0
+........0
+........0
+........0
+
+WallDeco:directions
+#BE7DBC
+copy: WallDeco:right rot:right:>
+
+( Direction indicates the side clockwise from the corner )
+WallDecoCorner:right
+#BE7DBC
+........0
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+
+WallDecoCorner:directions
+#BE7DBC
+copy: WallDecoCorner:right rot:right:>
+
+_Temp
+pink
+
+_Temp:Value
+pink
+
+_Temp:directions
+pink
+
+_DoorClosing
+pink
+
+_DoorWas:DoorState
+pink
+
+_DoorWillBe:DoorState
+pink
+
+_WireGoing:WireState
+transparent
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+W = Crate:W_
+U = Crate:U_
+B = Crate:B_
+R = Crate:R_
+G = Crate:G_
+1 = Trigger:W_
+2 = Trigger:U_
+3 = Trigger:B_
+4 = Trigger:R_
+5 = Trigger:G_
+Ẅ = ActiveCrate:W_ and Trigger:W_
+Ü = ActiveCrate:U_ and Trigger:U_
+Ḇ = ActiveCrate:B_ and Trigger:B_
+Ṟ = ActiveCrate:R_ and Trigger:R_
+Ḡ = ActiveCrate:G_ and Trigger:G_
+
+* = Goal
++ = Door:Closed_
+- = Door:Open_
+
+─ = Wire:Floor_:Inactive_:L__ and Wire:Floor_:Inactive_:R__
+│ = Wire:Floor_:Inactive_:U__ and Wire:Floor_:Inactive_:D__
+┌ = Wire:Floor_:Inactive_:D__ and Wire:Floor_:Inactive_:R__
+┐ = Wire:Floor_:Inactive_:L__ and Wire:Floor_:Inactive_:D__
+└ = Wire:Floor_:Inactive_:U__ and Wire:Floor_:Inactive_:R__
+┘ = Wire:Floor_:Inactive_:L__ and Wire:Floor_:Inactive_:U__
+
+━ = Wire:Floor_:Active_:L__ and Wire:Floor_:Active_:R__
+┃ = Wire:Floor_:Active_:U__ and Wire:Floor_:Active_:D__
+┏ = Wire:Floor_:Active_:D__ and Wire:Floor_:Active_:R__
+┓ = Wire:Floor_:Active_:L__ and Wire:Floor_:Active_:D__
+┗ = Wire:Floor_:Active_:U__ and Wire:Floor_:Active_:R__
+┛ = Wire:Floor_:Active_:L__ and Wire:Floor_:Active_:U__
+
+═ = Wire:Wall_:Inactive_:L__ and Wire:Wall_:Inactive_:R__ and Wall
+║ = Wire:Wall_:Inactive_:U__ and Wire:Wall_:Inactive_:D__ and Wall
+╔ = Wire:Wall_:Inactive_:D__ and Wire:Wall_:Inactive_:R__ and Wall
+╗ = Wire:Wall_:Inactive_:L__ and Wire:Wall_:Inactive_:D__ and Wall
+╚ = Wire:Wall_:Inactive_:U__ and Wire:Wall_:Inactive_:R__ and Wall
+╝ = Wire:Wall_:Inactive_:L__ and Wire:Wall_:Inactive_:U__ and Wall
+
+╪ = Wire:Wall_:Active_:L__ and Wire:Wall_:Active_:R__ and Wall
+╫ = Wire:Wall_:Active_:U__ and Wire:Wall_:Active_:D__ and Wall
+╓ = Wire:Wall_:Active_:D__ and Wire:Wall_:Active_:R__ and Wall
+╖ = Wire:Wall_:Active_:L__ and Wire:Wall_:Active_:D__ and Wall
+╙ = Wire:Wall_:Active_:U__ and Wire:Wall_:Active_:R__ and Wall
+╜ = Wire:Wall_:Active_:L__ and Wire:Wall_:Active_:U__ and Wall
+
+╭ = DiagramWallLU and Wall
+╮ = DiagramWallRU and Wall
+╰ = DiagramWallLD and Wall and Diagram:DL_:R_
+╯ = DiagramWallRD and Wall and Diagram:DR_:B_
+┬ = DiagramWallU and Wall and Diagram:U_:W_
+┴ = DiagramWallD and Wall and Diagram:DR_:R_ and Diagram:DL_:B_
+├ = DiagramWallL and Wall and Diagram:L_:G_ and Diagram:UL_:R_
+┤ = DiagramWallR and Wall and Diagram:R_:U_ and Diagram:UR_:B_
+┼ = Wall and Diagram:D_:W_ and Diagram:L_:U_ and Diagram:UL_:B_ and Diagram:UR_:R_ and Diagram:R_:G_
+
+Wire = Wire:WireType:WireState:directions
+
+DiagramWall = DiagramWallLU or DiagramWallRU or DiagramWallRD or DiagramWallLD or DiagramWallL or DiagramWallU or DiagramWallR or DiagramWallD
+
+Door = Door:DoorState
+
+=======
+SOUNDS
+=======
+
+Crate:Value move 98127707
+ActiveCrate:Value move 98127707
+
+GlowingCrate:Value:t2 create 82946903
+
+Wire create 38476507
+
+sfx0 49593708 (power down)
+sfx1 4017903 (power up)
+sfx2 23100708 (door open/close)
+
+endlevel 68360900
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Trigger:Value
+Door:Open_
+DoorAnimation:DoorState:Frame
+
+directions -> Wire:Floor_:WireState:directions, Wire:Trigger_:WireState:directions
+Player, Crate:Value, ActiveCrate:Value, Wall, Door:Closed_
+
+Goal
+GlowingCrate:Value:Frame
+
+DiagramWall
+Value -> Diagram:Section:Value
+Value -> GlowingInput:Section:Value:Frame
+Value -> GlowingOutput:Section:Value:Frame
+
+directions -> WallDeco:directions
+directions -> WallDecoCorner:directions
+
+directions -> Wire:Wall_:WireState:directions
+
+_WireGoing:WireState
+_Temp
+_DoorClosing
+_DoorWas:DoorState
+_DoorWillBe:DoorState
+Value -> _Temp:Value
+directions -> _Temp:directions
+
+======
+RULES
+======
+
+( Visuals )
+[ Wall no WallDeco:> | no Wall ] -> [ Wall WallDeco:> | ]
+
+[ Wall no WallDeco:^ | WallDeco:^ ] -> [ Wall _Temp:^ | WallDeco:^ ]
+[ _Temp:> | WallDeco:v ] -> [ _Temp:> WallDecoCorner:v | WallDeco:v ]
+[ _Temp:> ] -> [ ]
+
+WireState [ Trigger:Value no Wire | Wire:WireType:WireState:< ] -> [ Trigger:Value Wire:Trigger_:WireState:> | Wire:WireType:WireState:< ]
+
+Value [ ActiveCrate:Value ] -> [ Crate:Value ]
+
+( Animation )
+[ GlowingCrate:Value:t0 ] -> [ ]
+Value Frame [ GlowingCrate:Value:Frame no _Temp ] -> [ GlowingCrate:Value:NextFrame _Temp ] again
+[ _Temp ] -> [ ]
+
+[ GlowingInput:Section:Value:t0 ] -> [ ]
+Section Value Frame [ GlowingInput:Section:Value:Frame no _Temp:Value ] -> [ GlowingInput:Section:Value:NextFrame _Temp:Value ] again
+[ _Temp:Value ] -> [ ]
+
+[ GlowingOutput:Section:Value:t0 ] -> [ ]
+Section Value Frame [ GlowingOutput:Section:Value:Frame no _Temp:Value ] -> [ GlowingOutput:Section:Value:NextFrame _Temp:Value ] again
+[ _Temp:Value ] -> [ ]
+
+DoorState [ DoorAnimation:DoorState:t0 ] -> [ Door:DoorState ]
+DoorState Frame [ DoorAnimation:DoorState:Frame no _Temp ] -> [ DoorAnimation:DoorState:NextFrame _Temp ] again
+[ _Temp ] -> [ ]
+
+( Movement )
+[ > Player | Crate:Value ] -> [  > Player | > Crate:Value  ]
+[ > Player | Wall ] -> [ Player | Wall ]
+
+( Crate merging )
+Value1 Value2 [ > Crate:Value1 | Crate:Value2 ] [ Diagram:Section:Value1 ] [ Diagram:Section:Value2 ] -> [ > Crate:Value1 | Crate:Value2 ] [ Diagram:Section:Value1 _Temp:Value1 ] [ Diagram:Section:Value2 _Temp:Value2 ]
+Value Section [ Diagram:Section:Value _Temp:Value ] -> [ Diagram:Section:Value GlowingInput:Section:Value:t2 ]
+
+Value [ > Crate:Value | Crate:W_ ] -> [ > _Temp:MergeW | ] again
+Value [ > Crate:Value | Crate:U_ ] -> [ > _Temp:MergeU | ] again
+Value [ > Crate:Value | Crate:B_ ] -> [ > _Temp:MergeB | ] again
+Value [ > Crate:Value | Crate:R_ ] -> [ > _Temp:MergeR | ] again
+Value [ > Crate:Value | Crate:G_ ] -> [ > _Temp:MergeG | ] again
+
+Value Section [ _Temp:Value ] [ Diagram:Section:Value no _Temp:Value ] -> [ _Temp:Value ] [ Diagram:Section:Value _Temp:Value ]
+
+Value Section [ Diagram:Section:Value _Temp:Value ] -> [ Diagram:Section:Value GlowingOutput:Section:Value:t6 ]
+Value [ > _Temp:Value ] -> [ > Crate:Value > GlowingCrate:Value:t2 ]
+
+(############ late rules ############)
+
+( Visuals )
+late Value [ Crate:Value Trigger:Value ] -> [ ActiveCrate:Value Trigger:Value ]
+late Value [ ActiveCrate:Value no Trigger:Value ] -> [ Crate:Value ]
+
+( Activate and deactivate wires )
+late Value [ ActiveCrate:Value Trigger:Value Wire:Trigger_:Inactive_:> ] -> [ ActiveCrate:Value Trigger:Value Wire:Trigger_:Active_:> _WireGoing:Active_ ] sfx1
+late Value [ no ActiveCrate:Value Trigger:Value Wire:Trigger_:Active_:> ] -> [ Trigger:Value Wire:Trigger_:Inactive_:> _WireGoing:Inactive_ ] sfx0
+
+( Propagate wires )
+late WireType2 WireState [ _WireGoing:WireState no _Temp Wire:WireType:WireState:> | Wire:WireType2:OppositeWireState:< ] -> [ Wire:WireType:WireState:> | Wire:WireType2:WireState:< _WireGoing:WireState _Temp ] again
+
+late WireType WireState Directions2 [ _WireGoing:WireState no _Temp Wire:WireType:WireState:> Wire:WireType:OppositeWireState:Directions2] -> [ _WireGoing:WireState _Temp Wire:WireType:WireState:> Wire:WireType:WireState:Directions2 ] again
+
+late [ _WireGoing:WireState no _Temp ] -> [ ]
+
+late [ _Temp ] -> [ ]
+
+( Open/close doors )
+
+late DoorState1 [ Door:DoorState1 no _DoorWas:DoorState ] -> [ _DoorWillBe:Closed_ _DoorWas:DoorState1 ]
+late [ Wire:WireType:Active_:> | _DoorWillBe:Closed_ ] -> [ Wire:WireType:Active_:> | _DoorWillBe:Open_ ]
+late DoorState [ _DoorWillBe:DoorState _DoorWas:OppositeDoorState ] -> [ DoorAnimation:DoorState:t1 ] sfx2
+late DoorState [ _DoorWillBe:DoorState _DoorWas:DoorState ] -> [ Door:DoorState ]
+
+==============
+WINCONDITIONS
+==============
+
+All Goal on Player
+
+=======
+LEVELS
+=======
+
+(
+─│  ═║
+┌┐  ╔╗
+└┘  ╚╝
+)
+
+########################
+##...####.....##########
+##.*.###┌┐uwu..+.....###
+##...##╔+3#.g.#║##..r###
+╔══+###╚5....##╚═4.gug.#
+║.....##1#.#########...#
+║..p..##║#b###╭┬╮#####.#
+║.....##╚═+###├┼┤#####+╗
+║.....####.###╰┴╯#####.║
+║.r.b.##.....#########.║
+║.....#╓━ḇ.u..###...#..║
+║.....#╫.......+..#w.b5╝
+╚─2.1.+-..g.4.#║#..ww###
+#...│.║##...│.#║##...###
+####╚═╝#####╚══╝########
+
+(
+
+#######*
+#...#..#
+#.#g.u4#
+#..gg###
+##p..###
+########
+
+#######*
+###..###
+###r..##
+#.wgw.4#
+#p..####
+########
+
+########
+##.....#
+#┌┐bub.p
+╔+4#.w.#
+╚1....##
+#2═+####
+###b###*
+
+##########...
+##p......#.#.
+##.wubrg.####
+##┌1..4..#.#.
+##│...└┐.+┐..
+##╚═+#.└─═┘#.
+.....#...#.#.
+.....#####.#.
+.............
+.╭┬╮.......#.
+.├┼┤.........
+.╰┴╯.......*.
+.............
+
+
+*########
+#..┌+┐..#
+#..│.│..#
+#..│.│..#
+#..1.2..#
+#..w.u..#
+#p......#
+#########
+
+)

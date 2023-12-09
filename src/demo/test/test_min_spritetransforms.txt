@@ -51,7 +51,10 @@ a;black red blue
 2222222
 
 b;black red blue
-copy: a flip:left
+copy: a |
+
+x;black red blue
+copy: a -
 
 c;black red blue
 copy: a translate:right:3 
@@ -165,7 +168,7 @@ Background
 Player
 --
 a,b,c,d,e,f,g
-m,s,t
+m,s,t,x
 r
 y
 b:t1
