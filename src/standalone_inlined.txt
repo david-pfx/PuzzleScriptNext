@@ -9297,6 +9297,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
     }
 
     againing=false;
+	messagetext = "";  //fix for hang
     level.commandQueue=[];
     level.commandQueueSourceRules=[];
 }
@@ -12114,7 +12115,7 @@ if (typeof Object.assign != 'function') {
 var codeMirrorFn = function() {
     'use strict';
 
-    const sectionNames = ['tags', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
+    const sectionNames = ['tags', 'mappings', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_equalsrow = /[\=]+/;
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
 
@@ -12128,17 +12129,17 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const prelude_keywords = ['case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+    const prelude_keywords = ['auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
-    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue'];
+    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'game_uri', 'debug_switch'];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
     const prelude_param_single = [
-        'background_color', 'color_palette', 'debug_switch', 'flickscreen', 'level_select_solve_symbol', 'message_text_align', 
-        'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
+        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'keyhint_color', 
+        'message_text_align', 'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
     ];
@@ -12163,7 +12164,7 @@ var codeMirrorFn = function() {
         return ident.split(':').length > 1;
     }
 
-    // recursively expand a symbol into its ultimate constituents of objects
+    // recursively expand an object symbol into its ultimate constituents of base objects
     // callback to handle error
     function expandSymbol(state, name, isand, cbError) {
         if (name in state.objects) 
@@ -12411,6 +12412,10 @@ var codeMirrorFn = function() {
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
         state.visitedSections.push(state.section);
 
+        if (state.section === 'tags') {
+            if (Object.keys(state.tags).length == 0)
+                state.tags['directions'] = [ 'up', 'down', 'left', 'right' ];
+        }
         return true;
     }
 
@@ -12510,6 +12515,9 @@ var codeMirrorFn = function() {
             } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
+            } else if (ident == 'game_uri') {
+                logWarning(`Setting "${ident}" is an experimental Pattern:Script feature. Do not use.`,state.lineNumber);
+                return;
             }
             state.metadata.push(...value);
         }
@@ -12559,6 +12567,7 @@ var codeMirrorFn = function() {
 
             symbols.members = [];
             while (true) {
+                // todo: handle recursive tag defs
                 if (token = lexer.matchName(!state.case_sensitive)) {
                     symbols.members.push(token);
                     lexer.pushToken(token, 'NAME');
@@ -12574,7 +12583,151 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            state.tags[symbols.id] = symbols.members;
+            state.tags[symbols.id] = symbols.members.map(m => expandTag(m)).flat();
+        }
+
+        // tags that reference other tags are expanded to the lowest level here rather than when used
+        function expandTag(arg) {
+            const ret = [];
+            if (Object.hasOwn(state.tags, arg)) 
+                ret.push(...state.tags[arg].map(t => expandTag(t)).flat())
+            else ret.push(arg);
+            return ret;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // parse and store a MAPPINGS definition line 1
+    // line ::= oldid '=>' newid
+    // oldid ::= ( tag-ident | prop-obj-ident )
+    //
+    function parseMappingsLine1(stream, state) {
+        const lexer = new Lexer(stream, state);
+        const symbols = {};
+
+        if (getTokens())
+            setState();
+        return lexer.tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            // start of parse
+            if (token = lexer.matchName(!state.case_sensitive)) {
+                symbols.lhs = token;
+                if (!(isDeclaredAs(state, token) == 'tag')) {       //>@@ todo: propobj
+                    logError(`Expected a TAG name but "${token.toUpperCase()}" is not one.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                } else {
+                    lexer.pushToken(token, 'NAME');
+                }
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Expected a TAG name, but found "${token}" instead.`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            if (token = lexer.match(/^=>/)) {
+                lexer.pushToken(token, 'ASSIGNMENT');
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Expected an arrow sign "=>" but got "${token}" instead.`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            if (token = lexer.matchName(!state.case_sensitive)) {
+                symbols.rhs = token;
+                if (isAlreadyDeclared(state, token)) {
+                    logError(`You cannot define a mapping called "${token.toUpperCase()}" because the name is already in use.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                } else {
+                    lexer.pushToken(token, 'NAME');
+                }
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Expected a name for a mapping, but got "${token}" instead.`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
+        }
+
+        function setState() {
+            state.mappings[symbols.rhs] = { 
+                fromKey: symbols.lhs,
+                lineNumber: state.lineNumber,
+             };
+            state.objects_candname = symbols.rhs;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // parse and store the second line of a MAPPINGS definition
+    // line ::= tag-ident-values{n} -> mapped-ident{n}
+    //       || prop-obj-ident-values{n} -> mapped-ident{n}
+    //
+    function parseMappingsLine2(stream, state) {
+        const lexer = new Lexer(stream, state);
+        const mapping = state.mappings[state.objects_candname];
+        const symbols = {};
+
+        if (getTokens())
+            setState();
+        return lexer.tokens;
+
+        // build a list of tokens and kinds
+        function getTokens() {
+            let token
+            
+            symbols.lhs = [];
+            while (token = lexer.matchName(!state.case_sensitive)) {
+                if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
+                    logError(`The name "${token}" needs to be defined by ${fromIdent}.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                } else {
+                    lexer.pushToken(token, 'NAME');
+                    symbols.lhs.push(token);
+                }
+            }
+            if (token = lexer.match(/^->/)) {
+                lexer.pushToken(token, 'ASSIGNMENT');
+            } else {
+                token = lexer.matchNotComment();
+                logError(`Expected an arrow sign "->" but got "${token}" instead.`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+
+            symbols.rhs = [];
+            while (token = lexer.matchName(!state.case_sensitive)) {
+                if (!token) {      // what do we not allow?
+                    logError(`The name "${token}" is ???.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                } else {
+                    lexer.pushToken(token, 'NAME');
+                    symbols.rhs.push(token);
+                }
+            }
+            if (!lexer.checkEol(state)) {
+                token = lexer.matchNotComment();
+                logError(`Unrecognised stuff in a mapping: "${token}".`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+            return !lexer.tokens.some(t => t.kind == 'ERROR');
+        }
+
+        function setState() {
+            if (!(symbols.lhs.length == symbols.rhs.length 
+                && new Set(symbols.lhs).size == symbols.lhs.length
+                && new Set(symbols.lhs).size == symbols.rhs.length))
+                logError(`Oops! You need the same number of symbols on both sides, and no duplicates.`, state.lineNumber);
+            else {
+                mapping.fromValues = symbols.lhs;
+                mapping.values = symbols.rhs;
+            }
         }
     }
 
@@ -12605,11 +12758,13 @@ var codeMirrorFn = function() {
                 // first name must be an object, glyph allowed after that
                 } else if ((token = lexer.matchObjectName(!state.case_sensitive) 
                     || (symbols.candname && lexer.matchObjectGlyph(!state.case_sensitive)))) {
-                    if (state.legend_synonyms.some(s => s[0] == token))
+                    if (state.legend_synonyms.some(s => s[0] == token)) {
                         logError(`Name "${token.toUpperCase()}" already in use.`, state.lineNumber);
-                    else if (state.objects[token])
+
+                    } else if (state.objects[token] && !state.objects[token].canRedef) {
                         logError(`Object "${token.toUpperCase()}" defined multiple times.`, state.lineNumber);
-                    else {
+
+                    } else {
                         if (keyword_array.includes(token)) 
                             logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
                         kind = 'NAME';  
@@ -12618,6 +12773,7 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
                     if (lexer.checkEolSemi()) break;
+
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid object name in OBJECT section: "${token}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -12631,6 +12787,8 @@ var codeMirrorFn = function() {
         function setState() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            // in case it already exists, to maintain the correct order of addition.
+            delete state.objects[candname];
             state.objects[candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
                 lineNumber: state.lineNumber,
                 colors: [],
@@ -12654,7 +12812,7 @@ var codeMirrorFn = function() {
         
         if (getTokens())
             state.objects[state.objects_candname].colors = colors;
-                return lexer.tokens;
+        return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
@@ -12792,26 +12950,35 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
+                    //token = lexer.match(/^[a-z^<>]+/i,  true);
                     token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
                     const dirs = toValidDirections(token);
                     if (dirs == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'flip', dirs ]);  // todo: P:S has -|
+                        symbols.transforms.push([ 'flip', dirs ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^[|-]/)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.checkComment(state);
+                    symbols.transforms.push([ 'flip', token == '|' ? '>' : 'v']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
-                    const dirs = toValidDirections(token);
-                    if (dirs == null)
-                        logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
+                    token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
+                    //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
+                    const parts = token ? token.split(':') : [];
+                    const dirs = toValidDirections(parts[0]);
+                    const arg = parts[1] ? +parts[1] : 1;
+                    if (!(parts.length <= 2 && dirs && arg))
+                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'shift', dirs, 1 ]);  // todo: optional amount
+                        symbols.transforms.push([ 'shift', dirs, arg ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -12820,7 +12987,8 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.matchObjectName(true) || lexer.match(/^[^>v<]:\d+/i, true);
+                    token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
+                    //token = lexer.matchObjectName(true) || lexer.match(/^[^>v<]:\d+/i, true);
                     const args = token ? token.split(':') : null;
                     const dirs = args && toValidDirections(args[0]);
                     if (dirs == null || args.length != 2)
@@ -12835,7 +13003,8 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.checkComment(state);
 
-                    token = lexer.matchObjectName(true) || lexer.match(/^[v^<>](:[v^<>])?/i, true);
+                    token = lexer.match(/^[a-z:^<>]+/i,  true);
+                    //token = lexer.matchObjectName(true) || lexer.match(/^[v^<>](:[v^<>])?/i, true);
                     const parts = token && token.split(':');
                     const dirs = parts && parts.length <= 2 && parts.map(p => toValidDirections(p));
                     if (dirs == null)
@@ -12869,14 +13038,17 @@ var codeMirrorFn = function() {
         const candname = state.objects_candname;
         if (!candname || !hasParts(candname)) return;
         const obj = state.objects[candname];
-        const newobjects = expandObjectTags(state, candname, obj);
+        const newobjects = expandObjectDef(state, candname, obj);
         if (newobjects) {
+            // add new objects but do not overwrite existing
+            for (const [newid, newvalue] of newobjects)
+                if (!Object.hasOwn(state.objects, newid))
+                    state.objects[newid] = newvalue;
+            const newlegend = [ candname, ...newobjects.map(n => n[0])];
+            newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
+
             delete state.objects[candname];
             state.objects_candname = '';
-            Object.assign(state.objects, newobjects);
-            const newlegend = [ candname, ...Object.keys(newobjects)];
-            //const newlegend = [ candname, ...newobjects.map(n => n[0])];
-            newlegend.lineNumber = state.lineNumber;  // bug:
             state.legend_properties.push(newlegend);
             createObjectTagsAsProps(state, candname);
         }
@@ -12917,11 +13089,13 @@ var codeMirrorFn = function() {
                 } else {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
                 }
-            } else if (token = lexer.matchName(!state.case_sensitive)) {
+            } else if (token = lexer.matchObjectName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
-                if (isAlreadyDeclared(state, token)) {
+                const tobjects = getObjectRefs(state, token);
+                if (!tobjects) 
+                    logError(`Found "${token}", which looks like an object but it's not declared anywhere.`, state.lineNumber);
+                else {
                     lexer.pushToken(token, 'NAME');
-                    const tobject = token;
 
                     let tverb = null;
                     if ((token = lexer.match(/^[a-z]+/i, true))) {
@@ -12944,7 +13118,8 @@ var codeMirrorFn = function() {
 
                         const tsounds = parseSoundSeedsTail();
                         if (tsounds) {
-                            rows.push(...tsounds.map(s => ['SOUND', tobject, tverb, tdirs, s, state.lineNumber]));
+                            tobjects.forEach(t => 
+                                rows.push(...tsounds.map(s => ['SOUND', t, tverb, tdirs, s, state.lineNumber])));
                             return true;
                         } else if (token == lexer.matchNotComment()) {
                             const dirok = soundverbs_directional.includes(tverb);
@@ -12952,8 +13127,8 @@ var codeMirrorFn = function() {
                             logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${token}".`, state.lineNumber);
                         }
                     }
-                } else logError(`unexpected sound token "${token}".`, state.lineNumber);
-            } else logWarning("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
+                }
+            } else logError("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
 
             if (token == lexer.matchNotComment())
                 lexer.pushToken(token, 'ERROR');
@@ -13011,32 +13186,38 @@ var codeMirrorFn = function() {
             lexer.checkComment(state);
 
             while (true) {
+                let kind = 'ERROR';
                 if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
-                    const defname = isAlreadyDeclared(state, token);
-                    const ownname = (token == symbols.newname);
-                    if (!defname)
+                    const tobjects = getObjectRefs(state, token);
+                    if (!tobjects)
                         logError(`You're talking about "${token.toUpperCase()}" but it's not defined anywhere.`, state.lineNumber);
-                    else if (ownname)
+                    else if (token == symbols.newname)
                         logError(`You can't define object "${token.toUpperCase()}" in terms of itself!`, state.lineNumber);
-                    else if (names.includes(token))
-                        logWarning(`You're repeating the object "${token.toUpperCase()}" here multiple times on the RHS.  This makes no sense.  Don't do that.`, state.lineNumber);                        
-                    names.push(token);
-                    lexer.pushToken(token, defname && !ownname ? 'NAME' : 'ERROR');
-                } else {
+                    else {
+                        if (names.includes(token))
+                            logWarning(`You're repeating the object "${token.toUpperCase()}" here multiple times on the RHS.  This makes no sense.  Don't do that.`, state.lineNumber);                        
+                        names.push(...tobjects);
+                        if (tobjects.length > 1) symbols.andor ||= 'or';
+                        kind = 'NAME';
+                    }
+                } 
+                lexer.pushToken(token, kind);
+                if (kind != 'NAME') {
                     lexer.matchNotComment();
                     logError(`Something bad's happening in the LEGEND`, state.lineNumber);
-                    //lexer.pushToken(token, 'ERROR');
                     return;
                 }
 
                 if (lexer.checkEol(state)) break;
 
                 if (token = lexer.match(/^(and|or)\b/i, true)) {
-                    if (!symbols.andor)
-                        symbols.andor = token;
-                    else if (symbols.andor != token)
+                    if (symbols.andor && token != symbols.andor)
                         logError(`Cannot mix AND and OR`, state.lineNumber);
-                        lexer.pushToken(token, token == symbols.andor ? 'LOGICWORD' : 'ERROR' );
+                    else {
+                        symbols.andor ||= token;
+                        kind = 'LOGICWORD';
+                    }
+                    lexer.pushToken(token, kind);
                 } else {
                     token = lexer.match(reg_notcommentstart);
                     logError(`AND or OR expected, found ${token}`, state.lineNumber);
@@ -13107,10 +13288,11 @@ var codeMirrorFn = function() {
                     }
                 } else if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     let kind = 'ERROR';
-                    if (!isAlreadyDeclared(state, token))
-                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
-                    else if (token == 'background' && idents.length != 0)
+                    const trefs = getObjectRefs(state, token);   // do we need this?
+                    if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
+                    else if (!trefs)
+                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
                     else {
                         if (idents.includes(token))
                             logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
@@ -13141,25 +13323,28 @@ var codeMirrorFn = function() {
 
             // functions to manage keyed layers
             const keylayers = [];
-            function addToLayer(key, obj) {
+
+            // append objects to a layer by key, or create a new one
+            function addToLayer(key, objects) {
                 if (keylayers[key]) 
-                    keylayers[key].layer.push(...obj);
-                else keylayers[key] = { lineNumber: state.lineNumber, layer: obj };
+                    keylayers[key].layer.push(...objects);
+                else keylayers[key] = { lineNumber: state.lineNumber, layer: objects };
             }
             function getNewLayers() {
                 return Object.values(keylayers).map(k => k.layer);
             }
 
             // add new objects to the proper layer based on ident and prefixes
+            // if a part is a member of a prefix it goes in a layer keyed by the part
             function addNewObjects(newobjs, ident, prefixes) {
                 const parts = ident.split(':');
                 const prefs = prefixes.filter(p => parts.includes(p));
                 if (parts.length == 1 || prefixes.length == 0) addToLayer('+', newobjs);
                 else {
+                    // map the position of the prefix in the parts list
                     const indexes = prefs.map(p => parts.indexOf(p));
                     for (const obj of newobjs) {
-                        const parts = obj.split(':');
-                        const key = indexes.map(i => parts[i]).join('+');
+                        const key = indexes.map(i => obj.split(':')[i]).join('+');
                         addToLayer(key, [ obj ]);
                     }
                 }
@@ -13184,7 +13369,9 @@ var codeMirrorFn = function() {
                     dirSecond: dirSecond,
                 });
                 return;
-            } else if (state.collisionLayerGroups.length == 0) {
+            } 
+            
+            if (state.collisionLayerGroups.length == 0) {
                 state.collisionLayerGroups.push({ 
                     lineNumber: state.lineNumber, 
                     layer: 0,
@@ -13195,7 +13382,6 @@ var codeMirrorFn = function() {
             }
 
             // expand rhs first
-            // then use lhs to assign to layers
             const prefixes = idents.slice(0, prearrow);
             const rhs = idents.slice(prearrow)
             for (const prefix of prefixes) {
@@ -13206,8 +13392,10 @@ var codeMirrorFn = function() {
             }
             
             for (const ident of rhs) {
-                const newobjs = expandSymbol(state, ident, false, n => logError(
-                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber));
+                const idents = getObjectRefs(state, ident);
+                const newobjs =  idents.map(i => expandSymbol(state, i, false, n => logError(
+                    `"${n}" is an aggregate (defined using "and"), and cannot be added to a single layer because its constituent objects must be able to coexist.`, state.lineNumber)))
+                    .flat();
 
                 // do we care about possible in-layer duplicates?
                 const dups = new Set();
@@ -13222,12 +13410,12 @@ var codeMirrorFn = function() {
                     logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                 }
 
+                // then use lhs to assign to layers
                 addNewObjects(newobjs, ident, prefixes);
             }
             // remove the keys and push one or more layers
             const newlayers = getNewLayers();
-            if (debugSwitch.includes('coll')) console.log('collision', newlayers);
-            state.collisionLayers.push(...newlayers);
+            newlayers.forEach(l => state.collisionLayers.push(l));
         }
     }
 
@@ -13325,7 +13513,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(message|section|goto)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(message|goto|title|level|section)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
                 symbols.text = lexer.matchAll();
@@ -13361,16 +13549,15 @@ var codeMirrorFn = function() {
                     state.levels.pop();
                     toplevel = null;
                 }
-                if (symbols.start == 'message')
-                    state.levels.push([ '\n', symbols.text, state.lineNumber, state.currentSection ]);
-                else if (symbols.start == 'goto')
-                    state.levels.push([ 'goto', symbols.text, state.lineNumber, state.currentSection ]);
+                const cmds = [ 'message', 'goto', 'level', 'title' ];
+                if (cmds.includes(symbols.start))
+                    state.levels.push([ symbols.start, symbols.text, state.lineNumber, state.currentSection ]);
                 else {
-                    if (toplevel == null || [ '\n', 'goto' ].includes(toplevel[0]))
+                    if (toplevel == null || cmds.includes(toplevel[0]))
                         state.levels.push([ state.lineNumber, state.currentSection, symbols.gridline ]);
                     else {
-                        if (symbols.gridline.length != toplevel[2].length)
-                            logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
+                        // if (symbols.gridline.length != toplevel[2].length)
+                        //     logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
                         toplevel.push(symbols.gridline);
                     }
                 }
@@ -13427,6 +13614,7 @@ var codeMirrorFn = function() {
                 legend_aggregates: state.legend_aggregates.map(p => p.slice()),
                 legend_properties: state.legend_properties.map(p => p.slice()),
                 tags: Object.assign({}, state.tags),
+                mappings: Object.assign({}, state.mappings),
 
                 sounds: state.sounds.map(p => p.slice()),
 
@@ -13541,6 +13729,17 @@ var codeMirrorFn = function() {
                     state.current_line_wip_array = parseTagsLine(stream, state, mixedCase);
                     return flushToken();
                 }
+                case 'mappings': {
+                    if (state.objects_section == 0) {
+                        state.objects_candname = null;
+                        state.current_line_wip_array = parseMappingsLine1(stream, state);
+                        state.objects_section = 1;
+                    } else {
+                        state.current_line_wip_array = parseMappingsLine2(stream, state);
+                        state.objects_section = 0;
+                    }
+                    return flushToken();
+                }
                 case 'objects': {
                     if (sol && stream.match(reg_objmodi, false)) {
                         state.objects_section = 5;
@@ -13640,12 +13839,12 @@ var codeMirrorFn = function() {
 
                             if (state.tokenIndex===0&&reg_loopmarker.exec(m)) {
                                 return 'BRACKET';
-                            } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
-                                stream.match(/[\p{Z}\s]*/u, true);
-                                return 'DIRECTION';
                             } else if (state.tokenIndex == 0 && m.toLowerCase() == 'subroutine') {
                                 state.tokenIndex = -4;
                                 return 'BRACKET';
+                            } else if (state.tokenIndex === 0 && reg_ruledirectionindicators.exec(m)) {
+                                stream.match(/[\p{Z}\s]*/u, true);
+                                return 'DIRECTION';
                             } else if (state.tokenIndex === 1 && (directions_table.includes(m)) || Object.hasOwn(state.tags, m)) {
                                 stream.match(/[\p{Z}\s]*/u, true);
                                 return 'DIRECTION';
@@ -13658,7 +13857,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectname) && expandIdentTags(state, m).every(i => state.names.includes(i))) {
+                                } else if (m.match(reg_objectname) && expandObjectRef(state, m, true).every(i => state.names.includes(i))) {
                                     return 'NAME';
                                 }
                                 
@@ -13765,7 +13964,8 @@ var codeMirrorFn = function() {
 
                 levels: [[]],
 
-                tags: [],
+                tags: {},
+                mappings: {},
 
                 subsection: ''
             };
@@ -13807,13 +14007,23 @@ const directionaggregates = {
     'parallel': ['<', '>']
 };
 
-//function expandDirections(dir) {
-    // if (simpleAbsoluteDirections.includes(dir)) return [dir];
-    // if (relativeDirs.includes(dir)) {
-    //     const exp = relativeDict['right'][relativeDirs.indexOf(dir)];
-    //     return (exp in directionaggregates) ? directionaggregates[exp] : [ exp ];
-    // }
-//}
+function getTag(state, t) {
+    return Object.hasOwn(state.tags, t) && state.tags[t];
+}
+
+function getMapping(state, m) {
+    return Object.hasOwn(state.mappings, m) && state.mappings[m];
+}
+
+function isMappedTo(state, key, target) {
+    return Object.hasOwn(state.mappings, key) && state.mappings[key].fromKey == target;
+}
+
+function getMappedValue(state, key, value) {
+    const map = state.mappings[key];
+    const index = map.fromValues.indexOf(value);
+    return map.values[index];
+}
 
 // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
@@ -13828,95 +14038,105 @@ function cartesianProduct(...arrays) {
 
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
-    constructor(state, ident, delim = ':') {
+    constructor(state, ident, usedirs = false, delim = ':') {
         this.ident = ident;
         this.delim = delim;
         [ this.stem, ...this.tail ] = ident.split(delim);
-        this.tags = this.tail.filter(p => Object.hasOwn(state.tags, p));
-        this.tagvalues = this.tags.map(t => state.tags[t]);
-        this.tagexpansion = cartesianProduct(...this.tagvalues);
-        this.dirs = this.tail.filter(p => [ ...simpleAbsoluteDirections, ...relativeDirections ].includes(p));
-        this.dirvalues = this.dirs.map(d => simpleAbsoluteDirections.includes(d) ? [ d ] : simpleAbsoluteDirections);
+        this.keys = [];
+        this.values = [];
+
+        const tags = this.tail.filter(p => getTag(state, p));
+        if (tags.length > 0) {
+            this.keys.push(...tags);
+            this.values.push(...tags.map(t => state.tags[t]));
+        }
+        const maps = this.tail.filter(p => getMapping(state, p));
+        if (maps.length > 0) {
+            this.keys.push(...maps);
+            this.values.push(...maps.map(m => state.mappings[m].values));
+        }
+        const dirs = this.tail.filter(p => relativeDirections.includes(p));
+        if (usedirs && dirs.length > 0) {
+            this.keys.push(...dirs);
+            this.values.push(...dirs.map(d => simpleAbsoluteDirections));
+        }
+        this.expansion = cartesianProduct(...this.values);
     }
 
-    get rawTags() {
-        return this.tags; // ? and dirs
+    get expKeys() {
+        return this.keys;
     }
-    get expandedTags() {
-        return this.tagexpansion;
+    get expValues() {
+        return this.expansion;
     }
 
-    getExpandTagsDirs() {
-        const exp = cartesianProduct(...this.tagvalues, ...this.dirvalues);
-        if (exp.length == 0)
+    // get array of base idents, one for each expansion
+    getExpandedIdents() {
+        if (this.keys.length == 0)
             return [ this.ident ];
-        const newtails = exp.map(e =>
-                this.tail.map(p => 
-                    this.tags.includes(p) ? e[this.tags.indexOf(p)] :
-                    this.dirs.includes(p) ? e.at(-1) : p));
-        return newtails.map(t => [ this.stem, ...t ].join(this.delim));
+        return this.expansion.map(e => [ 
+            this.stem, 
+            ...this.tail.map(p => 
+                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
+        ].join(this.delim));
     }
-    // return joined key with substitutions
-    getTagExpandedIdent(exp) {
+
+    // get an expanded ident based on a single expansion
+    getExpandedIdent(exp) {
         return [ this.stem, ...this.tail.map(p => 
-            this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
-            .join(this.delim);
+            this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
+            ].join(this.delim);
     }
-    // return alternate join key with substitutions
-    getTagExpandedAlt(exp, ident) {
+
+    // return alternate join key with substitutions based on a specific expansion
+    getExpandedAlt(exp, ident) {
         const [ stem, ...tail ] = ident.split(':');
         return (tail.length == 0) ? stem
             : [ stem, ...tail.map(p => 
-                this.tags.includes(p) ? exp[this.tags.indexOf(p)] : p) ]
-                .join(this.delim);
-    }
-    // return ident with substitution if available
-    getTagSubstitutedIdent(exp, ident) {
-        return this.tags.includes(ident) ? exp[this.tags.indexOf(ident)] : ident;
+                this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
+            ].join(this.delim);
     }
 
-    // return array of base idents, one for each expansion
-    getTagExpandedIdents() {
-        return this.tagexpansion.map(e => 
-            [ this.stem, this.tail.map(p => 
-                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
-            ].join(this.delim));
+    // return ident with substitution if available based on a specific expansion
+    getSubstitutedIdent(exp, ident) {
+        return this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
     }
 
     // return array of (possibly expanded) idents, one for each expansion
-    getTagExpandedAltIdents(ident) {
+    getExpandedAltIdents(ident) {
         const [ stem, ...tail ] = ident.split(':');
-        return this.tagexpansion.map(e =>
+        return this.expansion.map(e =>
             (tail.length == 0) ? stem
             : [ stem, ...tail.map(p => 
-                this.tags.includes(p) ? e[this.tags.indexOf(p)] : p) 
+                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
             ].join(this.delim) );
     }
 }
 
-// expand an ident seen when parsing a rule into the things it might be
-function expandIdentTags(state, ident) {
-    const expander = new TagExpander(state, ident);
+// expand a reference to an object from legend, layers and rules (rel dirs no expanded)
+function expandObjectRef(state, objid, usedirs = false) {
+    const expander = new TagExpander(state, objid, usedirs);
     //if (expander.rawTags.length == 0) return [ ident ];
-    return expander.getExpandTagsDirs();
+    return expander.getExpandedIdents();
 }
 
-// expand sprites with tags into new objects, replace object by property
-function expandObjectTags(state, objkey, objvalue) {
-    const expander = new TagExpander(state, objkey);
-    if (expander.rawTags.length == 0) return;
-    const newobjects = expander.expandedTags.map(exp => {
-        const newkey = expander.getTagExpandedIdent(exp);
+// expand object defined with tags/directions into new objects
+function expandObjectDef(state, objid, objvalue) {
+    const expander = new TagExpander(state, objid, true);
+    if (expander.keys.length == 0) return;
+    const newobjects = expander.expansion.map(exp => {
+        const newid = expander.getExpandedIdent(exp);
         const newvalue = {
             lineNumber: objvalue.lineNumber,
             colors: [ ...objvalue.colors ],
             spritematrix: [],
+            canRedef: true,
         };
         if (objvalue.cloneSprite) {
-            const altspriteid = expander.getTagExpandedAlt(exp, objvalue.cloneSprite);
+            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
                 newvalue.cloneSprite = altspriteid;
-            else logError(`Source ${altspriteid} for sprite clone not found.`);
+            else logError(`Source ${altspriteid} for sprite clone not found.`, objvalue.lineNumber);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
         
@@ -13924,37 +14144,44 @@ function expandObjectTags(state, objkey, objvalue) {
             newvalue.transforms = objvalue.transforms.map(m => {
                 const modi = [ ... m ];
                 const op = modi.shift();
-                const newm = [ expander.getTagSubstitutedIdent(exp, modi.shift()) ];
+                const newm = [ expander.getSubstitutedIdent(exp, modi.shift()) ];
                 if (op == 'rot' && modi.length > 0)
-                    newm.push(expander.getTagSubstitutedIdent(exp, modi.shift()));
+                    newm.push(expander.getSubstitutedIdent(exp, modi.shift()));
                 return [ op, ...newm, ...modi ];
             })
         }
-        return [newkey, newvalue];
+        return [newid, newvalue];
     });
     
-    if (debugSwitch.includes('xpand')) console.log(JSON.stringify(newobjects));
-    return Object.fromEntries(newobjects);
+    return newobjects;
 }
 
-// create new legend properties when objects contain tags
+// create hierarchy of properties when property contains tags
+// do it by index because names may not be unique
 function createObjectTagsAsProps(state, ident) {
-    const fnRep = (ident, target, repl) => ident.split(':').map(p => p == target ? repl : p).join(':');
+    const fnValues = p => getTag(state, p) || (getMapping(state, p) && getMapping(state, p).values);
+    const parts = ident.split(':');
+    const todos = parts.map((p,x) => ({ part: p, index: x, values: fnValues(p) }))
+        .filter(t => t.values);
 
-    const tags = ident.split(':').filter(p => Object.hasOwn(state.tags, p));
-    if (tags.length >= 2) {     // ? does this cover all the bases?
-        state.tags[tags[0]].forEach(v => {
-            const newident = fnRep(ident, tags[0], v);
-            const newvalues = state.tags[tags[1]].map(v => fnRep(newident, tags[1], v));
-            const newlegend = [ newident, ...newvalues ];
-            newlegend.lineNumber = state.lineNumber;  // bug:
+    // if only one part is a tag or map we're done
+    if (todos.length <= 1) return;
+
+    todos.forEach(todo => {
+        todo.values.forEach(value => {
+            const newident = parts.map((p,x) => x == todo.index ? value : p).join(':');
+            const expander = new TagExpander(state, newident, true);
+            const newlegend = [ newident, ...expander.getExpandedIdents() ];
+            newlegend.lineNumber = state.lineNumber;  // bug: ?
             state.legend_properties.push(newlegend);
-        });
-    }
+            createObjectTagsAsProps(state, newident);
+        })
+    })
 }
+
 
 // generate a new sprite matrix based on transforms
-function generateSpriteMatrix(state) {
+function generateSpriteMatrix(state, obj) {
     const cwd = dir => clockwiseDirections.indexOf(dir);
     const tranfunc = {
         'flip': (mat,_,dir) => [
@@ -13979,32 +14206,50 @@ function generateSpriteMatrix(state) {
             return m;
         }
     };
-    for (const obj of Object.values(state.objects)) {
-        obj.spriteoffset = { x: 0, y: 0 };
-        if (obj.colors.length == 0)             // can this ever happen?
-            obj.colors.push('#ff00ff');
-        if (obj.cloneSprite) {
-            const other = state.objects[obj.cloneSprite];
-            obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
-            obj.spriteoffset = { ...other.spriteoffset };
-        } else if (obj.spritematrix.length == 0) {
-            obj.spritematrix = Array.from( { length: state.sprite_size }, () => (new Array(state.sprite_size).fill(0)) )
-        }
-        
-        for (const tf of obj.transforms ||  []) {
-            obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
-        }
+
+    obj.spriteoffset = { x: 0, y: 0 };
+    if (obj.cloneSprite) {
+        const other = state.objects[obj.cloneSprite];
+        obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
+        obj.spriteoffset = { ...other.spriteoffset };
+    } else if (obj.spritematrix.length == 0) {
+        obj.spritematrix = Array.from( 
+            { length: state.sprite_size }, 
+            () => (new Array(state.sprite_size).fill(0)) 
+        );
     }
-    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    
+    for (const tf of obj.transforms || []) {
+        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
+    }
 }
 
 // PS> check whether a name has been used and is not available
-function isAlreadyDeclared(state, id) {
-    return Object.hasOwn(state.objects, id)
-        || state.legend_synonyms.find(s => s[0] == id)
-        || state.legend_aggregates.find(s => s[0] == id)
-        || state.legend_properties.find(s => s[0] == id)
-        || Object.hasOwn(state.tags, id)  // todo:@@
+function isAlreadyDeclared(state, ident) {
+    return Object.hasOwn(state.objects, ident)
+        || state.legend_synonyms.find(s => s[0] == ident)
+        || state.legend_aggregates.find(s => s[0] == ident)
+        || state.legend_properties.find(s => s[0] == ident)
+        || Object.hasOwn(state.tags, ident)
+        || Object.hasOwn(state.mappings, ident)
+}
+
+// PS> check how a name has been used if at all
+function isDeclaredAs(state, ident) {
+    return Object.hasOwn(state.objects, ident) ? 'object'
+        : state.legend_synonyms.find(s => s[0] == ident) ? 'alias'
+        : state.legend_aggregates.find(s => s[0] == ident) ? 'and'
+        : state.legend_properties.find(s => s[0] == ident) ? 'or'
+        : Object.hasOwn(state.tags, ident) ? 'tag' 
+        : Object.hasOwn(state.mappings, ident) ? 'map' 
+        : null;
+}
+
+// get the object(s) referred to if declared, or null otherwise
+function getObjectRefs(state, ident) {
+    if (isAlreadyDeclared(state, ident)) return [ ident ];
+    const idents = expandObjectRef(state, ident);
+    return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
 }
 
 function isColor(str) {
@@ -14046,16 +14291,16 @@ function generateExtraMembers(state) {
         for (var j = 0; j < state.collisionLayers[layerIndex].length; j++) {
             var n = state.collisionLayers[layerIndex][j];
             if (n in state.objects) {
-                var o = state.objects[n];
-                o.layer = layerIndex;
-                o.id = idcount;
+                var obj = state.objects[n];
+                obj.layer = layerIndex;
+                obj.id = idcount;
                 state.idDict[idcount] = n;
                 idcount++;
             }
         }
     }
 
-    // @@PS> fill in start and length of each group of objects
+    // PS> fill in start and length of each group of objects
     let prevObjectNo = idcount;
     for (let i = state.collisionLayerGroups.length - 1; i >= 0; --i) {
         const group = state.collisionLayerGroups[i];
@@ -14114,40 +14359,46 @@ function generateExtraMembers(state) {
         }
     }
 
-    //convert colors to hex
-    for (var n in state.objects) {
-        const maxColours = 36; // now 0-9 and a-z
-        if (state.objects.hasOwnProperty(n)) {
-            //convert color to hex
-            var o = state.objects[n];
-            if (o.colors.length > maxColours) {
-                logError(`a sprite cannot have more than ${maxColours} colors.  Why you would want more than ${maxColours} is beyond me.`, o.lineNumber + 1);
-            }
-            for (var i = 0; i < o.colors.length; i++) {
-                var c = o.colors[i];
-                if (isColor(c)) {
-                    c = colorToHex(colorPalette, c);
-                    o.colors[i] = c;
-                } else {
-                    logError('Invalid color specified for object "' + n + '", namely "' + o.colors[i] + '".', o.lineNumber + 1);
-                    o.colors[i] = '#ff00ff'; // magenta error color
-                }
+    // fix and convert colors to hex
+    const maxColours = 36; // now 0-9 and a-z
+    for (const obj of Object.values(state.objects)) {
+        if (obj.colors.length == 0) {
+            logWarning(`A sprite must have at least one color. However did this happen?`, obj.lineNumber + 1);
+            obj.colors.push('#ff00ff');
+        } else if (obj.colors.length > maxColours) {
+            logError(`A sprite cannot have more than ${maxColours} colors.  Why you would want more than ${maxColours} is beyond me.`, obj.lineNumber + 1);
+        }
+        for (let i = 0; i < obj.colors.length; i++) {
+            let c = obj.colors[i];
+            if (isColor(c)) {
+                c = colorToHex(colorPalette, c);
+                obj.colors[i] = c;
+            } else {
+                logError(`Invalid color specified for object "${n}", namely ${obj.colors[i]}".`, obj.lineNumber + 1);
+                obj.colors[i] = '#ff00ff'; // magenta error color
             }
         }
     }
 
-    generateSpriteMatrix(state);
+    // fix up sprite matrix
+    for (const obj of Object.values(state.objects)) {
+        generateSpriteMatrix(state, obj);
+    }
+    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
+    if (debugSwitch.includes('prop')) console.log('Properties', state.legend_properties);
+    if (debugSwitch.includes('agg')) console.log('Aggregates', state.legend_aggregates);
+    if (debugSwitch.includes('syn')) console.log('Synonyms', state.legend_synonyms);
 
     var glyphOrder = [];
     //calculate glyph dictionary
     var glyphDict = {};
     for (var n in state.objects) {
         if (state.objects.hasOwnProperty(n)) {
-            var o = state.objects[n];
+            var obj = state.objects[n];
             var mask = blankMask.concat([]);
-            mask[o.layer] = o.id;
+            mask[obj.layer] = obj.id;
             glyphDict[n] = mask;
-            glyphOrder.push([o.lineNumber,n]);
+            glyphOrder.push([obj.lineNumber,n]);
         }
     }
     
@@ -14186,18 +14437,18 @@ function generateExtraMembers(state) {
 
                 for (var j = 1; j < dat.length; j++) {
                     var n = dat[j];
-                    var o = state.objects[n];
-                    if (o == undefined) {
+                    var obj = state.objects[n];
+                    if (obj == undefined) {
                         logError('Object not found with name ' + n, state.lineNumber);
                     }
-                    if (mask[o.layer] == -1) {
-                        mask[o.layer] = o.id;
+                    if (mask[obj.layer] == -1) {
+                        mask[obj.layer] = obj.id;
                     } else {
-                        if (o.layer === undefined) {
+                        if (obj.layer === undefined) {
                             logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', dat.lineNumber);
                         } else {
                             var n1 = n.toUpperCase();
-                            var n2 = state.idDict[mask[o.layer]].toUpperCase();
+                            var n2 = state.idDict[mask[obj.layer]].toUpperCase();
                             // if (n1 !== n2) {
                                 logError(
                                     'Trying to create an aggregate object (something defined in the LEGEND section using AND) with both "' +
@@ -14333,7 +14584,8 @@ function generateExtraMembers(state) {
             var values = propertiesDict[key];
             var sameLayer = true;
             for (var i = 1; i < values.length; i++) {
-                if ((state.objects[values[i - 1]].layer !== state.objects[values[i]].layer)) {
+                // dies here if previous error
+                if ((state.objects[values[i - 1]].layer !== state.objects[values[i]].layer)) { 
                     sameLayer = false;
                     break;
                 }
@@ -14354,15 +14606,15 @@ function generateExtraMembers(state) {
     if (state.objects.background === undefined) {
         if ('background' in state.synonymsDict) {
             var n = state.synonymsDict['background'];
-            var o = state.objects[n];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            var obj = state.objects[n];
+            backgroundid = obj.id;
+            backgroundlayer = obj.layer;
         } else if ('background' in state.propertiesDict) {
             var backgrounddef = state.propertiesDict['background'];
             var n = backgrounddef[0];
-            var o = state.objects[n];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            var obj = state.objects[n];
+            backgroundid = obj.id;
+            backgroundlayer = obj.layer;
             for (var i=1;i<backgrounddef.length;i++){
                 var nnew = backgrounddef[i];
                 var onew = state.objects[nnew];
@@ -14372,16 +14624,16 @@ function generateExtraMembers(state) {
                 }
             }
         } else if ('background' in state.aggregatesDict) {
-            var o = state.objects[state.idDict[0]];
-            backgroundid = o.id;
-            backgroundlayer = o.layer;
+            var obj = state.objects[state.idDict[0]];
+            backgroundid = obj.id;
+            backgroundlayer = obj.layer;
             var lineNumber = state.original_line_numbers['background'];
             logError("background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').",lineNumber);
         } else {
-            var o = state.objects[state.idDict[0]];
-            if (o!=null){
-                backgroundid = o.id;
-                backgroundlayer = o.layer;
+            var obj = state.objects[state.idDict[0]];
+            if (obj!=null){
+                backgroundid = obj.id;
+                backgroundlayer = obj.layer;
             }
             logError("you have to define something to be the background");
         }
@@ -14466,8 +14718,13 @@ Level.prototype.calcBackgroundMask = function(state) {
 
 function levelFromString(state,level) {
 	var backgroundlayer=state.backgroundlayer;
-	var backgroundid=state.backgroundid;
+	//var backgroundid=state.backgroundid;
 	var backgroundLayerMask = state.layerMasks[backgroundlayer];
+
+    // pad all lines to same length
+    //const width = level[2].reduce((a, b) => Math.max(a, b), 0);
+    //level[2] = level[2].map(l => l.padEnd(width, '.'));
+
 	var o = new Level(level[0], level[2].length, level.length-2, state.collisionLayers.length, null, level[1]);
 	o.objects = new Int32Array(o.width * o.height * STRIDE_OBJ);
 
@@ -14526,7 +14783,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
-		if (level[0] == '\n') {
+		if (level[0] == 'message') {
 			o = {
 				message: level[1],
 				lineNumber: level[2],
@@ -14547,6 +14804,10 @@ function levelsToArray(state) {
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
 			sectionTerminated = true;
+		} else if (level[0] == 'level') {
+            continue;       // todo:
+		} else if (level[0] == 'title') {
+            continue;       // todo:
 		} else {
 			o = levelFromString(state,level);
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
@@ -14821,7 +15082,7 @@ function processRuleString(rule, state, curRules) {
                         directions.push(token);
                     } else if (simpleRelativeDirections.indexOf(token) >= 0) {
                         logError('You cannot use relative directions (\"^v<>\") to indicate in which direction(s) a rule applies.  Use absolute directions indicators (Up, Down, Left, Right, Horizontal, or Vertical, for instance), or, if you want the rule to apply in all four directions, do not specify directions', lineNumber);
-                    } else if (Object.hasOwn(state.tags, token)) {       //@@ PS> tags 
+                    } else if (getTag(state, token)) {
                         prefixes.push(token);
                     } else if (token == '[') {
                         if (directions.length == 0) {
@@ -14903,7 +15164,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  //@@ PS>
+            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  // PS>
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -15009,10 +15270,10 @@ function deepCloneHS(HS, fn) {
 
 function deepCloneRule(rule, fnlhs, fnrhs) {
 	return {
+		lineNumber: rule.lineNumber,
 		direction: rule.direction,
 		lhs: deepCloneHS(rule.lhs, fnlhs),
 		rhs: deepCloneHS(rule.rhs, fnrhs),
-		lineNumber: rule.lineNumber,
 		late: rule.late,
 		rigid: rule.rigid,
 		groupNumber: rule.groupNumber,
@@ -15026,19 +15287,20 @@ function deepCloneRule(rule, fnlhs, fnrhs) {
 // make multiple passes to parse and expand rules, with absolute directions and objects
 function rulesToArray(state) {
     let rules = parseRulesToArray(state);
-    rules = expandRulesWithPrefix(state, rules);
+    rules = expandRulesWithPrefixes(state, rules);
     rules = expandRulesWithMultipleDirections(state, rules);
     for (const rule of rules)
         convertRelativeDirsToAbsolute(state, rule);
+    rules = expandRulesWithTags(state, rules);
+    checkRuleObjects(state, rules);
     rules = expandRulesWithMultiDirectionObjects(state, rules);
     for (const rule of rules) {
-        if (!debugSwitch.includes('noulrule')) rewriteUpLeftRules(rule);
+        if (!debugSwitch.includes('noul')) rewriteUpLeftRules(rule);
         atomizeAggregates(state, rule);
         if (state.invalid) return; // protect next from crash
         rephraseSynonyms(state, rule);
     }
     rules = convertObjectsAndDirections(state, rules);
-    checkRuleObjects(state, rules);
     state.rules = rules;
 }
 
@@ -15068,37 +15330,89 @@ function parseRulesToArray(state) {
     }
     state.loops = loops;
     state.subroutines = subroutines;
+    if (debugSwitch.includes('exp')) console.log(`parseRulesToArray ${newrules.length}`);
     return newrules;
 }
 
-//@@ PS> expand rules with prefix and tags
+// PS> expand rules with prefixes
 // for every prefix.id found in a cell, clone the entire rule once for every prefix.member
 // dirs [ again_col ] [ con:dirs:offs ] -> [ again_col ] [ con:dirs ]
-function expandRulesWithPrefix(state, rules) {
+function expandRulesWithPrefixes(state, rules) {
+    const newrules = rules.map(r => expandRuleWithPrefixes(state, r)).flat();
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithPrefixes ${rules.length} -> ${newrules.length}`);
+    return newrules;
+}
+
+function expandRuleWithPrefixes(state, rule) {
+    if (rule.prefixes.length == 0) return [ rule ];
     var newrules = [];
-    for (const rule of rules) {
-        const rlen = newrules.length;
-        for (const prefix of rule.prefixes) {
-            for (const value of state.tags[prefix]) {
-                const lhs = cell => cell.map((c,x) => (x % 2 == 0) ? c
-                    : (c == prefix) ? value 
-                    : (c.includes(`:${prefix}`)) ? c.replace(`:${prefix}`, `:${value}`)
-                    : c);
-                // todo: rhs will be different with mapping
-                const newrule = deepCloneRule(rule, lhs, lhs);
-                newrule.directions = rule.directions; // not expanded yet
-                newrules.push(newrule);
-            }
-        }    
-        if (rlen == newrules.length)  // warning?
-            newrules.push(rule);
+    const cartesian = cartesianProduct(...rule.prefixes.map(p => state.tags[p]));
+    for (const exp of cartesian) {
+        const fn = cell => cell.map((atom,atomx) => (atomx % 2 == 0) ? atom
+            : replaceObjectPrefix(state, atom, rule.prefixes, exp));
+        const newrule = deepCloneRule(rule, fn, fn);
+        newrule.directions = rule.directions; // not expanded yet
+        newrules.push(newrule);
     }
     return newrules;
 }
 
-//@@ PS> expand rules with multi direction parts
+// function to be used during deep clone rule
+// note: will fail badly if map and tag are not a match, so check beforehand!
+function replaceObjectPrefix(state, objid, prefixes, exp) {
+    return objid.split(':')
+        .map(p => prefixes.includes(p) ? exp[prefixes.indexOf(p)]
+            //: Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(p)])
+            : Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(state.mappings[p].fromKey)])
+            : p)
+        .join(':');
+}
+
+//@@ PS> expand rules with tags (that are not properties)
+// [ con:dirs:offs ] -> [ con:up:up ] etc x16
+function expandRulesWithTags(state, rules) {
+    const newrules = rules.map(r => expandRuleWithTags(state, r)).flat();
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithTags ${rules.length} -> ${newrules.length}`);
+    return newrules;
+}
+
+function expandRuleWithTags(state, rule) {
+    // iterating this way means we can index directly into the new rule
+    // find and store all the changes needed
+    const todo = [];
+    rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
+        row.forEach((cell, cellx) => {     // between bars [ | ]
+            cell.forEach((atom, atomx) => {
+                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !isAlreadyDeclared(state, atom)) {
+                    todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
+                }
+            });
+        });
+    });
+    if (todo.length == 0) return [ rule ];
+
+    // apply the changes for each todo
+    let newrules = [ rule ];
+    todo.forEach((t,tx) => {
+        const temprules = [];
+        newrules.forEach(r => {
+            const expander = new TagExpander(state, t.ident, true);
+            for (const newident of expander.getExpandedIdents()) {
+                const newrule = deepCloneRule(r);
+                newrule.lhs[t.rowx][t.cellx][t.atomx] = newident;
+                if (rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
+                    newrule.rhs[t.rowx][t.cellx][t.atomx] = newident;
+                temprules.push(newrule);
+            }
+        });
+        newrules = temprules;
+    });
+    return newrules;
+}
+
+// PS> expand rules with multi direction parts
 // [ wantsToFlyTo:> wantsToFlyTo:perpendicular ] -> [ ]
-//now expand out rules with multiple directions
+// now expand out rules with multiple directions
 function expandRulesWithMultiDirectionObjects(state, rules) {
     var newrules = [];
     for (const rule of rules) {
@@ -15122,6 +15436,7 @@ function expandRulesWithMultiDirectionObjects(state, rules) {
         }
     
     }
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithMultiDirectionObjects ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -15129,19 +15444,16 @@ function checkRuleObjects(state, rules) {
     for (const rule of rules) {
         const objs = [ ...rule.lhs, ...rule.rhs ].flat()
             .map(cell => cell.filter((_,x) => x % 2 == 1))
-            .flat()
-            .filter(o => o != '...');
+            .filter(o => o != '...')
+            .flat();
         for (const obj of objs) {
             if (!isAlreadyDeclared(state, obj))
-                console.log(`Not declared: ${obj}`);
-            const layer = obj in state.objects ? state.objects[obj].layer : state.propertiesSingleLayer[obj];
-            // if (!(layer >= 0))
-            //     console.log(`Not in a layer: ${obj}`);
+                console.log(`Not declared`, rule.lineNumber, obj);
         }
     }
 }
  
-//now expand out rules with multiple directions
+//now expand out rules with multiple directions, and set the rule direction
 function expandRulesWithMultipleDirections(state, rules) {
     var newrules = [];
     for (var i = 0; i < rules.length; i++) {
@@ -15163,6 +15475,7 @@ function expandRulesWithMultipleDirections(state, rules) {
             }
         }
     }
+    if (debugSwitch.includes('exp')) console.log(`expandRulesWithMultipleDirections ${rules.length} -> ${newrules.length}`);
     return newrules;
 }
 
@@ -15290,6 +15603,26 @@ function concretizeMovingInCellByAmbiguousMovementName(cell, ambiguousMovement, 
     }
 }
 
+function expandRuleTags(state, cell) {
+    var expanded = [];
+    for (var i = 0; i < cell.length; i += 2) {
+        var dir = cell[i];
+        var name = cell[i + 1];
+
+        if (name.includes(':') && (dir == 'no' || !(name in state.propertiesDict))) {
+            const expander = new TagExpander(state, name, true);
+            for (const newname of expander.getExpandedIdents()) {
+                expanded.push(dir);
+                expanded.push(newname);
+            }
+        } else {
+            expanded.push(dir);
+            expanded.push(name);
+        }
+    }
+    return expanded;
+
+}
 function expandNoPrefixedProperties(state, cell) {
     var expanded = [];
     for (var i = 0; i < cell.length; i += 2) {
@@ -15317,9 +15650,11 @@ function concretizePropertyRule(state, rule, lineNumber) {
     for (var i = 0; i < rule.lhs.length; i++) {
         var cur_cellrow_l = rule.lhs[i];
         for (var j = 0; j < cur_cellrow_l.length; j++) {
-            cur_cellrow_l[j] = expandNoPrefixedProperties(state, cur_cellrow_l[j]);
+            cur_cellrow_l[j] = expandNoPrefixedProperties(state, 
+                expandRuleTags(state, cur_cellrow_l[j]));
             if (rule.rhs.length > 0)
-                rule.rhs[i][j] = expandNoPrefixedProperties(state, rule.rhs[i][j]);
+                rule.rhs[i][j] = expandNoPrefixedProperties(state, 
+                    expandRuleTags(state, rule.rhs[i][j]));
         }
     }
 
@@ -15359,7 +15694,6 @@ function concretizePropertyRule(state, rule, lineNumber) {
         if (!mappingProperties_l.some(value => proplen(value) != len0)
             && !mappingProperties_r.some(value => proplen(value) != len0)
             && !mappingProperties_l.some(value => mappingProperties_r.includes(value))) {
-            //console.log(`go for mapping rule ${lineNumber}: ${rule}`);
             result = replaceMappedProperties(rule, len0);
         }
     }
@@ -15383,6 +15717,7 @@ function concretizePropertyRule(state, rule, lineNumber) {
                 });
             });
         });
+        if (debugSwitch.includes('exp')) console.log(`replaceMappedProperties added ${rules.length} -> ${newrules.length}`);
         return newRules;
     }
 
@@ -15534,8 +15869,7 @@ function makeSpawnedObjectsStationary(state,rule,lineNumber){
                 if (name in state.propertiesDict || objects_l.indexOf(name)>=0){
                     continue;
                 }
-                //@@ dies here if invalid object name
-                //console.log(`dies here ${name}`);
+                // dies here if invalid object name
                 var r_layer = state.objects[name].layer;
                 if (layers.indexOf(r_layer)===-1){
                     cell[l]='stationary';
@@ -15794,7 +16128,7 @@ function atomizeCellAggregates(state, cell, lineNumber) {
     }
 }
 
-// replace all relative directions in a rule by absolute based on rule direction
+// replace all relative directions in every rule cell by absolute based on rule direction (direction and object)
 function convertRelativeDirsToAbsolute(state, rule) {
     [ ...rule.lhs, ...rule.rhs ].flat().forEach(cell => {
         absolutifyRuleCell(rule.direction, cell);
@@ -17016,6 +17350,7 @@ function formatHomePage(state) {
     // PS> from P:S still todo:
     state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
     state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
 
@@ -17069,9 +17404,10 @@ function loadFile(str) {
 		while (ss.eol() === false);
 	}
 
-    if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
-    if (debugSwitch.includes('coll')) console.log('Collision Layers', state.collisionLayers);
-    if (debugSwitch.includes('coll')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+    if (debugSwitch.includes('tag')) console.log('Tags', state.tags);
+    if (debugSwitch.includes('map')) console.log('Mappings', state.mappings);
+    if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
+    if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
