@@ -69,11 +69,18 @@ var games_gallery = [
     "author": "Auroriax",
     "homepage": "https://auroriax.itch.io/"
   },
-    {
+  {
     "url": "play.html?demo=patt/tubetransport",
     "thumb": "patt_tubetransport.gif",
     "title": "Tube Transport",
     "author": "Noa",
+    "homepage": ""
+  },
+  {
+    "url": "play.html?demo=patt/tapaban",
+    "thumb": "patt_tapaban.gif",
+    "title": "Tapaban",
+    "author": "Menderbug",
     "homepage": ""
   },
   {
