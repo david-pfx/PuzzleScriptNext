@@ -588,7 +588,7 @@ var generatorNames = [
 i like 9675111
 */
 generateFromSeed = function(seed) {
-  const params = seed.split(':');
+  const params = seed.toString().split(':');
   rng = new RNG((params[0] / 100) | 0);
   var generatorindex = params[0] % 100;
   var soundGenerator = generators[generatorindex % generators.length];

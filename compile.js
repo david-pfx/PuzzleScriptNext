@@ -33,6 +33,9 @@ const glob = require("glob")
 var lines = fs.readFileSync(".build/buildnumber.txt", encoding = 'utf-8');
 var buildnum = parseInt(lines);
 buildnum++;
+// todo?
+//const date = new Date();
+//const buildnum = `${date.getFullYear()-2000}${date.getMonth()}${date.getDay()}`;
 fs.writeFileSync(".build/buildnumber.txt", buildnum.toString(), encoding = 'utf-8');
 
 //#node-qunit-phantomjs  tests/tests.html --timeout 40
