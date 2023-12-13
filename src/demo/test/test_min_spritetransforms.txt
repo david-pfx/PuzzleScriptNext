@@ -1,5 +1,5 @@
 title test min sprite transforms
-author polymino
+author polyomino
 homepage www.polyomino.com
 
 // test program showing sprite transforms
@@ -147,6 +147,10 @@ black orange
 010010010010
 100100100100
 
+x1; red;
+x2 copy:x1; blue;
+x3 copy:x2; green;
+
 =======
 LEGEND
 =======
@@ -176,6 +180,7 @@ b:t1
 dirs -> con:dirs
 dirs -> cut:dirs
 vs_active_under:dirs
+x1,x2,x3
 ======
 RULES
 ======

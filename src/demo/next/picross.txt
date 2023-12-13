@@ -1,5 +1,5 @@
 title Picross
-author polymino
+author polyomino
 homepage www.polyomino.com
 
 // Otherwise known as nonogram

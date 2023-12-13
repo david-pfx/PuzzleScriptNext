@@ -1,5 +1,5 @@
 title test PS comment
-author polymino
+author polyomino
 homepage www.polyomino.com
 
 ( PS basic with tests for comments )

@@ -154,8 +154,7 @@ var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
-let titleLineNos = []; //title lines for colouring
-let authorLineNos = []; //author lines for colouring
+let lineColorOverride = [];
 
 function showContinueOptionOnTitleScreen(){
 	if (state.metadata.level_select !== undefined) {
@@ -240,8 +239,7 @@ function generateTitleScreen()
 		title=state.metadata.title;
 	}
 
-	authorLineNos = [0, 0];
-	titleLineNos = [0, 0];
+	lineColorOverride = [];
 	if (titleMode===0) {
         titleSelectOptions = 1;
 		if (titleSelected) {
@@ -273,8 +271,7 @@ function generateTitleScreen()
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
-		titleLineNos = [0, 0];
-		authorLineNos = [0, 0];
+		lineColorOverride = [];
 		titleImage = deepClone(titletemplate_empty);
 
 		titleSelectOptions = titleAvailableOptions.length;
@@ -349,16 +346,20 @@ function generateTitleScreen()
 			titleImage[11]=".Z or Middle Mouse Button to undo.";
 			titleImage[12]=".R to restart.....................";
 		}
-		for (var i=0;i<titleImage.length;i++)
-		{
+		for (var i=0;i<titleImage.length;i++) {
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
+	}
+	if (state.metadata.keyhint_color) {
+		lineColorOverride[10] = state.metadata.keyhint_color;
+		lineColorOverride[11] = state.metadata.keyhint_color;
+		lineColorOverride[12] = state.metadata.keyhint_color;
 	}
 
 	var width = titleImage[0].length;
 	var titlelines=wordwrap(title,titleImage[0].length);
 	const maxl = state.metadata.author ? 3 : 5;
-	if (titlelines.length > maxl){
+	if (titlelines.length > maxl) {
 		titlelines.splice(maxl);
 		logWarning("Game title is too long to fit on screen, truncating to three lines.", state.metadata_lines.title, true);
 	}
@@ -370,8 +371,10 @@ function generateTitleScreen()
 		var rmargin = width-titleLength-lmargin;
 		var row = titleImage[1+i];
 		titleImage[1+i]=row.slice(0,lmargin)+titleline+row.slice(lmargin+titleline.length);
+		if (state.metadata.title_color)
+			lineColorOverride[i + 1] = state.metadata.title_color;
+
 	}
-	titleLineNos = [1, 1 + titlelines.length];
 
 	if (state.metadata.author!==undefined) {
 		var attribution="by "+state.metadata.author;
@@ -390,8 +393,9 @@ function generateTitleScreen()
 			}
 			var row = titleImage[3+i];
 			titleImage[3+i]=row.slice(0,width-line.length)+line;
+			if (state.metadata.author_color)
+				lineColorOverride[3 + i] = state.metadata.author_color;
 		}
-		authorLineNos = [ 3, 3+i ]
 	}
 
 }
@@ -459,8 +463,7 @@ function generateLevelSelectScreen() {
 	}
 
 	amountOfLevelsOnScreen = 9;
-	titleLineNos = [0, 0];
-	authorLineNos = [ 0, 0];
+	lineColorOverride = [];
 	titleSelectOptions = state.sections.length;
 
 	if(titleSelection < levelSelectScrollPos) { //Up
@@ -702,25 +705,24 @@ function drawMessageScreen() {
 
 	titleMode=0;
 	textMode=true;
-	titleLineNos = [0, 0];
-	authorLineNos = [0, 0];
+	lineColorOverride = [];
 	if ("text_message_continue" in state.metadata) {
 		titleImage = deepClone(messagecontainer_template);
 
-		for (var i=0;i<titleImage.length;i++)
-		{
+		for (var i=0;i<titleImage.length;i++) {
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
 
 		titleImage[10] = state.metadata.text_message_continue;
+		if (state.metadata.keyhint_color)
+			lineColorOverride[10] = state.metadata.keyhint_color;
 	} else {
 		if (IsMouseGameInputEnabled())
 			titleImage = deepClone(messagecontainer_template_mouse);
 		else
 			titleImage = deepClone(messagecontainer_template);
 
-		for (var i=0;i<titleImage.length;i++)
-		{
+		for (var i=0;i<titleImage.length;i++) {
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
 	}

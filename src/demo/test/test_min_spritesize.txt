@@ -1,5 +1,5 @@
 title test min sprite size
-author polymino
+author polyomino
 homepage www.polyomino.com
 
 // demo program showing that sprites can be any length or width

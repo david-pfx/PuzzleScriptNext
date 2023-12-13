@@ -1,5 +1,5 @@
 title test min tags
-author polymino
+author polyomino
 homepage www.polyomino.com
 
 // test program for new TAG section

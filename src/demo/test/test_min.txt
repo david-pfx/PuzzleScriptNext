@@ -1,5 +1,5 @@
 title test min
-author polymino
+author polyomino
 homepage www.polyomino.com
 
 // minimal program as base for tests

@@ -192,6 +192,7 @@ verboseLoggingClick.addEventListener("click", verboseToggle, false);
 function debugToggle() {
 	defaultDebugMode = !defaultDebugMode;
 	consolePrint(`Default compiler debug mode is now ${defaultDebugMode ? 'ENABLED' : 'DISABLED'}`, true);
+	compile(["rebuild"]);
 }
 
 const debugLoggingClick = document.getElementById("debugLoggingClick");
@@ -218,6 +219,9 @@ runProgramClick.addEventListener("click", callRunClick, false);
 runProgramClick.addEventListener("click", callRunClick, false);
 
 function callMakeGifClick() {
+	// does not show...why?
+	//consolePrint(`Creating GIF, please wait...`, true);
+	//consoleCacheDump();
 	makeGIF();
 }
 
