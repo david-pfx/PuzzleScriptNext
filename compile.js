@@ -303,22 +303,22 @@ ncp("./src", "./bin/", function (err) {
                         }
                     });
 
-                    (async function a() {
+                    // (async function a() {
 
-                        files = glob.sync("./bin/**/*.js");
-                        files = files.concat(glob.sync("./bin/**/*.html"));
-                        files = files.concat(glob.sync("./bin/**/*.css"));
-                        files = files.concat(glob.sync("./bin/**/*.txt"));
+                    //     files = glob.sync("./bin/**/*.js");
+                    //     files = files.concat(glob.sync("./bin/**/*.html"));
+                    //     files = files.concat(glob.sync("./bin/**/*.css"));
+                    //     files = files.concat(glob.sync("./bin/**/*.txt"));
 
-                        for (var i=0;i<files.length;i++) {
-                            var file = files[i];
-                            var comp = new Compress(file);
-                            await comp.run();
-                        }
+                    //     for (var i=0;i<files.length;i++) {
+                    //         var file = files[i];
+                    //         var comp = new Compress(file);
+                    //         await comp.run();
+                    //     }
 
-                        console.log("Files compressed. All good!");
+                    //     console.log("Files compressed. All good!");
 
-                    })();
+                    // })();
                 });
 
         });

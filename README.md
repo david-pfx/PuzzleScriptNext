@@ -7,7 +7,7 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23l09, with additional Pattern:Script compatible features and some bug fixes.
+The latest version is Release v-23l13, with additional Pattern:Script compatible features and some bug fixes.
 Included are:
 * MAPPINGS: compile-time symbols that convert a sete of TAGS values into a different but related set of values.
 * Fixes for some reported problems with TAGS.
@@ -20,7 +20,7 @@ In addition:
 ### Pattern Script compatibility
 The following features are implemented.
 
-* The prelude section: `author_color` and `title_color`.
+* The prelude section: `author_color`, `title_color`, `keyhint_color`.
 * The `TAGS` section: compile-time symbols that are expanded in objects, legend symbols, collision layers and rules.
 * The symbol `directions` is a pre-defined tag.
 * The `MAPPINGS` section: compile-time symbols that convert a set of TAGS values into a different but related set of values.
@@ -31,7 +31,7 @@ The following features are implemented.
 * The `RULES` section: tags as rule prefixes `dir [> p:dir] -> [> p:dir]` and relative direction parts `[> p:^] -> [v p:>]`.
 
 Still to do:
-* Prelude `auto_level_titles`, `keyhint_color`.
+* Prelude `auto_level_titles`.
 * Level features `TITLE`, `LEVEL`.
 
 Documentation is here: https://github.com/ClementSparrow/Pattern-Script/wiki. 
