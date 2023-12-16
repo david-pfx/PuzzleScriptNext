@@ -7,11 +7,14 @@ PuzzleScript Next is based on the latest version of the original fantastic [Puzz
 
 ## New Features
 
-The latest version is Release v-23l13, with additional Pattern:Script compatible features and some bug fixes.
+The latest version is Release v-23l16, with additional Pattern:Script compatible features and some bug fixes.
 Included are:
 * MAPPINGS: compile-time symbols that convert a sete of TAGS values into a different but related set of values.
 * Fixes for some reported problems with TAGS.
-* The combination of `require_player_move, message, again` no longer hangs but works correctly.
+* Blank lines are no longer required between objects
+* The combination of `require_player_move, message, again` no longer hangs but works correctly (freeze bug).
+* A related issue triggered by the previous fix now works correctly (autowin bug)
+* Compressed gzip files are no longer built in the standalone version, for easier hosting
 
 In addition:
 * In-place sprite scaling is useful for text sprites, but is otherwise deprecated.
