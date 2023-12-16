@@ -570,7 +570,6 @@ function mouseAction(event,click,id) {
 							titleSelection = clickedLevel;
 
 							titleSelected=true;
-							messageselected=false;
 							timer=0;
 							quittingTitleScreen=true;
 							
@@ -579,13 +578,13 @@ function mouseAction(event,click,id) {
 					}
 				}
 			}
-		} else if (messageselected===false && (state.levels[curlevel].message !== undefined || messagetext != "")) {
+		} else if (messageselected===false && (state.levels[curlevel].message || messagetext != "")) {
 			messageselected=true;
 			timer=0;
 			quittingMessageScreen=true;
 			tryPlayCloseMessageSound();
 			titleScreen=false;
-			drawMessageScreen();
+			drawMessageScreen("");
 		}
 	} else {
 		if (winning) {return;}
@@ -779,8 +778,6 @@ function onKeyDown(event) {
 
 	ULBS();
 	
-    event = event || window.event;
-
 	// Prevent arrows/space from scrolling page
 	if ((!IDE) && ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)) {
 		if (event&&(event.ctrlKey || event.metaKey)){
@@ -1037,7 +1034,6 @@ function titleButtonSelected() {
 	if (titleSelected===false) {
 		tryPlayStartGameSound();
 		titleSelected=true;
-		messageselected=false;
 		timer=0;
 		quittingTitleScreen=true;
 		generateTitleScreen();
@@ -1397,7 +1393,6 @@ function checkKey(e,justPressed) {
     				if (titleSelected===false) {    				
 						tryPlayStartGameSound();
 	    				titleSelected=true;
-	    				messageselected=false;
 	    				timer=0;
 	    				quittingTitleScreen=true;
 						
@@ -1447,7 +1442,7 @@ function checkKey(e,justPressed) {
     				quittingMessageScreen=true;
     				tryPlayCloseMessageSound();
     				titleScreen=false;
-    				drawMessageScreen();
+    				drawMessageScreen("");
     			}
     		}
     	}
@@ -1486,7 +1481,7 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval&&messagetext.length==0) {
+        if (timer>againinterval && messagetext == "") {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;
@@ -1497,7 +1492,7 @@ function update() {
     if (quittingMessageScreen) {
         if (timer/1000>0.15) {
             quittingMessageScreen=false;
-            if (messagetext==="") {
+            if (state.levels[curlevel].message) {
             	nextLevel();
             } else {
             	messagetext="";
