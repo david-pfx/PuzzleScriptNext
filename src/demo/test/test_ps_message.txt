@@ -1,0 +1,107 @@
+title test ps
+author polyomino
+homepage www.polyomino.com
+
+( testing both kinds of message and related commands )
+
+verbose_logging
+debug
+require_player_movement
+
+========
+OBJECTS
+========
+Background
+grey darkgray lightgray
+22221
+20001
+20001
+20001
+11111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+R
+RED
+B
+BLUE
+g
+green
+y
+yellow
+k
+pink
+temp
+transparent
+
+=======
+LEGEND
+=======
+. = Background
+(a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r)
+
+=======
+SOUNDS
+=======
+
+sfx1 88277300
+================
+COLLISIONLAYERS
+================
+Background
+y, R, B, G, k, Player
+temp
+======
+RULES
+======
+
+[ temp ] -> [] again
+
+up [ > p | y ] -> [ p | y ] sfx1
+up [ > p | r ] -> [ p | r ] cancel
+up [ > p | g ] -> [ p | g ] message This is a green message
+up [ > p | b ] -> [ p | b ] cancel message This is a cancel message
+up [ > p | k ] -> [ p | k ] win
+
+down [ > p | y ] -> [ p | y ] sfx1
+down [ > p | r ] -> [ p | r ] again
+down [ > p | g ] -> [ > p temp | g ] again
+down [ > p | g ] -> message This is the again message that should hang
+down [ > p | b ] -> [ p | b ] 
+down [ > p | k ] -> [ p | k ] 
+
+(right [ y | y | ] -> [ action y | y | ]
+right [ action y | y | ] -> [ | y | y ])
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+(message first level)
+
+.y.r.g.b.k.
+.....p.....
+.y.r.g.b.k.
+ryy.......r
+
+message second level
+
+..........
+....pry...
+..........
+

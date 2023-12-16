@@ -412,7 +412,6 @@ function gotoLevelSelectScreen() {
 	timer = 0;
 	quittingTitleScreen = false;
 	quittingMessageScreen = false;
-	messageselected = false;
 	titleMode = 2;
 	titleScreen = true;
 	textMode = true;
@@ -700,7 +699,7 @@ function wordwrap( str, width, handleNewlines = false ) {
 
 var splitMessage=[];
 
-function drawMessageScreen() {
+function drawMessageScreen(message) {
 	tryLoadCustomFont();
 
 	titleMode=0;
@@ -734,14 +733,6 @@ function drawMessageScreen() {
 
 	var width = titleImage[0].length;
 
-	var message;
-	if (messagetext==="") {
-		var leveldat = state.levels[curlevel];
-		message = leveldat.message.trim();
-	} else {
-		message = messagetext;
-	}
-	
 	splitMessage = wordwrap(message,titleImage[0].length, true);
 
 
@@ -810,17 +801,18 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 		goToTitleScreen();
     	return;
     }
-    if (leveldat.message !== undefined) {
+    if (leveldat.message) {
       // This "level" is actually a message.
 		if (verbose_logging)
 			consolePrint(`Showing message (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	ignoreNotJustPressedAction=true;
 	  	tryPlayShowMessageSound();
 	  	twiddleMetadataExtras();
-      	drawMessageScreen();
+      	drawMessageScreen(leveldat.message);
+		messageselected = false;
       	canvasResize();
       	clearInputHistory();
-    } else if (leveldat.target !== undefined) {
+    } else if (leveldat.target) {
 		if (verbose_logging)
 			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
@@ -1106,7 +1098,6 @@ function setGameState(_state, command, randomseed) {
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
-		    messageselected=false;
 		    titleMode = 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
@@ -1135,7 +1126,7 @@ function setGameState(_state, command, randomseed) {
 		}
 		case "loadFirstNonMessageLevel":{
 			for (var i=0;i<state.levels.length;i++){
-				if (state.levels[i].hasOwnProperty("message")){
+				if (state.levels[i].message){
 					continue;
 				}
 				var targetLevel = i;
@@ -1149,7 +1140,6 @@ function setGameState(_state, command, randomseed) {
 			    titleSelected=false;
 			    quittingMessageScreen=false;
 			    quittingTitleScreen=false;
-			    messageselected=false;
 			    titleMode = 0;
 				showLayers = false;
 				loadLevelFromState(state,targetLevel,randomseed);
@@ -1170,7 +1160,6 @@ function setGameState(_state, command, randomseed) {
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
-		    messageselected=false;
 		    titleMode = 0;
 			showLayers = false;
 			loadLevelFromState(state,targetLevel,randomseed);
@@ -1192,7 +1181,6 @@ function setGameState(_state, command, randomseed) {
 				    titleSelected=false;
 				    quittingMessageScreen=false;
 				    quittingTitleScreen=false;
-				    messageselected=false;
 				    titleMode = 0;
 					showLayers = false;
 					loadLevelFromState(state,i);
@@ -1271,9 +1259,9 @@ function RebuildLevelArrays() {
     }
 }
 
-var messagetext="";
-let statusText = "";  // PS>
-let gosubTarget = -1;  // PS>
+let messagetext="";			// text for command message
+let statusText = "";  		// text for status line
+let gosubTarget = -1;  		// name of target gosub
 var currentMovedEntities = {};
 var newMovedEntities = {};
 
@@ -2806,7 +2794,7 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString, false, this.lineNumber, null);
 		}
 
-		if (command[0] == 'message') {     
+		if (command[0] == 'message') {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
 			gotoLevel(command[1]);
@@ -2814,39 +2802,39 @@ Rule.prototype.queueCommands = function() {
 			statusText = command[1];
 		}		
 
-    if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
+		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
 
-      value = command[1];
+		value = command[1];
 
-      if (value == "wipe") {
-        delete state.metadata[command[0]]; //value = undefined;
-        value = null;
-      } else if (value == "default") {
-        value = deepClone(state.default_metadata[command[0]]);
-      }
+		if (value == "wipe") {
+			delete state.metadata[command[0]]; //value = undefined;
+			value = null;
+		} else if (value == "default") {
+			value = deepClone(state.default_metadata[command[0]]);
+		}
 
-      if (value != null) {
-        state.metadata[command[0]] = value;
-      }
-      
-      if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
-        twiddleMetaData(state, true);
-        canvasResize();
-      }
+		if (value != null) {
+			state.metadata[command[0]] = value;
+		}
+		
+		if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
+			twiddleMetaData(state, true);
+			canvasResize();
+		}
 
-      if (command[0] === "smoothscreen") {
-        if (value !== undefined) {
-          twiddleMetaData(state, true);
-          initSmoothCamera()
-        } else {
-          smoothscreen = false;
-        }
-        canvasResize();
-      }
+		if (command[0] === "smoothscreen") {
+			if (value !== undefined) {
+				twiddleMetaData(state, true);
+				initSmoothCamera()
+			} else {
+				smoothscreen = false;
+			}
+			canvasResize();
+		}
 
-      twiddleMetadataExtras()
+		twiddleMetadataExtras()
 
-      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+		if (state.metadata.runtime_metadata_twiddling_debug) {
         var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
         if (value != command[1]) {
           log += " ("+command[1]+")"
@@ -2870,7 +2858,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
 }
 
-function showTempMessage() {
+function showTempMessage(message) {
 if (solving) {return;}
 
 	keybuffer=[];
@@ -2880,7 +2868,7 @@ if (solving) {return;}
 	messageselected=false;
 	ignoreNotJustPressedAction=true;
 	tryPlayShowMessageSound();
-	drawMessageScreen();
+	drawMessageScreen(message);
 	canvasResize();
 }
 
@@ -2891,8 +2879,8 @@ function processOutputCommands(commands) {
 			tryPlaySimpleSound(command);
 		}
 		if (unitTesting===false) {
-			if (command==='message') {
-				showTempMessage();
+			if (command == 'message') {
+				showTempMessage(messagetext);		//@@
 			}
 		}
 	}
@@ -3791,7 +3779,6 @@ function nextLevel() {
 				textMode=false;
 				titleScreen=false;
 				quittingMessageScreen=false;
-				messageselected=false;
 	
 				loadLevelFromStateOrTarget();
 			}

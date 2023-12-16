@@ -25,6 +25,7 @@ QUnit.config.urlConfig.push({
 
 runRuleSuite('PS rules ⚖️', testdata);
 runRuleSuite('PS+ rules ⚖️', plus_testdata);
+runRuleSuite('PS> rules ⚖️', next_testdata);
 runCompileSuite('PS compile 🐛', errormessage_testdata);
 runCompileSuite('PS+ compile 🐛', plus_errormessage_testdata);
 

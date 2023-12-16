@@ -1,0 +1,71 @@
+title Autowin
+author lazugod
+
+noaction
+require_player_movement
+
+========
+OBJECTS
+========
+
+Background .
+black
+
+Player p
+white
+.....
+.000.
+.000.
+00000
+.0.0.
+
+Crate c
+orange
+00000
+0...0
+0...0
+0...0
+00000
+
+Wall #
+brown
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player, Crate, Wall
+
+======
+RULES
+====== 
+
+[ > Player | Crate ] -> [ > Player | > Crate ]
+[ > Player | Crate | no Crate no Wall ] -> Cancel Message Canceled push message
+
+==============
+WINCONDITIONS
+==============
+
+no Player
+no Wall
+no Crate
+
+=======
+LEVELS
+=======
+
+#####
+#.cp#
+#####
+
+Message Should-be-unreachable victory
