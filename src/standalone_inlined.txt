@@ -5837,7 +5837,7 @@ var generatorNames = [
 i like 9675111
 */
 generateFromSeed = function(seed) {
-  const params = seed.split(':');
+  const params = seed.toString().split(':');
   rng = new RNG((params[0] / 100) | 0);
   var generatorindex = params[0] % 100;
   var soundGenerator = generators[generatorindex % generators.length];
@@ -7144,13 +7144,8 @@ function redraw() {
 const textModeLine = true;
 
 function redrawTextMode() {
+    const lineColor = j => lineColorOverride[j] || state.fgcolor;
     ctx.fillStyle = state.bgcolor;
-    const lineColor = j => 
-      (state.metadata.title_color && j >= titleLineNos[0] && j < titleLineNos[1]) ? state.metadata.title_color
-    : (state.metadata.author_color && j >= authorLineNos[0] && j < authorLineNos[1]) ? state.metadata.author_color 
-    : state.fgcolor;
-    // const lineColor = j => (state.metadata.author_color && j >= authorLineNos[0] && (j < authorLineNos[1])) ? state.metadata.author_color 
-    //     : state.metadata.title_color || state.fgcolor;    
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
@@ -8077,8 +8072,7 @@ var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
-let titleLineNos = []; //title lines for colouring
-let authorLineNos = []; //author lines for colouring
+let lineColorOverride = [];
 
 function showContinueOptionOnTitleScreen(){
 	if (state.metadata.level_select !== undefined) {
@@ -8163,8 +8157,7 @@ function generateTitleScreen()
 		title=state.metadata.title;
 	}
 
-	authorLineNos = [0, 0];
-	titleLineNos = [0, 0];
+	lineColorOverride = [];
 	if (titleMode===0) {
         titleSelectOptions = 1;
 		if (titleSelected) {
@@ -8196,8 +8189,7 @@ function generateTitleScreen()
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
-		titleLineNos = [0, 0];
-		authorLineNos = [0, 0];
+		lineColorOverride = [];
 		titleImage = deepClone(titletemplate_empty);
 
 		titleSelectOptions = titleAvailableOptions.length;
@@ -8272,16 +8264,20 @@ function generateTitleScreen()
 			titleImage[11]=".Z or Middle Mouse Button to undo.";
 			titleImage[12]=".R to restart.....................";
 		}
-		for (var i=0;i<titleImage.length;i++)
-		{
+		for (var i=0;i<titleImage.length;i++) {
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
+	}
+	if (state.metadata.keyhint_color) {
+		lineColorOverride[10] = state.metadata.keyhint_color;
+		lineColorOverride[11] = state.metadata.keyhint_color;
+		lineColorOverride[12] = state.metadata.keyhint_color;
 	}
 
 	var width = titleImage[0].length;
 	var titlelines=wordwrap(title,titleImage[0].length);
 	const maxl = state.metadata.author ? 3 : 5;
-	if (titlelines.length > maxl){
+	if (titlelines.length > maxl) {
 		titlelines.splice(maxl);
 		logWarning("Game title is too long to fit on screen, truncating to three lines.", state.metadata_lines.title, true);
 	}
@@ -8293,8 +8289,10 @@ function generateTitleScreen()
 		var rmargin = width-titleLength-lmargin;
 		var row = titleImage[1+i];
 		titleImage[1+i]=row.slice(0,lmargin)+titleline+row.slice(lmargin+titleline.length);
+		if (state.metadata.title_color)
+			lineColorOverride[i + 1] = state.metadata.title_color;
+
 	}
-	titleLineNos = [1, 1 + titlelines.length];
 
 	if (state.metadata.author!==undefined) {
 		var attribution="by "+state.metadata.author;
@@ -8313,8 +8311,9 @@ function generateTitleScreen()
 			}
 			var row = titleImage[3+i];
 			titleImage[3+i]=row.slice(0,width-line.length)+line;
+			if (state.metadata.author_color)
+				lineColorOverride[3 + i] = state.metadata.author_color;
 		}
-		authorLineNos = [ 3, 3+i ]
 	}
 
 }
@@ -8331,7 +8330,6 @@ function gotoLevelSelectScreen() {
 	timer = 0;
 	quittingTitleScreen = false;
 	quittingMessageScreen = false;
-	messageselected = false;
 	titleMode = 2;
 	titleScreen = true;
 	textMode = true;
@@ -8382,8 +8380,7 @@ function generateLevelSelectScreen() {
 	}
 
 	amountOfLevelsOnScreen = 9;
-	titleLineNos = [0, 0];
-	authorLineNos = [ 0, 0];
+	lineColorOverride = [];
 	titleSelectOptions = state.sections.length;
 
 	if(titleSelection < levelSelectScrollPos) { //Up
@@ -8620,30 +8617,29 @@ function wordwrap( str, width, handleNewlines = false ) {
 
 var splitMessage=[];
 
-function drawMessageScreen() {
+function drawMessageScreen(message) {
 	tryLoadCustomFont();
 
 	titleMode=0;
 	textMode=true;
-	titleLineNos = [0, 0];
-	authorLineNos = [0, 0];
+	lineColorOverride = [];
 	if ("text_message_continue" in state.metadata) {
 		titleImage = deepClone(messagecontainer_template);
 
-		for (var i=0;i<titleImage.length;i++)
-		{
+		for (var i=0;i<titleImage.length;i++) {
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
 
 		titleImage[10] = state.metadata.text_message_continue;
+		if (state.metadata.keyhint_color)
+			lineColorOverride[10] = state.metadata.keyhint_color;
 	} else {
 		if (IsMouseGameInputEnabled())
 			titleImage = deepClone(messagecontainer_template_mouse);
 		else
 			titleImage = deepClone(messagecontainer_template);
 
-		for (var i=0;i<titleImage.length;i++)
-		{
+		for (var i=0;i<titleImage.length;i++) {
 			titleImage[i]=titleImage[i].replace(/\./g, ' ');
 		}
 	}
@@ -8655,14 +8651,6 @@ function drawMessageScreen() {
 
 	var width = titleImage[0].length;
 
-	var message;
-	if (messagetext==="") {
-		var leveldat = state.levels[curlevel];
-		message = leveldat.message.trim();
-	} else {
-		message = messagetext;
-	}
-	
 	splitMessage = wordwrap(message,titleImage[0].length, true);
 
 
@@ -8731,17 +8719,18 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 		goToTitleScreen();
     	return;
     }
-    if (leveldat.message !== undefined) {
+    if (leveldat.message) {
       // This "level" is actually a message.
 		if (verbose_logging)
 			consolePrint(`Showing message (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	ignoreNotJustPressedAction=true;
 	  	tryPlayShowMessageSound();
 	  	twiddleMetadataExtras();
-      	drawMessageScreen();
+      	drawMessageScreen(leveldat.message);
+		messageselected = false;
       	canvasResize();
       	clearInputHistory();
-    } else if (leveldat.target !== undefined) {
+    } else if (leveldat.target) {
 		if (verbose_logging)
 			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
@@ -9027,7 +9016,6 @@ function setGameState(_state, command, randomseed) {
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
-		    messageselected=false;
 		    titleMode = 0;
 		if (showContinueOptionOnTitleScreen()) {
 		    	titleMode=1;
@@ -9056,7 +9044,7 @@ function setGameState(_state, command, randomseed) {
 		}
 		case "loadFirstNonMessageLevel":{
 			for (var i=0;i<state.levels.length;i++){
-				if (state.levels[i].hasOwnProperty("message")){
+				if (state.levels[i].message){
 					continue;
 				}
 				var targetLevel = i;
@@ -9070,7 +9058,6 @@ function setGameState(_state, command, randomseed) {
 			    titleSelected=false;
 			    quittingMessageScreen=false;
 			    quittingTitleScreen=false;
-			    messageselected=false;
 			    titleMode = 0;
 				showLayers = false;
 				loadLevelFromState(state,targetLevel,randomseed);
@@ -9091,7 +9078,6 @@ function setGameState(_state, command, randomseed) {
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
-		    messageselected=false;
 		    titleMode = 0;
 			showLayers = false;
 			loadLevelFromState(state,targetLevel,randomseed);
@@ -9113,7 +9099,6 @@ function setGameState(_state, command, randomseed) {
 				    titleSelected=false;
 				    quittingMessageScreen=false;
 				    quittingTitleScreen=false;
-				    messageselected=false;
 				    titleMode = 0;
 					showLayers = false;
 					loadLevelFromState(state,i);
@@ -9192,9 +9177,9 @@ function RebuildLevelArrays() {
     }
 }
 
-var messagetext="";
-let statusText = "";  // PS>
-let gosubTarget = -1;  // PS>
+let messagetext="";			// text for command message
+let statusText = "";  		// text for status line
+let gosubTarget = -1;  		// name of target gosub
 var currentMovedEntities = {};
 var newMovedEntities = {};
 
@@ -10727,7 +10712,7 @@ Rule.prototype.queueCommands = function() {
 			consolePrint(logString, false, this.lineNumber, null);
 		}
 
-		if (command[0] == 'message') {     
+		if (command[0] == 'message') {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
 			gotoLevel(command[1]);
@@ -10735,39 +10720,39 @@ Rule.prototype.queueCommands = function() {
 			statusText = command[1];
 		}		
 
-    if (state.metadata.runtime_metadata_twiddling !== undefined && twiddleable_params.includes(command[0])) {
+		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
 
-      value = command[1];
+		value = command[1];
 
-      if (value == "wipe") {
-        delete state.metadata[command[0]]; //value = undefined;
-        value = null;
-      } else if (value == "default") {
-        value = deepClone(state.default_metadata[command[0]]);
-      }
+		if (value == "wipe") {
+			delete state.metadata[command[0]]; //value = undefined;
+			value = null;
+		} else if (value == "default") {
+			value = deepClone(state.default_metadata[command[0]]);
+		}
 
-      if (value != null) {
-        state.metadata[command[0]] = value;
-      }
-      
-      if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
-        twiddleMetaData(state, true);
-        canvasResize();
-      }
+		if (value != null) {
+			state.metadata[command[0]] = value;
+		}
+		
+		if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
+			twiddleMetaData(state, true);
+			canvasResize();
+		}
 
-      if (command[0] === "smoothscreen") {
-        if (value !== undefined) {
-          twiddleMetaData(state, true);
-          initSmoothCamera()
-        } else {
-          smoothscreen = false;
-        }
-        canvasResize();
-      }
+		if (command[0] === "smoothscreen") {
+			if (value !== undefined) {
+				twiddleMetaData(state, true);
+				initSmoothCamera()
+			} else {
+				smoothscreen = false;
+			}
+			canvasResize();
+		}
 
-      twiddleMetadataExtras()
+		twiddleMetadataExtras()
 
-      if (state.metadata.runtime_metadata_twiddling_debug !== undefined) {
+		if (state.metadata.runtime_metadata_twiddling_debug) {
         var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
         if (value != command[1]) {
           log += " ("+command[1]+")"
@@ -10791,7 +10776,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
 }
 
-function showTempMessage() {
+function showTempMessage(message) {
 if (solving) {return;}
 
 	keybuffer=[];
@@ -10801,7 +10786,7 @@ if (solving) {return;}
 	messageselected=false;
 	ignoreNotJustPressedAction=true;
 	tryPlayShowMessageSound();
-	drawMessageScreen();
+	drawMessageScreen(message);
 	canvasResize();
 }
 
@@ -10812,8 +10797,8 @@ function processOutputCommands(commands) {
 			tryPlaySimpleSound(command);
 		}
 		if (unitTesting===false) {
-			if (command==='message') {
-				showTempMessage();
+			if (command == 'message') {
+				showTempMessage(messagetext);		//@@
 			}
 		}
 	}
@@ -11712,7 +11697,6 @@ function nextLevel() {
 				textMode=false;
 				titleScreen=false;
 				quittingMessageScreen=false;
-				messageselected=false;
 	
 				loadLevelFromStateOrTarget();
 			}
@@ -13741,16 +13725,14 @@ var codeMirrorFn = function() {
                     return flushToken();
                 }
                 case 'objects': {
-                    if (sol && stream.match(reg_objmodi, false)) {
-                        state.objects_section = 5;
-                    } else if (sol && state.objects_section == 3) {
-                        // no blank line: criterion for no sprite: 1 colour, first char not [.0]
-                        if (state.objects[state.objects_candname].colors.length == 1 && !stream.match(/^[.0]/, false)) 
-                            state.objects_section = 0;
-                    } else if (sol && state.objects_section == 4) {
-                        // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                        if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
-                            state.objects_section = 0;
+                    if (sol) {  // start of line, no previous blank line, what to do?
+                        if (stream.match(reg_objmodi, false)) {
+                            state.objects_section = 5;
+                        } else if (state.objects_section == 3 || state.objects_section == 4) {
+                            // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
+                            if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
+                                state.objects_section = 0;
+                        }
                     }
                     if (state.objects_section == 0) {
                         expandLastObject(state);
@@ -18216,7 +18198,6 @@ function mouseAction(event,click,id) {
 							titleSelection = clickedLevel;
 
 							titleSelected=true;
-							messageselected=false;
 							timer=0;
 							quittingTitleScreen=true;
 							
@@ -18225,13 +18206,13 @@ function mouseAction(event,click,id) {
 					}
 				}
 			}
-		} else if (messageselected===false && (state.levels[curlevel].message !== undefined || messagetext != "")) {
+		} else if (messageselected===false && (state.levels[curlevel].message || messagetext != "")) {
 			messageselected=true;
 			timer=0;
 			quittingMessageScreen=true;
 			tryPlayCloseMessageSound();
 			titleScreen=false;
-			drawMessageScreen();
+			drawMessageScreen("");
 		}
 	} else {
 		if (winning) {return;}
@@ -18425,8 +18406,6 @@ function onKeyDown(event) {
 
 	ULBS();
 	
-    event = event || window.event;
-
 	// Prevent arrows/space from scrolling page
 	if ((!IDE) && ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)) {
 		if (event&&(event.ctrlKey || event.metaKey)){
@@ -18683,7 +18662,6 @@ function titleButtonSelected() {
 	if (titleSelected===false) {
 		tryPlayStartGameSound();
 		titleSelected=true;
-		messageselected=false;
 		timer=0;
 		quittingTitleScreen=true;
 		generateTitleScreen();
@@ -19043,7 +19021,6 @@ function checkKey(e,justPressed) {
     				if (titleSelected===false) {    				
 						tryPlayStartGameSound();
 	    				titleSelected=true;
-	    				messageselected=false;
 	    				timer=0;
 	    				quittingTitleScreen=true;
 						
@@ -19093,7 +19070,7 @@ function checkKey(e,justPressed) {
     				quittingMessageScreen=true;
     				tryPlayCloseMessageSound();
     				titleScreen=false;
-    				drawMessageScreen();
+    				drawMessageScreen("");
     			}
     		}
     	}
@@ -19132,7 +19109,7 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval&&messagetext.length==0) {
+        if (timer>againinterval && messagetext == "") {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;
@@ -19143,7 +19120,7 @@ function update() {
     if (quittingMessageScreen) {
         if (timer/1000>0.15) {
             quittingMessageScreen=false;
-            if (messagetext==="") {
+            if (state.levels[curlevel].message) {
             	nextLevel();
             } else {
             	messagetext="";

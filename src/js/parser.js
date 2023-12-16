@@ -1810,16 +1810,14 @@ var codeMirrorFn = function() {
                     return flushToken();
                 }
                 case 'objects': {
-                    if (sol && stream.match(reg_objmodi, false)) {
-                        state.objects_section = 5;
-                    } else if (sol && state.objects_section == 3) {
-                        // no blank line: criterion for no sprite: 1 colour, first char not [.0]
-                        if (state.objects[state.objects_candname].colors.length == 1 && !stream.match(/^[.0]/, false)) 
-                            state.objects_section = 0;
-                    } else if (sol && state.objects_section == 4) {
-                        // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                        if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
-                            state.objects_section = 0;
+                    if (sol) {  // start of line, no previous blank line, what to do?
+                        if (stream.match(reg_objmodi, false)) {
+                            state.objects_section = 5;
+                        } else if (state.objects_section == 3 || state.objects_section == 4) {
+                            // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
+                            if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
+                                state.objects_section = 0;
+                        }
                     }
                     if (state.objects_section == 0) {
                         expandLastObject(state);

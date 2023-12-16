@@ -126,8 +126,10 @@ QUnit.testDone(details => {
 		// see https://stackoverflow.com/questions/39281295/add-append-html-to-qunit-output-results-for-specific-tests
 		const testRowSelector = "qunit-test-output-" + details.testId;
 		const ele = document.getElementById(testRowSelector);
-		if (!ele) console.log(`Cannot find selector ID ${testRowSelector}`);
-		else {
+		// this element only appears if the test failed
+		// if (!ele) console.log(`Cannot find selector ID ${testRowSelector}`);
+		// else {
+		if (ele) {
 			const eleA = ele.querySelector('a');
 			eleA.insertAdjacentHTML('afterend', `<a id="openClickLink-${details.testId}" href="javascript:void('Open in editor');">Open</a>`);
 			document.getElementById(`openClickLink-${details.testId}`).addEventListener("click", function(e) {
