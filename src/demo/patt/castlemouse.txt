@@ -1,0 +1,382 @@
+title Memories Of Castlemouse
+author Wayne Myers
+homepage www.conniptions.org
+
+text_color lightgreen
+again_interval 0
+youtube CnjtQbU0Gg8
+
+========
+TAGS
+========
+
+AnimalType = Mouse Cat Dog Elephant
+MarkerType = AnimalType NothingSelected
+Motion = Static directions
+WallType = Hole noHole
+
+========
+OBJECTS
+========
+
+Background
+Black
+
+Floor
+#888855 #885588
+00100
+01110
+11011
+01110
+00100
+
+
+Wall:noHole
+Brown DarkBrown
+00010
+11111
+01000
+11111
+00010
+
+
+Wall:Hole
+Black #222222 Brown
+21112
+10000
+10000
+10000
+10000
+
+Marker:MarkerType
+Purple
+00.00
+0...0
+.....
+0...0
+00.00
+
+Marker:NothingSelected
+Red
+
+
+Animal:Mouse:Motion
+LightGrey Black
+.....
+.1.1.
+.000.
+.010.
+..1..
+
+
+Animal:Cat:Motion
+White Green Pink Grey
+0...0
+00000
+01010
+30203
+.000.
+
+Animal:Dog:Motion
+DarkBrown Black
+.0.0.
+01010
+00000
+00100
+01110
+
+
+Animal:Elephant:Motion
+LightGrey Black #eeeeee Grey
+.000.
+31300
+32330
+30000
+.0..0
+
+
+=======
+LEGEND
+=======
+
+Marker = Marker:NothingSelected
+
+X = Background
+. = Floor
+# = Wall:noHole
+E = Animal:Elephant:Static and Floor and Marker
+D = Animal:Dog:Static and Floor and Marker
+C = Animal:Cat:Static and Floor and Marker
+M = Animal:Mouse:Static and Floor and Marker
+3 = Animal:Elephant:Static and Floor
+2 = Animal:Dog:Static and Floor
+1 = Animal:Cat:Static and Floor
+0 = Animal:Mouse:Static and Floor
+H = Wall:Hole and Floor
+
+Player = Marker
+
+MoveMarker = Marker:AnimalType
+
+AnyAnimal = Animal:AnimalType:Motion
+
+=======
+SOUNDS
+=======
+
+SFX0 40739509 (Mouse in hole)
+SFX1 65087301 (Scared mouse)
+SFX2 10901907 (Hit wall)
+SFX3 45415107 (Scared dog)
+SFX4 80636305 (Scared cat)
+SFX5 3673502  (Scared elephant)
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Floor
+Wall:Hole
+Animal:AnimalType:Motion, Wall:noHole
+Marker:MarkerType
+
+
+======
+MAPPINGS
+======
+
+AnimalType => Frightening
+Elephant Dog Cat Mouse -> Mouse Elephant Dog Cat
+
+AnimalType => isStopping
+Elephant Dog Cat Mouse -> WallType WallType WallType noHole
+
+======
+RULES
+======
+
+(Marker rules)
+AnimalType [ > Marker Animal:AnimalType:Static ] -> [ Marker:AnimalType > Animal:AnimalType:Static ]
+
+startLoop
+
+(continue motion)
+(AnimalType should not be necessary here as a rule parameter, but I did not implement mappings in in-rule expansion of properties yet)
+AnimalType [ > Animal:AnimalType:Static ] -> [ > Animal:AnimalType:> ]
+AnimalType [ Animal:AnimalType:> ] -> [ > Animal:AnimalType:> ]
+
+(frightening other animals)
+AnimalType [ Animal:Frightening:Motion | stationary Animal:AnimalType:Static | no Wall:isStopping ] -> [ Animal:Frightening:Motion | > Animal:AnimalType:> | ] (todo: sound depends on the animals!)
+
+(Mouse enters hole)
+[ > Animal:Mouse:> Wall:Hole ] -> [ Wall:Hole ] sfx0
+
+(stopping when coliding with another animal or walls)
+AnimalType [ > Animal:AnimalType:> | AnyAnimal ] -> [ stationary Animal:AnimalType:Static | AnyAnimal ] (todo: sound depends on the animals!)
+(AnimalType parameter should not be necessary here, but I dit not implement inrule expansion with tag mappings yet.)
+AnimalType [ > Animal:AnimalType:> | Wall:isStopping ] -> [ stationary Animal:AnimalType:Static | Wall:isStopping ] sfx2
+
+
+endloop
+
+
+(Late marker rules)
+late AnimalType [ Animal:AnimalType:Static ] [ Marker:AnimalType ] -> [ Animal:AnimalType:Static Marker:NothingSelected ] []
+
+(trigger again if some animal is moving)
+late [ Animal:AnimalType:directions ] -> again
+
+==============
+WINCONDITIONS
+==============
+
+No Animal:Mouse:Motion
+
+=======
+LEVELS
+=======
+
+Message In 2001 I was very lost.
+
+XXXXXXXXXXXXXXXXXXXXX
+X###################X
+X#...............###X
+X#..#........#...###X
+X#...............###X
+X###...M..#........#X
+X##H..........#....#X
+X###..#.....#......#X
+X#.............#...#X
+X#..#....#.........#X
+X#..............####X
+X###################X
+XXXXXXXXXXXXXXXXXXXXX
+
+Message I was just trying to hide from the world.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+X########################X
+X#...##....###.###....###X
+X#...##....#H#........###X
+X#.M.............#......#X
+X#....##..##.....##.....#X
+X#.....#......##........#X
+X#..##.......###........#X
+X#..##....#.......###...#X
+X#.......##........##...#X
+X#...##..##........##...#X
+X#...##.................#X
+X###.........###.....####X
+X###.........###....#####X
+X########################X
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Message I spent a lot of time playing a game called Castlemouse.
+
+XXXXXXXXXXXXXXXXXXXXX
+X###################X
+X#.................#X
+X#.........#.......#X
+X###...............#X
+X##H.....0.....#...#X
+X###...............#X
+X#.................#X
+X#....#..........###X
+X#.........0.....H##X
+X#C..............###X
+X###################X
+XXXXXXXXXXXXXXXXXXXXX
+
+Message Everything seemed to be slipping away from me.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+X########################X
+X#.......##.###.........#X
+X#......##..#H#.........#X
+X#.................#....#X
+X#..........0...0#......#X
+X###....#...............#X
+X##H..................###X
+X###......0...........H##X
+X#........#.....#.....###X
+X#................#.....#X
+X#......0...............#X
+X#.C.......#H#..........#X
+X#.........###..........#X
+X########################X
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Message The world seemed full of fear.
+
+XXXXXXXXXXXXXXXXXXX
+X#################X
+X#...............#X
+X#.......1#......#X
+X###.............#X
+X##H....0........#X
+X###.............#X
+X#.............###X
+X#.D......0....H##X
+X#.#...........###X
+X#...#...........#X
+X#################X
+XXXXXXXXXXXXXXXXXXX
+
+Message Everything was falling apart for me at once.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+X########################X
+X###..................###X
+X##H.......0.0........H##X
+X###..................###X
+X#......................#X
+X#..#...................#X
+X#.1.........#..........#X
+X#.........0............#X
+X##.........1...........#X
+X#.......D..............#X
+X###..................###X
+X##H.........0........H##X
+X###.......#..........###X
+X########################X
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Message I don't remember that time very well.
+
+XXXXXXXXXXXXXXXXXXX
+X#################X
+X#...............#X
+X#.......1#......#X
+X###.............#X
+X##H....0........#X
+X###.............#X
+X#.............###X
+X#.....2..0....H##X
+X#...#.......E.###X
+X#...#...........#X
+X#################X
+XXXXXXXXXXXXXXXXXXX
+
+Message I don't even remember exactly how Castlemouse went.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+X########################X
+X#....................#.#X
+X#....1..........#......#X
+X#...........0...#...2..#X
+X#......................#X
+X#..........#H#.........#X
+X#..........###.........#X
+X#..........###.........#X
+X#..........#H#.........#X
+X#...........0..........#X
+X#...2...........1......#X
+X#.E...................##X
+X#......................#X
+X########################X
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Message Many things were set in motion at that time.
+
+XXXXXXXXXXXXXXXXXXX
+X#################X
+X#......0.......H#X
+X##..........3..##X
+X#H...0..........#X
+X##..............#X
+X####..1.........#X
+X#............#..#X
+X#...#..###......#X
+X#..D#..#H#......#X
+X#.......0.......#X
+X#..........1....#X
+X#################X
+XXXXXXXXXXXXXXXXXXX
+
+Message Many unexpected chains of events, not all bad.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+X########################X
+X#.....#..............###X
+X#.....0..............H##X
+X#.......3............###X
+X#......................#X
+X###....................#X
+X##H.................0..#X
+X###....................#X
+X#......................#X
+X#.....................C#X
+X#...2.................##X
+X#....#...2............##X
+X#.....................##X
+X########################X
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+Message I'm doing a lot better now.
+
+Message Also, Castlemouse is a much better game than this - you should track it down.
+
+Message Thank you for playing.
+
+Message Music: Broken - Fit and the Conniptions (music.conniptions.org)

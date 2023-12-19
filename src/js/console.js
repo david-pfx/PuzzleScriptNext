@@ -183,6 +183,7 @@ clearConsoleClick.addEventListener("click", clearConsole, false);
 function verboseToggle() {
 	defaultVerboseLogging = !defaultVerboseLogging;
 	consolePrint(`Default verbose logging is now ${defaultVerboseLogging ? 'ENABLED' : 'DISABLED'}`, true);
+	compile(["rebuild"]);
 }
 
 const verboseLoggingClick = document.getElementById("verboseLoggingClick");
@@ -191,8 +192,8 @@ verboseLoggingClick.addEventListener("click", verboseToggle, false);
 
 function debugToggle() {
 	defaultDebugMode = !defaultDebugMode;
+	runClick();
 	consolePrint(`Default compiler debug mode is now ${defaultDebugMode ? 'ENABLED' : 'DISABLED'}`, true);
-	compile(["rebuild"]);
 }
 
 const debugLoggingClick = document.getElementById("debugLoggingClick");

@@ -2639,7 +2639,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 
     var result=false;
 	var anyellipses=false;
-	const cellIndexes = []; //@@
+	const cellIndexes = [];
 
     //APPLY THE RULE
     for (var cellRowIndex=0;cellRowIndex<rule.patterns.length;cellRowIndex++) {
@@ -2659,7 +2659,7 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
             }
 
             result = preCell.replace(rule, currentIndex) || result;
-			cellIndexes.push(currentIndex);  //@@
+			cellIndexes.push(currentIndex);
 
             currentIndex += delta;
         }
@@ -2880,7 +2880,7 @@ function processOutputCommands(commands) {
 		}
 		if (unitTesting===false) {
 			if (command == 'message') {
-				showTempMessage(messagetext);		//@@
+				showTempMessage(messagetext);
 			}
 		}
 	}

@@ -1119,7 +1119,6 @@ var codeMirrorFn = function() {
             delete state.objects[candname];
             state.objects_candname = '';
             state.legend_properties.push(newlegend);
-            createObjectTagsAsProps(state, candname);
         }
     }
 
@@ -1924,7 +1923,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectname) && expandObjectRef(state, m, true).every(i => state.names.includes(i))) {
+                                } else if (m.match(reg_objectname) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
                                     return 'NAME';
                                 }
                                 
