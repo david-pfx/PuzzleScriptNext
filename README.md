@@ -1,9 +1,14 @@
 # PuzzleScript Next
 
 PuzzleScript Next is your next version of PuzzleScript, 100% upwardly compatible and with all the latest features needed by more advanced developers.
-[The updated gallery is here](https://david-pfx.github.io/PuzzleScriptNext/src/index.html).
+[The stable release is here](https://puzzlescriptnext.polyomino.com/) and the [latest version for testing is here](https://david-pfx.github.io/PuzzleScriptNext/src/index.html).
 
-PuzzleScript Next is based on the latest version of the original fantastic [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript), the great features added in [Puzzlescript Plus by Auroriax](https://github.com/Auroriax/PuzzleScriptPlus) by many authors, plus a few contributions from [my own PuzzleFAB](https://github.com/david-pfx/PuzzleFAB).
+PuzzleScript Next is a combination of the work of many authors:
+* the original fantastic [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript)
+* the great features added in [Puzzlescript Plus by Auroriax](https://github.com/Auroriax/PuzzleScriptPlus)
+* more great features added in [Pattern:Script](https://clementsparrow.github.io/Pattern-Script)
+* a few contributions from my own [PuzzleFAB](https://github.com/david-pfx/PuzzleFAB)
+* and ongoing development work inspired by its many users (like you).
 
 ## New Features
 

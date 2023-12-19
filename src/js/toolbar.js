@@ -23,12 +23,6 @@ function cancelClick() {
 	stopSolving();
 }
 
-function runClick()
-{
-	clearConsole();
-	compile(["restart"]);
-}
-
 function dateToReadable(title, time)
 {
 	var year = time.getFullYear();
