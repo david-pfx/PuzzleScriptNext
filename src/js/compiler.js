@@ -155,7 +155,7 @@ function expandObjectDef(state, objid, objvalue) {
         const newvalue = {
             lineNumber: objvalue.lineNumber,
             colors: [ ...objvalue.colors ],
-            spritematrix: [],
+            spritematrix: [ ...objvalue.spritematrix ],     // child inherits parent colours and matrix
             canRedef: true,
         };
         if (objvalue.cloneSprite) {

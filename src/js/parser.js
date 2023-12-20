@@ -857,13 +857,16 @@ var codeMirrorFn = function() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
             // in case it already exists, to maintain the correct order of addition.
-            delete state.objects[candname];
-            state.objects[candname] = {       // doc: array of objects { lineNumber:,colors:,spritematrix } indexed by name
+            const newobj = state.objects[candname] || {       // doc: array of objects indexed by name
                 lineNumber: state.lineNumber,
                 colors: [],
                 spritematrix: [],
                 transforms: [],
             };
+            delete state.objects[candname];
+            delete newobj.canRedef;
+            state.objects[candname] = newobj;
+
             const cnlc = candname.toLowerCase();
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
                 createAlias(state, cnlc, candname, state.lineNumber);

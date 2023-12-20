@@ -3617,7 +3617,7 @@ function checkWin(dontDoWin) {
 		if (runrulesonlevelstart_phase){
 			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
 		} else {
-			if (!solving) {
+			if (verbose_logging && !solving) {
 				consolePrint("Win Condition Satisfied");
 			}
 		}
@@ -3696,7 +3696,7 @@ function checkWin(dontDoWin) {
 		if (runrulesonlevelstart_phase){
 			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
 		} else {
-			if (!solving) {
+			if (verbose_logging && !solving) {
 				consolePrint("Win Condition Satisfied");
 			}
 		}
