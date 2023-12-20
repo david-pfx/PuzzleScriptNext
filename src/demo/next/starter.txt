@@ -6,7 +6,7 @@ homepage www.polyomino.com
 
 // This is the starting point for advanced users who love PuzzleScript and want more!
 // It shows a few of the many new features added to the original PuzzleScript, building 
-// on the work of PuzzleScriptPlus and others.
+// on the work of PuzzleScript Plus, Pattern:Script and others.
 
 // See how you can use // comments instead of () if you prefer, but you can't mix them.
 

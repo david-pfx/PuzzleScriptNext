@@ -46,6 +46,11 @@ function getMappedValue(state, key, value) {
     return map.values[index];
 }
 
+function getMappedValues(state, key) {
+    const map = state.mappings[key];
+    return map.values.map(v => getTag(state, v) || v).flat();
+}
+
 // https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
 // const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
 // const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
@@ -74,7 +79,7 @@ class TagExpander {
         const maps = this.tail.filter(p => getMapping(state, p));
         if (maps.length > 0) {
             this.keys.push(...maps);
-            this.values.push(...maps.map(m => state.mappings[m].values));
+            this.values.push(...maps.map(m => getMappedValues(state, m)));
         }
         const dirs = this.tail.filter(p => relativeDirections.includes(p));
         if (usedirs && dirs.length > 0) {
@@ -150,7 +155,7 @@ function expandObjectDef(state, objid, objvalue) {
         const newvalue = {
             lineNumber: objvalue.lineNumber,
             colors: [ ...objvalue.colors ],
-            spritematrix: [],
+            spritematrix: [ ...objvalue.spritematrix ],     // child inherits parent colours and matrix
             canRedef: true,
         };
         if (objvalue.cloneSprite) {
@@ -269,8 +274,19 @@ function isDeclaredAs(state, ident) {
 // get the object(s) referred to if declared, or null otherwise
 function getObjectRefs(state, ident) {
     if (isAlreadyDeclared(state, ident)) return [ ident ];
-    const idents = expandObjectRef(state, ident);
+    const idents = expandObjectRef(state, ident, true);
     return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
+}
+
+// create a property object for an ident with parts, if possible and not already there
+function createObjectRef(state, ident) {
+    const ref = getObjectRefs(state, ident);
+    if (ref && ref.length > 1) {
+        const newlegend = [ ident, ...ref ];
+        newlegend.lineNumber = state.lineNumber;  // bug: it's an array, isn't it?
+        state.legend_properties.push(newlegend);
+        return true;
+    } else return false;
 }
 
 function isColor(str) {
@@ -349,8 +365,8 @@ function generateExtraMembers(state) {
     state.STRIDE_MOV = STRIDE_MOV;
 
     //get colorpalette name
-    debugMode = defaultDebugMode;
-    verbose_logging = defaultVerboseLogging;
+    debugMode = false;
+    verbose_logging = false;
     throttle_movement = false;
     colorPalette = colorPalettes.arnecolors;
     for (var i = 0; i < state.metadata.length; i += 2) {
@@ -365,12 +381,12 @@ function generateExtraMembers(state) {
             } else {
                 colorPalette = colorPalettes[val];
             }
-        } else if (key === 'debug') {
+        } else if (key === 'debug' || defaultDebugMode) {
             if (IDE && unitTesting===false){
                 debugMode = true;
                 cache_console_messages = true;
             }
-        } else if (key === 'verbose_logging') {
+        } else if (key === 'verbose_logging' || defaultVerboseLogging) {
             if (IDE && unitTesting===false){
                 verbose_logging = true;
                 cache_console_messages = true;
@@ -401,14 +417,18 @@ function generateExtraMembers(state) {
         }
     }
 
-    // fix up sprite matrix
-    for (const obj of Object.values(state.objects)) {
-        generateSpriteMatrix(state, obj);
-    }
+    // fix up objects
+    for (const [key, value] of Object.entries(state.objects)) {
+        generateSpriteMatrix(state, value);
+        //createObjectTagsAsProps(state, key);  // does this now do anything?
+    }    
+    // for (const obj of Object.values(state.objects)) {
+    //     generateSpriteMatrix(state, obj);
+    // }
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
-    if (debugSwitch.includes('prop')) console.log('Properties', state.legend_properties);
-    if (debugSwitch.includes('agg')) console.log('Aggregates', state.legend_aggregates);
-    if (debugSwitch.includes('syn')) console.log('Synonyms', state.legend_synonyms);
+    if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
+    if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);
+    if (debugSwitch.includes('obj')) console.log('Synonyms', state.legend_synonyms);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -1389,7 +1409,7 @@ function replaceObjectPrefix(state, objid, prefixes, exp) {
         .join(':');
 }
 
-//@@ PS> expand rules with tags (that are not properties)
+// expand rules with tags (that are not properties)
 // [ con:dirs:offs ] -> [ con:up:up ] etc x16
 function expandRulesWithTags(state, rules) {
     const newrules = rules.map(r => expandRuleWithTags(state, r)).flat();
@@ -3368,7 +3388,6 @@ function generateSoundData(state) {
 function formatHomePage(state) {
     state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
     state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
-    // PS> from P:S still todo:
     state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
     state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
     state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:

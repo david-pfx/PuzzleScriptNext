@@ -1,5 +1,89 @@
 var games_gallery = [
   {
+    "url": "play.html?demo=next/yasban",
+    "thumb": "next_yasban.gif",
+    "title": "Yet Another Sokoban",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/333",
+    "thumb": "next_333.gif",
+    "title": "333",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/2048",
+    "thumb": "next_2048.gif",
+    "title": "2048",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/black_box",
+    "thumb": "next_blackbox.gif",
+    "title": "Black Box",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/bridges",
+    "thumb": "next_bridges.gif",
+    "title": "Bridges",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/fifteen",
+    "thumb": "next_fifteen.gif",
+    "title": "Fifteen",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/netgame",
+    "thumb": "next_netgame.gif",
+    "title": "Net Game",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=next/colour_chart",
+    "thumb": "next_colourchart.png",
+    "title": "Colour Chart",
+    "author": "Davidus of Polyomino",
+    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
+  },
+  {
+    "url": "play.html?demo=patt/tubetransport",
+    "thumb": "patt_tubetransport.gif",
+    "title": "Tube Transport",
+    "author": "Noa",
+    "homepage": ""
+  },
+  {
+    "url": "play.html?demo=patt/tapaban",
+    "thumb": "patt_tapaban.gif",
+    "title": "Tapaban",
+    "author": "Menderbug",
+    "homepage": ""
+  },
+  {
+    "url": "play.html?demo=patt/cakemonsters",
+    "thumb": "patt_cakemonsters.gif",
+    "title": "Cake Monsters",
+    "author": "Matt Rix",
+    "homepage": "www.magicule.com"
+  },
+  {
+    "url": "play.html?demo=patt/castlemouse",
+    "thumb": "patt_castlemouse.gif",
+    "title": "Memories of Castlemouse",
+    "author": "Wayne Myers",
+    "homepage": "www.conniptions.org"
+  },
+  {
     "url": "play.html?demo=plus/gridblocked",
     "thumb": "plus_gridblocked.gif",
     "title": "Grid Blocked",
@@ -68,75 +152,5 @@ var games_gallery = [
     "title": "Magiciban",
     "author": "Auroriax",
     "homepage": "https://auroriax.itch.io/"
-  },
-  {
-    "url": "play.html?demo=patt/tubetransport",
-    "thumb": "patt_tubetransport.gif",
-    "title": "Tube Transport",
-    "author": "Noa",
-    "homepage": ""
-  },
-  {
-    "url": "play.html?demo=patt/tapaban",
-    "thumb": "patt_tapaban.gif",
-    "title": "Tapaban",
-    "author": "Menderbug",
-    "homepage": ""
-  },
-  {
-    "url": "play.html?demo=next/yasban",
-    "thumb": "next_yasban.gif",
-    "title": "Yet Another Sokoban",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/333",
-    "thumb": "next_333.gif",
-    "title": "333",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/2048",
-    "thumb": "next_2048.gif",
-    "title": "2048",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/black_box",
-    "thumb": "next_blackbox.gif",
-    "title": "Black Box",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/bridges",
-    "thumb": "next_bridges.gif",
-    "title": "Bridges",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/fifteen",
-    "thumb": "next_fifteen.gif",
-    "title": "Fifteen",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/netgame",
-    "thumb": "next_netgame.gif",
-    "title": "Net Game",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
-  },
-  {
-    "url": "play.html?demo=next/colour_chart",
-    "thumb": "next_colourchart.png",
-    "title": "Colour Chart",
-    "author": "Davidus of Polyomino",
-    "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
   },
 ]
