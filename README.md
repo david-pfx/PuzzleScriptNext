@@ -20,7 +20,7 @@ Features included are:
 Bug fixes:
 * The combination of `require_player_move, message, again` no longer hangs but works correctly (freeze bug).
 * A related issue triggered by the previous fix now works correctly (autowin bug).
-* Child objects created by defining a parent object with tags now inherit their parent colours and sprite. Programs Castlemouse and Cakemonsters now work.
+* Child objects created by defining a parent object with tags now inherit their parent colours and sprite. Programs Castlemouse and Cakemonsters now work, and are in the gallery.
 * Blank lines are no longer required between objects
 * Corrected some reported problems with TAGS.
 * Verbose logging set by button recompiles and shows debugging steps correctly.
