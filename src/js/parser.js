@@ -357,6 +357,7 @@ var codeMirrorFn = function() {
         }
 
         matchAll() {
+            // bug: Trailing whitespace may interact badly with stream eol/bol?
             return (this.match(/.*/) || '').trim();
         }
         
@@ -1789,10 +1790,8 @@ var codeMirrorFn = function() {
             // per section specific parsing
             switch (state.section) {
                 case '': {
-                    if (sol) {
-                        stream.string = mixedCase;  // put it back, for now!
-                        state.current_line_wip_array = parsePrelude(stream, state);
-                    }
+                    stream.string = mixedCase;  // put it back, for now!
+                    state.current_line_wip_array = parsePrelude(stream, state);
                     return flushToken();
 
                 }
