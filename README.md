@@ -18,6 +18,7 @@ Features included are:
 * Compressed gzip files are no longer built in the standalone version, for easier hosting.
 
 Bug fixes:
+* A blank text item such as title in the prelude no longer causes a hang.
 * The combination of `require_player_move, message, again` no longer hangs but works correctly (freeze bug).
 * A related issue triggered by the previous fix now works correctly (autowin bug).
 * Child objects created by defining a parent object with tags now inherit their parent colours and sprite. Programs Castlemouse and Cakemonsters now work.
