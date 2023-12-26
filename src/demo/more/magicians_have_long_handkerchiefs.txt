@@ -1,0 +1,896 @@
+title Magicians Have Long Handkerchiefs
+author Toombler and duyaa
+homepage www.puzzlescript.net
+
+run_rules_on_level_start
+
+(verbose_logging)
+
+=======
+TAGS
+=======
+
+HoldingHanky = directions off
+KnotLabel = 0
+KnotBitLabel = 00
+
+SokobanObjectType = dragged wasDragged static
+
+========
+OBJECTS
+========
+
+Background
+gray #919191
+11111
+10001
+10001
+10001
+11111
+
+Wall
+darkblue darkgreen
+00010
+11111
+01000
+11111
+00010
+
+Player:off
+black orange black white
+.000.
+.111.
+32323
+.222.
+.2.2.
+
+Player:directions
+black orange black white yellow
+.000.
+41114
+42324
+42224
+.2.2.
+
+PlayerBehind
+black orange black white
+.000.
+.111.
+32323
+.222.
+.2.2.
+
+Hat
+black red
+.....
+.000.
+.000.
+.111.
+00000
+
+HatBehind
+black blue
+.....
+.000.
+.000.
+.111.
+00000
+
+HatBehindLoop
+black #A349A4
+00000
+.111.
+.000.
+.000.
+.....
+
+Egg
+#E9E6DA #C4C1B7
+.....
+..0..
+.001.
+.001.
+..1..
+
+Dove:left
+black white orange lightgray
+...31
+.031.
+21111
+.111.
+..2..
+
+Dove:right
+black white orange lightgray
+copy: Dove:left |
+
+HankyPull:up
+transparent #c7a650
+00000
+00000
+00100
+00100
+00100
+
+HankyPull:left
+transparent #c7a650
+copy: HankyPull:up rot:up:left
+
+HankyPull:right
+transparent #c7a650
+copy: HankyPull:up rot:up:right
+
+HankyPull:down
+transparent #c7a650
+copy: HankyPull:up rot:up:down
+
+HankyPush:up
+yellow #c7a650
+00100
+00100
+00100
+00000
+00000
+
+HankyPush:left
+yellow #c7a650
+copy: HankyPush:up rot:up:left
+
+HankyPush:right
+yellow #c7a650
+copy: HankyPush:up rot:up:right
+
+HankyPush:down
+yellow #c7a650
+copy: HankyPush:up rot:up:down
+
+HankyBehindPull:up
+transparent #DD8AFA
+00000
+00000
+00100
+00100
+00100
+
+HankyBehindPull:left
+transparent #DD8AFA
+copy: HankyBehindPull:up rot:up:left
+
+HankyBehindPull:right
+transparent #DD8AFA
+copy: HankyBehindPull:up rot:up:right
+
+HankyBehindPull:down
+transparent #DD8AFA
+copy: HankyBehindPull:up rot:up:down
+
+HankyBehindPush:up
+#F598E4 #DD8AFA
+00100
+00100
+00100
+00000
+00000
+
+HankyBehindPush:left
+#F598E4 #DD8AFA
+copy: HankyBehindPush:up rot:up:left
+
+HankyBehindPush:right
+#F598E4 #DD8AFA
+copy: HankyBehindPush:up rot:up:right
+
+HankyBehindPush:down
+#F598E4 #DD8AFA
+copy: HankyBehindPush:up rot:up:down
+
+HankyBehindBit:up
+#F598E4 #DD8AFA
+00000
+.000.
+..0..
+.....
+.....
+
+HankyBehindBit:left 
+#F598E4 #DD8AFA
+copy: HankyBehindBit:up rot:up:left
+
+HankyBehindBit:right 
+#F598E4 #DD8AFA
+copy: HankyBehindBit:up rot:up:right
+
+HankyBehindBit:down 
+#F598E4 #DD8AFA
+copy: HankyBehindBit:up rot:up:down
+
+HankyEnd
+yellow yellow lightgreen green
+33333
+21113
+11111
+11111
+11111
+
+HankyBit:up
+yellow
+00000
+.000.
+..0..
+.....
+.....
+
+HankyBit:left 
+yellow
+copy: HankyBit:up rot:up:left
+
+HankyBit:right 
+yellow
+copy: HankyBit:up rot:up:right
+
+HankyBit:down 
+yellow
+copy: HankyBit:up rot:up:down
+
+Knot:KnotLabel
+orange brown
+00010
+11111
+01000
+11111
+00010
+( #A9C6FF blue #143DAD transparent )
+( 00333 )
+( 00113 )
+( 31120 )
+( 31120 )
+( 33223 )
+
+KnotBit:KnotBitLabel
+black
+
+KnotBit:00
+black
+
+( Confetti )
+( red )
+
+Curtain
+red #FF3344 darkred
+00000
+00100
+21112
+21112
+21112
+
+CurtainOpen
+red black #A1202B
+00000
+00100
+21112
+21112
+21112
+
+Target:SokobanObjectType
+blue
+.....
+.000.
+.0.0.
+.000.
+.....
+
+Crate:SokobanObjectType
+darkred
+00000
+0...0
+0...0
+0...0
+00000
+
+TempFreeSpace
+blue
+
+TempCorrespondingHankyBehind
+transparent
+
+TempUnfreeCurtain
+transparent
+
+( EndingHankyBit )
+( yellow )
+( copy: HankyBit:down  )
+
+EndingHanky
+yellow #c7a650
+00100
+00100
+00100
+00100
+00100
+
+EndingHat
+black red
+copy: Hat
+
+EndingCurtainOpen
+red black #A1202B
+copy: CurtainOpen
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player:Off
+@ = egg
+
+* = Hat
+" = HatBehind
+' = HatBehindLoop
+? = HankyBehindBit:up
+: = HankyBit:up
+
+HankyBehind = HankyBehindPull:up and HankyBehindPush:up
+! = HankyBehind
+~ = HankyBehind and egg
+( a = HankyBehind and Knot:0 )
+b = HankyBehind and Knot:0
+
+z = HankyBehind and Crate:dragged
+y = HankyBehind and Target:dragged
+x = HankyBehind and Crate:dragged and Target:dragged
+
+& = Curtain
+
+Dove = Dove:left or Dove:right
+Ω = Dove:right and HankyPush:up
+
+L = HankyBehindPull:left and HankyBehindPush:up ( left-up )
+J = HankyBehindPull:down and HankyBehindPush:left ( down-left )
+
+F = HankyBehindPull:left and HankyBehindPush:down ( left-down )
+G = HankyBehindPull:up and HankyBehindPush:left ( up-left )
+
+⑧ = HankyBehindPull:right and HankyBehindPush:right (right)
+⑩ = HankyBehindPull:left and HankyBehindPush:left (left)
+⑨ = HankyBehindPull:right and HankyBehindPush:up (right-up)
+⑪ = HankyBehindPull:up and HankyBehindPush:right (up-right)
+
+
+
+HankyBehindOver = HankyBehindPull:down and HankyBehindPush:down ( moves down )
+i = HankyBehindOver
+a = HankyBehindOver and Knot:0
+k = HankyBehindOver and Crate:dragged
+m = HankyBehindOver and Target:dragged
+h = HankyBehindOver and Crate:dragged and Target:dragged
+
+
+Player = Player:HoldingHanky or dove or PlayerBehind or EndingHat
+Hanky = HankyPull:directions or HankyPush:directions
+
+UnPushable = Wall or Hanky
+
+Draggable = egg or Knot:KnotLabel or Crate:dragged or Target:dragged
+
+Loopable = Knot:KnotLabel or Crate:dragged or Target:dragged
+
+
+Σ = L and Target:dragged
+Φ = J and Target:dragged
+⑦ = f and Target:dragged
+ε = G and Target:dragged
+⑫ = ⑧ and Target:dragged  
+⑬ = ⑩ and Target:dragged
+⑭ = ⑨ and Target:dragged
+⑮ = ⑪ and Target:dragged
+
+
+Π = HankyBehindPull:right and HankyBehindPush:down
+Ξ = HankyBehindPull:down and HankyBehindPush:right
+
+Λ = Ξ and Egg
+③ = j and egg
+④ = f and egg
+⑤ = i and egg
+θ = HankyBehindBit:down
+
+ρ = F and Knot:0
+χ = G and Knot:0
+ζ = L and Knot:0
+η = J and Knot:0
+
+ψ = G and Crate:dragged
+μ = Ξ and Crate:dragged
+γ = J and Crate:dragged
+δ = F and Crate:dragged
+
+⑱ = L  and Crate:dragged
+⑲ = ⑧  and Crate:dragged
+⑳ = ⑩  and Crate:dragged
+㉑ = ⑨  and Crate:dragged
+㉒ = ⑪  and Crate:dragged
+㉓ = Π and Crate:dragged
+
+㉔ = Ξ and Target:dragged
+
+(⓪ ① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩)
+( ⑪ ⑫ ⑬ ⑭ ⑮ ⑯ ⑰ ⑱ ⑲ ⑳ ㉑ ㉒ ㉓ ㉔ ㉕ ㉖ ㉗ ㉘ ㉙ ㉚ ㉛ ㉜ ㉝ ㉞ ㉟ ㊱ ㊲ ㊳ ㊴ ㊵ ㊶ ㊷ ㊸ ㊹ ㊺ ㊻ ㊼ ㊽ ㊾ ㊿)
+⓪ = HankyBehind and PlayerBehind
+① = Crate:dragged
+② = PlayerBehind
+⑥ = Target:dragged
+
+И = Curtain and TempUnfreeCurtain
+
+あ = EndingHat
+い = EndingHanky
+う = EndingCurtainOpen
+
+
+Ը = HankyBehindPull:right and HankyBehindPush:right
+Է = HankyBehindPull:left and HankyBehindPush:left
+Ա = L and PlayerBehind
+Դ = HankyBehindPull:up and HankyBehindPush:right 
+Ե = L and egg
+Բ = HankyBehindPull:right and HankyBehindPush:up 
+Գ = Բ and Crate:dragged
+Զ = HankyBehindBit:left
+Թ = F and Crate:dragged and Target:dragged
+Ժ = Է and Crate:dragged and Target:dragged
+Ի = G and Crate:dragged and Target:dragged
+
+=======
+SOUNDS
+=======
+
+(Hat move 36772507)
+
+Crate:wasDragged move 5033307
+sfx2 5033307
+
+Hanky create 70735700
+
+egg destroy 34497503
+( egg move 40196707 )
+
+PlayerBehind destroy 97137303
+
+sfx0 5072702 ( illegal move sound )
+
+endlevel 36863409
+
+
+(
+EndingHat move 70735700
+sfx1 90880600 ( ending sound ))
+
+startgame 70636407 (73649108)
+
+endgame 37116409 (99809100)
+
+(undo 93433307)
+
+restart 8720608
+
+================
+COLLISIONLAYERS
+================
+
+Background
+
+
+HankyPush:directions
+HankyPull:directions
+HankyBit:directions, HankyEnd
+Player:HoldingHanky, Wall, Hat
+HankyBehindPush:directions
+HankyBehindPull:directions
+HatBehind,HankyBehindBit:directions, HatBehindLoop
+Target:SokobanObjectType
+Dove,Egg,Knot:KnotLabel,Crate:SokobanObjectType, PlayerBehind  
+Curtain,CurtainOpen
+KnotBit:KnotBitLabel
+
+TempFreeSpace
+TempCorrespondingHankyBehind
+TempUnfreeCurtain
+
+EndingHanky 
+EndingHat
+EndingCurtainOpen
+
+======
+RULES
+======
+
+late [Player:Off HankyBit:up] -> [Player:down]
+
+(dove look direction)
+[right Dove:horizontal] -> [right Dove:right]
+[left  Dove:horizontal] -> [left  Dove:left ]
+right [> Dove | Wall] -> [stationary Dove | Wall]
+right [Wall | < Dove] -> [Wall | stationary Dove]
+
+(dove pushes crates)
+[> Dove | Crate:SokobanObjectType] -> [> Dove | > Crate:SokobanObjectType] 
+late [Crate:dragged][Dove] -> [Crate:wasDragged][Dove]
+late [Target:dragged][Dove] -> [Target:wasDragged][Dove]
+
+
+( when player holding hanky moves, the hanky remembers direction to push objects off of it )
+directions [> Player:directions] -> [> Player:directions HankyPull:directions]
+[up Player:directions] -> [up Player:up]
+[left Player:directions] -> [left Player:left]
+[right Player:directions] -> [right Player:right]
+[down Player:directions] -> [down Player:down]
+directions [> Player:directions] -> [> Player:directions HankyPush:directions]
+late [player:HoldingHanky Hanky] -> sfx0 cancel
+
+( pulls hanky behind and hanky behind bit )
+[> Player:directions][HankyBehindBit:up] -> [> Player:directions][up HankyBehindBit:up]
+[> Player:directions][HankyBehindBit:left] -> [> Player:directions][left HankyBehindBit:up]
+[> Player:directions][HankyBehindBit:right] -> [> Player:directions][right HankyBehindBit:up]
+[> Player:directions][HankyBehindBit:down] -> [> Player:directions][down HankyBehindBit:up]
+[> Player:directions][HankyBehindPush:directions Draggable] -> [> Player:directions][HankyBehindPush:directions > Draggable]
+[HankyBehindPush:up > Draggable] -> [HankyBehindPush:up up Draggable]
+[HankyBehindPush:left > Draggable] -> [HankyBehindPush:left left Draggable]
+[HankyBehindPush:right > Draggable] -> [HankyBehindPush:right right Draggable]
+[HankyBehindPush:down > Draggable] -> [HankyBehindPush:down down Draggable]
+late directions [HankyBehindBit:up HankyBehindPush:directions] -> [HankyBehindBit:directions]
+late [HankyBehindBit:directions HankyBehindPull:directions] -> [HankyBehindBit:directions]
+
+
+( looping hanky ) 
+up [HatBehindLoop | ][> Loopable | HatBehind] -> [HatBehindLoop > Loopable | ][> Loopable | HatBehind]
+[HatBehindLoop > Loopable][Egg] -> [HatBehindLoop][Egg](don't loop if at end)
+
+[HatBehindLoop][Player] -> [HatBehindLoop][Player TempFreeSpace] (find number of free spaces)
+[TempFreeSpace | no Wall no Hat no HatBehind no HatBehindLoop no HankyBehindPush:directions no HankyBehindBit:directions no TempUnfreeCurtain] -> [TempFreeSpace | TempFreeSpace]
+[TempFreeSpace Hanky] -> [Hanky]
+random [TempFreeSpace] -> [] (delete one so the timing is right)
+
+[HatBehindLoop][HankyBehind] -> [HatBehindLoop][HankyBehind TempCorrespondingHankyBehind] (find number of hanky behinds)
+
+[PlayerBehind][TempCorrespondingHankyBehind] -> [PlayerBehind][]
+[TempFreeSpace][TempCorrespondingHankyBehind] -> [][] (delete pairs of temps to compute difference)
+random [TempFreeSpace][HatBehindLoop] -> [][TempFreeSpace HatBehindLoop]
+random [TempCorrespondingHankyBehind][HatBehindLoop] -> [][TempCorrespondingHankyBehind HatBehindLoop]
+up [HatBehindLoop no TempFreeSpace no TempCorrespondingHankyBehind| HankyBehind] -> [HatBehindLoop > egg | HankyBehind]
+[TempFreeSpace] -> []
+[TempCorrespondingHankyBehind] -> []
+late up [HatBehindLoop | HankyBehind | egg] -> [HatBehindLoop | HankyBehindBit:up | egg]
+
+( open the curtain when no space is left )
+late [Player Curtain] -> sfx0 cancel
+late up [egg | HatBehind][Curtain] -> [egg | HatBehind][CurtainOpen]
+
+
+
+( hat teleport )
+up [ | Hat][> egg | HatBehind] -> [ | Hat < Dove:right][ | HatBehind]
+up [> HankyBehind | HatBehind] -> [ | HatBehind]
+( up [ | Hat][> HankyBehindBit:directions | HatBehind] -> [ | Hat < HankyBit:down][ | HatBehind] )
+up [ | Hat][> Knot:KnotLabel | HatBehind] -> [ | Hat < Knot:KnotLabel][ | HatBehind]
+up [ | Hat][> Crate:dragged | HatBehind] -> [ | Hat < Crate:dragged][ | HatBehind]
+up [ | Hat][> Target:dragged | HatBehind] -> [ | Hat < Target:dragged][ | HatBehind]
+late [Player:directions][Dove] -> [][Dove] (no confetti)
+( pulls hanky )
+[> Player:directions][HankyPush:directions Draggable] -> [> Player:directions][HankyPush:directions > Draggable]
+[HankyPush:up > Draggable] -> [hankypush:up up Draggable]
+[HankyPush:left > Draggable] -> [hankypush:left left Draggable]
+[HankyPush:right > Draggable] -> [hankypush:right right Draggable]
+[HankyPush:down > Draggable] -> [hankypush:down down Draggable]
+( pulls hanky bit )
+( [> Player:directions][HankyBit:up] -> [> Player:directions][up HankyBit:up] )
+( [> Player:directions][HankyBit:left] -> [> Player:directions][left HankyBit:up] )
+( [> Player:directions][HankyBit:right] -> [> Player:directions][right HankyBit:up] )
+( [> Player:directions][HankyBit:down] -> [> Player:directions][down HankyBit:up] )
+( late directions [HankyBit:up HankyPush:directions] -> [HankyBit:directions HankyPush:directions] )
+( late [HankyBit:directions Hanky] -> [HankyBit:directions] )
+
+
+
+( knot generates bit )
+[KnotBit:KnotBitLabel] -> []
+( shapes of knots go here )
+( late right [ | | Knot:1] -> [KnotBit:00 | KnotBit:00 | Knot:1] )
+( late right [ | Knot:1] -> [KnotBit:00 | Knot:1] )
+
+late [Dove Wall] -> cancel
+late [Dove Hat] -> sfx0 cancel
+late [Crate:SokobanObjectType Wall] -> cancel
+late [Crate:SokobanObjectType CurtainOpen] -> cancel
+late [Crate:wasDragged Hat] -> cancel
+late [Crate:dragged HatBehind] -> cancel
+
+
+
+(player behind code)
+[> PlayerBehind | egg] -> sfx0 cancel
+[> PlayerBehind | Crate:dragged | no Crate:dragged no Wall no HatBehind no HatBehindLoop no egg] -> [> PlayerBehind | > Crate:dragged | ] sfx2
+([> PlayerBehind | egg | no Crate:dragged no Wall no HatBehind no HatBehindLoop no egg] -> [> PlayerBehind | > egg | ] sfx2)
+up [ | Hat][> PlayerBehind | HatBehind] -> [Player:off | Hat][ | HatBehind]
+late [PlayerBehind Wall] -> cancel
+late [PlayerBehind HatBehind] -> cancel
+late [PlayerBehind HatBehindLoop] -> sfx0 cancel
+
+
+
+
+[Target:SokobanObjectType no Crate:SokobanObjectType][> Dove | CurtainOpen] -> [Target:SokobanObjectType no Crate:SokobanObjectType][stationary Dove | CurtainOpen] sfx0 (janky way to check win condition)
+late [Dove CurtainOpen] -> win
+
+( ending stuff )
+[> EndingHat | Wall] -> [stationary EndingHat | Wall]
+up [> EndingHat] -> [EndingHanky > EndingHat]
+late [EndingHat EndingHanky] -> [EndingHat]
+late [EndingHat EndingCurtainOpen] -> sfx1 win
+
+
+
+
+
+
+
+
+
+(TEMPORARY, switches hanky type as level making tool)
+(
+directions [action Player][ HankyPull:directions ] -> [action Player][ HankyBehindPull:directions ]
+
+directions [action Player][ HankyPush:directions ] -> [action Player][ HankyBehindPush:directions ]
+)
+(turn off movement so can walk through crates and targets)
+(
+[moving Crate:dragged] -> [ stationary Crate:dragged]
+[moving Target:dragged] -> [ stationary Target:dragged])
+
+(
+[action Player][ HankyPull:up ] ->    [action Player][ HankyPull:down ]
+[action Player][ HankyPull:down ] ->  [action Player][ HankyPull:up ]
+[action Player][ HankyPull:right ] -> [action Player][ HankyPull:left ]
+[action Player][ HankyPull:left ] ->  [action Player][ HankyPull:right ]
+)
+
+
+
+
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+
+#########
+##*###"##
+##:###!##
+##.###!##
+##.###!##
+##p###~##
+##&###?##
+#########
+
+###########
+##*####"FG#
+##:.###zmy#
+##..###!k~#
+##....#!i?#
+##.p..#!i##
+##..&##LJ##
+###########
+
+###########
+#####"θ####
+#*&##!ΛΠ###
+#:p.#LψμΠ##
+#....#LGΞΠ#
+##....#LGi#
+###...##ΣΦ#
+####..#####
+###########
+
+###*###"#####
+#..:..#!ρχρG#
+#...p.#!aba!#
+#.....#!aba!#
+#.....#!aba~#
+#..&..#ζηζη?#
+#############
+
+###*###"#####
+#..:..#!δεFG#
+#...p.#!mzi!#
+#.....#!kyi!#
+#.....#!izm~#
+#..&..#LJΣγ?#
+#############
+
+##################
+##....##*#"FG#####
+#.......:#!h!FG###
+#..#.p#..#!k!i!FG#
+##....#..#!m!i!i!#
+###......#!hLJLJ~#
+########&#LJ####?#
+##################
+
+#####*##"#####
+##...:.#!##FG#
+##..p..#!FGmz#
+###.####bibi!#
+#.....##!i!iy#
+#.....##!i!k~#
+#.....##bibi?#
+#.....##LJLJ##
+#####&########
+
+
+###########
+#######*###
+#######:###
+###"###.###
+###!###.###
+###!###.###
+###'###.###
+#######p###
+#######&###
+###########
+
+###########
+#"##..#####
+#!##..#*###
+#b#&...:..#
+#!##......#
+#!##...p..#
+#'##......#
+####......#
+###########
+
+#############
+###....#....#
+###.*..#..&.#
+#"#.:..#....#
+#!#....#....#
+#z#..p......#
+#'#.........#
+###...#.....#
+#######.....#
+#############
+
+
+###########
+#"#*.....##
+#z#:.....##
+#y#.......#
+#z#.......#
+#!#...p...#
+#!#.......#
+#'#......&#
+###########
+
+##############
+#"##*######&##
+#!##:.......##
+#b##........##
+#b##..p.....##
+#b##........##
+#b##........##
+#!##........##
+#'############
+##############
+
+##############
+#"##*#########
+#!##:.......##
+#b##........##
+#b##..p.....##
+#b##........##
+#b##........##
+#!##........##
+#'##&#########
+##############
+
+#"############
+#b##*#########
+#b##:.......&#
+#b##........##
+#b##..p.....##
+#!##........##
+#!##........##
+#!##........##
+#!#########И##
+#'############
+
+
+
+
+#########
+##*###"##
+##:###!##
+##.###!##
+##.###⓪##
+##.###~##
+##&###?##
+######### (one of these two...?)
+
+##########
+##."...#*#
+##.!fψ.#:#
+##.zk!.#.#
+##.zizθ#.#
+##.lγl③#.#
+##②...##.#
+########.#
+#&.......#
+##########
+
+#########"###
+#####*###ԱG##
+#####:###ԴԳ##
+#####..##LG##
+##.....##ԴԲ##
+##.##.&##LG##
+##....###ԴԲ##
+#########y###
+#########ԵԶ##
+
+##############
+###########&##
+#"fg.θ#.....*#
+#!m⓪f③#.###.:#
+#!kyk##.###.##
+#zk!i##.###.##
+#lφσj##.###.##
+#######.....##
+##############
+
+
+########"###
+##*#####ԱԷG#
+##:##&#ԹԺԻ!#
+#.....#ΞΠx!#
+#.....##i~!#
+##....##i?!#
+##....##ΞԸԲ#
+############
+
+####"##*####
+###.!##:..##
+###②z##...##
+###.!##...##
+###.z##...##
+###.!##...##
+###.z##...##
+###.!##...##
+####'##&####
+
+##############################
+###########㉒⑲⑧⑲⑧π#####⑪⑧⑧⑧π###
+#⑪⑲⑲⑧⑧⑫⑲⑧⑲⑧⑭####ξ⑲⑧⑧⑧⑫⑨###㉔㉓"#
+#y###########..############ξ⑨#
+#z##...#.......###..##...&####
+#!#*.p.....##.......##...#####
+#!#:...#...#........##...##θ##
+#z##...#...#...##........##⑤##
+#z###############...#######i##
+#l⑬⑩g####δ⑩⑳⑳⑳⑩ψ#####f⑳⑳⑩⑩⑳j##
+####σ⑩⑩⑩⑳γ#####l⑳⑩⑩⑳⑬γ########
+##############################
+
+
+(
+#########
+####あ####
+####い####
+####い####
+####い####
+####い####
+####う####
+######### (old ending, maybe should still keep?)
+)

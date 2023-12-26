@@ -56,6 +56,13 @@ var games_gallery = [
     "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
   },
   {
+    "url": "play.html?demo=patt/bouncers",
+    "thumb": "patt_bouncers.gif",
+    "title": "Bouncers",
+    "author": "Tyler Glaiel",
+    "homepage": "twitter.com/tylerglaiel"
+  },
+  {
     "url": "play.html?demo=patt/tubetransport",
     "thumb": "patt_tubetransport.gif",
     "title": "Tube Transport",

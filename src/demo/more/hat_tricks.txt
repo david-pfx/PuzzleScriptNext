@@ -1,0 +1,536 @@
+title Hat tricks
+author Andrea Gilbert
+background_color grey
+homepage https://clickmazes.itch.io
+sprite_size 9x9
+run_rules_on_level_start
+again_interval 0.1
+
+========
+TAGS
+========
+
+AX = A1 A2 A3 A4 A5
+
+========
+OBJECTS
+========
+
+Background
+grey
+
+Wall 
+darkgrey
+
+n1
+black 
+.0.......
+translate:up:1 
+
+n2
+black 
+.0.0.....
+translate:up:1 
+
+n3
+black 
+.0.0.0...
+translate:up:1 
+
+n4
+black 
+.0.0.0.0.
+translate:up:1 
+
+dots
+lightgrey
+.0.0.0.0.
+translate:up:1 
+
+stick:directions
+black white
+.........
+....1....
+....0....
+....0....
+....0....
+....0....
+....0....
+....0....
+....0....
+rot:up:>
+
+stub:directions
+black
+....0....
+....0....
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+rot:up:>
+
+open:directions
+black #333 #444 grey
+.........
+.2100000.
+..21000..
+.........
+..21.00..
+..21000..
+..21000..
+..21000..
+333333333
+rot:up:>
+
+pair:AX
+red red pink black
+..00000..
+..01210..
+..02320..
+..01210..
+..00000..
+.........
+.........
+
+pair:A2
+green green green lightgreen
+
+pair:A3
+orange lightbrown lightbrown black
+
+pair:A4
+purple purple blue blue
+
+pair:A5
+lightblue pink lightblue black
+
+exit
+#EEE #EEE #EEE black
+copy: pair:A1
+
+m1 (entry hat)
+white
+....0....
+.........
+.........
+.........
+.........
+
+m2 (exit hat)
+white
+copy: m1
+
+topmark (edit mode)
+black
+...000...
+...0.0...
+...000...
+.........
+.........
+.........
+
+basemark (edit mode)
+black
+....0....
+...000...
+....0....
+.........
+.........
+.........
+
+dust
+lightgray
+.........
+...0.0...
+....0....
+...0.0...
+.........
+.........
+.........
+
+finale1
+yellow white transparent
+.........
+.2..2..2.
+..1.1.1..
+...0.0...
+.21.0.12.
+...0.0...
+..1.1.1..
+.2..2..2.
+.........
+
+finale2
+orange yellow white
+copy: finale1
+
+finale3
+brown orange yellow
+copy: finale1
+
+finale4
+transparent
+
+hX 
+transparent
+
+event
+transparent
+
+bump
+transparent
+
+moved
+transparent
+
+stop (debug only)
+transparent
+
+=======
+LEGEND
+=======
+
+. = background
+x = wall
+y = wall and event
+z = wall and topmark
+w = wall and basemark
+? = stick:up
+- = stick:left
+* = topmark
++ = basemark
+
+a = hX and pair:A1
+b = hX and pair:A2
+c = hX and pair:A3
+d = hX and pair:A4
+e = hX and pair:A5
+! = hX and exit
+
+1 = n1
+2 = n2
+3 = n3
+4 = n4
+
+hat  = open:directions
+wand = stick:directions
+mX   = m1 or m2
+color = exit or pair:AX
+prop  = color or mX 
+obstacle = wall or hat
+object   = hat or wand 
+init = topmark or basemark
+misc = bump or dust
+finale = finale1 or finale2 or finale3 or finale4
+level  = n1 or n2 or n3 or n4 
+
+player = wand (two parts)
+
+=======
+SOUNDS
+=======
+
+sfx0 88856300 (transition)
+sfx1 61913203 (collision)
+sfx2 88662304 (cancel)
+sfx3 35598103 (win)
+
+================
+COLLISIONLAYERS
+================
+
+Background
+moved
+event, stub:directions
+Player, wall
+init, color
+hat, hx 
+bump, dust, finale, dots
+level
+mX
+stop
+
+======
+RULES     
+======  
+vertical   [ > stick:horizontal | hat ] -> [ > stick:horizontal | > hat ]
+(init)
+right [ level no wall | | | ] -> [ level dots wall | dots wall | dots wall | dots wall ]
+right down [init] [ stick:< | no stick:> ] -> [init] [ stick:< | stick:> ]
+directions [ hX | basemark ] -> [ open:> | basemark ]
+directions [ hX | topmark ]  -> [ open:< | topmark ]
+directions [ hX | wall ]     -> [ open:< | wall ]
+directions [ hX | hat ]      -> [ open:< | hat ]
+[init] -> []
+
+(fast forward)
+([action Player][event] -> [][event finale1] sfx3)
+
+[ dust ] -> []
+[ stub:directions ] -> []
+[ > wand | wall ] -> cancel sfx2 (safe/required)
+
+(move wand-section from m1 to m2 - early check)
+AX [ pair:AX m1 wand ] [ pair:AX m2 no wand open:> ] -> [ pair:AX m1 ] [ pair:AX m2 stick:> open:> moved ]
+
+(get objects moving)
+[ stationary stick:< no hat | m1 ] -> [ | stick:< m1 moved ] 
+[ stationary wand no moved open:> m2 ] -> [ > wand open:> m2 ]
+[ > wand open:> | stationary wand ] -> [ > wand open:> | > wand ]
+AX [ > wand pair:AX m1 ] [ > wand pair:AX m2 open:> ] -> [ wand pair:AX m1 ] [ > wand pair:AX m2 open:> ]
+(wand pushes hat)
+vertical   [ > stick:horizontal | hat ] -> [ > stick:horizontal | > hat ]
+horizontal [ > stick:vertical   | hat ] -> [ > stick:vertical   | > hat ]
+[ > wand | hat no open:< ]   -> [ > wand | > hat ]
+[ > hat  | stationary hat ]  -> [ > hat  | > hat ] (row of hats)
+
+(=== COLLISION ===)
+(check for forward collision during a hat-trick)
+[m1][ event ] [ > object | wall ] -> [m1][ event bump ] [ object | wall dust ] 
+[m1][ event bump ] [ > object ]   -> [m1][ event bump ] [ object ] (cancel all movement)
+[ > object | wall ] -> cancel sfx2 (safe/required)
+(try pushing exit hat backwards)
+[m1][ event bump ] [ stationary wand open:> m2 ] -> [m1][ event ] [ wand < open:> m2 ]
+[m1][ > hat | stationary hat ] -> [m1][ > hat | > hat ]
+(check again for collision)
+[m1][ event ] [ > object | wall ] -> [m1][ event bump ] [ object | wall dust ] 
+[m1][ event bump ] [ > object ]   -> [m1][ event bump ] [ object ] (cancel all movement)
+(== UNRESOLVED COLLISION ==)
+(reverse the hat-trick)
+[event bump][m1][m2] -> [event][m2][m1] sfx1 
+
+(hat properties must move with a hat)
+[ > hat stationary prop ] -> [ > hat > prop ]
+(a hat may also drag a wand-section)
+[ > open:> wand ] -> [ > open:> > wand ]
+[ > open:^ wand ] -> [ > open:^ > wand ]
+[ > open:v wand ] -> [ > open:v > wand ]
+
+(=== engine applies movement ===)
+
+[moved] -> []
+
+(move wand-section from m1 to m2 - late check)
+late AX [ pair:AX m1 wand ] [ pair:AX m2 no wand open:> ] -> [ pair:AX m1 ] [ pair:AX m2 stick:> open:> ]
+(correctly orientate emerging wand)
+late [ stick:> | stick:> no hat ] -> [ stick:< | stick:> ] 
+late [ stick:> open:> | stick:> open:< ] -> [ stick:< open:> | stick:> open:< ] 
+(detect wand has entered new hat)
+late AX [ pair:AX wand no mX ] [ pair:AX no wand no mX ] -> [ pair:AX wand m1 ] [ pair:AX m2 ]
+(clean up after a hat-trick)
+late AX [ pair:AX no wand m1 ] [ pair:AX no wand m2 ] -> [ pair:AX ] [ pair:AX ]
+late [ wand no hat | wand no hat ][misc] -> [ wand | wand ][]
+(fix visual glitch)
+late [ stick:< no hat | no stick:> ] -> [ stick:< | stub:< ]
+
+late [ event no stop ][ m1 hat ] -> again sfx0
+
+late [ finale3 ] -> [ finale4 ]
+late [ finale2 ] -> [ finale3 ] again 
+late [ finale1 ] -> [ finale2 ] again 
+late [ wand hat exit | wand ]  -> [ finale1 | ] again sfx3
+
+==============
+WINCONDITIONS
+==============
+
+some finale4
+
+=======     
+LEVELS
+=======
+
+yzxxxxxxxx (1)
+x!.zb.xc.x
+x.+x.c*+ax
+x.b...x+.x
+x-.x..xa.x
+xxxxxx1xxx
+
+yxxzxzxx (2)
+x..a.b.x
+x..x+abz
+x..x...x
+x!w?...x
+x....xxx
+xxxx2xxx
+
+yxwzxxx (3)
+xxdd..x
+x.aaw!x
+x.+.?.x
+x....xx
+x...xxx
+x...xxx
+xxx4xxx
+
+yxxxxxxx (4)
+x?.x...x
+x..z!.bz
+x.....bx
+xx....*x
+x..cw.xx
+x...c.xx
+xxxx3xxx
+
+yxzzxxx (5)
+x.bc.+x
+x.xx.!x
+x...*+x
+x...bcx
+za..?xx
+x.a..xx
+xxz41xx
+
+yzxwxxxx (6)
+xc.a...x
+x?.b!wcz
+x..*...x
+x..xx..x
+xab....x
+xzzx42xx
+
+yxxxxxxx (7)
+xxa..axx
+x.+..+.x
+xc+dx.bz
+x!+x?.cz
+x..+...x
+xx.db.xx
+xxxx43xx
+
+yxxxxxxx (8)
+z!*b.-.x
+xx..c*xx
+x.*a...x
+x...b*.x
+xx*c..xx
+x...a*.x
+xxxx44xx
+
+yxxxxxx (9)
+x*x.x.x
+xb....x
+zb..azx
+x-.xa.x
+xx..+xx
+x*cc.!z
+x.x*xxx
+xxx441x
+
+yxxxxxx (10)
+xxx.-.x
+x..c+.x
+x..c*.x
+x...xxx
+x.+axxx
+xxxa*.x
+z!..xxx
+xxx442x
+
+yxxxxxxx (11)
+x+!zd.*x
+x..c*.ax
+x.....xx
+z......x
+xac**dbz
+x.b.x-.x
+xxxx443x
+
+yxxxxxxx (12)
+x..-...x
+x+!x...x
+x.*aa*.x
+xx.....x
+x.....xx
+x.....xx
+xxxx444x
+
+yxxxxxxx (13)
+x.*....x
+x.cc*..x
+x.bb*.xx
+x.wx...x
+x.?!..ax
+x..w.a.x
+xxxx4441
+
+yxxxxxxxx (14)
+xxx***xxx
+x+cbda!+x
+x..dab..x
+x...c..?x
+x...+...x
+xxxxx4442
+
+yxxxxxxx (15)
+x......x
+x*a....x
+x.x...xx
+x..a.b.x
+x..*x+bx
+x.x.?..x
+x.*!..xx
+xxxx4443
+
+yxxxxxxxxxxxx (16)
+xx..a...xx..x
+xxd...w!....x
+xx..w...a**.x
+xxb+...xxcdxx
+x-.b....+c.xx
+xxxxxxxxx4444
+
+Message Thank you for playing! :)
+
+(unit tests)
+
+(yxxxxxxx
+x.*b.-.x
+x!..c*.x
+x.*ca*.x
+x.*ad*.x
+x.*db*.x
+x......x
+xxxx1234
+
+yxxxxxxxxx
+x......e.x
+x..xa.-.ex
+x...a....x
+x...*....x
+x.....x..x
+x*cd*.b..x
+x..x..bx.x
+x.......!x
+x.dc..x..x
+xxxxxxxxxx
+
+yxxxxxxxxx
+x...*....x
+x.?.e.xa*x
+x........x
+x+.......x
+xabcd..*bx
+x.***....x
+x........x
+x*d..xe*cx
+x.....*..x
+x..!.....x
+xxxxxxxxxx
+
+yxxxxxxxxx
+x..xa.*.xx
+xa..+.c..x
+x.......bx
+x*....c.bx
+x!.*.?+.*x
+x..e....xx
+x..e.....x
+x...*dd..x
+x........x
+xxxxxxxxxx)

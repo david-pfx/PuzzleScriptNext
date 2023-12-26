@@ -1,0 +1,838 @@
+(Copyright (c) 2022 MisshapenSmiley. All rights reserved.)
+
+(For Pattern:Script --------------------------------------------)
+(https://clementsparrow.github.io/Pattern-Script/src/editor.html)
+
+title You Make a Mean Move Counter
+author MisshapenSmiley
+homepage stickmanland.com
+
+background_color #230663
+text_color #f2c1df
+author_color #feffff
+keyhint_color #e070b2
+
+sprite_size 10x10
+
+=====
+TAGS
+=====
+
+Int = I0 I1 I2 I3 I4 I5 I6 I7 I8 I9
+Bool = BT BF
+CType = Auto Man
+
+Msg = M0 M1 M2 M3 M4 M5 M6 M7 M8
+
+=========
+MAPPINGS
+=========
+
+Int => IntUp
+I0 I1 I2 I3 I4 I5 I6 I7 I8 I9 -> I1 I2 I3 I4 I5 I6 I7 I8 I9 I0
+
+========
+OBJECTS
+========
+
+Player
+#1e4a9d #e8d0aa #699efc 
+..........
+...0000...
+...1111...
+...1111...
+.22222222.
+...2222...
+...0000...
+...0..0...
+...0..0...
+..........
+
+Counter:I0:Auto
+#feffff 
+..........
+...0000...
+..000000..
+..00..00..
+..00..00..
+..00..00..
+..00..00..
+..000000..
+...0000...
+..........
+
+Counter:I1:Auto
+#feffff 
+..........
+..0000....
+..0000....
+....00....
+....00....
+....00....
+....00....
+..000000..
+..000000..
+..........
+
+Counter:I2:Auto
+#feffff 
+..........
+..00000...
+..000000..
+......00..
+.....000..
+....000...
+...000....
+..000000..
+..000000..
+..........
+
+Counter:I3:Auto
+#feffff 
+..........
+..00000...
+..000000..
+......00..
+....0000..
+....000...
+......00..
+..000000..
+..00000...
+..........
+
+Counter:I4:Auto
+#feffff 
+..........
+..00..00..
+..00..00..
+..00..00..
+..000000..
+...00000..
+......00..
+......00..
+......00..
+..........
+
+Counter:I5:Auto
+#feffff 
+..........
+..000000..
+..000000..
+..00......
+..00000...
+..000000..
+......00..
+..000000..
+..00000...
+..........
+
+Counter:I6:Auto
+#feffff 
+..........
+...00000..
+..000000..
+..00......
+..00000...
+..000000..
+..00..00..
+..000000..
+...0000...
+..........
+
+Counter:I7:Auto
+#feffff 
+..........
+..000000..
+..000000..
+......00..
+...0000...
+...000....
+....00....
+....00....
+....00....
+..........
+
+Counter:I8:Auto
+#feffff 
+..........
+...0000...
+..000000..
+..00..00..
+..000000..
+...0000...
+..00..00..
+..000000..
+...0000...
+..........
+
+Counter:I9:Auto
+#feffff 
+..........
+...0000...
+..000000..
+..00..00..
+..000000..
+...00000..
+......00..
+..000000..
+..00000...
+..........
+
+Background
+#230663 
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+0000000000
+
+Wall
+#f2c1df #e070b2 #84235c 
+0000011112
+0111122222
+0111122222
+0111122222
+0111122222
+1222211111
+1222211111
+1222211111
+1222211111
+2222211111
+
+Pin:Msg
+#ddc4ff #ae76ff #5828b8 
+.01111112.
+..222222..
+..011112..
+..011112..
+..011112..
+.01111112.
+....00....
+....00....
+....10....
+....10....
+
+Counter:I0:Man
+#bed6fd 
+..........
+...0000...
+..000000..
+..00..00..
+..00..00..
+..00..00..
+..00..00..
+..000000..
+...0000...
+..........
+
+Counter:I1:Man
+#bed6fd 
+..........
+..0000....
+..0000....
+....00....
+....00....
+....00....
+....00....
+..000000..
+..000000..
+..........
+
+Counter:I2:Man
+#bed6fd 
+..........
+..00000...
+..000000..
+......00..
+.....000..
+....000...
+...000....
+..000000..
+..000000..
+..........
+
+Counter:I3:Man
+#bed6fd 
+..........
+..00000...
+..000000..
+......00..
+....0000..
+....000...
+......00..
+..000000..
+..00000...
+..........
+
+Counter:I4:Man
+#bed6fd 
+..........
+..00..00..
+..00..00..
+..00..00..
+..000000..
+...00000..
+......00..
+......00..
+......00..
+..........
+
+Counter:I5:Man
+#bed6fd 
+..........
+..000000..
+..000000..
+..00......
+..00000...
+..000000..
+......00..
+..000000..
+..00000...
+..........
+
+Counter:I6:Man
+#bed6fd 
+..........
+...00000..
+..000000..
+..00......
+..00000...
+..000000..
+..00..00..
+..000000..
+...0000...
+..........
+
+Counter:I7:Man
+#bed6fd 
+..........
+..000000..
+..000000..
+......00..
+...0000...
+...000....
+....00....
+....00....
+....00....
+..........
+
+Counter:I8:Man
+#bed6fd 
+..........
+...0000...
+..000000..
+..00..00..
+..000000..
+...0000...
+..00..00..
+..000000..
+...0000...
+..........
+
+Counter:I9:Man
+#bed6fd 
+..........
+...0000...
+..000000..
+..00..00..
+..000000..
+...00000..
+......00..
+..000000..
+..00000...
+..........
+
+PlayerSlot
+#000000 #3c3c3c 
+...0000...
+..011110..
+..011110..
+.00111100.
+0111111110
+.00111100.
+..011110..
+..010010..
+..010010..
+...0000...
+
+CounterSlot:I0
+#000000 #3c3c3c 
+...0000...
+..011110..
+.01111110.
+.01100110.
+.01100110.
+.01100110.
+.01100110.
+.01111110.
+..011110..
+...0000...
+
+CounterSlot:I1
+#000000 #3c3c3c 
+..0000....
+.011110...
+.011110...
+..00110...
+...0110...
+...0110...
+..001100..
+.01111110.
+.01111110.
+..000000..
+
+CounterSlot:I2
+#000000 #3c3c3c 
+..00000...
+.0111110..
+.01111110.
+..0000110.
+....01110.
+...01110..
+..011100..
+.01111110.
+.01111110.
+..000000..
+
+CounterSlot:I3
+#000000 #3c3c3c 
+..00000...
+.0111110..
+.01111110.
+..0000110.
+...011110.
+...01110..
+..0000110.
+.01111110.
+.0111110..
+..00000...
+
+CounterSlot:I4
+#000000 #3c3c3c 
+..00..00..
+.01100110.
+.01100110.
+.01100110.
+.01111110.
+..0111110.
+...000110.
+.....0110.
+.....0110.
+......00..
+
+CounterSlot:I5
+#000000 #3c3c3c 
+..000000..
+.01111110.
+.01111110.
+.0110000..
+.0111110..
+.01111110.
+..0000110.
+.01111110.
+.0111110..
+..00000...
+
+CounterSlot:I6
+#000000 #3c3c3c 
+...00000..
+..0111110.
+.01111110.
+.0110000..
+.0111110..
+.01111110.
+.01100110.
+.01111110.
+..011110..
+...0000...
+
+CounterSlot:I7
+#000000 #3c3c3c 
+..000000..
+.01111110.
+.01111110.
+..0000110.
+..011110..
+..01110...
+...0110...
+...0110...
+...0110...
+....00....
+
+CounterSlot:I8
+#000000 #3c3c3c 
+...0000...
+..011110..
+.01111110.
+.01100110.
+.01111110.
+..011110..
+.01100110.
+.01111110.
+..011110..
+...0000...
+
+CounterSlot:I9
+#000000 #3c3c3c 
+...0000...
+..011110..
+.01111110.
+.01100110.
+.01111110.
+..0111110.
+..0000110.
+.01111110.
+.0111110..
+..00000...
+
+CounterStat:BT
+#63c446 
+..........
+......00..
+......00..
+......00..
+..00..00..
+..000.00..
+...0000...
+....000...
+.....00...
+..........
+
+CounterStat:BF
+#de7c70 
+..........
+..00..00..
+..000000..
+...0000...
+....00....
+....00....
+...0000...
+..000000..
+..00..00..
+..........
+
+CounterStatSlot:BT
+#002f00 #1a6b05 
+......00..
+.....0110.
+.....0110.
+..00.0110.
+.01100110.
+.01110110.
+..011110..
+...01110..
+....0110..
+.....00...
+
+CounterStatSlot:BF
+#3f0904 #822e24 
+..00..00..
+.01100110.
+.01111110.
+..011110..
+...0110...
+...0110...
+..011110..
+.01111110.
+.01100110.
+..00..00..
+
+Chat:Msg
+#ae76ff #ddc4ff #5828b8 
+..........
+.00000000.
+0000000000
+0010110100
+0020220200
+0000000000
+.00000000.
+.....000..
+......00..
+.......0..
+
+TempCountThis
+transparent
+
+TempCountedThis
+transparent
+
+TempReading:Msg
+transparent
+
+=======
+LEGEND
+=======
+
+(Tag groups)
+Counter     = Counter:Int:CType
+CounterSlot = CounterSlot:Int
+
+CounterStat     = CounterStat:Bool
+CounterStatSlot = CounterStatSlot:Bool
+
+Pin  = Pin:Msg
+Chat = Chat:Msg
+
+(Level icons)
+. = Background
+# = Wall
+O = Player
+P = PlayerSlot
+0 = Counter:I0:Auto
+1 = Counter:I1:Auto
+2 = Counter:I2:Auto
+3 = Counter:I3:Auto
+4 = Counter:I4:Auto
+5 = Counter:I5:Auto
+6 = Counter:I6:Auto
+7 = Counter:I7:Auto
+8 = Counter:I8:Auto
+9 = Counter:I9:Auto
+⁰ = Counter:I0:Man
+¹ = Counter:I1:Man
+² = Counter:I2:Man
+³ = Counter:I3:Man
+⁴ = Counter:I4:Man
+⁵ = Counter:I5:Man
+⁶ = Counter:I6:Man
+⁷ = Counter:I7:Man
+⁸ = Counter:I8:Man
+⁹ = Counter:I9:Man
+@ = CounterStat:BT and CounterStatSlot:BT
+a = CounterStat:BT
+Ô = CounterStatSlot:BT
+© = CounterStat:BF and CounterStatSlot:BF
+c = CounterStat:BF
+Ó = CounterStatSlot:BF
+ᴬ = CounterSlot:I0
+ᴭ = CounterSlot:I1
+ᴮ = CounterSlot:I2
+ᴯ = CounterSlot:I3
+ᴰ = CounterSlot:I4
+ᴱ = CounterSlot:I5
+ᴲ = CounterSlot:I6
+ᴳ = CounterSlot:I7
+ᴴ = CounterSlot:I8
+ᴵ = CounterSlot:I9
+─ = Pin:M0
+│ = Pin:M1
+┌ = Chat:M2
+┐ = Chat:M3
+└ = Chat:M4
+┘ = Chat:M5
+├ = Chat:M6
+┤ = Chat:M7
+┬ = Pin:M8
+(┴┼═║╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬)
+
+(General groups)
+Pushed =           Counter or CounterStat
+Pusher = Player or Counter or CounterStat
+
+Sign = Pin or Chat
+
+Temp = TempCountedThis or TempCountThis or TempReading:Msg
+
+=======
+SOUNDS
+=======
+
+Player move 79225107
+Counter create 5330107 (91383307)
+CounterStat:BF create 25930702
+
+endlevel 30325902
+
+sfx0 86326300
+
+================
+COLLISIONLAYERS
+================
+
+TempCountedThis
+TempCountThis
+Msg -> TempReading:Msg
+
+Background
+
+PlayerSlot CounterSlot CounterStatSlot
+Player Wall Counter CounterStat Sign
+
+======
+RULES
+======
+
+(Read signs)
+
+Msg [ > Player |  Pin:Msg ] -> [ > Player |  Pin:Msg TempReading:Msg ] sfx0
+Msg [ > Player | Chat:Msg ] -> [ > Player | Chat:Msg TempReading:Msg ] sfx0
+
+[ TempReading:M0 ] -> message WARNING: Move counters are strictly prohibited. Anyone in violation will be fined.
+[ TempReading:M1 ] -> message As a fellow Thinky Puzzle connoisseur, your job is to fill all the targets!
+[ TempReading:M2 ] -> message Today at 1:44 PM: What is this? I found a move counter near the entryway! Who is responsible?
+[ TempReading:M3 ] -> message Today at 1:45 PM: Could that have been the automatically increasing white numbers I left there?
+[ TempReading:M4 ] -> message Or the blue numbers that increase when I press "X" near them?
+[ TempReading:M5 ] -> message Today at 1:47 PM: Augh, that shade of blue is not so colorblind-friendly.
+[ TempReading:M6 ] -> message Today at 1:50 PM: There is but one game for which we allow the use of move counters.
+[ TempReading:M7 ] -> message And we cannot speak its name, for we have to keep this game family-friendly.
+[ TempReading:M8 ] -> message Now leaving Thinky Puzzle Co. We hope you had a pleasant visit!
+
+(Push things)
+
+[ > Pusher | Pushed ] -> [ > Pusher | > Pushed ]
+
+(Counting)
+
+(Find the counters to count)
+right [ Counter:Int:Auto | no Counter:Int:CType no CounterStat:Bool ] -> [ Counter:Int:Auto TempCountThis | ]
+[ action Player | Counter:Int:Man ] -> [ action Player | Counter:Int:Man TempCountThis ]
+
+(Count the counters)
+Int CType [ Counter:Int:CType TempCountThis ] -> [ Counter:IntUp:CType TempCountedThis ]
+
+(Count the next counters)
+right Int CType [ Counter:Int:CType no TempCountedThis | Counter:I0:CType TempCountedThis ] -> [ Counter:IntUp:CType TempCountedThis | Counter:I0:CType TempCountedThis ]
+right Int [ Counter:Int:Auto no TempCountedThis | Counter:I0:Man TempCountedThis ] -> [ Counter:IntUp:Auto TempCountedThis | Counter:I0:Man TempCountedThis ]
+right Int [ Counter:Int:Man no TempCountedThis | Counter:I0:Auto TempCountedThis ] -> [ Counter:IntUp:Man TempCountedThis | Counter:I0:Auto TempCountedThis ]
+
+(Change checks into crosses)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+(Sorry, these rules are hardcoded)
+late right [ Counter:I2:CType | Counter:I2:CType | CounterStat:BT ] [ Counter:I2:CType | Counter:I2:CType | no CounterStat:Bool ] -> [ Counter:I2:CType | Counter:I2:CType | CounterStat:BF ] [ Counter:I2:CType | Counter:I2:CType | ]
+
+late right [ Counter:I5:CType | Counter:I3:CType | CounterStat:BT ] [ Counter:I5:CType | Counter:I3:CType | no CounterStat:Bool ] -> [ Counter:I5:CType | Counter:I3:CType | CounterStat:BF ] [ Counter:I5:CType | Counter:I3:CType | ]
+
+late right [ Counter:I7:CType | Counter:I5:CType | CounterStat:BT ] [ Counter:I7:CType | Counter:I5:CType | no CounterStat:Bool ] -> [ Counter:I7:CType | Counter:I5:CType | CounterStat:BF ] [ Counter:I7:CType | Counter:I5:CType | ]
+
+late right Int [ Counter:Int:Man | CounterStat:BT ] [ Counter:Int:Auto | no Counter no CounterStat:Bool ] -> [ Counter:Int:Man | CounterStat:BF ] [ Counter:Int:Auto | ]
+
+late right Int [ no Counter | Counter:Int:Auto | CounterStat:BT ] [ Counter:I0:Man | Counter:I0:Man | Counter:Int:Man | no CounterStat:Bool ] -> [ | Counter:Int:Auto | CounterStat:BF ] [ Counter:I0:Man | Counter:I0:Man | Counter:Int:Man | ]
+late right Int [ no Counter | Counter:Int:Auto | CounterStat:BT ] [ no Counter | Counter:Int:Man | no Counter no CounterStat:Bool ] -> [ | Counter:Int:Auto | CounterStat:BF ] [ | Counter:Int:Man | ]
+late right Int CType [ no Counter | Counter:Int:CType | CounterStat:BT ] [ no Counter | Counter:Int:CType | no Counter no CounterStat:Bool ] -> [ | Counter:Int:CType | CounterStat:BF ] [ | Counter:Int:CType | ]
+
+late right [ Counter:I1:CType | Counter:I6:CType | CounterStat:BT ] [ Counter:I1:CType | Counter:I6:CType | no CounterStat:Bool ] -> [ Counter:I1:CType | Counter:I6:CType | CounterStat:BF ] [ Counter:I1:CType | Counter:I6:CType | ]
+
+(Cleanup)
+late [ Temp ] -> [ ]
+
+==============
+WINCONDITIONS
+==============
+
+all PlayerSlot on Player
+
+all CounterSlot:I0 on Counter:I0:CType
+all CounterSlot:I1 on Counter:I1:CType
+all CounterSlot:I2 on Counter:I2:CType
+all CounterSlot:I3 on Counter:I3:CType
+all CounterSlot:I4 on Counter:I4:CType
+all CounterSlot:I5 on Counter:I5:CType
+all CounterSlot:I6 on Counter:I6:CType
+all CounterSlot:I7 on Counter:I7:CType
+all CounterSlot:I8 on Counter:I8:CType
+all CounterSlot:I9 on Counter:I9:CType
+
+all CounterStatSlot:BT on CounterStat:BT
+all CounterStatSlot:BF on CounterStat:BF
+
+=======
+LEVELS
+=======
+
+message Welcome to Thinky Puzzle Co.! Please read the pins on your way in.
+
+############...#
+#000.#######.p.#
+############...#
+#022@#######...#
+############...#
+.......─...#...#
+...........#...#
+...........#...#
+...............#
+...............#
+.o.............#
+...............#
+
+################
+#053@######...##
+###########...##
+###########...##
+#######ᴱᴰ##...##
+##.│..........##
+##............##
+##.o..0..0....##
+##............##
+##............##
+##...###########
+################
+
+################
+################
+################
+###...........##
+###.....###...##
+###.7.0.###75a##
+###.....#####.##
+###.....###....#
+#.┌.....###.ó..#
+#.......########
+#.o.....########
+################
+
+################
+########.......#
+#..┐.└......p..#
+#..............#
+#..............#
+#..o.....ᴭᴮᴯᴰ..#
+#..............#
+#..............#
+#..⁰0⁰0........#
+#..............#
+#..............#
+################
+
+################
+#....┘.........#
+#..............#
+#....o.........#
+#..........#####
+#..........#####
+#..........#####
+#....1....⁰@####
+#.........######
+#............p.#
+#..............#
+################
+
+################
+#.....0aô#1@#2@#
+#....###########
+#.....#3@#4@#5@#
+##.##a##########
+#⁰¹⁰#.#6@#7@#8@#
+#.....#####.####
+#.....├.┤#9@#..#
+#..............#
+#..............#
+#.o............#
+################
+
+################
+#.o.#000.##.....
+#...#######.....
+#...#016a##.....
+#...#######.....
+#...#######.....
+#.....┬.........
+#...............
+#...............
+###########.....
+###########...p.
+###########.....

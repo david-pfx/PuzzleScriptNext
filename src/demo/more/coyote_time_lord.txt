@@ -1,0 +1,720 @@
+title Coyote Time Lord
+author Clement Sparrow                & Thibault Raffaillac
+homepage clement-sparrow.itch.io
+
+again_interval 0.15
+run_rules_on_level_start
+
+(
+author_color #c69f6c
+title_color red
+keyhint_color #a57940
+)
+
+title_color #e6c300
+author_color #4fbce3
+text_color #c69f6c
+keyhint_color #116f57
+
+========
+OBJECTS
+========
+
+(== STATIC ENVIRONMENT ==)
+
+Background
+#222
+(#1b1b1b)
+
+(
+Background
+#222 #1b1b1b
+11111
+01111
+11101
+11111
+10111
+)
+
+
+Wall
+transparent
+
+ExitDoor
+#4fbce3 #92d4ed #1f9ac7
+0000.
+0110.
+0110.
+0120.
+0110.
+
+Ladder
+#116f57 #21b176 #8eb73f
+..2..
+..0..
+.2.02
+...2.
+..0..
+(
+Ladder
+#703810
+0...0
+00000
+0...0
+00000
+0...0
+)
+
+BottomlessPit
+transparent
+
+
+(== ACTIVE OBJECTS ==)
+
+Player:right
+Yellow Orange White Blue
+.000.
+.011.
+22222
+.333.
+.3.3.
+
+Player:left
+yellow Orange White Blue
+copy: Player:right
+|
+
+Player:up
+yellow Orange White Blue
+.111.
+.000.
+22222
+.333.
+.3.3.
+
+Player:down
+yellow Orange White Blue
+.000.
+.000.
+22222
+.333.
+.3.3.
+
+Crate
+#c8981e #e6c300
+00000
+01110
+01110
+01110
+00000
+
+Bumper:directions
+#666 #888 #aaa #2857a7
+.....
+.0123
+.0123
+.0013
+.....
+rot:right:>
+
+
+
+(== ONE RING TO DELAY THEM ALL  ==)
+
+
+TAGS
+
+RingStates = off (4dirs) 8dirs
+
+MAPPINGS
+
+RingStates => NextRingState
+off (4dirs) 8dirs -> (4dirs) 8dirs off
+
+OBJECTS
+
+Ring:directions
+yellow #FF0
+.....
+10001
+0...0
+.....
+.....
+rot:up:>
+
+(for the diagonal immediately clockwise from the direction)
+RingDiags:directions
+yellow #FF0
+.....
+.....
+01...
+.01..
+..0..
+rot:up:>
+
+RingState:RingStates
+transparent
+
+
+
+(== DELAYS ==)
+
+TAGS
+
+Time = Now in1 in2 in3 in4
+
+MAPPINGS
+
+Time => Pass
+Now in1 in2 in3 in4 -> Now Now in1  in2 in3
+
+
+OBJECTS
+
+Counter:Now
+transparent
+
+Counter:in1
+#222
+.....
+.....
+..0..
+.....
+.....
+
+Counter:in2
+#222
+.....
+...0.
+.....
+.0...
+.....
+
+Counter:in3
+#222
+.....
+..0..
+.....
+.0.0.
+.....
+
+Counter:in4
+#222
+.....
+.0.0.
+.....
+.0.0.
+.....
+
+
+(== INVISIBLE STATES ==)
+
+Inertia:directions
+transparent
+
+DelayedInertia:directions
+transparent
+
+IsPlayerAction
+transparent
+
+FreeSpaceAbove
+transparent
+
+Climbing
+transparent
+
+DeadPlayer
+transparent
+
+
+(== POLISH ==)
+
+(- Vegetal Theme -)
+
+PlantFloor1
+#116f57 #21b176 #8eb73f
+00000
+11011
+11011
+10.01
+0...0
+
+PlantFloor2
+#116f57 #21b176 #8eb73f
+00000
+10111
+10111
+0.011
+...00
+
+PlantFloor3
+#116f57 #21b176 #8eb73f
+00000
+11111
+10011
+02201
+.00.0
+
+PlantWall:right
+#116f57 #21b176 #8eb73f
+...00
+.00.0
+....0
+..000
+....0
+
+PlantWall:left
+#116f57 #21b176 #8eb73f
+00...
+0....
+0.00.
+00...
+0....
+
+PlantWallLR
+#116f57 #21b176 #8eb73f
+00..0
+01000
+00210
+0.000
+0...0
+
+WallNoPlant
+#222 #1b1b1b
+11111
+01111
+11101
+11111
+10111
+
+
+(- Cave theme -)
+
+SlimeFloor1
+#d27985 #af1d49 #e72693
+00000
+11111
+11.1.
+1..1.
+...1.
+
+SlimeFloor2
+#d27985 #af1d49 #e72693
+00000
+11111
+1.11.
+..11.
+...1.
+
+SlimeFloor3
+#d27985 #af1d49 #e72693
+00000
+11111
+11.1.
+.1...
+.1...
+
+SlimeWall:right
+#d27985 #af1d49 #e72693
+...00
+...10
+....1
+....1
+.....
+
+SlimeWall:left
+#d27985 #af1d49 #e72693
+00...
+01...
+1....
+1....
+.....
+
+SlimeWallLR
+#d27985 #af1d49 #e72693
+00.00
+01.10
+1.111
+1...1
+.....
+
+CaveTheme
+transparent
+
+
+(- rock theme -)
+
+StoneFloor1
+#404040 #747474 #949494
+.110.
+12210
+0110.
+.00..
+.....
+
+StoneFloor2
+#404040 #747474 #949494
+.100.
+12110
+01021
+.0010
+...0.
+
+StoneFloor3
+#404040 #747474 #949494
+0110.
+12210
+1210.
+01021
+..010
+
+StoneFloor4
+#404040 #747474 #949494
+.1110
+12221
+01210
+.0100
+..00.
+
+
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall and WallNoPlant
+P = Player:right and RingState:off
+* = Crate
+O = ExitDoor
+H = Ladder
+8 = Ladder and Crate
+@ = Player:right and RingState:off and Ladder
+→ = Bumper:right
+← = Bumper:left
+↑ = Bumper:up
+↓ = Bumper:down
+┌ = Wall and WallNoPlant and PlantFloor2
+┬ = Wall and WallNoPlant and PlantFloor3
+┐ = Wall and WallNoPlant and PlantFloor1
+├ = Wall and WallNoPlant and PlantWall:right
+┤ = Wall and WallNoPlant and PlantWall:left
+┼ = Wall and WallNoPlant and PlantWallLR
+┍ = Wall and WallNoPlant and SlimeFloor2
+┯ = Wall and WallNoPlant and SlimeFloor3
+┑ = Wall and WallNoPlant and SlimeFloor1
+┝ = Wall and WallNoPlant and SlimeWall:right
+a = Wall and WallNoPlant and SlimeFloor2 and SlimeWall:right
+b = Wall and WallNoPlant and SlimeFloor3 and SlimeWall:right
+d = Wall and WallNoPlant and SlimeFloor1 and SlimeWall:right
+e = Wall and WallNoPlant and SlimeFloor2 and SlimeWall:left
+f = Wall and WallNoPlant and SlimeFloor3 and SlimeWall:left
+g = Wall and WallNoPlant and SlimeFloor1 and SlimeWall:left
+┿ = Wall and WallNoPlant and SlimeWall:left
+┥ = Wall and WallNoPlant and SlimeWallLR
+┮ = Wall and WallNoPlant and StoneFloor1
+┱ = Wall and WallNoPlant and StoneFloor2
+┲ = Wall and WallNoPlant and StoneFloor3
+┭ = Wall and WallNoPlant and StoneFloor4
+C = CaveTheme
+w = BottomlessPit
+
+Player = Player:directions or DeadPlayer
+Inertial = Player or Crate
+SolidGround = Player or Crate or Wall or Bumper:directions
+CrateProperty = Inertia:directions or DelayedInertia:directions or Counter:Time or RingState:RingStates or Climbing
+Ring = Ring:directions or RingDiags:directions
+
+PlantFloor = PlantFloor1 or PlantFloor2 or PlantFloor3
+
+=======
+SOUNDS
+=======
+
+SFX0 42844702 (bumpers)
+Climbing CREATE 84320905 (climb on crate)
+SFX1 66048503 (ring activation)
+SFX2 42452907 (crate falling)
+SFX3 36772507 (crate move)
+
+================
+COLLISIONLAYERS
+================
+
+Background
+WallNoPlant CaveTheme BottomlessPit
+horizontal -> PlantWall:horizontal SlimeWall:horizontal
+PlantFloor1 PlantFloor2 PlantFloor3 PlantWallLR SlimeFloor1 SlimeFloor2 SlimeFloor3 SlimeWallLR StoneFloor1 StoneFloor2 StoneFloor3 StoneFloor4
+ExitDoor Ladder
+SolidGround
+Ring:directions RingDiags:directions RingState:RingStates
+Counter:Time
+
+Inertia:directions
+DelayedInertia:directions
+IsPlayerAction
+FreeSpaceAbove
+Climbing
+
+======
+RULES
+======
+
+(
+(== POLISH ==)
+right [ Wall no PlantWall:right no SlimeWall:right no PlantWallLR | no Wall ] -> [ Wall PlantWall:right | ]
+left  [ Wall no PlantWall:left  no SlimeWall:left  no PlantWallLR | no Wall ] -> [ Wall PlantWall:left  | ]
+right [ Wall no PlantWall:right no SlimeWall:right no PlantFloor no PlantWallLR | PlantFloor ] -> [ Wall PlantWall:right | PlantFloor ]
+left  [ Wall no PlantWall:left  no SlimeWall:left  no PlantFloor no PlantWallLR | PlantFloor ] -> [ Wall PlantWall:left  | PlantFloor ]
+right [ PlantWall:left PlantWall:right no PlantFloor ] -> [ PlantWallLR ]
+[ CaveTheme ] [ PlantWall:right ] -> [ CaveTheme ] [ SlimeWall:right ]
+[ CaveTheme ] [ PlantWall:left  ] -> [ CaveTheme ] [ SlimeWall:left  ]
+[ CaveTheme ] [ PlantWallLR ] -> [ CaveTheme ] [ SlimeWallLR ]
+[ CaveTheme ] [ PlantFloor1 ] -> [ CaveTheme ] [ SlimeFloor1 ]
+[ CaveTheme ] [ PlantFloor2 ] -> [ CaveTheme ] [ SlimeFloor2 ]
+[ CaveTheme ] [ PlantFloor3 ] -> [ CaveTheme ] [ SlimeFloor3 ]
+)
+
+(== INPUTS ==)
+
+[ moving DeadPlayer ] -> cancel message ——————————————————————————————————    …That was a bottomless pit!    ——————————————————————————————————                                       You may want to undo with Z     or restart with R
+
+(Distinguish frames with player input from animation frames)
+[ moving Player ] -> [ moving Player IsPlayerAction ]
+late [ IsPlayerAction ] -> [ ]
+
+(Player faces the input direction)
+horizontal [ > Player:directions ] -> [ > Player:> ]
+vertical [ > Player:directions Ladder ] -> [ > Player:> Ladder ]
+vertical [ > Player:directions no Ladder ] -> [ stationary Player:> ]
+
+(if the player can move but has inertia it means it actually cannot move due to inertia so we remove it to avoid propagating it after the key-induced motion)
+[ > Player ] -> [ > Player no Inertia:directions ]
+
+(Alternate ring states)
+RingStates [ action Player RingState:RingStates ] -> [ Player RingState:NextRingState ] SFX1
+
+
+
+(== COUNTDOWNS FOR REACTION DELAYS ==)
+
+Time [ IsPlayerAction ] [ stationary Counter:Time ] -> [ IsPlayerAction ] [ action Counter:Pass ]
+
+
+(== FORCES ==)
+
+(player pushes crates - note: in all directions!)
+[ >  Player:> | Crate ] -> [ > Player:> | > Crate  ]
+
+(inertia)
+[ stationary Inertial Inertia:> ] -> [ > Inertial Inertia:> ]
+
+(free space above)
+up [ FreeSpaceAbove | SolidGround ] -> [ | SolidGround ]
+[ FreeSpaceAbove no SolidGround ] -> [ ]
+up [ SolidGround | no SolidGround ] -> [ SolidGround FreeSpaceAbove | ]
+
+startloop
+(Player can climb on things)
+horizontal [ > Player:> no Inertia:> FreeSpaceAbove | stationary SolidGround FreeSpaceAbove ] -> [ up Player:> Inertia:> Climbing FreeSpaceAbove | SolidGround FreeSpaceAbove ]
+late [ Climbing ] -> []
+
+(If an object cannot move, remove inertia)
+[ > Crate | stationary SolidGround ] -> [ stationary Crate no Inertia:> | SolidGround ] (TODO: play collision sound and animation)
+horizontal [ > Player no FreeSpaceAbove | stationary SolidGround ] -> [ stationary Player no Inertia:> | SolidGround ] (TODO: play collision sound and animation)
+horizontal [ > Player | stationary SolidGround no FreeSpaceAbove ] -> [ stationary Player no Inertia:> | SolidGround ] (TODO: play collision sound and animation)
+(Frontal collision)
+[ > Player Inertia:> | stationary SolidGround ] -> [ stationary Player no Inertia:> | SolidGround ] (TODO: play collision sound and animation)
+[ > Inertial | < Inertial ] -> [ stationary Inertial no Inertia:> | stationary Inertial no Inertia:< ] (TODO: play collision sound and animation)
+
+(Standing on something that moves)
+down [ stationary Inertial no Inertia:directions | SolidGround Inertia:left ] -> [ left Inertial Inertia:left | SolidGround Inertia:left ]
+down [ stationary Inertial no Inertia:directions | SolidGround Inertia:right ] -> [ right Inertial Inertia:right | SolidGround Inertia:right ]
+endloop
+
+(== MOVING ==)
+
+(first remove ring)
+[ Ring:directions ] -> [ ]
+[ RingDiags:directions ] -> [ ]
+
+(properties are moved with the inertial objects)
+startloop
+(move things out of level)
+[ down Inertial BottomlessPit CrateProperty ] -> [ down Inertial BottomlessPit ]
+[ down Inertial BottomlessPit ] -> [ BottomlessPit stationary DeadPlayer ]
+(player has the priority)
+[ > Player CrateProperty | no SolidGround ] -> [ > Player | CrateProperty ]
+[ > Player no CrateProperty | no SolidGround ] -> [ | Player ]
+(then other inertials)
+[ > Inertial CrateProperty | no SolidGround ] -> [ > Inertial | CrateProperty ]
+[ > Inertial no CrateProperty | no SolidGround ] -> [ | Inertial ] SFX3
+endloop
+
+
+(If an object cannot move anymore, remove inertia)
+[ > Inertial | SolidGround ] -> [ stationary Inertial no Inertia:> | SolidGround ] (TODO: play collision sound and animation)
+
+(Stop when landing on something)
+down [ Inertial Inertia:right | stationary SolidGround ] -> [ Inertial | SolidGround ]
+down [ Inertial Inertia:left  | stationary SolidGround ] -> [ Inertial | SolidGround ]
+
+(Player grabs ladder when thrown by a bumper)
+[ Player Inertia:> no Climbing Ladder ] -> [ Player Ladder ]
+
+(== RING ==)
+
+(Put back ring)
+([ RingState:4dirs | ] -> [ RingState:4dirs | stationary Ring:> ])
+[ RingState:8dirs | ] -> [ RingState:8dirs | action Ring:> ]
+[ action Ring:^ | ] -> [ stationary Ring:^ | RingDiags:^ ]
+
+
+(== DETECT DELAYABLE REACTIONS ==)
+
+(Gravity)
+down [ Player no Ladder no Inertia:directions BottomlessPit ] -> [ Player Inertia:down BottomlessPit ]
+down [ Player no Ladder no Inertia:directions | no SolidGround ] -> [ Player Inertia:down | ]
+down [ stationary Crate no Inertia:directions no Counter:Time no Ring | no SolidGround ] -> [ Crate Counter:Now DelayedInertia:down | ] SFX2
+down [ stationary Crate no Inertia:directions no Counter:Time Ring | no SolidGround ] -> [ Crate Counter:in4 Ring DelayedInertia:down | ] SFX2
+
+
+(Bumpers)
+[ Bumper:> | Inertial no Counter:Time no Ring ] -> [ Bumper:> | Inertial Counter:Now DelayedInertia:> ] SFX0
+[ Bumper:> | Inertial no Counter:Time Ring ] -> [ Bumper:> | Inertial Counter:in4 Ring DelayedInertia:> ] SFX0
+
+(Apply reaction)
+[ Inertial Counter:Now DelayedInertia:> ] -> [ Inertial Inertia:> ]
+
+
+(== ANIMATION ==)
+
+(animating immediately things that move)
+late [ Inertia:directions ] -> again
+
+
+==============
+WINCONDITIONS
+==============
+
+Some Player:directions on ExitDoor
+
+=======
+LEVELS
+=======
+
+(tut1 - Tutorial crates not falling)
+.............
+.............
+............o
+.......*..┐┬┌
+....*.┐┬┐..┤#
+p..┐┬┐┤├...┤#
+┌┬┐┤###├www┤#
+
+
+(throughladders1 - teaches the max number of delays and crates falling from ladders)
+..........
+..........
+...hhhh..o
+p.*hhhh..┐
+┌┬┐hhhh┐.┤
+##├hhhh┼┐┤
+##├wwww┤##
+
+
+(throughmoreladders - sort of the new tutorial for delaying a crate on your head)
+...........
+...........
+...hhhhh..o
+p.*hhhhh..┐
+┌┬┐hhhhh┐.┤
+##├hhhhh┼┐┤
+##├wwwww┤##
+
+
+(crateontheheadsimplified - simplified version from crateonthehead)
+.......
+.......
+.......
+p.*h..o
+┌┬┐h.┐┬
+##├h.┤#
+##├h.┤#
+##├┌┬┤#
+
+
+(climboncrates - a tutorial for using two crates next to each other to allow climbing on them)
+...........
+...........
+..*........
+p.*....h..o
+┬┌┬┐...h┐┬┐
+##├....h..┤
+##├.......┤
+##├┐┌┬┬┐┌┐┤
+
+
+(bridgebuilder)
+........
+........
+.h*.....
+.h┐.....
+ph*.h..o
+┬┌┬┐h.┐┬
+###├h.┤#
+###├h.┤#
+###├h.┤#
+###├h.┤#
+###├┌┐┤#
+
+
+(marioegg - an introduction to bumpers)
+.........
+.........
+.........
+p.*.....o
+┬┐→.....f
+#├┌┐...f┿
+###├...┿#
+###├www┿#
+(solution: rxxrxxrr or u or d for the last move)
+
+(jumpandpush - an introduction to the bumpers?)
+..↓.....
+....←..o
+...h...f
+p...*..┿
+┑┯┍↑┍┑┍┿
+########
+
+(hammereddown - using a delayed block to prevent us from being bumped)
+....↓.
+..→..o
+...h.g
+p.*..┿
+┑┍┯↑┍┿
+######
+(solution: rxrrdddrdddlur)
+
+(useyourheadandfeet)
+..↓.....
+......←.
+.h*....o
+..→...ga
+p....↑┿┝
+af┑┍┯a┥┍
+(solution: rrrrr lxrld rrrrr xrr)
+
+(delaytheloop - first level made with the bumpers. Plays on delayed events but is simple to bruteforce)
+┯┑┍┯┑┍┯┑
+.......←
+..→.....
+......↑.
+........
+p.*....o
+┑┍┯↑┑┍┯┑
+
+
+message -~==~- Thanks for playing!! -~==~-                                       Graphics, sound fx & music:            Thibault Raffaillac                                        Game design, levels & programming:          Clement Sparrow                                              Made with Pattern:Script.

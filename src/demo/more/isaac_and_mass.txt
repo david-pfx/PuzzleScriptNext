@@ -1,0 +1,2480 @@
+title Isaac and the Conservation of Mass
+author Menderbug
+homepage menderbug.itch.io
+
+background_color #313638
+text_color #8fd3ff
+title_color #fbff86
+author_color #fbff86
+
+game_uri https://menderbug.itch.io/isaac-and-the-conservation-of-mass
+
+run_rules_on_level_start
+
+show_level_title_in_menu
+
+=====
+TAGS
+=====
+
+U_ = up
+L_ = left
+R_ = right
+D_ = down
+
+Subtile = _BL _BR _TL _TR
+
+( There are only actual floor levels at 0 and 1, but tall jellies or stacked objects could be
+  on level higher )
+Floor = _0 _1 _2
+LowFloor = _0 _1
+HighFloor = _1 _2
+
+( Defining an abbreviation because this appears everywhere )
+_ = Floor
+
+LiftGroup = _1 _2 _3 _4 _5 _6
+
+( Abbreviating these since they appear in almost every rule and just bloat the code otherwise.
+ForwardPropagage ResolveMovement DetectCycles BlockCycles CleanupStep)
+LoopSection = FP RM DC BC CS
+
+directions1 = directions
+
+Step = _0 _1 _2 _3 _4 _5 _6 _7 _8
+
+Axes = right up
+
+=========
+MAPPINGS
+=========
+
+LowFloor => Higher
+_0 _1 -> _1 _2
+
+HighFloor => Lower
+_1 _2 -> _0 _1
+
+Subtile => HReflect
+_BL _BR _TL _TR -> _BR _BL _TR _TL
+
+Subtile => VReflect
+_BL _BR _TL _TR -> _TL _TR _BL _BR
+
+Subtile => LRot
+_BL _BR _TL _TR -> _BR _TR _BL _TL
+
+Subtile => RRot
+_BL _BR _TL _TR -> _TL _BL _TR _BR
+
+directions => LeftSubtile
+right up down left -> _TR _TL _BR _BL
+
+directions => RightSubtile
+right up down left -> _BR _TR _BL _TL
+
+========
+OBJECTS
+========
+
+Background
+#1a1518
+
+Floor:_0 
+#484a77
+
+Floor:_1
+#484a77 #323353 
+00000
+00000
+00000
+00000
+00000
+11111
+11111
+11111
+11111
+
+Wall Floor:_2
+#313638 #323353 
+00000
+00000
+00000
+00000
+00000
+11111
+11111
+11111
+11111
+11111
+11111
+11111
+11111
+
+FloorDeco:_0:_BL
+#4d65b4 
+....0
+.....
+.....
+.....
+.....
+
+FloorDeco:_0:_BR
+#4d65b4 
+copy: FloorDeco:_0:_BL rot:>:^
+
+FloorDeco:_0:_TL
+#4d65b4 
+copy: FloorDeco:_0:_BL rot:>:v
+
+FloorDeco:_0:_TR
+#4d65b4 
+copy: FloorDeco:_0:_BL rot:>:<
+
+FloorDeco:_1:Subtile
+#4d9be6
+copy: FloorDeco:_0:Subtile translate:up:4
+
+FloorDeco:_2:Subtile
+transparent
+
+FloorEdge:directions
+#4d9be6
+.....
+.....
+.....
+00000
+00000
+rot:down:> translate:up:4
+
+( Fixup for outer corners of higher floors. Direction corresponds to the clockwise edge leg. )
+FloorCorner:directions
+#4d9be6
+.....
+.....
+.....
+00...
+00...
+rot:left:> translate:up:4
+
+( Hides the front-facing walls in the bottom two rows of the grid )
+WallCover
+#313638
+00000
+00000
+00000
+00000
+00000
+00000
+00000
+00000
+00000
+00000
+00000
+
+WallEdgeDark:directions:Subtile
+transparent
+
+WallEdgeDark:down:_BL
+#374e4a
+.....
+0000.
+0000.
+.....
+.....
+translate:up:8
+
+WallEdgeDark:down:_BR
+#374e4a
+copy: WallEdgeDark:down:_BL |
+
+WallEdgeDark:up:_TL
+#374e4a
+.....
+.....
+0000.
+0000.
+.....
+translate:up:8
+
+WallEdgeDark:up:_TR
+#374e4a
+copy: WallEdgeDark:up:_TL |
+
+WallEdgeDark:left:_TL
+#374e4a
+..00.
+..00.
+..00.
+..00.
+.....
+translate:up:8
+
+WallEdgeDark:right:_TR
+#374e4a
+copy: WallEdgeDark:left:_TL |
+
+WallEdgeDark:left:_BL
+#374e4a
+.....
+..00.
+..00.
+..00.
+..00.
+translate:up:8
+
+WallEdgeDark:right:_BR
+#374e4a
+copy: WallEdgeDark:left:_BL |
+
+WallEdge:directions
+#0b8a8f
+.....
+.....
+.....
+00000
+00000
+rot:down:> translate:up:8
+
+( Fixup for outer corners of walls. Direction corresponds to the clockwise wall leg. )
+WallCorner:directions
+#0b8a8f #374e4a
+.....
+1111.
+1111.
+0011.
+0011.
+rot:left:> translate:up:8
+
+ToExit:right:_0:_TL
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+..112
+..112
+..112
+..112
+..112
+
+ToExit:right:_0:_TR
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+23344
+23344
+23344
+23344
+23344
+
+ToExit:right:_0:_BL
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+copy: ToExit:right:_0:_TL -
+
+ToExit:right:_0:_BR
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+copy: ToExit:right:_0:_TR -
+
+Exit:right:_0:_TL
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+44445
+44445
+44444
+44444
+44444
+
+Exit:right:_0:_TR
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+55555
+55555
+45555
+45555
+45555
+
+Exit:right:_0:_BL
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:right:_0:_TL -
+
+Exit:right:_0:_BR
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:right:_0:_TR -
+
+ToExit:left:_0:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+copy: ToExit:right:_0:HReflect |
+
+Exit:left:_0:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:right:_0:HReflect |
+
+ToExit:up:_0:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+copy: ToExit:right:_0:RRot rot:right:up
+
+Exit:up:_0:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:right:_0:RRot rot:right:up
+
+ToExit:down:_0:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+copy: ToExit:up:_0:VReflect -
+
+Exit:down:_0:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:up:_0:VReflect -
+
+ToExit:directions:_1:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff
+copy: ToExit:directions:_0:Subtile translate:up:4
+
+Exit:directions:_1:Subtile
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:directions:_0:Subtile translate:up:4
+
+Exit:down:_1:_BL
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+55444
+55555
+55555
+55555
+55555
+55555
+55555
+55555
+55555
+
+Exit:down:_1:_BR
+#484a77 #4d65b4 #4d9be6 #8fd3ff #ffffff #313638
+copy: Exit:down:_1:_BL |
+
+WallToExit:directions:Subtile
+transparent
+
+WallExit:directions:Subtile
+transparent
+
+WallToExit:right:_BL
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+33445
+33445
+33445
+33445
+33445
+33445
+33445
+33445
+
+WallToExit:right:_BR
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+56677
+56677
+56677
+56677
+56677
+56677
+56677
+56677
+
+WallExit:right:_BL
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+22222
+22222
+22222
+22222
+22222
+22222
+77222
+77222
+77222
+77222
+77222
+77222
+
+WallExit:right:_BR
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+
+WallExit:up:_BR
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+translate:up:8
+
+WallExit:up:_TR
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+22222
+22222
+22222
+22222
+22222
+22222
+22222
+translate:up:8
+
+WallExit:up:_BL
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+copy: WallExit:up:_BR |
+
+WallExit:up:_TL
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+copy: WallExit:up:_TR |
+
+WallExit:down:_BR
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+22222
+22222
+22222
+22222
+22222
+translate:up:8
+
+WallExit:down:_TR
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+22222
+22222
+22222
+22222
+22222
+translate:up:8
+
+WallExit:down:_BL
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+copy: WallExit:down:_BR |
+
+WallExit:down:_TL
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+copy: WallExit:down:_TR |
+
+WallToExit:left:Subtile
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+copy: WallToExit:right:HReflect |
+
+WallExit:left:Subtile
+#0b8a8f #374e4a #313638 #323353 #484a77 #4d65b4 #4d9be6 #8fd3ff 
+copy: WallExit:right:HReflect |
+
+Lift:_0 
+#6b3e75
+
+Lift:_1
+#6b3e75 #45293f 
+00000
+00000
+00000
+00000
+00000
+11111
+11111
+11111
+11111
+
+LiftDeco:_0:Subtile
+#905ea9 
+copy: FloorDeco:_0:Subtile
+
+LiftDeco:_1:Subtile
+#a884f3
+copy: FloorDeco:_1:Subtile
+
+LiftEdge:directions:_0
+#905ea9
+.....
+.....
+.....
+00000
+00000
+rot:down:>
+
+LiftEdge:directions:_1
+#a884f3
+.....
+.....
+.....
+00000
+00000
+rot:down:> translate:up:4
+
+( Fixup for inner corners of lifts. Direction corresponds to the clockwise edge leg. )
+LiftCorner:directions:_0
+#905ea9
+.....
+.....
+.....
+00...
+00...
+rot:left:>
+
+LiftCorner:directions:_1
+#a884f3
+.....
+.....
+.....
+00...
+00...
+rot:left:> translate:up:4
+
+Wire:left:_0:_BL
+#a24b6f 
+00000
+.....
+.....
+.....
+.....
+ 
+Wire:right:_0:_BL
+#a24b6f 
+....0
+.....
+.....
+.....
+.....
+
+Wire:down:_0:_BL
+#a24b6f 
+....0
+....0
+....0
+....0
+....0
+
+Wire:up:_0:_BL
+#a24b6f 
+copy: Wire:right:_0:_BL
+
+Wire:left:_0:_BR
+#a24b6f 
+0....
+.....
+.....
+.....
+.....
+
+Wire:up:_0:_BR
+#a24b6f 
+copy: Wire:left:_0:_BR
+
+Wire:right:_0:_BR
+#a24b6f 
+00000
+.....
+.....
+.....
+.....
+
+Wire:down:_0:_BR
+#a24b6f 
+0....
+0....
+0....
+0....
+0....
+
+Wire:right:_0:_TL
+#a24b6f 
+.....
+.....
+.....
+.....
+....0
+
+Wire:down:_0:_TL
+#a24b6f 
+copy: Wire:right:_0:_TL
+
+Wire:left:_0:_TL
+#a24b6f 
+.....
+.....
+.....
+.....
+00000
+
+Wire:up:_0:_TL
+#a24b6f 
+....0
+....0
+....0
+....0
+....0
+
+Wire:left:_0:_TR
+#a24b6f 
+.....
+.....
+.....
+.....
+0....
+
+Wire:down:_0:_TR
+#a24b6f 
+copy: Wire:left:_0:_TR
+
+Wire:right:_0:_TR
+#a24b6f 
+.....
+.....
+.....
+.....
+00000
+
+Wire:up:_0:_TR
+#a24b6f 
+0....
+0....
+0....
+0....
+0....
+
+Wire:directions:_1:Subtile
+#ed8099 
+copy: Wire:directions:_0:Subtile
+translate:up:4
+
+Wire:down:_1:_BL
+#ed8099 #753c54
+....0
+....0
+....0
+....0
+....0
+....1
+....1
+....1
+....1
+
+Wire:down:_1:_BR
+#ed8099 #753c54
+0....
+0....
+0....
+0....
+0....
+1....
+1....
+1....
+1....
+
+WireEdge:directions:Subtile
+transparent
+
+WireEdge:down:_BL
+#fca790
+.....
+.....
+.....
+....0
+....0
+translate:up:4
+
+WireEdge:down:_BR
+#fca790
+copy: WireEdge:down:_BL |
+
+WireEdge:up:_TL
+#fca790
+....0
+....0
+.....
+.....
+.....
+translate:up:4
+
+WireEdge:up:_TR
+#fca790
+copy: WireEdge:up:_TL |
+
+WireEdge:left:_TL
+#fca790
+.....
+.....
+.....
+.....
+00...
+translate:up:4
+
+WireEdge:left:_BL
+#fca790
+00...
+.....
+.....
+.....
+.....
+translate:up:4
+
+WireEdge:right:_TR
+#fca790
+copy: WireEdge:left:_TL |
+
+WireEdge:right:_BR
+#fca790
+copy: WireEdge:left:_BL |
+
+PlayerSprite:_0:_BL
+#2e222f #c7dcd0 #ffffff #323353 #fdcbb0 #7f708a #3e3546 
+11334
+11444
+11444
+..005
+..005
+..000
+..000
+translate:up:2
+
+PlayerSprite:_0:_BR
+#2e222f #c7dcd0 #ffffff #323353 #fdcbb0 #7f708a #3e3546 
+43311
+44411
+44411
+566..
+566..
+066..
+066..
+translate:up:2
+
+PlayerSprite:_0:_TL
+#2e222f #c7dcd0 #ffffff #323353 #fdcbb0 #7f708a #3e3546 
+..111
+..111
+11222
+11222
+11334
+translate:up:4
+
+PlayerSprite:_0:_TR
+#2e222f #c7dcd0 #ffffff #323353 #fdcbb0 #7f708a #3e3546 
+111..
+111..
+21111
+21111
+43311
+translate:up:4
+
+PlayerSprite:_1:Subtile
+#2e222f #c7dcd0 #ffffff #323353 #fdcbb0 #7f708a #3e3546 
+copy: PlayerSprite:_0:Subtile translate:up:4
+
+PlayerSprite:_2:Subtile
+#2e222f #c7dcd0 #ffffff #323353 #fdcbb0 #7f708a #3e3546 
+copy: PlayerSprite:_1:Subtile translate:up:4
+
+CrushedPlayerSprite:_0:_BL
+#484a77 #3e3546 #fdcbb0 #c7dcd0 #ffffff #2e222f 
+33333
+44333
+44333
+..444
+..444
+
+CrushedPlayerSprite:_0:_BR
+#484a77 #3e3546 #fdcbb0 #c7dcd0 #ffffff #2e222f 
+33333
+33333
+33333
+433..
+433..
+
+CrushedPlayerSprite:_0:_TL
+#484a77 #3e3546 #fdcbb0 #c7dcd0 #ffffff #2e222f 
+....551
+....551
+2233333
+2233333
+..33333
+
+CrushedPlayerSprite:_0:_TR
+#484a77 #3e3546 #fdcbb0 #c7dcd0 #ffffff #2e222f 
+111....
+111....
+3333322
+3333322
+33333..
+
+CrushedPlayerSprite:_1:Subtile
+#484a77 #3e3546 #fdcbb0 #c7dcd0 #ffffff #2e222f 
+copy: CrushedPlayerSprite:_0:Subtile translate:up:4
+
+CrushedPlayerSprite:_2:Subtile
+#484a77 #3e3546 #fdcbb0 #c7dcd0 #ffffff #2e222f 
+copy: CrushedPlayerSprite:_1:Subtile translate:up:4
+
+CrushedPlayerHandSpriteLeft:_0
+#fdcbb0
+.....
+.....
+...00
+...00
+.....
+
+CrushedPlayerHandSpriteLeft:_1
+#fdcbb0
+copy: CrushedPlayerHandSpriteLeft:_0 translate:up:4
+
+CrushedPlayerHandSpriteLeft:_2
+#fdcbb0
+copy: CrushedPlayerHandSpriteLeft:_1 translate:up:4
+
+CrushedPlayerHandSpriteRight:_
+#fdcbb0
+copy: CrushedPlayerHandSpriteLeft:_ |
+
+Jelly1x1Sprite:_0:_BL
+#d5e04b #a2a947 #fbff86 
+00111
+22221
+22221
+22220
+22220
+11111
+11111
+11111
+11111
+
+Jelly1x1Sprite:_0:_BR
+#d5e04b #a2a947 #fbff86 
+11100
+11100
+11100
+02200
+02200
+11111
+11111
+11111
+11111
+
+Jelly1x1Sprite:_0:_TL
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+00111
+00111
+00111
+translate:up:4
+
+Jelly1x1Sprite:_0:_TR
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+11100
+11100
+11100
+translate:up:4
+
+Jelly1x1Sprite:_1:Subtile
+#d5e04b #a2a947 #fbff86 
+copy: Jelly1x1Sprite:_0:Subtile translate:up:4
+
+Jelly1x1Sprite:_2:Subtile
+#d5e04b #a2a947 #fbff86 
+copy: Jelly1x1Sprite:_1:Subtile translate:up:4
+
+Jelly1x1TallSprite:_0:_BL
+#d5e04b #a2a947 #fbff86 
+00111
+22221
+22221
+22220
+22220
+11111
+11111
+11111
+11111
+11001
+11001
+11111
+11111
+
+Jelly1x1TallSprite:_0:_BR
+#d5e04b #a2a947 #fbff86 
+11100
+11100
+11100
+00000
+00000
+11111
+11111
+11111
+11111
+11111
+11111
+11111
+11111
+
+Jelly1x1TallSprite:_0:_TL
+#d5e04b #a2a947 #fbff86 
+22000
+22000
+22111
+22111
+00111
+translate:up:8
+
+Jelly1x1TallSprite:_0:_TR
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+11100
+11100
+11100
+translate:up:8
+
+Jelly1x1TallSprite:_1:Subtile
+#d5e04b #a2a947 #fbff86 
+copy: Jelly1x1TallSprite:_0:Subtile translate:up:4
+
+( This shouldn't happen )
+Jelly1x1TallSprite:_2:Subtile
+pink pink pink
+copy: Jelly1x1TallSprite:_1:Subtile translate:up:4
+
+( Direction indicates which side contains the other half )
+Jelly2x1Sprite:right:_0:_BL
+#d5e04b #a2a947 #fbff86 
+00111
+22221
+22221
+22220
+22220
+11111
+11111
+11111
+11111
+
+Jelly2x1Sprite:right:_0:_BR
+#d5e04b #a2a947 #fbff86 
+11111
+11111
+11111
+02200
+02200
+11111
+11111
+11111
+11111
+
+Jelly2x1Sprite:right:_0:_TL
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+00111
+00111
+00111
+translate:up:4
+
+Jelly2x1Sprite:right:_0:_TR
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+11111
+11111
+11111
+translate:up:4
+
+Jelly2x1Sprite:left:_0:_BL
+#d5e04b #a2a947 #fbff86 
+11111
+11111
+11111
+00002
+00002
+11111
+11111
+11111
+11111
+
+Jelly2x1Sprite:left:_0:_BR
+#d5e04b #a2a947 #fbff86 
+11100
+10000
+10000
+22200
+22200
+11111
+11111
+11111
+11111
+
+Jelly2x1Sprite:left:_0:_TL
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+11111
+11111
+11111
+translate:up:4
+
+Jelly2x1Sprite:left:_0:_TR
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+11100
+11100
+11100
+translate:up:4
+
+Jelly2x1Sprite:down:_0:_BL
+#d5e04b #a2a947 #fbff86 
+22111
+00111
+00111
+00111
+00111
+translate:up:4
+
+Jelly2x1Sprite:down:_0:_BR
+#d5e04b #a2a947 #fbff86 
+11100
+11100
+11100
+11100
+11100
+translate:up:4
+
+Jelly2x1Sprite:down:_0:_TL
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+22001
+22001
+22111
+translate:up:4
+
+Jelly2x1Sprite:down:_0:_TR
+#d5e04b #a2a947 #fbff86 
+00000
+00000
+11100
+11100
+11100
+translate:up:4
+
+Jelly2x1Sprite:up:_0:_BL
+#d5e04b #a2a947 #fbff86 
+00111
+22221
+22221
+22220
+22220
+11111
+11111
+11111
+11111
+
+Jelly2x1Sprite:up:_0:_BR
+#d5e04b #a2a947 #fbff86 
+11100
+11100
+11100
+02200
+02200
+11111
+11111
+11111
+11111
+
+Jelly2x1Sprite:up:_0:_TL
+#d5e04b #a2a947 #fbff86 
+00111
+00111
+00111
+00111
+00111
+translate:up:4
+
+Jelly2x1Sprite:up:_0:_TR
+#d5e04b #a2a947 #fbff86 
+11100
+11100
+11100
+11100
+11100
+translate:up:4
+
+Jelly2x1Sprite:directions:_1:Subtile
+#d5e04b #a2a947 #fbff86 
+copy: Jelly2x1Sprite:directions:_0:Subtile translate:up:4
+
+Jelly2x1Sprite:directions:_2:Subtile
+#d5e04b #a2a947 #fbff86 
+copy: Jelly2x1Sprite:directions:_1:Subtile translate:up:4
+
+_Connector:directions:_
+transparent
+(pink
+.....
+.....
+..000
+.....
+.....
+rot:right:>)
+
+_ConnectorHigh:_0
+transparent
+
+_ConnectorHigh:_1
+transparent
+
+( Shouldn't be used, exists for rule expansions )
+_ConnectorHigh:_2
+pink
+
+_Player:_
+transparent
+
+_Jelly1x1:_
+transparent
+
+_Jelly1x1TallLow:_
+transparent
+
+_Jelly1x1TallHigh:_
+transparent
+
+_Jelly2x1:left:_0 _Jelly2x1:right:_0
+transparent
+
+_Jelly2x1:left:_1 _Jelly2x1:right:_1
+transparent
+
+_Jelly2x1:left:_2 _Jelly2x1:right:_2
+transparent
+
+_Jelly2x1:up:_0 _Jelly2x1:down:_0
+transparent
+
+_Jelly2x1:up:_1 _Jelly2x1:down:_1
+transparent
+
+_Jelly2x1:up:_2 _Jelly2x1:down:_2
+transparent
+
+( Used to mark some cells during the 2x1 squishing process )
+_TempJelly:_
+transparent
+
+_Moving:directions:_
+pink
+
+_Blocked:directions:_
+pink
+
+_BlockedRaise:LowFloor
+pink
+
+_Squishing:_
+yellow
+
+_Processing:_
+green
+
+_Pending:_
+purple
+
+_PendingChecking:_
+black
+
+_PendingNoCycle:_
+grey
+
+_PendingCycle:_
+white
+
+_Processed:_
+blue
+
+_CheckMovement
+transparent
+
+_Falling:_
+transparent
+
+_Rising:_
+transparent
+
+_FallingMovingResolved:_
+transparent
+
+_MovementTarget:_
+pink
+
+_MovementConflict:_
+pink
+
+_Temp
+pink
+
+_Temp:_
+pink
+
+_Rerun
+pink
+
+_RerunDC
+pink
+
+_RunSecondStep
+pink
+
+_Vacated:_
+pink
+
+_Win
+transparent
+
+_LiftGroup:LiftGroup
+transparent
+
+_LiftProcessing
+transparent
+
+_LiftProcessed
+transparent
+
+_WeightLow:_
+transparent
+
+_WeightHigh:_
+transparent
+
+_PlayerWeight
+transparent
+
+_NoStepSound
+transparent
+
+_FirstTurn
+transparent
+
+_FirstTurnDone
+transparent
+
+( Abbreviating these since they appear in almost every rule and just bloat the code otherwise. )
+_LS:LoopSection
+transparent
+
+_KonamiCode:Step
+transparent
+
+_Subtile:Subtile
+transparent
+
+( We only need this to define empty properties below )
+__Nothing__
+transparent
+
+=======
+LEGEND
+=======
+
+. = Floor:_0
+* = Floor:_1
+# = Wall
+P = PlayerSprite:_0:_BL and Floor:_0
+ℙ = PlayerSprite:_1:_BL and Floor:_1
+■ = Jelly1x1Sprite:_0:_BL and Floor:_0
+□ = Jelly1x1Sprite:_1:_BL and Floor:_1
+▌ = Jelly2x1Sprite:up:_0:_BL and Floor:_0
+▐ = Jelly2x1Sprite:up:_1:_BL and Floor:_1
+▄ = Jelly2x1Sprite:right:_0:_BL and Floor:_0
+▀ = Jelly2x1Sprite:right:_1:_BL and Floor:_1
+! = Jelly1x1TallSprite:_0:_BL and Floor:_0
+‼ = Jelly1x1TallSprite:_1:_BL and Floor:_1
+1 = Lift:_0 and _LiftGroup:_1
+¹ = Lift:_1 and _LiftGroup:_1
+2 = Lift:_0 and _LiftGroup:_2
+² = Lift:_1 and _LiftGroup:_2
+3 = Lift:_0 and _LiftGroup:_3
+³ = Lift:_1 and _LiftGroup:_3
+4 = Lift:_0 and _LiftGroup:_4
+⁴ = Lift:_1 and _LiftGroup:_4
+5 = Lift:_0 and _LiftGroup:_5
+⁵ = Lift:_1 and _LiftGroup:_5
+6 = Lift:_0 and _LiftGroup:_6
+⁶ = Lift:_1 and _LiftGroup:_6
+─ = Wire:left:_0:_BL and Wire:right:_0:_BL and Floor:_0
+│ = Wire:up:_0:_BL and Wire:down:_0:_BL and Floor:_0
+┌ = Wire:down:_0:_BL and Wire:right:_0:_BL and Floor:_0
+┐ = Wire:left:_0:_BL and Wire:down:_0:_BL and Floor:_0
+└ = Wire:up:_0:_BL and Wire:right:_0:_BL and Floor:_0
+┘ = Wire:left:_0:_BL and Wire:up:_0:_BL and Floor:_0
+═ = Wire:left:_1:_BL and Wire:right:_1:_BL and Floor:_1
+║ = Wire:up:_1:_BL and Wire:down:_1:_BL and Floor:_1
+╔ = Wire:down:_1:_BL and Wire:right:_1:_BL and Floor:_1
+╗ = Wire:left:_1:_BL and Wire:down:_1:_BL and Floor:_1
+╚ = Wire:up:_1:_BL and Wire:right:_1:_BL and Floor:_1
+╝ = Wire:left:_1:_BL and Wire:up:_1:_BL and Floor:_1
+U = Exit:up:_0:_BL and Floor:_0
+D = Exit:down:_0:_BL and Floor:_0
+L = Exit:left:_0:_BL and Floor:_0
+R = Exit:right:_0:_BL and Floor:_0
+Ụ = Exit:up:_1:_BL and Floor:_1
+Ḍ = Exit:down:_1:_BL and Floor:_1
+Ḷ = Exit:left:_1:_BL and Floor:_1
+Ṛ = Exit:right:_1:_BL and Floor:_1
+
+a = PlayerSprite:_1:_BL and Floor:_1 and Wire:left:_1:_BL and Wire:right:_1:_BL
+b = Jelly1x1Sprite:_1:_BL and Floor:_1 and Wire:left:_1:_BL and Wire:right:_1:_BL
+c = Jelly1x1Sprite:_1:_BL and Floor:_1 and Wire:down:_1:_BL and Wire:right:_1:_BL
+e = Jelly1x1Sprite:_0:_BL and Lift:_0 and _LiftGroup:_1
+f = Jelly1x1Sprite:_0:_BL and Jelly1x1Sprite:_1:_BL and Floor:_1 and Lift:_0 and _LiftGroup:_1
+g = Jelly2x1Sprite:right:_1:_BL and Lift:_1 and _LiftGroup:_1
+h = PlayerSprite:_1:_BL and Lift:_1 and _LiftGroup:_1
+i = Jelly2x1Sprite:up:_1:_BL and Floor:_1 and Wire:down:_1:_BL and Wire:up:_1:_BL
+
+Wall:_0 = Floor:_1 or Floor:_2 or Lift:_1
+Wall:_1 = Floor:_2
+Wall:_2 = Floor:_2
+
+WireHigh:left = Wire:left:_1:Subtile
+WireHigh:right = Wire:right:_1:Subtile
+WireHigh:up = Wire:up:_1:Subtile
+WireHigh:down = Wire:down:_1:Subtile
+
+WireEdge:left = WireEdge:left:_BL or WireEdge:left:_TL
+WireEdge:right = WireEdge:right:_BR or WireEdge:left:_TR
+WireEdge:up = WireEdge:left:_TL or WireEdge:left:_TR
+WireEdge:down = WireEdge:left:_BL or WireEdge:left:_BR
+
+Sprite:_0 = PlayerSprite:_0:Subtile or Jelly1x1Sprite:_0:Subtile or Jelly2x1Sprite:directions:_0:Subtile or Jelly1x1TallSprite:_0:Subtile
+Sprite:_1 = PlayerSprite:_1:Subtile or Jelly1x1Sprite:_1:Subtile or Jelly2x1Sprite:directions:_1:Subtile or Jelly1x1TallSprite:_1:Subtile
+Sprite:_2 = PlayerSprite:_2:Subtile or Jelly1x1Sprite:_2:Subtile or Jelly2x1Sprite:directions:_2:Subtile or Jelly1x1TallSprite:_2:Subtile
+Sprite = Sprite:_
+
+CrushedPlayerSprite:_0 = CrushedPlayerSprite:_0:Subtile
+CrushedPlayerSprite:_1 = CrushedPlayerSprite:_1:Subtile
+CrushedPlayerSprite:_2 = CrushedPlayerSprite:_2:Subtile
+
+_Jelly2x1:_0 = _Jelly2x1:directions:_0
+_Jelly2x1:_1 = _Jelly2x1:directions:_1
+_Jelly2x1:_2 = _Jelly2x1:directions:_2
+_Jelly2x1 = _Jelly2x1:_
+
+_Jelly:_0 = _Jelly1x1:_0 or _Jelly2x1:_0 or _Jelly1x1TallLow:_0 or _Jelly1x1TallHigh:_0 or _TempJelly:_0
+_Jelly:_1 = _Jelly1x1:_1 or _Jelly2x1:_1 or _Jelly1x1TallLow:_1 or _Jelly1x1TallHigh:_1 or _TempJelly:_1
+_Jelly:_2 = _Jelly1x1:_2 or _Jelly2x1:_2 or _Jelly1x1TallLow:_2 or _Jelly1x1TallHigh:_2 or _TempJelly:_2
+_Jelly = _Jelly:_
+
+_Jelly1x1TallLow = _Jelly1x1TallLow:_
+_Jelly1x1TallHigh = _Jelly1x1TallHigh:_
+
+_Jelly1x1Tall:_0 = _Jelly1x1TallLow:_0 or _Jelly1x1TallHigh:_0
+_Jelly1x1Tall:_1 = _Jelly1x1TallLow:_1 or _Jelly1x1TallHigh:_1
+_Jelly1x1Tall:_2 = _Jelly1x1TallLow:_2 or _Jelly1x1TallHigh:_2
+_Jelly1x1Tall = _Jelly1x1Tall:_
+
+_Player = _Player:_
+
+ObjectType = _Jelly or _Player
+
+RigidMovable:_0 = _Jelly1x1:_0 or _Jelly1x1Tall:_0 or _Player:_0
+RigidMovable:_1 = _Jelly1x1:_1 or _Jelly1x1Tall:_1 or _Player:_1
+RigidMovable:_2 = _Jelly1x1:_2 or _Jelly1x1Tall:_2 or _Player:_2
+RigidMovable = RigidMovable:_
+
+Movable:_0 = _Jelly:_0 or _Player:_0
+Movable:_1 = _Jelly:_1 or _Player:_1
+Movable:_2 = _Jelly:_2 or _Player:_2
+Movable = Movable:_
+
+_ConnectorVertical:_0 = _ConnectorHigh:_0
+_ConnectorVertical:_1 = _ConnectorHigh:_1
+_ConnectorVertical:_2 = _ConnectorHigh:_2
+_ConnectorVertical = _ConnectorVertical:_
+
+_Connector:_0 = _Connector:directions:_0 or _ConnectorVertical:_0
+_Connector:_1 = _Connector:directions:_1 or _ConnectorVertical:_1
+_Connector:_2 = _Connector:directions:_2 or _ConnectorVertical:_2
+_Connector = _Connector:_
+
+_Moving:_0 = _Moving:directions:_0
+_Moving:_1 = _Moving:directions:_1
+_Moving:_2 = _Moving:directions:_2
+_Moving = _Moving:_
+
+_Blocked:_0 = _Blocked:directions:_0
+_Blocked:_1 = _Blocked:directions:_1
+_Blocked:_2 = _Blocked:directions:_2
+_Blocked = _Blocked:_
+
+_FullyBlocked:_0 = _Blocked:left:_0 and _Blocked:right:_0 and _Blocked:up:_0 and _Blocked:down:_0
+_FullyBlocked:_1 = _Blocked:left:_1 and _Blocked:right:_1 and _Blocked:up:_1 and _Blocked:down:_1
+_FullyBlocked:_2 = _Blocked:left:_2 and _Blocked:right:_2 and _Blocked:up:_2 and _Blocked:down:_2
+
+_BlockedExcept:left:_0 = _Blocked:right:_0 and _Blocked:up:_0 and _Blocked:down:_0
+_BlockedExcept:left:_1 = _Blocked:right:_1 and _Blocked:up:_1 and _Blocked:down:_1
+_BlockedExcept:left:_2 = _Blocked:right:_2 and _Blocked:up:_2 and _Blocked:down:_2
+
+_BlockedExcept:right:_0 = _Blocked:left:_0 and _Blocked:up:_0 and _Blocked:down:_0
+_BlockedExcept:right:_1 = _Blocked:left:_1 and _Blocked:up:_1 and _Blocked:down:_1
+_BlockedExcept:right:_2 = _Blocked:left:_2 and _Blocked:up:_2 and _Blocked:down:_2
+
+_BlockedExcept:up:_0 = _Blocked:left:_0 and _Blocked:right:_0 and _Blocked:down:_0
+_BlockedExcept:up:_1 = _Blocked:left:_1 and _Blocked:right:_1 and _Blocked:down:_1
+_BlockedExcept:up:_2 = _Blocked:left:_2 and _Blocked:right:_2 and _Blocked:down:_2
+
+_BlockedExcept:down:_0 = _Blocked:left:_0 and _Blocked:right:_0 and _Blocked:up:_0
+_BlockedExcept:down:_1 = _Blocked:left:_1 and _Blocked:right:_1 and _Blocked:up:_1
+_BlockedExcept:down:_2 = _Blocked:left:_2 and _Blocked:right:_2 and _Blocked:up:_2
+
+Status:_0 = _Processing:_0 or _Pending:_0 or _PendingChecking:_0 or _Processed:_0
+Status:_1 = _Processing:_1 or _Pending:_1 or _PendingChecking:_1 or _Processed:_1
+Status:_2 = _Processing:_2 or _Pending:_2 or _PendingChecking:_2 or _Processed:_2
+Status = Status:_
+
+_Pending = _Pending:_
+_PendingNoCycle = _PendingNoCycle:_
+_Processed = _Processed:_
+
+_PendingChecked:_0 = _PendingCycle:_0 or _PendingNoCycle:_0
+_PendingChecked:_1 = _PendingCycle:_1 or _PendingNoCycle:_1
+_PendingChecked:_2 = _PendingCycle:_2 or _PendingNoCycle:_2
+
+MovementMarker:_0 = _MovementTarget:_0 or _MovementConflict:_0
+MovementMarker:_1 = _MovementTarget:_1 or _MovementConflict:_1
+MovementMarker:_2 = _MovementTarget:_2 or _MovementConflict:_2
+MovementMarker = MovementMarker:_
+
+_Falling = _Falling:_
+_FallingMovingResolved = _FallingMovingResolved:_
+_FallingResolved:_0 = _FallingMovingResolved:_0 or Floor:_1
+_FallingResolved:_1 = _FallingMovingResolved:_1 or Floor:_2
+_FallingResolved:_2 = _FallingMovingResolved:_2
+_FallingResolved = _FallingResolved:_
+
+_WeightLow = _WeightLow:_
+_WeightHigh = _WeightHigh:_
+_Weight = _WeightLow or _WeightHigh
+
+_Subtile = _Subtile:Subtile
+
+Player = _Player
+
+=======
+SOUNDS
+=======
+
+sfx0 39983908:12 ( Player moves )
+sfx1 31665207 ( Jelly moves )
+sfx2 47284708:3 ( Jelly gets squished ) ( 64401708 1641403 33271305 14609803 )
+sfx3 71881304:15 ( Jelly lands after falling )
+sfx4 30350208:6 ( Lifts move ) ( 79021408 56244608 )
+sfx5 60897304:5 ( Player stopped by wall )
+sfx6 30357603 ( Player stopped by jelly )
+sfx7 19667804 ( Player lands after falling )
+
+CrushedPlayerSprite:_ create 61502504:8
+
+undo 43566406:2
+restart 33517206:4
+endlevel 27401703
+
+( 93693708 squish? )
+( 57505008 something slides to a stop )
+
+================
+COLLISIONLAYERS
+================
+
+--<v--
+
+Background
+Floor:_
+FloorDeco:_:Subtile
+directions -> FloorEdge:directions
+directions -> FloorCorner:directions
+directions, Subtile -> Wire:directions:LowFloor:Subtile
+directions -> WireEdge:directions:Subtile
+Lift:LowFloor
+LiftDeco:LowFloor:Subtile
+directions -> LiftEdge:directions:LowFloor
+directions -> LiftCorner:directions:LowFloor
+ToExit:directions:LowFloor:Subtile, Exit:directions:LowFloor:Subtile
+_ -> Sprite:_, CrushedPlayerSprite:_:Subtile, CrushedPlayerHandSpriteLeft:_, CrushedPlayerHandSpriteRight:_
+directions -> WallEdgeDark:directions:Subtile
+directions -> WallEdge:directions
+directions -> WallCorner:directions
+WallToExit:directions:Subtile, WallExit:directions:Subtile
+WallCover
+
+--
+
+_Subtile
+_ -> Movable:_
+_LiftGroup:LiftGroup
+_LiftProcessing, _LiftProcessed
+_ -> _WeightLow:_, _WeightHigh:_
+_PlayerWeight
+_, directions -> _Blocked:directions:_
+LowFloor -> _BlockedRaise:LowFloor
+_ -> _Moving:_, _Vacated:_
+_ -> _Squishing:_
+_CheckMovement
+_ -> MovementMarker:_
+_ -> _Falling:_, _Rising:_
+_ -> _FallingMovingResolved:_
+_Temp
+_ -> _Temp:_
+_Rerun
+_RerunDC
+_RunSecondStep
+_ -> Status:_
+_ -> _PendingChecked:_
+_FirstTurn
+_FirstTurnDone
+_LS:LoopSection
+_, directions -> _Connector:directions:_
+_ConnectorVertical
+_NoStepSound
+_KonamiCode:Step
+__Nothing__
+
+======
+RULES
+======
+
+((( Generate decorative visuals and helper objects for dealing with multi-tile objects. )))
+( All of this should only be done on the first turn when the level loads. )
+random [ ] -> [ _FirstTurn ]
+[ _FirstTurnDone ] [ _FirstTurn ] -> [ _FirstTurnDone ] [ ]
+
+( Only relevant on level load: fill entire level with subtile markers )
+[ _FirstTurn ] -> [ _FirstTurn _Temp ]
+[ _Temp ] [ ] -> [ ] [ _Subtile:_TL ]
+right [ _FirstTurn ] [ _Subtile:_TL | ] -> [ _FirstTurn ] [ _Subtile:_TL | _Subtile:_TR ]
+right [ _FirstTurn ] [ _Subtile:_TR | | ] -> [ _FirstTurn ] [ _Subtile:_TR | _Subtile:_TL | _Subtile:_TR ]
+down [ _FirstTurn ] [ _Subtile:_TL | ] -> [ _FirstTurn ] [ _Subtile:_TL | _Subtile:_BL ]
+down [ _FirstTurn ] [ _Subtile:_BL | | ] -> [ _FirstTurn ] [ _Subtile:_BL | _Subtile:_TL | _Subtile:_BL ]
+down [ _FirstTurn ] [ _Subtile:_TR | ] -> [ _FirstTurn ] [ _Subtile:_TR | _Subtile:_BR ]
+down [ _FirstTurn ] [ _Subtile:_BR | | ] -> [ _FirstTurn ] [ _Subtile:_BR | _Subtile:_TR | _Subtile:_BR ]
+
+( Cover the bottom two rows with special wall tiles )
+down [ _FirstTurn ] [ | ] -> [ _FirstTurn ] [ > Background | ]
+[ _FirstTurn ] [ stationary Background ] -> [ _FirstTurn ] [ WallCover ]
+
+( Complete exit sprites )
+LowFloor [ _FirstTurn ] [ | | Exit:>:LowFloor:_BL ] -> [ _FirstTurn ] [ ToExit:>:LowFloor:_BL Floor:LowFloor | | Exit:>:LowFloor:_BL ]
+right directions LowFloor [ _FirstTurn ] [ Exit:directions:LowFloor:_BL | ] -> [ _FirstTurn ] [ Exit:directions:LowFloor:_BL | Exit:directions:LowFloor:_BR Floor:LowFloor ]
+up directions LowFloor [ _FirstTurn ] [ Exit:directions:LowFloor:_BL | ] -> [ _FirstTurn ] [ Exit:directions:LowFloor:_BL | Exit:directions:LowFloor:_TL Floor:LowFloor ]
+up directions LowFloor [ _FirstTurn ] [ Exit:directions:LowFloor:_BR | ] -> [ _FirstTurn ] [ Exit:directions:LowFloor:_BR | Exit:directions:LowFloor:_TR Floor:LowFloor ]
+right directions LowFloor [ _FirstTurn ] [ ToExit:directions:LowFloor:_BL | ] -> [ _FirstTurn ] [ ToExit:directions:LowFloor:_BL | ToExit:directions:LowFloor:_BR Floor:LowFloor ]
+up directions LowFloor [ _FirstTurn ] [ ToExit:directions:LowFloor:_BL | ] -> [ _FirstTurn ] [ ToExit:directions:LowFloor:_BL | ToExit:directions:LowFloor:_TL Floor:LowFloor ]
+up directions LowFloor [ _FirstTurn ] [ ToExit:directions:LowFloor:_BR | ] -> [ _FirstTurn ] [ ToExit:directions:LowFloor:_BR | ToExit:directions:LowFloor:_TR Floor:LowFloor ]
+LowFloor Subtile [ _FirstTurn ] [ Wall | no Wall | ToExit:^:LowFloor:Subtile ] -> [ _FirstTurn ] [ Wall WallToExit:^:Subtile | | ToExit:^:LowFloor:Subtile ]
+LowFloor Subtile [ _FirstTurn ] [ ToExit:^:LowFloor:Subtile | no Wall | Wall ] -> [ _FirstTurn ] [ ToExit:^:LowFloor:Subtile | | Wall WallToExit:^:Subtile ]
+LowFloor Subtile [ _FirstTurn ] [ Wall | no Wall | Exit:^:LowFloor:Subtile ] -> [ _FirstTurn ] [ Wall WallExit:^:Subtile | | Exit:^:LowFloor:Subtile ]
+LowFloor Subtile [ _FirstTurn ] [ Exit:^:LowFloor:Subtile | no Wall | Wall ] -> [ _FirstTurn ] [ Exit:^:LowFloor:Subtile | | Wall WallExit:^:Subtile ]
+up [ _FirstTurn ] [ Exit:up:LowFloor:Subtile | | ] -> [ _FirstTurn ] [ Exit:up:LowFloor:Subtile | | WallCover ]
+[ _FirstTurn ] [ Exit:down:LowFloor:Subtile WallCover ] -> [ _FirstTurn ] [ Exit:down:LowFloor:Subtile ]
+
+( Decorate floor tiles )
+_ Subtile [ _FirstTurn ] [ Floor:_ _Subtile:Subtile ] -> [ _FirstTurn ] [ Floor:_ _Subtile:Subtile FloorDeco:_:Subtile ]
+
+( Decorate the edges of higher floors )
+[ _FirstTurn ] [ Floor:_1 | no Floor:_1 no Wall ] -> [ _FirstTurn ] [ Floor:_1 FloorEdge:> | ]
+[ _FirstTurn ] [ Floor:_1 no FloorEdge:^ | Floor:_1 FloorEdge:^ ] -> [ _FirstTurn ] [ Floor:_1 FloorCorner:> | Floor:_1 FloorEdge:^ ]
+[ _FirstTurn ] [ Floor:_1 no FloorEdge:v | Floor:_1 FloorEdge:v ] -> [ _FirstTurn ] [ Floor:_1 FloorCorner:v | Floor:_1 FloorEdge:v ]
+
+( Decorate lifts )
+LowFloor Subtile [ _FirstTurn ] [ Lift:LowFloor _Subtile:Subtile ] -> [ _FirstTurn ] [ Lift:LowFloor _Subtile:Subtile LiftDeco:LowFloor:Subtile ]
+LowFloor [ _FirstTurn ] [ Lift:LowFloor | no Lift:LowFloor ] -> [ _FirstTurn ] [ Lift:LowFloor LiftEdge:>:LowFloor | ]
+LowFloor LiftGroup [ _FirstTurn ] [ Lift:LowFloor _LiftGroup:LiftGroup | Lift:LowFloor no _LiftGroup:LiftGroup ] -> [ _FirstTurn ] [ Lift:LowFloor _LiftGroup:LiftGroup LiftEdge:>:LowFloor | Lift:LowFloor ]
+LowFloor [ _FirstTurn ] [ Lift:LowFloor no LiftEdge:^:LowFloor | Lift:LowFloor LiftEdge:^:LowFloor ] -> [ _FirstTurn ] [ Lift:LowFloor LiftCorner:>:LowFloor | Lift:LowFloor LiftEdge:^:LowFloor ]
+
+( Decorate the edges of walls )
+Subtile [ _FirstTurn ] [ Wall _Subtile:Subtile | no Wall ] -> [ _FirstTurn ] [ Wall WallEdge:> WallEdgeDark:>:Subtile _Subtile:Subtile | ]
+[ _FirstTurn ] [ Wall no WallEdge:^ | Wall WallEdge:^ ] -> [ _FirstTurn ] [ Wall WallCorner:> | Wall WallEdge:^ ]
+
+( Complete wires with remaining subtiles )
+right directions LowFloor [ _FirstTurn ] [ Wire:directions:LowFloor:_BL | Floor:LowFloor ] -> [ _FirstTurn ] [ Wire:directions:LowFloor:_BL | Wire:directions:LowFloor:_BR Floor:LowFloor ]
+up directions LowFloor [ _FirstTurn ] [ Wire:directions:LowFloor:_BL | Floor:LowFloor ] -> [ _FirstTurn ] [ Wire:directions:LowFloor:_BL | Wire:directions:LowFloor:_TL Floor:LowFloor ]
+up directions LowFloor [ _FirstTurn ] [ Wire:directions:LowFloor:_BR | Floor:LowFloor ] -> [ _FirstTurn ] [ Wire:directions:LowFloor:_BR | Wire:directions:LowFloor:_TR Floor:LowFloor ]
+[ _FirstTurn ] [ FloorEdge:> Wire:>:_1:LeftSubtile ] -> [ _FirstTurn ] [ FloorEdge:> Wire:>:_1:LeftSubtile WireEdge:>:LeftSubtile ]
+[ _FirstTurn ] [ FloorEdge:> Wire:>:_1:RightSubtile ] -> [ _FirstTurn ] [ FloorEdge:> Wire:>:_1:RightSubtile WireEdge:>:RightSubtile ]
+
+( Expand player. We're handling movement manually, so we replace the movement input with a marker object. )
+_ [ _FirstTurn ] [ PlayerSprite:_:_BL ] -> [ _FirstTurn ] [ _Player:_ _Connector:right:_ _Connector:up:_ ]
+_ [ _FirstTurn ] [ _Player:_ _Connector:>:_ _Connector:^:_ | no _Player:_ ] -> [ _FirstTurn ] [ _Player:_ _Connector:>:_ _Connector:^:_ | _Player:_ _Connector:<:_ _Connector:^:_ ]
+
+( Expand 1x1 jellies )
+_ [ _FirstTurn ] [ Jelly1x1Sprite:_:_BL ] -> [ _FirstTurn ] [ _Jelly1x1:_ _Connector:right:_ _Connector:up:_ ]
+_ [ _FirstTurn ] [ _Jelly1x1:_ _Connector:>:_ _Connector:^:_ | ] -> [ _FirstTurn ] [ _Jelly1x1:_ _Connector:>:_ _Connector:^:_ | _Jelly1x1:_ _Connector:<:_ _Connector:^:_ ]
+
+( Expand tall 1x1 jellies )
+LowFloor [ _FirstTurn ] [ Jelly1x1TallSprite:LowFloor:_BL ] -> [ _FirstTurn ] [ _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher _Connector:right:LowFloor _Connector:up:LowFloor _Connector:right:Higher _Connector:up:Higher _ConnectorHigh:LowFloor ]
+LowFloor [ _FirstTurn ] [ _Jelly1x1TallLow:LowFloor _Connector:>:LowFloor _Connector:^:LowFloor _ConnectorVertical:LowFloor | ] -> [ _FirstTurn ] [ _Jelly1x1TallLow:LowFloor _Connector:>:LowFloor _Connector:^:LowFloor _ConnectorVertical:LowFloor | _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher _Connector:<:LowFloor _Connector:^:LowFloor _Connector:<:Higher _Connector:^:Higher _ConnectorVertical:LowFloor ]
+
+( Expand 2x1 jellies )
+_ Axes [ _FirstTurn ] [ Jelly2x1Sprite:Axes:_:_BL ] -> [ _FirstTurn ] [ _Jelly2x1:Axes:_ _Connector:right:_ _Connector:up:_ ]
+_ [ _FirstTurn ] [ _Jelly2x1:perpendicular:_ _Connector:>:_ _Connector:perpendicular:_ | ] -> [ _FirstTurn ] [ _Jelly2x1:perpendicular:_ _Connector:>:_ _Connector:perpendicular:_ | _Jelly2x1:perpendicular:_ _Connector:<:_ _Connector:perpendicular:_ ]
+_ [ _FirstTurn ] [ _Jelly2x1:>:_ _Connector:>:_ _Connector:perpendicular:_ no _Temp:_ | | | ] -> [ _FirstTurn ] [ _Jelly2x1:>:_ _Connector:>:_ _Connector:perpendicular:_ | _Jelly2x1:>:_ _Connector:>:_ _Connector:perpendicular:_ _Connector:<:_ _Temp:_ | _Jelly2x1:>:_ _Connector:>:_ _Connector:perpendicular:_ _Connector:<:_ _Temp:_ | _Jelly2x1:>:_ _Connector:<:_ _Connector:perpendicular:_ ]
+[ _FirstTurn ] [ _Temp:_ ] -> [ _FirstTurn ] [ ]
+
+((( The rest of the code is run on regular and again turns )))
+
+( Clean up sprites )
+[ Sprite ] -> [ ]
+
+((( Process again turns )))
+
+( If the level is completed, remove the player and trigger the win condition )
+LowFloor [ _Player:LowFloor Exit:directions:LowFloor:Subtile ] -> [ Exit:directions:LowFloor:Subtile no _Connector ] win
+
+( Process any rising markers from a previous turn.
+  If the player rises into a static jelly, they get crushed. )
+
+Subtile [ _Player:_0 _Rising:_1 _Jelly:_1 no _Rising:_2 _Subtile:Subtile ] -> [ _Jelly:_1 _Subtile:Subtile CrushedPlayerSprite:_1:Subtile no _Connector:_0 no _Moving:_0 ]
+Subtile [ CrushedPlayerSprite:_1 | _Player:_0 _Subtile:Subtile ] -> [ CrushedPlayerSprite:_1 | _Subtile:Subtile CrushedPlayerSprite:_1:Subtile no _Connector:_0 no _Moving:_0 ]
+
+LowFloor directions [ Movable:LowFloor _Rising:Higher _Connector:directions:LowFloor no Movable:Higher ] -> [ Movable:LowFloor _Rising:Higher _Connector:directions:Higher ]
++ [ Movable:_0 _Rising:_1 _ConnectorHigh:_0 no Movable:_1 ] -> [ Movable:_0 _Rising:_1 _ConnectorHigh:_1 ]
++ LowFloor [ _Player:LowFloor _Rising:Higher no Movable:Higher no _Connector:LowFloor ] -> [ _Player:Higher ]
++ LowFloor [ _Jelly1x1:LowFloor _Rising:Higher no Movable:Higher no _Connector:LowFloor ] -> [ _Jelly1x1:Higher ]
++ LowFloor Axes [ _Jelly2x1:Axes:LowFloor _Rising:Higher no Movable:Higher no _Connector:LowFloor ] -> [ _Jelly2x1:Axes:Higher ]
++ [ _Jelly1x1TallLow:_0 _Rising:_1 no Movable:_1 no _Connector:_0 ] -> [ _Jelly1x1TallLow:_1 ]
++ [ _Jelly1x1TallHigh:_1 _Rising:_2 no Movable:_2 no _Connector:_1 ] -> [ _Jelly1x1TallHigh:_2 ]
+
+[ Lift:_0 _Rising:_0 ] -> sfx4
+
+directions [ Lift:_0 _Rising:_0 LiftEdge:directions:_0 ] -> [ Lift:_0 _Rising:_0 LiftEdge:directions:_1 ]
+directions [ Lift:_0 _Rising:_0 LiftCorner:directions:_0 ] -> [ Lift:_0 _Rising:_0 LiftCorner:directions:_1 ]
+Subtile [ Lift:_0 _Rising:_0 LiftDeco:_0:Subtile ] -> [ Lift:_1 LiftDeco:_1:Subtile ]
+
+( Process any falling markers from a previous turn.
+  If something falls onto the static player, they get crushed. )
+HighFloor [ _Player:HighFloor _Falling:HighFloor Floor:Lower ] -> sfx7
+HighFloor [ _Player:HighFloor _Falling:HighFloor Lift:Lower ] -> sfx7
+HighFloor [ _Jelly:HighFloor _Falling:HighFloor Floor:Lower ] -> sfx3
+HighFloor [ _Jelly:HighFloor _Falling:HighFloor Lift:Lower ] -> sfx3
+
+directions [ Lift:_1 _Falling:_0 LiftEdge:directions:_1 ] -> [ Lift:_1 _Falling:_0 LiftEdge:directions:_0 ]
+directions [ Lift:_1 _Falling:_0 LiftCorner:directions:_1 ] -> [ Lift:_1 _Falling:_0 LiftCorner:directions:_0 ]
+Subtile [ Lift:_1 _Falling:_0 LiftDeco:_1:Subtile ] -> [ Lift:_0 LiftDeco:_0:Subtile ]
+
+HighFloor Subtile [ Movable:HighFloor _Falling:HighFloor _Player:Lower no _Falling:Lower _Subtile:Subtile ] -> [ Movable:HighFloor _Falling:HighFloor _Subtile:Subtile CrushedPlayerSprite:Lower:Subtile no _Connector:Lower no _Moving:Lower ]
+_ Subtile [ CrushedPlayerSprite:_ | _Player:_ _Subtile:Subtile ] -> [ CrushedPlayerSprite:_ | _Subtile:Subtile CrushedPlayerSprite:_:Subtile no _Connector:Lower no _Moving:Lower ]
+right _ [ | CrushedPlayerSprite:_:_TL | CrushedPlayerSprite:_:_TR | ] -> [ CrushedPlayerHandSpriteLeft:_ | CrushedPlayerSprite:_:_TL | CrushedPlayerSprite:_:_TR | CrushedPlayerHandSpriteRight:_ ]
+
+HighFloor directions [ Movable:HighFloor _Falling:HighFloor _Connector:directions:HighFloor no Movable:Lower ] -> [ Movable:HighFloor _Falling:HighFloor _Connector:directions:Lower ]
++ [ Movable:_1 _Falling:_1 _ConnectorHigh:_1 no Movable:_0 ] -> [ Movable:_1 _Falling:_1 _ConnectorHigh:_0 ]
++ HighFloor [ _Player:HighFloor _Falling:HighFloor no Movable:Lower no _Connector:HighFloor ] -> [ _Player:Lower ]
++ HighFloor [ _Jelly1x1:HighFloor _Falling:HighFloor no Movable:Lower no _Connector:HighFloor ] -> [ _Jelly1x1:Lower ]
++ HighFloor Axes [ _Jelly2x1:Axes:HighFloor _Falling:HighFloor no Movable:Lower no _Connector:HighFloor ] -> [ _Jelly2x1:Axes:Lower ]
++ [ _Jelly1x1TallLow:_1 _Falling:_1 no Movable:_0 no _Connector:_1 ] -> [ _Jelly1x1TallLow:_0 ]
++ [ _Jelly1x1TallHigh:_2 _Falling:_2 no Movable:_1 no _Connector:_2 ] -> [ _Jelly1x1TallHigh:_1 ]
+
+((( Process Konami code )))
+[ _KonamiCode:_8 ] [ action Player ] -> win
+
+[ _KonamiCode:_7 no _Temp ] [ right Player ] -> [ _KonamiCode:_8 _Temp ] [ right Player ]
+[ _KonamiCode:_6 no _Temp ] [ left Player ] -> [ _KonamiCode:_7 _Temp ] [ left Player ]
+[ _KonamiCode:_5 no _Temp ] [ right Player ] -> [ _KonamiCode:_6 _Temp ] [ right Player ]
+[ _KonamiCode:_4 no _Temp ] [ left Player ] -> [ _KonamiCode:_5 _Temp ] [ left Player ]
+[ _KonamiCode:_3 no _Temp ] [ down Player ] -> [ _KonamiCode:_4 _Temp ] [ down Player ]
+[ _KonamiCode:_2 no _Temp ] [ down Player ] -> [ _KonamiCode:_3 _Temp ] [ down Player ]
+[ _KonamiCode:_2 no _Temp ] [ up Player ] -> [ _KonamiCode:_2 _Temp ] [ up Player ]
+[ _KonamiCode:_1 no _Temp ] [ up Player ] -> [ _KonamiCode:_2 _Temp ] [ up Player ]
+[ _KonamiCode:Step no _Temp ] [ up Player ] -> [ _KonamiCode:_1 _Temp ] [ up Player ]
+[ _KonamiCode:Step no _Temp ] [ moving Player ] -> [ _KonamiCode:_0 _Temp ] [ moving Player ]
+[ _Temp ] -> [ ]
+
+((( Process player and jelly movement )))
+
+_ [ > _Player:_ ] -> [ _Player:_ _Moving:>:_ _Processing:_ ]
+
+( Can't nest loops in PS, so we have to put everything in a single loop and group things manually )
+random [ ] -> [ _Temp ]
+[ ] [ _Temp ] -> [ _LS:FP ] [ ]
+_ [ _LS:FP ] [ _Player:_ _Moving:>:_ ] -> [ _LS:FP > _RunSecondStep ] [ _Player:_ _Moving:>:_ ]
+
+startloop
+  ((( Forward propagate movement intent )))
+  
+  ( Walls immediately block movement )
+  _ [ _LS:FP ] [ _Player:_ _Moving:>:_ no _Blocked:>:_ | Wall:_ ] -> sfx5
+  _ [ _LS:FP ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ | Wall:_ ] -> [ _LS:FP _Rerun ] [ Movable:_ _Moving:>:_ _FullyBlocked:_ | Wall:_ ]
+  _ directions [ _LS:FP ] [ Movable:_ _Moving:directions:_ _FullyBlocked:_ _Connector:>:_ | Movable:_ _Moving:directions:_ no _Blocked:_ ] -> [ _LS:FP _Rerun ] [ Movable:_ _Moving:directions:_ _FullyBlocked:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _FullyBlocked:_ ]
+  LowFloor [ _LS:FP ] [ Movable:LowFloor _FullyBlocked:LowFloor _ConnectorHigh:LowFloor no _Blocked:Higher ] -> [ _LS:FP _Rerun ] [ Movable:LowFloor _FullyBlocked:LowFloor _ConnectorHigh:LowFloor _FullyBlocked:Higher ]
+  LowFloor [ _LS:FP ] [ Movable:LowFloor _FullyBlocked:Higher _ConnectorHigh:LowFloor no _Blocked:LowFloor ] -> [ _LS:FP _Rerun ] [ Movable:LowFloor _FullyBlocked:LowFloor _ConnectorHigh:LowFloor _FullyBlocked:Higher ]
+ 
+  ( Movables trying to move into other movables are marked as pending )
+  _ [ _LS:FP ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ no _Connector:>:_ | Movable:_ ] -> [ _LS:FP _Rerun ] [ Movable:_ _Moving:>:_ _Pending:_ | Movable:_ ]
+  _ directions [ _LS:FP ] [ Movable:_ _Moving:directions:_ _Pending:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Processing:_ ] -> [ _LS:FP _Rerun ] [ Movable:_ _Moving:directions:_ _Pending:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Pending:_ ]
+  LowFloor [ _LS:FP ] [ Movable:LowFloor _Pending:LowFloor _ConnectorHigh:LowFloor _Processing:Higher ] -> [ _LS:FP _Rerun ] [ Movable:LowFloor _Pending:LowFloor _ConnectorHigh:LowFloor _Pending:Higher ]
+  LowFloor [ _LS:FP ] [ Movable:LowFloor _Processing:LowFloor _ConnectorHigh:LowFloor _Pending:Higher ] -> [ _LS:FP _Rerun ] [ Movable:LowFloor _Pending:LowFloor _ConnectorHigh:LowFloor _Pending:Higher ]
+    
+  ( Propagate movement to unprocessed movables )
+  _ [ _LS:FP ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ no _Connector:>:_ | Movable:_ no _Moving:_ no _Blocked:>:_ ] -> [ _LS:FP _Rerun _CheckMovement ] [ Movable:_ _Moving:>:_ | Movable:_ _Moving:>:_ _Processing:_ no _Blocked:_ ]
+  _ [ _LS:FP ] [ Movable:_ _Moving:_ _Connector:>:_ | Movable:_ no _Moving:_ ] -> [ _LS:FP _Rerun ] [ Movable:_ _Moving:_ _Connector:>:_ | Movable:_ _Moving:_ _Processing:_ no _Blocked:_ ]
+  LowFloor directions [ _LS:FP ] [ Movable:LowFloor _Moving:directions:LowFloor _ConnectorHigh:LowFloor no _Moving:Higher ] -> [ _LS:FP _Rerun ] [ Movable:LowFloor _Moving:directions:LowFloor _ConnectorHigh:LowFloor _Moving:directions:Higher _Processing:Higher no _Blocked:Higher ]
+  LowFloor directions [ _LS:FP ] [ Movable:LowFloor _Moving:directions:Higher _ConnectorHigh:LowFloor no _Moving:LowFloor ] -> [ _LS:FP _Rerun ] [ Movable:LowFloor _Moving:directions:Higher _ConnectorHigh:LowFloor _Moving:directions:LowFloor _Processing:LowFloor no _Blocked:LowFloor ]
+
+  [ _LS:FP no _Rerun ] -> [ _LS:RM ]
+  [ _LS:FP _Rerun ] -> [ _LS:FP ]
+  
+  ((( Resolve movement and squishing )))
+  
+  ( Find cells moved into by multiple objects and block those objects )
+  _ [ _LS:RM _CheckMovement ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ no _Connector:>:_ no _Temp:_ | no _MovementTarget:_ ] -> [ _LS:RM _CheckMovement ] [ Movable:_ _Moving:>:_ _Processing:_ _Temp:_ | _MovementTarget:_ ]
+  _ [ _LS:RM _CheckMovement ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ no _Connector:>:_ no _Temp:_ | _MovementTarget:_ ] -> [ _LS:RM _CheckMovement ] [ Movable:_ _Moving:>:_ _Processing:_ _Temp:_ | _MovementConflict:_ ]
+  [ _LS:RM _CheckMovement ] [ _Temp:_ ] -> [ _LS:RM _CheckMovement ] [ ]
+  _ [ _LS:RM _CheckMovement ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ no _Connector:>:_ | _MovementConflict:_ ] -> [ _LS:RM _CheckMovement _Rerun ] [ Movable:_ _Moving:>:_ _Blocked:>:_ _Processing:_ | _MovementConflict:_ ]
+  _ directions [ _LS:RM _CheckMovement ] [ Movable:_ _Moving:directions:_ _Blocked:directions:_ _Connector:>:_ | Movable:_ _Moving:directions:_ no _Blocked:directions:_ ] -> [ _LS:RM _CheckMovement _Rerun ] [ Movable:_ _Moving:directions:_ _Blocked:directions:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Blocked:directions:_ ]
+  LowFloor directions [ _LS:RM _CheckMovement ] [ Movable:LowFloor _Blocked:directions:LowFloor _ConnectorHigh:LowFloor no _Blocked:directions:Higher ] -> [ _LS:RM _CheckMovement _Rerun ] [ Movable:LowFloor _Blocked:directions:LowFloor _ConnectorHigh:LowFloor _Blocked:directions:Higher ]
+  LowFloor directions [ _LS:RM _CheckMovement ] [ Movable:LowFloor _Blocked:directions:Higher _ConnectorHigh:LowFloor no _Blocked:directions:LowFloor ] -> [ _LS:RM _CheckMovement _Rerun ] [ Movable:LowFloor _Blocked:directions:Higher _ConnectorHigh:LowFloor _Blocked:directions:LowFloor ]
+  [ _LS:RM _CheckMovement ] [ MovementMarker ] -> [ _LS:RM _CheckMovement ] [ ]
+  [ _LS:RM _CheckMovement ] -> [ _LS:RM ]
+    
+  ( Movables that are still marked as processing can move freely, so we perform the move and mark them as
+    processed and blocked. To move all the things belonging to a movable, we move everything out of the moving
+    cell into the empty cell, then move the movement marker and repeat. )
+  _ [ _LS:RM no _NoStepSound ] [ _Player:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ no _Squishing:_ ] -> sfx0
+  _ [ _LS:RM ] [ _Jelly:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ no _Squishing:_ ] -> sfx1
+  _ [ _LS:RM ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Connector:_ no _Squishing:_ | no Movable:_ ] -> [ _LS:RM _Rerun ] [ Movable:_ _Moving:>:_ _Processing:_ | _Connector:_ ]
+  + _ [ _LS:RM ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ no _Squishing:_ | no Movable:_ ] -> [ _LS:RM _Rerun ] [ _Vacated:_ | Movable:_ _BlockedExcept:>:_ _Processed:_ no _Vacated:_ ]
+  
+  ( Squishing objects that are still marked as processing can squish freely. We handle the different squishing
+    cases explicitly. )
+  ( Squish 2x1 equally. We expand the front 1x1 into a 2x1 and then delete the rear 1x1. )
+  _ [ _LS:RM ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ no _Blocked:<:_ _Processing:_ _Squishing:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Squishing:_ ] -> [ _LS:RM _Rerun _NoStepSound ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ _Processing:_ _Squishing:_ _Temp:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ _Processing:_ _Squishing:_ _Temp:_ ] sfx2
+  _ [ _LS:RM ] [ _Connector:>:_ no _Connector:<:_ _Temp:_ | _Connector:<:_ _Connector:>:_ _Temp:_ ] -> [ _LS:RM _Rerun ] [ _Connector:>:_ | _Connector:<:_ ]
+  _ [ _LS:RM ] [ | _Jelly2x1:perpendicular:_ _Moving:<:_ no _Blocked:<:_ _Processing:_ _Squishing:_ _Connector:perpendicular:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Squishing:_ | ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:>:_ | _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:<:_ _Connector:>:_ | _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:<:_ _Connector:>:_ | _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:<:_ ]
+  _ [ _LS:RM ] [ _Jelly2x1:parallel:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:>:_ | _Jelly2x1:parallel:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:>:_ | no _Squishing:_ no _Connector:<:_ ] -> [ _LS:RM _Rerun ] [ _Vacated:_ no _Connector:_ | _Vacated:_ no _Connector:_ | ]
+
+  ( Squish 2x1 to one side. We expand the front 1x1 into a 2x1 and then delete the rear 1x1. )
+  _ [ _LS:RM ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ _Blocked:<:_ _Processing:_ _Squishing:_ no _Connector:<:_ _Connector:>:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Squishing:_ _Connector:<:_ _Connector:>:_ | _TempJelly:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Squishing:_ _Connector:<:_ no _Connector:>:_ ] -> [ _LS:RM _Rerun _NoStepSound ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ _Blocked:<:_ _Processing:_ _Squishing:_ _Connector:>:_ _Temp:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:<:_ _Connector:>:_ _Temp:_ | _TempJelly:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:<:_ ] sfx2
+  _ [ _LS:RM ] [ _Jelly2x1:parallel:_ _Connector:>:_ no _Connector:<:_ _Temp:_ | _Connector:<:_ _Connector:>:_ _Temp:_ ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:parallel:_ _Connector:>:_ | _Connector:<:_ ]
+  _ [ _LS:RM ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ _Blocked:<:_ _Processing:_ _Squishing:_ _Connector:perpendicular:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Squishing:_ | _TempJelly:_ _Moving:>:_ no _Blocked:>:_ _Processing:_ _Squishing:_ _Connector:<:_ no _Connector:>:_ | ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:>:_ | _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:<:_ _Connector:>:_ | _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:<:_ _Connector:>:_ | _Jelly2x1:>:_ _FullyBlocked:_ _Processed:_ _Connector:perpendicular:_ _Connector:<:_ ]
+  _ [ _LS:RM ] [ _Jelly2x1:parallel:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:>:_ | _Jelly2x1:parallel:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:>:_ | no _Squishing:_ no _Connector:<:_ ] -> [ _LS:RM _Rerun ] [ _Vacated:_ no _Connector:_ | _Vacated:_ no _Connector:_ | ]
+  
+  ( When a 2x1 gets blocked halfway through squishing to one side, we remove the temporary jelly
+    objects and treat this the same as if it had been blocked immediately. )
+  _ [ _LS:RM ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ _Blocked:<:_ _Processing:_ _Squishing:_ no _Connector:<:_ _Connector:>:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ _Processing:_ _Squishing:_ _Connector:<:_ _Connector:>:_ | _TempJelly:_ _Moving:>:_ _Blocked:>:_ _Processing:_ _Squishing:_ _Connector:<:_ ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:perpendicular:_ _Moving:<:_ _Blocked:<:_ _Processing:_ _Squishing:_ _Connector:>:_ | _Jelly2x1:perpendicular:_ _Moving:>:_ _Blocked:>:_ _Processing:_ _Squishing:_ _Connector:<:_ | no _Blocked:_ ]
+  
+  ( Try to squish 2x1 into a tall 1x1 if both sides are blocked. )
+  ( However, if there's an object on top of the 2x1's front 1x1, the squish is blocked entirely. )
+  ( TODO: Should block the squish if this happens on the top floor or there's an object on top of the front 1x1. )
+  LowFloor [ _LS:RM ] [ _Jelly2x1:perpendicular:LowFloor _Moving:<:LowFloor _Blocked:<:LowFloor _Processing:LowFloor _Squishing:LowFloor | _Jelly2x1:perpendicular:LowFloor _Moving:>:LowFloor _Blocked:>:LowFloor _Processing:LowFloor _Squishing:LowFloor ] -> [ _LS:RM _Rerun _NoStepSound ] [ _Jelly2x1:perpendicular:LowFloor _Moving:<:LowFloor _Blocked:<:LowFloor _Processing:LowFloor _Squishing:LowFloor _Temp:LowFloor | _Jelly2x1:perpendicular:LowFloor _Moving:>:LowFloor _Blocked:>:LowFloor _Processing:LowFloor _Squishing:LowFloor _Temp:LowFloor ]
+  
+  LowFloor [ _LS:RM ] [ _Temp:LowFloor Movable:Higher ] -> [ _LS:RM ] [ _Temp:LowFloor Movable:Higher _BlockedRaise:LowFloor ]
+  LowFloor [ _LS:RM ] [ _BlockedRaise:LowFloor _Connector:>:LowFloor | no _BlockedRaise:LowFloor ] -> [ _LS:RM ] [ _BlockedRaise:LowFloor _Connector:>:LowFloor | _BlockedRaise:LowFloor ]
+  
+  LowFloor [ _LS:RM ] [ _Jelly2x1:parallel:LowFloor _Moving:>:LowFloor _Processing:LowFloor _Squishing:LowFloor _Connector:>:LowFloor no _Connector:<:LowFloor no _BlockedRaise:LowFloor | _Jelly2x1:parallel:LowFloor _Moving:>:LowFloor _Processing:LowFloor _Squishing:LowFloor _Connector:<:LowFloor _Connector:>:LowFloor | _Jelly2x1:parallel:LowFloor _Temp:LowFloor _Processing:LowFloor _Squishing:LowFloor _Connector:<:LowFloor _Connector:>:LowFloor | _Jelly2x1:parallel:LowFloor _Temp:LowFloor _Processing:LowFloor _Squishing:LowFloor _Connector:<:LowFloor no _Connector:>:LowFloor ] -> [ _LS:RM _Rerun ] [ _Vacated:LowFloor no _Connector:LowFloor | _Vacated:LowFloor no _Connector:LowFloor | _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher no _Moving:LowFloor _Connector:>:LowFloor _ConnectorHigh:LowFloor _Processed:LowFloor _Processed:Higher _FullyBlocked:LowFloor _FullyBlocked:Higher | _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher no _Moving:LowFloor _Connector:<:LowFloor _ConnectorHigh:LowFloor _Processed:LowFloor _Processed:Higher _FullyBlocked:LowFloor _FullyBlocked:Higher ] sfx2
+  LowFloor directions [ _LS:RM ] [ _Jelly1x1TallLow:LowFloor _Connector:directions:LowFloor _ConnectorHigh:LowFloor no _Connector:directions:Higher ] -> [ _LS:RM _Rerun ] [ _Jelly1x1TallLow:LowFloor _Connector:directions:LowFloor _ConnectorHigh:LowFloor _Connector:directions:Higher ]
+  [ _LS:RM ] [ _Temp:LowFloor ] -> [ _LS:RM ] [ ]
+
+  ( If at this point a pending movable points at a vacated cell, we revert it to processing to check it again next
+    iteration )
+  _ [ _LS:RM ] [ Movable:_ _Moving:>:_ _Pending:_ no _Connector:>:_ | _Vacated:_ ] -> [ _LS:RM _Rerun ] [ Movable:_ _Moving:>:_ _Processing:_ | _Vacated:_ ]
+  _ directions [ _LS:RM ] [ Movable:_ _Moving:directions:_ _Processing:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Pending:_ ] -> [ _LS:RM _Rerun ] [ Movable:_ _Moving:directions:_ _Processing:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Processing:_ ]
+  LowFloor [ _LS:RM ] [ Movable:LowFloor _Processing:LowFloor _ConnectorHigh:LowFloor _Pending:Higher ] -> [ _LS:RM _Rerun ] [ Movable:LowFloor _Processing:LowFloor _ConnectorHigh:LowFloor _Processing:Higher ]
+  LowFloor [ _LS:RM ] [ Movable:LowFloor _Processing:Higher _ConnectorHigh:LowFloor _Pending:LowFloor ] -> [ _LS:RM _Rerun ] [ Movable:LowFloor _Processing:Higher _ConnectorHigh:LowFloor _Processing:LowFloor ]
+  [ _LS:RM ] [ _Vacated:_ ] -> [ _LS:RM ] [ ]
+
+  
+  ((( Process blocked objects )))
+
+  ( If the player is blocked, we cancel the second step, if any )
+  _ [ _LS:RM _RunSecondStep ] [ _Player:_ _Processing:_ _Moving:>:_ _Blocked:>:_ ] -> [ _LS:RM ] [ _Player:_ _Processing:_ _Moving:>:_ _Blocked:>:_ ]
+  ( 1x1 objects become permanently blocked )
+  _ [ _LS:RM ] [ RigidMovable:_ _Processing:_ _Moving:>:_ _Blocked:>:_ ] -> [ _LS:RM _Rerun ] [ RigidMovable:_ _Processed:_ _Blocked:>:_ ]
+  ( As do 2x1 blocks moving along their short side )
+  _ [ _LS:RM ] [ _Jelly2x1:perpendicular:_ _Processing:_ _Moving:>:_ _Blocked:>:_ no _Squishing:_ ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:perpendicular:_ _Processed:_ _Blocked:>:_ ]
+  
+  ( And 2x1s unable to squish into a tall jelly )
+  LowFloor [ _LS:RM ] [ _Jelly2x1:LowFloor _Processing:LowFloor _Moving:>:LowFloor _BlockedRaise:LowFloor _Squishing:LowFloor ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:LowFloor _Processed:LowFloor _Blocked:>:LowFloor ]
+
+  ( 2x1 blocks moving along their long side try to squish towards both sides )
+  _ [ _LS:RM ] [ _Jelly2x1:parallel:_ _Processing:_ _Moving:>:_ _Blocked:>:_ _Connector:>:_ | _Moving:>:_ _Blocked:>:_ _Connector:>:_ | _Moving:>:_ _Blocked:>:_ _Connector:>:_ | _Moving:>:_ _Blocked:>:_ no _Connector:>:_ ] -> [ _LS:RM _Rerun ] [ _Jelly2x1:parallel:_ _Moving:>:_ no _Blocked:_ _Processing:_ _Squishing:_ _Connector:>:_ | _Moving:>:_ no _Blocked:_ _Squishing:_ _Connector:>:_ | _Squishing:_ _Connector:>:_ > _Temp:_ | _Squishing:_ > _Temp:_ ]
+  _ [ _LS:RM ] [ _Jelly2x1:directions:_ _Connector:>:_ perpendicular _Temp:_ ] -> [ _LS:RM _Rerun _CheckMovement ] [ _Jelly2x1:directions:_ _Moving:<:_ no _Blocked:_ _Connector:>:_ ]
+  
+  ( 2x1 blocks trying to squish but being blocked on one side try to expand two cells to the other side.
+    We mark this with some temporary jelly objects )
+  _ [ _LS:RM ] [ _Jelly2x1:perpendicular:_ _Processing:_ _Blocked:<:_ _Moving:<:_ _Squishing:_ _Connector:>:_ | _Jelly2x1:perpendicular:_ _Processing:_ _Moving:>:_ no _Blocked:>:_ _Squishing:_ | ] -> [ _LS:RM _Rerun _CheckMovement ] [ _Jelly2x1:perpendicular:_ _Processing:_ _Blocked:<:_ _Moving:<:_ _Squishing:_ _Connector:>:_ | _Jelly2x1:perpendicular:_ _Processing:_ _Moving:>:_ _Squishing:_ _Connector:>:_ | _TempJelly:_ _Processing:_ _Moving:>:_ _Squishing:_ _Connector:<:_ ]
+  
+  ( Blocked objects propagate this status backwards )
+  _ [ _LS:RM ] [ _Player:_ _Moving:>:_ no _Blocked:>:_ | _Jelly:_ _Processed:_ _Blocked:>:_ ] -> sfx6
+  _ [ _LS:RM ] [ Movable:_ _Moving:>:_ no _Blocked:>:_ no _Connector:>:_ | Movable:_ _Processed:_ _Blocked:>:_ ] -> [ _LS:RM _Rerun ] [ Movable:_ _Processing:_ _Moving:>:_ _FullyBlocked:_ | Movable:_ _Processed:_ _Blocked:>:_ ]
+  _ directions [ _LS:RM ] [ Movable:_ _Moving:directions:_ _FullyBlocked:_ _Connector:>:_ | Movable:_ _Moving:directions:_ no _Blocked:_ ] -> [ _LS:RM _Rerun ] [ Movable:_ _Moving:directions:_ _FullyBlocked:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _FullyBlocked:_ ]
+  LowFloor [ _LS:RM ] [ Movable:LowFloor _FullyBlocked:LowFloor _ConnectorHigh:LowFloor no _Blocked:Higher ] -> [ _LS:RM _Rerun ] [ Movable:LowFloor _FullyBlocked:LowFloor _ConnectorHigh:LowFloor _FullyBlocked:Higher ]
+  LowFloor [ _LS:RM ] [ Movable:LowFloor _FullyBlocked:Higher _ConnectorHigh:LowFloor no _Blocked:LowFloor ] -> [ _LS:RM _Rerun ] [ Movable:LowFloor _FullyBlocked:Higher _ConnectorHigh:LowFloor _FullyBlocked:LowFloor ]
+  _ directions [ _LS:RM ] [ Movable:_ _Moving:directions:_ _Processing:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Pending:_ ] -> [ _LS:RM _Rerun ] [ Movable:_ _Moving:directions:_ _Processing:_ _Connector:>:_ | Movable:_ _Moving:directions:_ _Processing:_ ]
+  LowFloor [ _LS:RM ] [ Movable:LowFloor _Processing:LowFloor _ConnectorHigh:LowFloor _Pending:Higher ] -> [ _LS:RM _Rerun ] [ Movable:LowFloor _Processing:LowFloor _ConnectorHigh:LowFloor _Processing:Higher ]
+  LowFloor [ _LS:RM ] [ Movable:LowFloor _Processing:Higher _ConnectorHigh:LowFloor _Pending:LowFloor ] -> [ _LS:RM _Rerun ] [ Movable:LowFloor _Processing:Higher _ConnectorHigh:LowFloor _Processing:LowFloor ]
+  
+  [ _LS:RM no _Rerun ] -> [ _LS:DC ]
+  [ _LS:RM _Rerun ] -> [ _LS:FP ]
+  
+  ((( Detect cycles of pending objects and block them )))
+  [ _LS:DC ] [ _Pending ] -> [ _LS:DC _Temp ] [ _Pending ]
+    
+  ( Pick a pending object to process )
+  _ [ _LS:DC _Temp ] [ _Pending:_ no _PendingChecked:_ _Moving:>:_ no _Connector:>:_ | _Pending:_ ]  -> [ _LS:DC _RerunDC ] [ _Pending:_ _Moving:>:_ _Temp:_ | _PendingChecking:_ ]
+  
+  ( Spread the PendingChecking status to all objects the marked one indirectly depends on )
+  _ directions [ _LS:DC ] [ _PendingChecking:_ _Moving:directions:_ _Connector:>:_ | _Moving:directions:_ _Pending:_ ] -> [ _LS:DC ] [ _PendingChecking:_ _Moving:directions:_ _Connector:>:_ | _Moving:directions:_ _PendingChecking:_ ]
+  + LowFloor [ _LS:DC ] [ _PendingChecking:LowFloor _ConnectorHigh:LowFloor _Pending:Higher ] -> [ _LS:DC ] [ _PendingChecking:LowFloor _ConnectorHigh:LowFloor _PendingChecking:Higher ]
+  + LowFloor [ _LS:DC ] [ _PendingChecking:Higher _ConnectorHigh:LowFloor _Pending:LowFloor ] -> [ _LS:DC ] [ _PendingChecking:Higher _ConnectorHigh:LowFloor _PendingChecking:LowFloor ]
+  + _ [ _LS:DC ] [ _PendingChecking:_ _Moving:>:_ no _Connector:>:_ | _Pending:_ ] -> [ _LS:DC ] [ _PendingChecking:_ _Moving:>:_ | _PendingChecking:_ ]
+  
+  ( If the marked object was itself marked as PendingChecking, it's part of a cycle )
+  _ [ _LS:DC ] [ _Temp:_ _PendingChecking:_ ] -> [ _LS:DC ] [ _Temp:_ _PendingChecking:_ _PendingCycle:_ ]
+  _ [ _LS:DC ] [ _Temp:_ _Pending:_ ] -> [ _LS:DC ] [ _Temp:_ _Pending:_ _PendingNoCycle:_ ]
+  
+  ( Spread the PendingChecked status to the entire object )
+  _ directions [ _LS:DC ] [ _PendingChecked:_ _Moving:directions:_ _Connector:>:_ | _Moving:directions:_ no _PendingChecked:_ ] -> [ _LS:DC ] [ _PendingChecked:_ _Moving:directions:_ _Connector:>:_ | _Moving:directions:_ _PendingChecked:_ ]
+  LowFloor [ _LS:DC ] [ _PendingCycle:LowFloor _ConnectorHigh:LowFloor no _PendingChecked:Higher ] -> [ _LS:DC ] [ _PendingCycle:LowFloor _ConnectorHigh:LowFloor _PendingCycle:Higher ]
+  LowFloor [ _LS:DC ] [ _PendingNoCycle:LowFloor _ConnectorHigh:LowFloor no _PendingChecked:Higher ] -> [ _LS:DC ] [ _PendingNoCycle:LowFloor _ConnectorHigh:LowFloor _PendingNoCycle:Higher ]
+  LowFloor [ _LS:DC ] [ _PendingCycle:Higher _ConnectorHigh:LowFloor no _PendingChecked:LowFloor ] -> [ _LS:DC ] [ _PendingCycle:Higher _ConnectorHigh:LowFloor _PendingCycle:LowFloor ]
+  LowFloor [ _LS:DC ] [ _PendingNoCycle:Higher _ConnectorHigh:LowFloor no _PendingChecked:LowFloor ] -> [ _LS:DC ] [ _PendingNoCycle:Higher _ConnectorHigh:LowFloor _PendingNoCycle:LowFloor ]
+  
+  ( Clean up PendingChecking status and move the temp marker back to the top left corner )
+  _ [ _LS:DC ] [ _PendingChecking:_ ] -> [ _LS:DC ] [ _Pending:_ ]
+  [ _LS:DC ] [ _Temp:_ no _LS:DC ] -> [ _LS:DC _Temp ] [ ]
+  
+  ( Once we stop finding pending objects to check, we move on to resolving the cycles we found. )
+  [ _LS:DC _Temp ] -> [ _LS:DC ]
+  [ _LS:DC no _RerunDC ] -> [ _LS:BC ]
+  [ _LS:DC _RerunDC ] -> [ _LS:DC ]
+    
+  _ [ _LS:BC ] [ _Pending:_ _PendingCycle:_ ] -> [ _LS:BC _Rerun ] [ _Processing:_ _FullyBlocked:_ ]
+  [ _LS:BC ] [ _PendingNoCycle ] -> [ _LS:BC ] [ ]
+  
+  [ _LS:BC no _Rerun] -> [ _LS:CS ]
+  [ _LS:BC _Rerun ] -> [ _LS:FP ]
+
+  ((( CLeanup and check if we should run another step )))
+  
+  [ _LS:CS ] [ _Blocked ] -> [ _LS:CS ] [ ]
+  [ _LS:CS ] [ _Processed ] -> [ _LS:CS ] [ ]
+  
+  [ _LS:CS no _RunSecondStep ] -> [ ]
+  
+  _ [ _LS:CS > _RunSecondStep ] [ _Player:_ no _Moving:_ ] -> [ _LS:CS > _RunSecondStep ] [ _Player:_ _Moving:>:_ _Processing:_ ]
+  [ _LS:CS _RunSecondStep ] -> [ _LS:FP ]
+endloop
+
+[ _NoStepSound ] -> [ ]
+
+((( Drop unsupported objects )))
+
+( Objects on the ground floor can't fall. )
+[ Movable:_0 ] -> [ Movable:_0 _FallingMovingResolved:_0 ]
+
+( We need to run this in a loop because once an object is marked as falling, it might allow
+  an object on top to fall as well )
+startloop
+  ( Objects above falling objects and objects without support can fall )
+  HighFloor [ Movable:HighFloor no _FallingMovingResolved:HighFloor _FallingResolved:Lower _Falling:Lower ] -> [ Movable:HighFloor _Falling:HighFloor _FallingMovingResolved:Lower _Falling:Lower ]
+  HighFloor [ Movable:HighFloor no _FallingMovingResolved:HighFloor no _Jelly:Lower no Floor:HighFloor ] -> [ Movable:HighFloor _Falling:HighFloor _FallingMovingResolved:HighFloor ]
+  HighFloor [ Movable:HighFloor no _FallingMovingResolved:HighFloor Floor:HighFloor no _Falling:Lower ] -> [ Movable:HighFloor _FallingMovingResolved:HighFloor Floor:HighFloor ]
+  HighFloor [ Movable:HighFloor no _FallingMovingResolved:HighFloor _Jelly:Lower _FallingResolved:Lower no _Falling:Lower ] -> [ Movable:HighFloor _FallingMovingResolved:HighFloor _Jelly:Lower _FallingResolved:Lower ]
+  
+  ( Objects that aren't completely marked as falling get reverted because they have some support )
+  _ [ Movable:_ no _Falling:_ _FallingMovingResolved:_ _Connector:>:_ | _Falling:_ ] -> [ Movable:_ _Connector:>:_ _FallingMovingResolved:_ | _FallingMovingResolved:_ ]
+  
+  ( Spread falling status upward in tall jellies if they're still falling )
+  LowFloor [ _Jelly1x1TallLow:LowFloor _Falling:LowFloor _FallingMovingResolved:LowFloor _ConnectorHigh:LowFloor no _Falling:Higher no _FallingMovingResolved:Higher ] -> [ _Jelly1x1TallLow:LowFloor _Falling:LowFloor _FallingMovingResolved:LowFloor _ConnectorHigh:LowFloor _Falling:Higher _FallingMovingResolved:Higher ]
+endloop
+
+((( Process lifts )))
+( Known limitations: make sure lifts are sufficiently far apart that no movable could be
+  supported by two separate lift groups, regardless of whether they are connected. In particular,
+  movables should not be falling onto rising lifts or movables.)
+
+startloop
+  ( Mark a random pair of lifts for processing )
+  random LiftGroup [ Lift:_0 _LiftGroup:LiftGroup no _LiftProcessed ] [ Lift:_1 _LiftGroup:LiftGroup no _LiftProcessed ] -> [ Lift:_0 _LiftGroup:LiftGroup _LiftProcessing ] [ Lift:_1 _LiftGroup:LiftGroup _LiftProcessing ]
+  LiftGroup LowFloor [ Lift:LowFloor _LiftGroup:LiftGroup _LiftProcessing ] [ Lift:LowFloor _LiftGroup:LiftGroup no _LiftProcessing ] -> [ Lift:LowFloor _LiftGroup:LiftGroup _LiftProcessing ] [ Lift:LowFloor _LiftGroup:LiftGroup _LiftProcessing ]
+  
+  ( Add weight to jellies on low lift. Player weight is irrelevant on the low lift. )
+  [ Lift:_0 _LiftProcessing _Jelly:_0 ] -> [ Lift:_0 _LiftProcessing _Jelly:_0 _WeightLow:_0 ]
+  
+  _ [ _Jelly:_ _Connector:>:_ _WeightLow:_ | ] -> [ _Jelly:_ _Connector:>:_ _WeightLow:_ | _WeightLow:_ ]
+  + LowFloor [ _Jelly:LowFloor _Jelly:Higher _WeightLow:LowFloor ] -> [ _Jelly:LowFloor _Jelly:Higher _WeightLow:LowFloor _WeightLow:Higher ]
+  
+  ( Add weight to falling movables on high lift. )
+  [ Lift:_1 _LiftProcessing Movable:_1 _Falling:_1 ] -> [ Lift:_1 _LiftProcessing Movable:_1 _Falling:_1 _WeightHigh:_1 ]
+  
+  _ [ Movable:_ _Connector:>:_ _WeightHigh:_ | ] -> [ Movable:_ _Connector:>:_ _WeightHigh:_ | _WeightHigh:_ ]
+  + [ _Jelly:_1 Movable:_2 _WeightHigh:_1 ] -> [ _Jelly:_1 Movable:_2 _WeightHigh:_1 _WeightHigh:_2 ]
+  
+  ( Replace player weight with special marker as it's only used for breaking ties. )
+  _ [ _Player:_ _WeightHigh:_ ] -> [ _Player:_ _PlayerWeight ]
+  
+  ( Cancel equal weights )
+  [ _WeightLow ] [ _WeightHigh ] -> [ ] [ ]
+  
+  ( If there is no weight left on the low lift, we turn the player weight into a proper weight 
+    to break a potential tie. The actual floor level of this weight doesn't matter. )
+  [ _WeightLow ] [ _Player no _Temp ] -> [ _WeightLow ] [ _Player _Temp ]
+  [ _PlayerWeight no _Temp ] -> [ _WeightHigh:_0 ]
+  [ _Temp ] -> [ ]
+  [ _PlayerWeight ] -> [ ]
+
+  ( If there is any weight left on the high lift, mark the low lift and all movables supported by
+    it as rising. Rising is indicated on the floor level things will rise to, since the lifts are
+    technically below the floor _0. )
+  [ _WeightHigh ] [ Lift:_0 _LiftProcessing ] -> [ _WeightHigh ] [ Lift:_0 _LiftProcessing _Rising:_0 _Processing:_0 ]
+  [ Lift:_0 _LiftProcessing _Rising:_0 _Processing:_0 Movable:_0 ] -> [ Lift:_0 _LiftProcessing _Rising:_0 _Processing:_0 Movable:_0 _Rising:_1 _Processing:_1 ]
+  
+  LowFloor [ Movable:LowFloor _Connector:>:LowFloor _Rising:Higher _Processing:Higher | no _Rising:Higher ] -> [ Movable:LowFloor _Connector:>:LowFloor _Rising:Higher | _Rising:Higher _Processing:Higher ]
+  + [ _Jelly:_0 Movable:_1 _Rising:_1 _Processing:_1 ] -> [ _Jelly:_0 Movable:_1 _Rising:_1 _Processing:_1 _Rising:_2 _Processing:_2 ]
+  
+  ( If we were to raise a movable that's already on the top floor, we cancel all rising instead. )
+  random [ ] [ _Jelly:_1 Movable:_2 _Rising:_2 _Processing:_2 ] -> [ _Temp ] [ _Jelly:_1 Movable:_2 ]
+  _ [ _Temp ] [ _Rising:_ _Processing:_ ] -> [ _Temp ] [ ]
+  [ _Temp ] -> [ ]
+  
+  ( If the low lift is rising, mark the high lift as falling. Note again that the lift's floor levels
+    are one below what a corresponding movable would be, so we use _Falling:_0. )
+  [ Lift:_0 _LiftProcessing _Rising:_0 ] [ Lift:_1 _LiftProcessing ] -> [ Lift:_0 _LiftProcessing _Rising:_0 ] [ Lift:_1 _LiftProcessing _Falling:_0 ]
+  
+  ( If the low lift isn't rising, we cancel the falling state of movables supported by the high lift. )
+  [ Lift:_0 _LiftProcessing no _Rising:_0 ] [ Lift:_1 _LiftProcessing Movable:_1 _Falling:_1 ] -> [ Lift:_0 _LiftProcessing ] [ Lift:_1 _LiftProcessing Movable:_1 _Processing:_1 ]
+  
+  _ [ Movable:_ _Connector:>:_ _Processing:_ no _Falling:_ | _Falling:_ ] -> [ Movable:_ _Connector:>:_ _Processing:_ | _Processing:_ ]
+  + [ _Jelly:_1 Movable:_2 _Processing:_1 no _Falling:_1 _Falling:_2 ] -> [ _Jelly:_1 Movable:_2 _Processing:_1 _Processing:_2 ]
+  
+  [ _Processing:_ ] -> [ ]
+  [ _Weight ] -> [ ]
+  [ _LiftProcessing ] -> [ _LiftProcessed ]
+endloop
+
+[ _LiftProcessed ] -> [ ]
+
+( If two objects would be rising/falling into the same space, we cancel the falling one and propagate this
+  new support upwards )
+LowFloor [ _Rising:LowFloor _Falling:Higher ] -> [ _Rising:LowFloor _Processing:Higher ]
+  
+_ [ Movable:_ _Connector:>:_ _Processing:_ no _Falling:_ | _Falling:_ ] -> [ Movable:_ _Connector:>:_ _Processing:_ | _Processing:_ ]
++ [ _Jelly:_1 Movable:_2 _Processing:_1 no _Falling:_1 _Falling:_2 ] -> [ _Jelly:_1 Movable:_2 _Processing:_1 _Processing:_2 ]
+
+[ _Processing:_ ] -> [ ]
+
+( If anything is still falling or raising, we resolve that in an again turn. Don't need to check _Rising
+  because nothing can be raised without something falling. )
+[ _Falling ] -> again
+[ _FallingMovingResolved ] -> [ ]
+
+( If the player is on an exit, trigger an again turn to process the win condition. )
+LowFloor [ _Player:LowFloor Exit:directions:LowFloor:Subtile ] -> again
+
+( Render sprites again )
+right _ [ _Player:_ _Connector:right:_ _Connector:up:_ | ] -> [ PlayerSprite:_:_BL _Player:_ _Connector:right:_ _Connector:up:_ | PlayerSprite:_:_BR ]
+right _ [ _Player:_ _Connector:right:_ _Connector:down:_ | ] -> [ PlayerSprite:_:_TL _Player:_ _Connector:right:_ _Connector:down:_ | PlayerSprite:_:_TR ]
+
+right _ [ _Jelly1x1:_ _Connector:right:_ _Connector:up:_ | ] -> [ Jelly1x1Sprite:_:_BL _Jelly1x1:_ _Connector:right:_ _Connector:up:_ | Jelly1x1Sprite:_:_BR ]
+right _ [ _Jelly1x1:_ _Connector:right:_ _Connector:down:_ | ] -> [ Jelly1x1Sprite:_:_TL _Jelly1x1:_ _Connector:right:_ _Connector:down:_ | Jelly1x1Sprite:_:_TR ]
+
+right LowFloor [ _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher _Connector:right:LowFloor _Connector:up:LowFloor _ConnectorHigh:LowFloor | ] -> [ Jelly1x1TallSprite:LowFloor:_BL _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher _Connector:right:LowFloor _Connector:up:LowFloor _ConnectorHigh:LowFloor | Jelly1x1TallSprite:LowFloor:_BR ]
+right LowFloor [ _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher _Connector:right:LowFloor _Connector:down:LowFloor _ConnectorHigh:LowFloor | ] -> [ Jelly1x1TallSprite:LowFloor:_TL _Jelly1x1TallLow:LowFloor _Jelly1x1TallHigh:Higher _Connector:right:LowFloor _Connector:down:LowFloor _ConnectorHigh:LowFloor | Jelly1x1TallSprite:LowFloor:_TR ]
+
+right _ Subtile [ _Jelly2x1:right:_ _Connector:right:_ no _Connector:left:_ _Connector:up:_ | | | ] -> [ Jelly2x1Sprite:right:_:_BL _Jelly2x1:right:_ _Connector:right:_ _Connector:up:_ | Jelly2x1Sprite:right:_:_BR | Jelly2x1Sprite:left:_:_BL | Jelly2x1Sprite:left:_:_BR ]
+right _ Subtile [ _Jelly2x1:right:_ _Connector:right:_ no _Connector:left:_ _Connector:down:_ | | | ] -> [ Jelly2x1Sprite:right:_:_TL _Jelly2x1:right:_ _Connector:right:_ _Connector:down:_ | Jelly2x1Sprite:right:_:_TR | Jelly2x1Sprite:left:_:_TL | Jelly2x1Sprite:left:_:_TR ]
+
+up _ Subtile [ _Jelly2x1:up:_ _Connector:up:_ no _Connector:down:_ _Connector:right:_ | | | ] -> [ Jelly2x1Sprite:up:_:_BL _Jelly2x1:up:_ _Connector:up:_ _Connector:right:_ | Jelly2x1Sprite:up:_:_TL | Jelly2x1Sprite:down:_:_BL | Jelly2x1Sprite:down:_:_TL ]
+up _ Subtile [ _Jelly2x1:up:_ _Connector:up:_ no _Connector:down:_ _Connector:left:_ | | | ] -> [ Jelly2x1Sprite:up:_:_BR _Jelly2x1:up:_ _Connector:up:_ _Connector:left:_ | Jelly2x1Sprite:up:_:_TR | Jelly2x1Sprite:down:_:_BR | Jelly2x1Sprite:down:_:_TR ]
+
+[ _FirstTurn ] -> [ _FirstTurnDone _KonamiCode:_0 ]
+
+==============
+WINCONDITIONS
+==============
+
+
+=======
+LEVELS
+=======
+
+(
+. = Floor:_0
+* = Floor:_1
+# = Wall
+P = PlayerSprite:_0:_BL and Floor:_0
+ℙ = PlayerSprite:_1:_BL and Floor:_1
+■ = Jelly1x1Sprite:_0:_BL and Floor:_0
+□ = Jelly1x1Sprite:_1:_BL and Floor:_1
+▌ = Jelly2x1Sprite:up:_0:_BL and Floor:_0
+▐ = Jelly2x1Sprite:up:_1:_BL and Floor:_1
+▄ = Jelly2x1Sprite:right:_0:_BL and Floor:_0
+▀ = Jelly2x1Sprite:right:_1:_BL and Floor:_1
+! = Jelly1x1TallSprite:_0:_BL and Floor:_0
+‼ = Jelly1x1TallSprite:_1:_BL and Floor:_1
+1 = Lift:_0 and _LiftGroup:_1
+¹ = Lift:_1 and _LiftGroup:_1
+2 = Lift:_0 and _LiftGroup:_2
+² = Lift:_1 and _LiftGroup:_2
+3 = Lift:_0 and _LiftGroup:_3
+³ = Lift:_1 and _LiftGroup:_3
+4 = Lift:_0 and _LiftGroup:_4
+⁴ = Lift:_1 and _LiftGroup:_4
+5 = Lift:_0 and _LiftGroup:_5
+⁵ = Lift:_1 and _LiftGroup:_5
+6 = Lift:_0 and _LiftGroup:_6
+⁶ = Lift:_1 and _LiftGroup:_6
+─ = Wire:left:_0:_BL and Wire:right:_0:_BL and Floor:_0
+│ = Wire:up:_0:_BL and Wire:down:_0:_BL and Floor:_0
+┌ = Wire:down:_0:_BL and Wire:right:_0:_BL and Floor:_0
+┐ = Wire:left:_0:_BL and Wire:down:_0:_BL and Floor:_0
+└ = Wire:up:_0:_BL and Wire:right:_0:_BL and Floor:_0
+┘ = Wire:left:_0:_BL and Wire:up:_0:_BL and Floor:_0
+═ = Wire:left:_1:_BL and Wire:right:_1:_BL and Floor:_1
+║ = Wire:up:_1:_BL and Wire:down:_1:_BL and Floor:_1
+╔ = Wire:down:_1:_BL and Wire:right:_1:_BL and Floor:_1
+╗ = Wire:left:_1:_BL and Wire:down:_1:_BL and Floor:_1
+╚ = Wire:up:_1:_BL and Wire:right:_1:_BL and Floor:_1
+╝ = Wire:left:_1:_BL and Wire:up:_1:_BL and Floor:_1
+U = Exit:up:_0:_BL and Floor:_0
+D = Exit:down:_0:_BL and Floor:_0
+L = Exit:left:_0:_BL and Floor:_0
+R = Exit:right:_0:_BL and Floor:_0
+Ụ = Exit:up:_1:_BL and Floor:_1
+Ḍ = Exit:down:_1:_BL and Floor:_1
+Ḷ = Exit:left:_1:_BL and Floor:_1
+Ṛ = Exit:right:_1:_BL and Floor:_1
+
+a = PlayerSprite:_1:_BL and Floor:_1 and Wire:left:_1:_BL and Wire:right:_1:_BL
+b = Jelly1x1Sprite:_1:_BL and Floor:_1 and Wire:left:_1:_BL and Wire:right:_1:_BL
+c = Jelly1x1Sprite:_1:_BL and Floor:_1 and Wire:down:_1:_BL and Wire:right:_1:_BL
+e = Jelly1x1Sprite:_0:_BL and Lift:_0 and _LiftGroup:_1
+f = Jelly1x1Sprite:_0:_BL and Jelly1x1Sprite:_1:_BL and Floor:_1 and Lift:_0 and _LiftGroup:_1
+g = Jelly2x1Sprite:right:_1:_BL and Lift:_1 and _LiftGroup:_1
+h = PlayerSprite:_1:_BL and Lift:_1 and _LiftGroup:_1
+i = Jelly2x1Sprite:up:_1:_BL and Floor:_1 and Wire:down:_1:_BL and Wire:up:_1:_BL
+)
+
+title:none Moat
+
+########################
+########################
+########################
+########################
+##..**********....**####
+##..**********....**####
+##11**********¹¹¹¹******
+##11══a═══b═══¹¹¹¹****ṛ*
+##..**********....**####
+##..**********....**####
+########################
+########################
+
+title:none Islands
+
+##################**##
+##################**##
+##################**##
+##################ụ*##
+##################**##
+##################**##
+##****..****....****##
+##ℙ***..****....****##
+##****..****....****##
+##**□*..****....****##
+##........¹¹####....##
+##........¹¹####....##
+##********║*####....##
+##********║*####....##
+##********║*1111****##
+##**□***□*╚═1111****##
+##**********....****##
+##**********....□***##
+##..............****##
+##..............****##
+######################
+######################
+
+title:none Magic Trick
+
+##########################
+##########################
+##########################
+##########################
+######......********######
+######......********######
+######......**####**######
+######......**####**######
+######**********##**######
+######**▀*******##**######
+######**......******######
+######**......******######
+######....¹¹..******######
+######....¹¹..******######
+######..**│.........######
+######..**│.........######
+######****│.....**..######
+######****│.....**..######
+######****11********######
+######▀***11********######
+##********11**************
+##ℙ*******11************ṛ*
+##########################
+##########################
+
+title:none Filler
+
+########################
+########################
+########################
+########################
+##******......****..**##
+##**□***......****..**##
+##****************##**##
+##****************##**##
+##****************##**##
+##**ℙ***▀*********##**##
+##************######**##
+##************######**##
+######****##########**##
+######****##########**##
+####################**##
+####################ḍ*##
+
+title:none Slalom
+
+############################
+############################
+############################
+############################
+####******##########******##
+####******##########******##
+##**************..********##
+##**************..********##
+##**********..******..****##
+##**□*▐*****..******..****##
+##********##########**######
+##********##########**######
+##********##########**######
+##**ℙ*****##########**######
+##******############********
+##******############******ṛ*
+############################
+############################
+
+title:none Contortionist
+
+########################
+########################
+########################
+########################
+##..**¹¹##..........####
+##..╔═¹¹##..........####
+##**║*####......********
+##**║*####......******ṛ*
+##**║*****......11..####
+##**╚═════──────11..####
+##************1111..####
+##**▀*******ℙ*1111..####
+##******............####
+##**□***............####
+##****..............####
+##****..............####
+########################
+########################
+
+title:none Vanishing Act
+
+########################
+########################
+########################
+########################
+##..**..##..........####
+##..**..##..........####
+##****..........********
+##****..........******ṛ*
+##********..........####
+##********..........####
+##************......####
+##**▀*******ℙ*......####
+##******............####
+##**□***............####
+##****..............####
+##****..............####
+########################
+########################
+
+title:none How Odd
+
+##################**##
+##################ụ*##
+##################**##
+##################**##
+##**************##**##
+##**************##**##
+##**************##**##
+##****□*********##**##
+##**************##11##
+##**▐****¹¹*****##11##
+##*******¹¹*****##║*##
+##*******║******##║*##
+##****##*║********║*##
+##****##*╚════════╝*##
+##**************######
+##**********ℙ***######
+##**************######
+##**************######
+######################
+######################
+
+title:none Dynamite
+
+######################**####
+######################ụ*####
+######################**####
+######################**####
+######################**####
+######################**####
+##****¹¹¹¹****########....##
+##****¹¹¹¹****########....##
+######**║*############****##
+######**║*############****##
+######**║*############**11##
+######**║*############**11##
+####****║*****########1111##
+####****║***ℙ*########1111##
+####****║*****########11**##
+####**▐*i*****########11**##
+####****║*************1111##
+####****╚═════════════1111##
+######################****##
+######################****##
+######################****##
+######################****##
+############################
+############################
+
+title:none Skinner Box
+
+########################
+########################
+########################
+########################
+######........²²......##
+######┌───────²²......##
+######│.....****¹¹....##
+######│.....****¹¹──┐.##
+####..│.....****....│.##
+####..│.....****....│.##
+******22..11********│.##
+ḷ*****22..11□*ℙ*****│.##
+####..221111********│.##
+####..221111****□***│.##
+######....│.****....│.##
+######....│.****....│.##
+######....│.........│.##
+######....└─────────┘.##
+######................##
+######................##
+########################
+########################
+
+title:none There and Back Again
+
+############################################
+############################################
+############################################
+############################################
+##******....******######................####
+##******....******######................####
+##******....******######....****........####
+##**□***....******######....****........####
+##****¹¹¹¹¹¹¹¹********##11********....******
+##**□*¹¹¹¹¹¹¹¹══════╗*##11********....****ṛ*
+##******....******##║***11**********....####
+##**□***....******##╚═══11**▐*****ℙ*....####
+##******....******######................####
+##******....******######................####
+############################################
+############################################
+
+title:none Broken Bridge
+
+##########################
+##########################
+##########################
+##########################
+##********################
+##********################
+##**####**............####
+##**####**............####
+##********............####
+##****□***............####
+##**11****¹¹¹¹¹¹**..******
+##ℙ*11b═══¹¹¹¹¹¹**..****ṛ*
+##********............####
+##****□***............####
+##**####**............####
+##**####**............####
+##********################
+##********################
+##########################
+##########################
+
+title:none Teapot
+
+########################
+########################
+########################
+########################
+######********##########
+######********##########
+####**########**########
+####**########**########
+####**##¹¹**##**########
+####**##¹¹ℙ*##**########
+####****║*******########
+####****╚═════╗*########
+##************║***1111##
+##******▀*****╚═══1111##
+##****************##11##
+##******▀*********##11##
+####************####**##
+####************####**##
+######********######**##
+######********######**##
+####################**##
+####################ḍ*##
+
+title:none Tadpole
+
+################################################
+################################################
+################################################
+################################################
+######************##############################
+######************##############################
+##****************##############################
+##********▀*******##############################
+##**##************##**²²****####################
+##**##************##**²²══╗*####################
+##********************..##║***2233**¹¹**11######
+##ℙ*******▀***********..##╚═══2233**¹¹══11######
+##**##****************..####****║*******11******
+##**##****************..####╔═══╝*******11****ṛ*
+##****************##**³³****║*##################
+##********▀*******##**³³════╝*##################
+######************########****##################
+######************########****##################
+################################################
+################################################
+
+title:none Tight Corner
+
+##################**##
+##################ụ*##
+##################**##
+##################**##
+##**************##**##
+##**************##**##
+##**************##..##
+##**╔═══════╗***##..##
+##**║*******║***11**##
+##**║***□***║***11**##
+##**║*******║***║*####
+##**║*▐*ℙ*▐*╚═══╝*####
+##¹¹¹¹################
+##¹¹¹¹################
+######################
+######################
+
+title:none Three Seashells
+
+##########################################
+##########################################
+##########################################
+##########################################
+##**************************..****¹¹######
+##**************************..****¹¹######
+##****##**********..........**....│.######
+##****##**********..........**....│.######
+##****************................│.######
+##********▀*******................│.######
+##**##**************************##║*######
+##**##******ℙ*▐*****************##║*######
+##****************........11......│.######
+##********▐*▀*****........11──────┘.######
+##****##**********..................######
+##****##**********................■.######
+##******************************##..######
+##******************************##..######
+##############################****..******
+##############################****..****ṛ*
+##########################################
+##########################################
+
+title:none Finale
+
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+##554444555544445555666666555566664444555544555555446666##******¹¹####
+##554444555544445555666666555566664444555544555555446666##ℙ*□***¹¹####
+##551111335522551144442244441111664433662244333311441166##**####..####
+##551111335522551144442244441111664433662244333311441166##**####..####
+##554433444422553344334422441144335511662244115555552255##******²²####
+##554433444422553344334422441144335511662244115555552255##**▀***²²####
+##444422445511112266333322553344335511116666112222442255##**##########
+##444422445511112266333322553344335511116666112222442255##**##########
+##555522665533552266115511553344224422443366444433444455##******³³####
+##555522665533552266115511553344224422443366444433444455##**▀***³³####
+##664422665533552255115511443355224422443355113333553366##**##########
+##664422665533552255115511443355224422443355113333553366##**##########
+##664444664444445555666666444455556666445555444444555566##**112233****
+##664444664444445555666666444455556666445555444444555566##**112233**ṛ*
+######################################################################
+######################################################################
+
+(
+
+########################
+########################
+########################
+########################
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+##....................##
+########################
+########################
+
+itch.io cover image
+
+##################
+##################
+##################
+##################
+####**********####
+####**********####
+##111111**¹¹¹¹¹¹##
+##1111e1**¹¹h¹¹¹##
+##111111**¹¹¹¹¹¹##
+##e11111══¹¹¹¹¹¹##
+##111111**¹¹¹¹¹¹##
+##11e111**g¹¹¹¹¹##
+####**********####
+####**********####
+##################
+##################
+)

@@ -1,0 +1,783 @@
+title Level (Confounding Calendar Game 2022 Push Out Walls) 
+author Toombler
+homepage https://toombler.itch.io/
+
+again_interval 0.05
+
+realtime_interval 0.04
+
+run_rules_on_level_start
+
+background_color #8c6956 (#966f5a) (#c18c72) (#5889a2) (#462c4b) (#6ac0bd) (#462c4b)
+
+text_color #fcebb6 
+debug_switch obj
+====
+TAGS
+====
+
+ShownStatus = Hidden Edge Shown  
+
+RandomState = 0 1 2 3 4 5 6 7
+
+Count = 0 1 2 3 4 5 6 7 8 9 10
+
+
+
+========
+OBJECTS
+========
+
+(palette)
+(
+#9ee7d7
+#6ac0bd
+#5889a2
+#462c4b
+#724254
+#c18c72
+#fcebb6
+#a9f05f
+#5fad67
+#4e5e5e
+)
+
+Background .
+#c18c72 #b8856c #b58269 #fcebb6 #9ee7d7 #5889a2 (#9ee7d7) (#462c4b)
+00100
+00111
+11010
+00010
+00010
+
+BackgroundPattern:directions
+#c18c72 #b8856c
+00100
+00111
+11010
+00010
+00010
+rot:up:>
+
+BorderBlock x
+#8c6956 (#966f5a)
+
+Border:directions
+#c18c72 #4e5e5e #c18c72 
+00000
+.000.
+.....
+.....
+.....
+rot:up:>
+
+BorderCorner:directions
+#c18c72 #4e5e5e #d69e83 #c18c72 #4e5e5e
+0....
+.....
+.....
+.....
+.....
+rot:up:>
+
+Player
+#724254 #7a4559 #724254 #724254 #4e5e5e #4e5e5e #fcebb6  
+.000.
+.100.
+01000
+.001.
+.1.1.
+
+
+PlayerBoosting:directions
+#724254 #7a4559 #724254 #724254 #4e5e5e #4e5e5e #fcebb6  
+.000.
+.100.
+01000
+.001.
+.1.1.
+rot:up:>
+
+Wall #
+#966f5a #9e7660 #8a6551 #fcebb6  (#5fad67) (#462c4b) (#9ee7d7) (orange)
+00000
+11001
+01000
+00010
+01110
+
+WallPattern:directions
+#966f5a #9e7660 #8a6551
+00000
+11001
+01000
+01010
+01110
+rot:up:>
+
+(
+WallDestroyPattern:directions:Count
+#966f5a #9e7660 #8a6551
+00000
+11001
+01000
+01010
+01110
+rot:up:> 
+translate:>:Count
+)
+(
+WallDestroyPattern:Count:directions
+#966f5a #9e7660 #8a6551
+00000
+00000
+00000
+00000
+00000
+)
+WallDestroyPattern:0:up
+#966f5a #9e7660 #8a6551
+10000
+00010
+01.00
+0.0..
+.....
+
+WallDestroyPattern:1:up
+#966f5a #9e7660 #8a6551
+10000
+0.1.0
+....0
+..0..
+.....
+
+WallDestroyPattern:2:up
+#966f5a #9e7660 #8a6551
+100.0
+.....
+...0.
+.0...
+.....
+
+WallDestroyPattern:3:up
+#966f5a #9e7660 #8a6551
+..0.0
+.....
+.0...
+.....
+.....
+
+WallDestroyPattern:4:up
+#966f5a #9e7660 #8a6551
+...0.
+.....
+.....
+.....
+.....
+
+WallDestroyPattern:Count:directions
+#966f5a #9e7660 #8a6551
+copy: WallDestroyPattern:Count:up rot:up:>
+
+DestroyWall:directions
+transparent
+
+pit
+gray
+
+pitDecoration:Hidden
+transparent
+
+pitDecoration:Edge
+darkgray
+
+pitDecoration:Shown
+gray
+
+
+boost
+pink
+.....
+.000.
+.000.
+.000.
+.....
+
+boostDecoration:Hidden 
+#4e5e5e darkgray
+.....
+.000.
+.000.
+.000.
+.....
+
+boostDecoration:Edge 
+#4e5e5e #5fad67 (#462c4b)  (darkred)
+.....
+.000.
+.000.
+.000.
+.....
+
+boostDecoration:Shown 
+#fcebb6 #5fad67 #a9f05f pink
+.....
+.000.
+.000.
+.000.
+.....
+
+tempDestroyedWallRecord
+transparent
+.....
+.....
+..0..
+.....
+.....
+
+
+boostRandom:RandomState
+transparent
+
+tempPlayerNotRunningIntoEdge
+transparent
+
+tempLevelStarted 
+transparent
+
+tempPressedActionAlready
+transparent
+
+tempNoWallsExists
+transparent
+
+tempPlayingRandom
+transparent
+
+CountDownTimer:Count
+transparent
+
+firstTurnObject
+transparent
+
+=======
+LEGEND
+=======
+
+P = player and firstTurnObject
+
+b = Wall and boost
+c = boost
+t = Wall and pit
+
+deco = pitDecoration:ShownStatus or boostDecoration:ShownStatus
+
+=========
+MAPPINGS
+=========
+
+Count => OneMinus
+0 1 2 3 4 5 6 7 8 9 10 -> 0 0 1 2 3 4 5 6 7 8 9
+
+Count => OnePlus
+0 1 2 3 4 5 6 7 8 9 10 -> 1 2 3 4 5 6 7 8 9 10 10
+
+
+=======
+SOUNDS
+=======
+
+
+(PlayerBoosting:directions create 45520807) 
+boost destroy 28959803 (22835900) (45520807)
+
+Wall destroy 88951707 (79948007) (35575307)
+(wall destroy 76325607 (24874302) (5311307) (29881802))
+wall destroy 96215707
+wall destroy 80586307
+
+sfx0 4590907 (player tries to push wall)
+
+sfx1 78934207 (53760007) (hit screen edge)
+
+sfx2 26360306 (can't randomise)
+
+sfx3 95911203 (94109700) (random level beat)
+(sfx4 3897500 (main level beat))
+
+endgame 3897500
+
+================
+COLLISIONLAYERS
+================
+
+Background
+BackgroundPattern:directions
+
+pit, 
+pitDecoration:ShownStatus, 
+
+Wall, BorderBlock, Player, PlayerBoosting:directions
+WallPattern:directions
+WallDestroyPattern:Count:directions
+
+boost,  
+boostDecoration:ShownStatus,
+
+
+directions -> Border:directions
+directions -> BorderCorner:directions
+
+
+
+DestroyWall:directions
+
+tempPlayerNotRunningIntoEdge
+
+
+tempDestroyedWallRecord
+
+boostRandom:RandomState
+
+tempLevelStarted
+tempPressedActionAlready
+tempNoWallsExists
+tempPlayingRandom
+CountDownTimer:Count
+
+firstTurnObject
+
+
+
+
+======
+RULES
+======
+
+
+(idea: make some object in wall prevent it from being expanded? eg. pit in wall)
+
+
+
+[ > Player ] -> [ > Player tempLevelStarted ]
+
+
+[ > Player | Wall ] -> sfx0 
+
+[ > Player | boost no Wall ] -> [ > PlayerBoosting:> | ]
+
+[ PlayerBoosting:> | no wall ] -> [ > PlayerBoosting:> | ]
+[ PlayerBoosting:> | boost no wall ] -> [ > PlayerBoosting:> | ] (waste boosts if already boosting)
+
+[ PlayerBoosting:> | wall no boost] -> [ > Player | wall destroywall:> ]
+([ PlayerBoosting:> | wall no boost] -> [ > Player | wall destroywall:> temp ])
+[ PlayerBoosting:> | wall boost ] -> [ > PlayerBoosting:> | wall destroywall:> ]
+
+(handle screen edge)
+[PlayerBoosting:> | BorderBlock ] -> [ stationary Player | BorderBlock ] sfx1
+
+
+(destroy hit wall)
+[ destroywall:> ][ no wall no BorderBlock | wall] -> [ destroywall:> ][ | wall destroywall:>]
+directions [ wall DestroyWall:directions ] -> [ WallDestroyPattern:0:directions ]
+
+
+
+
+(randomise level)
+[ action player ][ tempLevelStarted ] -> [ stationary player ][ tempLevelStarted ]
+
+
+[ action player tempPressedActionAlready ][ WallPattern:directions ] -> [ action player tempPressedActionAlready ][] 
+[ action player tempPressedActionAlready ][ boost wall ] 						-> [ action player tempPressedActionAlready ][ wall random WallPattern:directions]
+[ action player tempPressedActionAlready ][ wall no boostRandom:RandomState] 	-> [ action player tempPressedActionAlready ][ wall random boostRandom:RandomState]
+[ action player tempPressedActionAlready ][ boostRandom:0 ] 					-> [ action player tempPressedActionAlready ][ boost ]
+[ action player tempPressedActionAlready ][ boostRandom:1 | no wall] 			-> [ action player tempPressedActionAlready ][ boost | ]
+[ action player tempPressedActionAlready ][ boostRandom:1 | | no wall] 			-> [ action player tempPressedActionAlready ][ boost | | ]
+[ action player tempPressedActionAlready ][ boostRandom:2 | no wall] 			-> [ action player tempPressedActionAlready ][ boost | ]
+[ action player tempPressedActionAlready ] -> [ action Player tempPressedActionAlready tempPlayingRandom ]
+
+([ action player ][ boostRandom:1 ] -> [ action player ][ boost ])
+[ action player ][ boostRandom:RandomState ] -> [ action player ][  ]
+
+[ action player ] -> [ action player tempPressedActionAlready ] (make random require two action presses)
+
+[ action player tempPressedActionAlready ] -> checkpoint
+
+
+
+random Count [ CountDownTimer:Count ] -> [ CountDownTimer:OneMinus ] again
+(restart when randomised instead of winning)
+[ tempPlayingRandom ][ Player ] -> [ tempPlayingRandom ][ Player tempNoWallsExists ]
+[ tempNoWallsExists ][ Wall ] -> [][ Wall ]
+[ tempPlayingRandom ][ Player tempNoWallsExists no CountDownTimer:Count] -> [ tempPlayingRandom ][ Player tempNoWallsExists CountDownTimer:10 ] again
+[ tempPlayingRandom ][ CountDownTimer:0 ] -> [ tempPlayingRandom ][ CountDownTimer:0 ] sfx3 win (would like to restart here but undo breaks for some reason...)
+
+[ tempNoWallsExists ] -> []
+
+
+
+
+
+
+
+
+
+
+
+(decorations)
+[ deco ] -> []
+[ boost no Wall ] -> [ boost boostDecoration:Shown ]
+[ pit no Wall 	] -> [ pit pitDecoration:Shown ]
+
+[ boost Wall no boostdecoration:ShownStatus | no Wall no BorderBlock] -> [ boost Wall boostDecoration:Edge | ]
+[ pit Wall no pitdecoration:ShownStatus | no Wall no BorderBlock] -> [ pit Wall pitDecoration:Edge | ]
+
+[ boost Wall no boostdecoration:ShownStatus ] -> [ boost Wall boostDecoration:Hidden ]
+[ pit Wall no pitdecoration:ShownStatus ] -> [ pit Wall pitDecoration:Hidden ]
+
+
+
+Count directions [ stationary WallDestroyPattern:Count:directions ] -> [ right WallDestroyPattern:OnePlus:directions ]
+directions [ right WallDestroyPattern:Count:directions ] -> [ stationary WallDestroyPattern:Count:directions ]
+[ WallDestroyPattern:4:directions ] -> []
+
+
+late [ BorderBlock | no BorderBlock ] -> [ BorderBlock Border:> | ]
+late [ BorderBlock ] -> [ BorderBlock BorderCorner:>]
+late [ | BorderCorner:>] -> [ | ] 
+late [ | BorderCorner:v] -> [ | ] 
+(late [holeBigBorderCorner:> | no holeBigBorder:^] -> [|])
+
+
+late [ Wall no WallPattern:directions ] -> [ Wall random WallPattern:directions ]
+late [ WallPattern:directions no Wall ] -> []
+
+late [ Background no BackgroundPattern:directions ] -> [ Background random BackgroundPattern:directions ]
+late [ BackgroundPattern:directions no Background ] -> []
+
+
+
+[ PlayerBoosting:directions ] -> again
+
+
+late [ firstTurnObject ] -> [] checkpoint
+
+==============
+WINCONDITIONS
+==============
+
+
+no wall
+no PlayerBoosting:directions
+no tempPlayingRandom
+no WallDestroyPattern:Count:directions
+
+=======
+LEVELS
+=======
+
+(ideas for level:
+
+- use one so boost is away from wall
+- intentionally don't use one so that you wouldn't waste one
+
+
+- maybe the blocks you destroy could be the boosts for a next level?
+- maybe the player could choose where they spawn in for this part?
+
+- make a random mode? X to randomise?
+
+- could try puzzlescript MIS for generating these levels
+
+)
+
+
+
+xxxxxxxxxxxxxxxx
+x####b#########x
+x##############x
+xbb########b###x
+x##########b###x
+x#####b########x
+x##b##b##b#####x
+x##b###.c######x
+x##b###p.b##b##x
+x######bb######x
+x#######b###b##x
+x###bb#########x
+x##############x
+x####bbbb######x
+x##############x (almost unique)
+xxxxxxxxxxxxxxxx
+
+(
+xxxxxxxxxxxxxxxx
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x
+x##############x 
+xxxxxxxxxxxxxxxx)
+
+(
+message You Did It!
+message For more, press 'X' at the start of the level before moving to generate a random, (not guaranteed solvable), level. 
+)
+
+
+
+((ok random levels)
+
+xxxxxxxxxxxxxxxx
+x###b##########x
+xb#b########b#bx
+x###b######b##bx
+x####bb########x
+x#b#####bb#####x
+x######b#######x
+x######.cbb####x
+x######p.b####bx
+xb#####b#######x
+x#b#b##b#####b#x
+x##############x
+x#b############x
+x###########bb#x
+x##b##b####b#b#x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x##########b###x
+x####b######b##x
+x############b#x
+x#bb#########b#x
+x##b########b##x
+x###b#b#b######x
+x######.cbbb#b#x
+x######p.b#####x
+x#b###b########x
+xb#b#####bb####x
+x##b###########x
+x##bb##########x
+x########b###b#x
+x###bb#########x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x#######b#####bx
+x#######b#####bx
+xb####bbb######x
+x##b###########x
+x#######b#b#b##x
+xb#####b#b#b###x
+x##b#b#.c######x
+x####b#p.##b###x
+x######b#######x
+x##########b###x
+x#########bb###x
+x##############x
+x#######b#####bx
+x#########b####x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x###########b##x
+x#b#b#####b#bb#x
+x#####bb#b#####x
+x#####b########x
+x#bb###b#######x
+x#######b######x
+x##b##b.c######x
+xb#####p.b#####x
+xb######b#b###bx
+x##############x
+x##############x
+x##b###b######bx
+x#############bx
+x##b####b###b##x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x###########b##x
+x#b#b#####b#bb#x
+x#####bb#b#####x
+x#####b########x
+x#bb###b#######x
+x#######b######x
+x##b##b.c######x
+xb#####p.b#####x
+xb######b#b###bx
+x##############x
+x##############x
+x##b###b######bx
+x#############bx
+x##b####b###b##x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x###b##b####bb#x
+x###########b##x
+x###b###b######x
+x#########b####x
+x##b###bb######x
+x####b##b####b#x
+x##b###.cb###b#x
+x#####bp.######x
+x#########b####x
+x######b#######x
+x#b######b#####x
+x####b#########x
+x#bb###########x
+x#b#######b###bx
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x##b###########x
+xb#############x
+x########b#####x
+x#b#####b######x
+xb######b####bbx
+x####bbb#######x
+x#####b.cb#####x
+x#####bp.######x
+x#####bb###b###x
+x##############x
+x##b###########x
+x#bb####b######x
+x#b###b########x
+x#########b##b#x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x############bbx
+x######b####b##x
+x###########b##x
+x#####b##b#####x
+x#######b######x
+x##############x
+x##b##b.cbb####x
+x##b#b#p.#b##bbx
+x######b#b####bx
+x###b##########x
+x#b############x
+x#####b#b##b##bx
+xb####bb######bx
+x##############x
+xxxxxxxxxxxxxxxx
+
+
+xxxxxxxxxxxxxxxx
+xbbbb#b###bb###x
+x#b#######b#b##x
+xb#b###########x
+x#b############x
+xb#####b#######x
+xb####bb######bx
+x####bb.c####b#x
+x#b####p.#b####x
+x####b##b##b###x
+x######b#######x
+x#############bx
+xb############bx
+x####b###b#####x
+xb##b###b####bbx
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x###b####bbb###x
+x#b###bb####b##x
+xb#############x
+xb#####b#####bbx
+xb####b##b#####x
+xb#b###b####b#bx
+x#b####.c###b#bx
+xbb###bp.b#####x
+x##b###bb#####bx
+x########b#####x
+x#####b#####b##x
+x#########b###bx
+xb#######b#b###x
+x##b##b##bbbbb#x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+x##b##bb####b#bx
+xbb#######b##bbx
+xb########b##bbx
+xbb#########b##x
+x####b#b#######x
+xb#####b#######x
+x######.c#####bx
+xb##b#bp.######x
+x#####bb######bx
+x#bbb###b######x
+xb##########b#bx
+x####b########bx
+x#bb####b####b#x
+x###bb#bb##b###x
+xxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxx
+xb#bbb##b##bbb#x
+xbb#######bb###x
+x############b#x
+x#########b####x
+x#b###########bx
+xb###########b#x
+xbb##bb.c######x
+x###b##p.b####bx
+xb###b#bb####b#x
+xbb#########b##x
+x#############bx
+xbb#####b######x
+x#########b####x
+xb#b###bbb#b##bx
+xxxxxxxxxxxxxxxx
+
+
+xxxxxxxxxxxxxxxx
+xb##bb##b###b#bx
+xb#####b#bbb#b#x
+xb#############x
+x##############x
+xb###b#########x
+xb###########b#x
+xb#####.cb#bb#bx
+x#####bp.b#####x
+xb##b##b##b###bx
+xbb############x
+xbb#b########b#x
+xb#####b#######x
+xb####b#bbb####x
+xb#b###b#b#bb#bx
+xxxxxxxxxxxxxxxx
+
+
+xxxxxxxxxxxxxxxx
+xbbb####b#bb##bx
+x########b###b#x
+x#bb#########b#x
+x###b##b###b##bx
+x#b###b########x
+x#b####bbbb####x
+x#####b.c######x
+x######p.######x
+x#b#######b###bx
+x#bb####b#b##b#x
+xb#b##b########x
+x###bbb#######bx
+x############bbx
+xbb###b####bb#bx
+xxxxxxxxxxxxxxxx
+)
+
+

@@ -25,6 +25,7 @@ const MAX_ERRORS_FOR_REAL=100;
 var compiling = false;
 var errorStrings = [];//also stores warning strings
 var errorCount=0;//only counts errors
+//const lastStream = {};
 
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub)$/u;
@@ -44,7 +45,7 @@ let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'act
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
-const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<'];
+const clockwiseDirections = ['up', 'right', 'down', 'left', '>', 'v', '<', '^' ];
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -186,7 +187,7 @@ var codeMirrorFn = function() {
 
     const sectionNames = ['tags', 'mappings', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
     const reg_equalsrow = /[\=]+/;
-    const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage)\b/i;
+    const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage|pausescreen)\b/i;
 
     const reg_loopmarker = /^(startloop|endloop)$/;
     const reg_ruledirectionindicators = /^(up|down|left|right|horizontal|vertical|orthogonal|late|rigid)$/;
@@ -202,7 +203,7 @@ var codeMirrorFn = function() {
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
-    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'game_uri', 'debug_switch'];
+    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'debug_switch'];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
@@ -211,6 +212,9 @@ var codeMirrorFn = function() {
         'message_text_align', 'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
+    ];
+    const prelude_not_implemented = [
+        'game_uri', 'level_title_style', 'show_level_title_in_menu', 
     ];
     const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
@@ -451,9 +455,10 @@ var codeMirrorFn = function() {
     // parse a SECTION line, validate order etc
     function parseSection(stream, state) {
         const section = matchRegex(stream, /^\w+/, true);
+        const comment = matchComment(stream, state);
 
-        // only allow tags as first section, for backward compatibility
-        if (!sectionNames.includes(section) || (section == 'tags' && state.visitedSections.length != 0)) {
+        // section must the only thing on the line, helps with backward compatibility
+        if (!(section && sectionNames.includes(section) && stream.eol())) {
             pushBack(stream);
             return false;
         }
@@ -481,11 +486,6 @@ var codeMirrorFn = function() {
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
         state.visitedSections.push(state.section);
-
-        if (state.section === 'tags') {
-            if (Object.keys(state.tags).length == 0)
-                state.tags['directions'] = [ 'up', 'down', 'left', 'right' ];
-        }
         return true;
     }
 
@@ -502,18 +502,23 @@ var codeMirrorFn = function() {
 
         // extract and validate tokens
         function getTokens() {
-            let token = null;
+            let token, ident;
             let kind = 'ERROR';
-            let ident = null;
             const args = [];
             if (token = lexer.match(/^[a-z_]+/i, true)) {
-                ident = token;
-                if (prelude_param_text.includes(token)) {
+                if (state.metadata_lines[ident]) {
+                    var otherline = state.metadata_lines[token];
+                    logWarning(`You've already defined a "${token.toUpperCase()}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
+                } else if (prelude_not_implemented.includes(token)) {
+                    logWarning(`Option ${token.toUpperCase()} is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
+                } else if (prelude_param_text.includes(token)) {
+                    ident = token;
                     lexer.pushToken(token, 'METADATA');
                     token = lexer.matchAll();
                     lexer.pushToken(token, 'METADATATEXT');
                     args.push(token);
                 } else if (prelude_tables.some(t => t.includes(token))) {
+                    ident = token;
                     lexer.pushToken(token, 'METADATA');
 
                     while (!lexer.checkEol()) {
@@ -526,23 +531,25 @@ var codeMirrorFn = function() {
                             args.push(token);
                         } else break;
                     }
-                } else lexer.pushBack();
+                } else logWarning(`Prelude option "${token.toUpperCase()}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
             } 
-            if (lexer.checkEol()) {
-                return checkArguments(ident, args);
+            if (ident) {
+                if (lexer.checkEol()) 
+                    return checkArguments(ident, args);
+                else {
+                    token = lexer.matchNotComment();
+                    logError(`Unrecognised stuff in the prelude: "${token}".`, state.lineNumber);
+                }
             } else {
+                lexer.pushToken(token, 'ERROR');
                 token = lexer.matchNotComment();
-                logError(`Unrecognised stuff in the prelude: "${token}".`, state.lineNumber);
-                return null;
+                lexer.pushToken(token, 'ERROR');
             }
         }
 
         function checkArguments(ident, args) {
-            if (state.metadata_lines[ident]) {
-                var otherline = state.metadata_lines[ident];
-                logWarning(`You've already defined a "${ident.toUpperCase()}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
-            }
             state.metadata_lines[ident] = state.lineNumber;                                                                                    
+            let value
             if (prelude_keywords.includes(ident)) {
                 if (args.length > 1)
                     logError(`MetaData ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
@@ -625,7 +632,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkEol(state);
+            lexer.checkComment(state);
             if (token = lexer.match(/^=/, true)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -635,6 +642,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
+            lexer.checkComment(state);
             symbols.members = [];
             while (true) {
                 // todo: handle recursive tag defs
@@ -682,7 +690,8 @@ var codeMirrorFn = function() {
         // build a list of tokens and kinds
         function getTokens() {
             let token
-            // start of parse
+            
+            lexer.checkComment(state);
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.lhs = token;
                 if (!(isDeclaredAs(state, token) == 'tag')) {       //>@@ todo: propobj
@@ -698,6 +707,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
+            lexer.checkComment(state);
             if (token = lexer.match(/^=>/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -707,6 +717,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
+            lexer.checkComment(state);
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.rhs = token;
                 if (isAlreadyDeclared(state, token)) {
@@ -751,6 +762,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             
+            lexer.checkComment(state);
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
@@ -760,7 +772,9 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                     symbols.lhs.push(token);
                 }
+                lexer.checkComment(state);
             }
+
             if (token = lexer.match(/^->/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -770,6 +784,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
+            lexer.checkComment(state);
             symbols.rhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!token) {      // what do we not allow?
@@ -780,6 +795,7 @@ var codeMirrorFn = function() {
                     symbols.rhs.push(token);
                 }
             }
+
             if (!lexer.checkEol(state)) {
                 token = lexer.matchNotComment();
                 logError(`Unrecognised stuff in a mapping: "${token}".`, state.lineNumber);
@@ -974,12 +990,11 @@ var codeMirrorFn = function() {
             setState();
         return lexer.tokens;
 
-        function toValidDirections(arg) {
+        function isValidDirection(arg) {
             if (Object.hasOwn(state.tags, arg)) {
                 return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
             }
-            // convert symbols to words
-            return clockwiseDirections.includes(arg) ? clockwiseDirections[clockwiseDirections.indexOf(arg) % 4] : null;
+            return clockwiseDirections.includes(arg) ? arg : null;
         }
 
         // build a list of tokens and kinds
@@ -1025,11 +1040,11 @@ var codeMirrorFn = function() {
 
                     //token = lexer.match(/^[a-z^<>]+/i,  true);
                     token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
-                    const dirs = toValidDirections(token);
-                    if (dirs == null)
+                    const dir = isValidDirection(token);
+                    if (dir == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'flip', dirs ]);
+                        symbols.transforms.push([ 'flip', dir ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1046,12 +1061,12 @@ var codeMirrorFn = function() {
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
                     const parts = token ? token.split(':') : [];
-                    const dirs = toValidDirections(parts[0]);
+                    const dir = isValidDirection(parts[0]);
                     const arg = parts[1] ? +parts[1] : 1;
-                    if (!(parts.length <= 2 && dirs && arg))
+                    if (!(parts.length <= 2 && dir && arg))
                         logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${token}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'shift', dirs, arg ]);
+                        symbols.transforms.push([ 'shift', dir, arg ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1061,9 +1076,8 @@ var codeMirrorFn = function() {
                     lexer.checkComment(state);
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
-                    //token = lexer.matchObjectName(true) || lexer.match(/^[^>v<]:\d+/i, true);
                     const args = token ? token.split(':') : null;
-                    const dirs = args && toValidDirections(args[0]);
+                    const dirs = args && isValidDirection(args[0]);
                     if (dirs == null || args.length != 2)
                         logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
                     else {
@@ -1077,9 +1091,8 @@ var codeMirrorFn = function() {
                     lexer.checkComment(state);
 
                     token = lexer.match(/^[a-z:^<>]+/i,  true);
-                    //token = lexer.matchObjectName(true) || lexer.match(/^[v^<>](:[v^<>])?/i, true);
                     const parts = token && token.split(':');
-                    const dirs = parts && parts.length <= 2 && parts.map(p => toValidDirections(p));
+                    const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
                     if (dirs == null)
                         logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${token}.`, state.lineNumber);
                     else {
@@ -1545,7 +1558,7 @@ var codeMirrorFn = function() {
             let token
             if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
-                if (!isAlreadyDeclared(state, token))
+                if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
                     logError(`Error in win condition: "${token.toUpperCase()}" is not a valid object name.`, state.lineNumber);
                 else {
                     names.push(token);
@@ -1721,8 +1734,17 @@ var codeMirrorFn = function() {
         // note: there is no end of line marker, the next line will follow immediately
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
-            if (state.current_line_wip_array.length > 0 && !['rules'].includes(state.section))
+            if (state.current_line_wip_array.length > 0 && !['rules'].includes(state.section)) {
                 return flushToken();
+            }
+
+            //--- guard against looping?
+            // lastStream.pos = stream.pos;
+            // lastStream.start = stream.start;
+            // lastStream.lineStart = stream.lineStart;
+            // lastStream.string = stream.string;
+            //console.log(`get token`, lastStream);
+            //--- guard against looping
 
            	var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
@@ -2032,7 +2054,7 @@ var codeMirrorFn = function() {
 
                 levels: [[]],
 
-                tags: {},
+                tags: { directions: [ 'up', 'right', 'down', 'left',  ] },      // matches P:S
                 mappings: {},
 
                 subsection: ''
