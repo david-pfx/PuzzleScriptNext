@@ -12,12 +12,17 @@ PuzzleScript Next is a combination of the work of many authors:
 
 ## New Features
 
-The latest version is Release v-23l20, with additional Pattern:Script compatible features and some bug fixes.
+The latest version is Release v-23l26, with additional Pattern:Script compatible features and some bug fixes.
+There also a number of new games included, so be sure to check out the gallery.
+
 Features included are:
 * MAPPINGS: compile-time symbols that convert a set of TAGS values into a different but related set of values.
 * Compressed gzip files are no longer built in the standalone version, for easier hosting.
 
 Bug fixes:
+* An object with tags first mentioned in WINCONDITIONS now works correctly.
+* An object with transforms defined by relative directions `>V<^` now works correctly.
+* An object with tags and a `copy:` transform where a source object is missing now applies a default.
 * A blank text item such as title in the prelude no longer causes a hang.
 * The combination of `require_player_move, message, again` no longer hangs but works correctly (freeze bug).
 * A related issue triggered by the previous fix now works correctly (autowin bug).
@@ -27,6 +32,8 @@ Bug fixes:
 * Verbose logging set by button recompiles and shows debugging steps correctly.
 
 Of note:
+* Sections can be in any order or omitted, but cannot be duplicated.
+* Several prelude settings defined in Pattern:Script are recognised but not yet implemented.
 * In-place sprite scaling is useful for text sprites, but is otherwise deprecated.
 * The sample games provided have been updated to the new conventions.
 * Sample program Pentaglyph has a compile error not detected by Pattern:Script.
