@@ -12,7 +12,7 @@ PuzzleScript Next is a combination of the work of many authors:
 
 ## New Features
 
-The latest version is Release v-23l26, with additional Pattern:Script compatible features and some bug fixes.
+The latest version is Release v-23l27, with additional Pattern:Script compatible features and some bug fixes.
 There also a number of new games included, so be sure to check out the gallery.
 
 Features included are:
