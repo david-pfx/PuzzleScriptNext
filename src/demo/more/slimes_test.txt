@@ -1,0 +1,1948 @@
+Title A Slime's Test for Intelligence
+Author Neonesque
+Homepage www.neonesque.itch.io
+
+background_color #111
+text_color #14ebb5
+author_color #00bfff
+title_color #00bfff
+
+level_title_style header
+show_level_title_in_menu
+
+noaction
+run_rules_on_level_start
+key_repeat_interval 0.11
+again_interval 0.01
+
+=====
+TAGS
+=====
+
+anim = move strc sqsh drop fall land clmL clmR rise sqzL sqzR exit flwU flwD flwL flwR ntrL ntrR
+animRv = move strc sqsh flwU flwD flwL flwR
+
+ent = box cBox orb
+stte = movL movR fall rise
+
+frm = f1 f2 f3 f4
+prv = f1 f2 f3
+
+frmExt = f1 f2 f3 f4 f5 f6 f7 f8
+prvExt = f1 f2 f3 f4 f5 f6 f7
+
+dir = u d l r
+
+=========
+MAPPINGS
+=========
+
+prvExt => nxtExt
+f1 f2 f3 f4 f5 f6 f7 -> f2 f3 f4 f5 f6 f7 f8
+
+prv => nxt
+f1 f2 f3 -> f2 f3 f4
+
+directions => aln
+up down left right -> u d l r
+
+========
+OBJECTS
+========
+
+background .
+#555
+
+wall #
+#222
+
+grate +
+#33b #008
+10101
+00000
+10001
+00000
+10101
+
+
+
+door n
+#888 #333 #444
+.000.
+01110
+02220
+01110
+02220
+
+
+door:fall:f1
+#888 #333 #444 #d7d72d
+.333.
+01110
+02220
+01110
+02220
+
+door:fall:f2
+#888 #333 #444 #d7d72d
+copy: door:fall:f1
+
+door:fall:f3
+#888 #333 #444 #c4c444
+.303.
+31113
+32223
+01110
+02220
+
+door:fall:f4
+#888 #333 #444 #c4c444
+copy: door:fall:f3
+
+door:fall:f5
+#888 #333 #444 #baba4f
+.000.
+31113
+32223
+31113
+02220
+
+door:fall:f6
+#888 #333 #444 #baba4f
+copy: door:fall:f5
+
+door:fall:f7
+#888 #333 #444 #b0b05b
+.000.
+01110
+32223
+31113
+32223
+
+door:fall:f8
+#888 #333 #444 #b0b05b
+copy: door:fall:f7
+
+
+door:rise:f1
+#888 #333 #444 #000
+.000.
+02220
+01110
+02220
+03330
+
+door:rise:f2
+#888 #333 #444 #000
+.000.
+01110
+02220
+03330
+03330
+
+door:rise:f3
+#888 #333 #444 #000
+.000.
+02220
+03330
+03330
+03330
+
+door:rise:f4
+#888 #333 #444 #000
+.000.
+02220
+03330
+03330
+03330
+
+doorOpen m
+#888 #000
+.000.
+01110
+01110
+01110
+01110
+
+
+
+bolt *
+#ff0 #d8d800
+.....
+.01..
+.001.
+..01.
+.....
+
+
+
+animating
+transparent
+
+ground
+transparent
+
+impact
+transparent
+
+landing
+transparent
+
+reverse
+transparent
+
+
+
+slime p
+#14ebb5 #12d9a7
+.111.
+10001
+10001
+10001
+11111
+
+
+slime:move:f1
+#14ebb5 #12d9a7
+..11..
+.1001.
+.10001
+.10001
+.11111
+
+slime:move:f2
+#14ebb5 #12d9a7
+.......
+...111.
+..10001
+..10001
+..11111
+
+slime:move:f3
+#14ebb5 #12d9a7
+........
+....111.
+...10001
+...10001
+...11111
+
+slime:move:f4
+#14ebb5 #12d9a7
+......11.
+.....1001
+....10001
+....10001
+....11111
+
+
+slime:strc:f1
+#14ebb5 #12d9a7
+.111.
+.101.
+10001
+10001
+10001
+11111
+
+slime:strc:f2
+#14ebb5 #12d9a7 #14e7b1
+.111.
+.101.
+.101.
+10001
+10001
+12021
+11111
+
+slime:strc:f3
+#14ebb5 #12d9a7 #14e7b1
+.111.
+.101.
+.101.
+10001
+10001
+12021
+12021
+.111.
+
+slime:strc:f4
+#14ebb5 #12d9a7 #14e7b1
+.111.
+.101.
+10001
+10001
+10001
+12021
+12021
+.121.
+.111.
+
+slimeStrcT
+#14ebb5 #12d9a7
+.111.
+10001
+10001
+10001
+10001
+
+slimeStrcB
+#14ebb5 #12d9a7 #14e7b1
+12021
+12021
+.121.
+.121.
+.111.
+
+
+slime:sqsh:f1
+#14ebb5 #12d9a7
+.....
+.111.
+10001
+10001
+11111
+
+slime:sqsh:f2
+#14ebb5 #12d9a7
+.....
+.....
+.111.
+10001
+11011
+
+slime:sqsh:f3
+#14ebb5 #12d9a7
+.....
+.....
+.....
+.111.
+11011
+
+slime:sqsh:f4
+#14ebb5 #12d9a7
+.....
+.....
+.....
+.....
+11011
+
+slimeSquash
+#14ebb5 #12d9a7
+.....
+.....
+.....
+.....
+10001
+
+
+slime:drop:f1
+#14ebb5 #12d9a7
+.111.
+10001
+10001
+10001
+11111
+.....
+.....
+.....
+.....
+
+slime:drop:f2
+#14ebb5 #12d9a7
+.111.
+10001
+10001
+10001
+.111.
+.....
+.....
+.....
+
+slime:drop:f3
+#14ebb5 #12d9a7
+.111.
+10001
+10001
+10001
+.111.
+.....
+.....
+
+slime:drop:f4
+#14ebb5 #12d9a7
+..1..
+.101.
+10001
+10001
+.111.
+.....
+
+slimeFall
+#14ebb5 #12d9a7
+..1..
+.101.
+10001
+10001
+.111.
+
+
+slime:fall:f1
+#14ebb5 #12d9a7
+..1..
+.101.
+10001
+10001
+.111.
+.....
+.....
+.....
+.....
+
+slime:fall:f2
+#14ebb5 #12d9a7
+..1..
+.101.
+10001
+10001
+.111.
+.....
+.....
+.....
+
+slime:fall:f3
+#14ebb5 #12d9a7
+..1..
+.101.
+10001
+10001
+.111.
+.....
+.....
+
+slime:fall:f4
+#14ebb5 #12d9a7
+..1..
+.101.
+10001
+10001
+.111.
+.....
+
+
+slime:land:f1
+#14ebb5 #12d9a7
+.....
+.111.
+10001
+10001
+.111.
+
+slime:land:f2
+#14ebb5 #12d9a7 #14e7b1
+.....
+.....
+11111
+10001
+11111
+
+slime:land:f3
+#14ebb5 #12d9a7
+.....
+.....
+11111
+10001
+11111
+
+slime:land:f4
+#14ebb5 #12d9a7
+.....
+.111.
+10001
+10001
+11111
+
+
+slime:clmL:f1
+#14ebb5 #12d9a7
+.....1111.
+....100001
+....100001
+....100001
+.....10001
+
+slime:clmL:f2
+#14ebb5 #12d9a7
+....1111..
+...100001.
+...1000001
+...1000001
+....110001
+
+slime:clmL:f3
+#14ebb5 #12d9a7
+...11111.
+..1000001
+..1000001
+..1000001
+...11111.
+
+slime:clmL:f4
+#14ebb5 #12d9a7
+..1111.
+.100001
+.100001
+.100001
+..1111.
+
+
+slime:clmR:f1
+#14ebb5 #12d9a7
+.1111.
+100001
+100001
+100001
+10001.
+
+slime:clmR:f2
+#14ebb5 #12d9a7
+..1111.
+.100001
+1000001
+1000001
+100011.
+
+slime:clmR:f3
+#14ebb5 #12d9a7
+..11111.
+.1000001
+.1000001
+.1000001
+..11111.
+
+slime:clmR:f4
+#14ebb5 #12d9a7
+....1111.
+...100001
+...100001
+...100001
+....1111.
+
+
+slime:rise:f1
+#14ebb5 #12d9a7 #14e7b1
+12021
+12021
+.111.
+.....
+.....
+
+slime:rise:f2
+#14ebb5 #12d9a7 #14e7b1
+10001
+.111.
+.....
+.....
+.....
+
+slime:rise:f3
+transparent
+
+slime:rise:f4
+transparent
+
+
+slime:sqzL:f1
+#14ebb5 #12d9a7
+.........
+.........
+.........
+.........
+....10001
+
+slime:sqzL:f2
+#14ebb5 #12d9a7
+........
+........
+........
+...111..
+...10011
+
+slime:sqzL:f3
+#14ebb5 #12d9a7
+.......
+.......
+...11..
+..1001.
+..10001
+
+slime:sqzL:f4
+#14ebb5 #12d9a7
+......
+..111.
+.10001
+.10001
+.11011
+
+
+slime:sqzR:f1
+#14ebb5 #12d9a7
+......
+......
+......
+......
+.10001
+
+slime:sqzR:f2
+#14ebb5 #12d9a7
+.......
+.......
+.......
+....111
+..11001
+
+slime:sqzR:f3
+#14ebb5 #12d9a7
+........
+........
+.....11.
+....1001
+...10001
+
+slime:sqzR:f4
+#14ebb5 #12d9a7
+.........
+.....111.
+....10001
+....10001
+....11011
+
+
+slime:exit:f1
+#14ebb5 #12d9a7
+.....
+.111.
+.000.
+.000.
+.000.
+
+slime:exit:f2
+#0fb58b #0da37d
+copy: slime:exit:f1
+
+slime:exit:f3
+#0b7f61 #096c53
+copy: slime:exit:f1
+
+slime:exit:f4
+#064838 #04362a
+copy: slime:exit:f1
+
+
+slime:flwU:f1
+#14ebb5 #12d9a7
+.1.1.
+10101
+10001
+10001
+.111.
+.....
+
+slime:flwU:f2
+#14ebb5 #12d9a7
+.1.1.
+.0.0.
+10101
+10001
+.111.
+.....
+.....
+
+slime:flwU:f3
+#14ebb5 #12d9a7
+.111.
+.000.
+.0.0.
+10101
+.111.
+.....
+.....
+.....
+
+slime:flwU:f4
+#14ebb5 #12d9a7
+.111.
+.101.
+.000.
+.0.0.
+.1.1.
+.....
+.....
+.....
+.....
+
+
+slime:flwD:f1
+#14ebb5 #12d9a7
+.111.
+10001
+10001
+10101
+.1.1.
+.....
+.....
+.....
+.....
+
+slime:flwD:f2
+#14ebb5 #12d9a7
+.111.
+10001
+10101
+.0.0.
+.1.1.
+.....
+.....
+.....
+
+slime:flwD:f3
+#14ebb5 #12d9a7
+.111.
+10101
+.0.0.
+.000.
+.111.
+.....
+.....
+
+slime:flwD:f4
+#14ebb5 #12d9a7
+.1.1.
+.0.0.
+.000.
+.101.
+.111.
+.....
+
+
+slime:flwL:f1
+#14ebb5 #12d9a7
+.....111.
+....10001
+.....1001
+....10001
+.....111.
+
+slime:flwL:f2
+#14ebb5 #12d9a7
+.....11.
+...10001
+.....101
+...10001
+.....11.
+
+slime:flwL:f3
+#14ebb5 #12d9a7
+.....1.
+..10001
+..10.11
+..10001
+.....1.
+
+slime:flwL:f4
+#14ebb5 #12d9a7
+......
+.11001
+.100..
+.11001
+......
+
+
+slime:flwR:f1
+#14ebb5 #12d9a7
+..111.
+.10001
+.1001.
+.10001
+..111.
+
+slime:flwR:f2
+#14ebb5 #12d9a7
+...11..
+..10001
+..101..
+..10001
+...11..
+
+slime:flwR:f3
+#14ebb5 #12d9a7
+....1...
+...10001
+...11.01
+...10001
+....1...
+
+slime:flwR:f4
+#14ebb5 #12d9a7
+.........
+....10011
+......001
+....10011
+.........
+
+
+slime:ntrL:f1
+#14ebb5 #12d9a7
+.....111..
+....10001.
+.....10001
+....100001
+.....10001
+
+slime:ntrL:f2
+#14ebb5 #12d9a7
+.....111..
+...100001.
+.....10001
+...1000001
+.....10001
+
+slime:ntrL:f3
+#14ebb5 #12d9a7
+.....11.
+..100001
+..10.101
+..100001
+.....11.
+
+slime:ntrL:f4
+#14ebb5 #12d9a7
+......
+.11001
+.100..
+.11001
+......
+
+
+slime:ntrR:f1
+#14ebb5 #12d9a7
+..111.
+.10001
+10001.
+100001
+10001.
+
+slime:ntrR:f2
+#14ebb5 #12d9a7
+..111..
+.100001
+10001..
+1000001
+10001..
+
+slime:ntrR:f3
+#14ebb5 #12d9a7
+...11...
+..100001
+..101.01
+..100001
+...11...
+
+slime:ntrR:f4
+#14ebb5 #12d9a7
+.........
+....10011
+......001
+....10011
+.........
+
+
+slimeNest
+#14ebb5 #12d9a7
+.....
+.111.
+.101.
+.111.
+.....
+
+
+
+e:box x
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+
+
+e:box:movL:f1
+#bbb #ddd
+....00000
+....01110
+....00000
+....00100
+....00000
+
+e:box:movL:f2
+#bbb #ddd
+...00000
+...01110
+...00000
+...00100
+...00000
+
+e:box:movL:f3
+#bbb #ddd
+..00000
+..01110
+..00000
+..00100
+..00000
+
+e:box:movL:f4
+#bbb #ddd
+.00000
+.01110
+.00000
+.00100
+.00000
+
+
+e:box:movR:f1
+#bbb #ddd
+.00000
+.01110
+.00000
+.00100
+.00000
+
+e:box:movR:f2
+#bbb #ddd
+..00000
+..01110
+..00000
+..00100
+..00000
+
+e:box:movR:f3
+#bbb #ddd
+...00000
+...01110
+...00000
+...00100
+...00000
+
+e:box:movR:f4
+#bbb #ddd
+....00000
+....01110
+....00000
+....00100
+....00000
+
+
+e:box:fall:f1
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+.....
+
+e:box:fall:f2
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+
+e:box:fall:f3
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+
+e:box:fall:f4
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+
+
+e:box:rise:f1
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+
+e:box:rise:f2
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+
+e:box:rise:f3
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+
+e:box:rise:f4
+#bbb #ddd
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+.....
+
+
+
+charge:f1
+#d2c9e3
+.....
+.000.
+.....
+..0..
+.....
+
+charge:f2
+#c6b5e8
+copy: charge:f1
+
+charge:f3
+#bba1ee
+copy: charge:f1
+
+charge:f4
+#aa84f7
+copy: charge:f1
+
+e:cBox c
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+
+
+e:cBox:movL:f1
+#bbb #96f
+....00000
+....01110
+....00000
+....00100
+....00000
+
+e:cBox:movL:f2
+#bbb #96f
+...00000
+...01110
+...00000
+...00100
+...00000
+
+e:cBox:movL:f3
+#bbb #96f
+..00000
+..01110
+..00000
+..00100
+..00000
+
+e:cBox:movL:f4
+#bbb #96f
+.00000
+.01110
+.00000
+.00100
+.00000
+
+
+e:cBox:movR:f1
+#bbb #96f
+.00000
+.01110
+.00000
+.00100
+.00000
+
+e:cBox:movR:f2
+#bbb #96f
+..00000
+..01110
+..00000
+..00100
+..00000
+
+e:cBox:movR:f3
+#bbb #96f
+...00000
+...01110
+...00000
+...00100
+...00000
+
+e:cBox:movR:f4
+#bbb #96f
+....00000
+....01110
+....00000
+....00100
+....00000
+
+
+e:cBox:fall:f1
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+.....
+
+e:cBox:fall:f2
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+
+e:cBox:fall:f3
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+
+e:cBox:fall:f4
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+
+
+e:cBox:rise:f1
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+
+e:cBox:rise:f2
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+
+e:cBox:rise:f3
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+
+e:cBox:rise:f4
+#bbb #96f
+00000
+01110
+00000
+00100
+00000
+.....
+.....
+.....
+.....
+
+
+
+e:orb o
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+
+
+e:orb:movL:f1
+#96f #a8f #b9f
+.....000.
+....01110
+....01210
+....01110
+.....000.
+
+e:orb:movL:f2
+#96f #a8f #b9f
+....000.
+...01110
+...01210
+...01110
+....000.
+
+e:orb:movL:f3
+#96f #a8f #b9f
+...000.
+..01110
+..01210
+..01110
+...000.
+
+e:orb:movL:f4
+#96f #a8f #b9f
+..000.
+.01110
+.01210
+.01110
+..000.
+
+
+e:orb:movR:f1
+#96f #a8f #b9f
+..000.
+.01110
+.01210
+.01110
+..000.
+
+e:orb:movR:f2
+#96f #a8f #b9f
+...000.
+..01110
+..01210
+..01110
+...000.
+
+e:orb:movR:f3
+#96f #a8f #b9f
+....000.
+...01110
+...01210
+...01110
+....000.
+
+e:orb:movR:f4
+#96f #a8f #b9f
+.....000.
+....01110
+....01210
+....01110
+.....000.
+
+
+e:orb:fall:f1
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+.....
+.....
+.....
+
+e:orb:fall:f2
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+.....
+.....
+
+e:orb:fall:f3
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+.....
+
+e:orb:fall:f4
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+
+
+e:orb:rise:f1
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+
+e:orb:rise:f2
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+.....
+
+e:orb:rise:f3
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+.....
+.....
+
+e:orb:rise:f4
+#96f #a8f #b9f
+.000.
+01110
+01210
+01110
+.000.
+.....
+.....
+.....
+.....
+
+=======
+LEGEND
+=======
+
+player = slime or slimeSquash or slimeStrcT or slimeFall or slimeNest
+
+=======
+SOUNDS
+=======
+
+slime:move:f2 create 35109709:13
+slime:strc:f2 create 92974209:8
+slime:rise:f2 create 35109709:13
+slime:sqsh:f2 create 31846009:2
+slime:sqzL:f2 create 69023009:3
+slime:sqzR:f2 create 69023009:3
+
+slime:flwU:f2 create 62249609:8
+slime:flwD:f2 create 62249609:8
+slime:flwL:f2 create 62249609:8
+slime:flwR:f2 create 62249609:8
+slime:ntrL:f2 create 62249609:8
+slime:ntrR:f2 create 62249609:8
+
+slime:land:f3 create 88618809:6
+( slime:melt:f2 create 63045409 )
+
+bolt destroy 68591709:6
+door:rise:f2 create 81580704:3
+
+sfx0 98479207:2 (351097:4)
+sfx1 24586904:2
+
+charge:f2 create 90166309:7 (66851109:7)
+sfx2 44839304:2
+sfx3 27098007:2
+
+undo 56031809:3
+restart 31593609:6
+endlevel 59779909
+
+startgame 16081206:7
+closemessage 16081206:7
+pausescreen 34123706:7
+
+================
+COLLISIONLAYERS
+================
+
+background
+
+bolt
+door door:fall:frmExt door:rise:frm doorOpen
+
+wall
+grate
+e:ent
+player slimeStrcB
+
+animating
+ground
+landing
+impact
+
+
+--<v--
+e:ent:stte:frm
+slime:anim:frm
+charge:frm
+reverse
+
+======
+RULES
+======
+
+(Animation)
+[ slime:anim:frm ] -> [ action slime:anim:frm ]
+animRv prv [ action slime:animRv:nxt reverse ] -> [ slime:animRv:prv reverse ] again
+anim prv [ action slime:anim:prv no reverse ] -> [ slime:anim:nxt ] again
+
+[ e:ent:stte:frm ] -> [ action e:ent:stte:frm ]
+ent stte prv [ action e:ent:stte:prv ] -> [ e:ent:stte:nxt ] again
+
+(Slime animation ending)
+[ action slime:move:f1 reverse ] -> [ action slime ]
+right [ action slime:move:f4 | ] -> [ | action slime ]
+
+[ action slime:strc:f1 reverse ] -> [ action slime ]
+up [ action slime:strc:f4 | ] -> [ slimeStrcB | action slimeStrcT ]
+
+[ action slime:sqsh:f1 reverse ] -> [ action slime ]
+[ action slime:sqsh:f4 ] -> [ action slimeSquash ]
+
+[ action slime:drop:f4 ] -> [ action slimeFall landing ]
+[ action slime:fall:f4 ] -> [ action slimeFall landing ]
+[ action slime:land:f4 ] -> [ action slime ]
+
+[ action slime:clmL:f4 ] -> [ action slime ]
+right [ action slime:clmR:f4 | ] -> [ | action slime  ]
+[ action slime:rise:f4 ] -> [ ]
+
+[ action slime:sqzL:f4 ] -> [ action slime ]
+right [ action slime:sqzR:f4 | ] -> [ | action slime ]
+
+[ action slime:exit:f4 ] -> win
+
+up [ action slime:flwU:f4 | ] -> [ | action slimeNest ]
+[ action slime:flwD:f4 ] -> [ action slimeNest ]
+[ action slime:flwL:f4 ] -> [ action slimeNest ]
+right [ action slime:flwR:f4 | ] -> [ | action slimeNest ]
+[ action slime:ntrL:f4 ] -> [ action slimeNest ]
+right [ action slime:ntrR:f4 | ] -> [ | action slimeNest ]
+
+up [ action slime:flwD:f1 reverse | ] -> [ | action slime ]
+[ action slime:flwU:f1 reverse ] -> [ action slime ]
+[ action slime:flwR:f1 reverse ] -> [ action slime ]
+right [ action slime:flwL:f1 reverse | ] -> [ | action slime ]
+
+(Entity animation ending)
+ent [ action e:ent:movL:f4 ] -> [ e:ent ]
+ent right [ action e:ent:movR:f4 | ] -> [ | e:ent ]
+ent [ action e:ent:fall:f4 ] -> [ e:ent landing ]
+ent up [ action e:ent:rise:f4 | ] -> [ | e:ent ]
+
+(Miscellaneous animations)
+[ door:fall:frmExt ] -> [ action door:fall:frmExt ]
+prvExt [ action door:fall:prvExt ] -> [ door:fall:nxtExt ] again
+[ action door:fall:f8 ] -> [ door ]
+
+[ door:rise:frm ] -> [ action door:rise:frm ]
+prv [ action door:rise:prv ] -> [ door:rise:nxt ] again
+[ action door:rise:f4 ] -> [ doorOpen ]
+
+[ charge:frm ] -> [ action charge:frm ]
+prv [ action charge:prv ] -> [ charge:nxt ] again
+[ action charge:f4 ] -> [ ]
+
+
+
+(Entity landing)
+down [ landing | player ] -> [ | player ]
+[ slimeSquash landing ] -> [ slimeSquash ]
+[ no player ground landing ] -> sfx1
+
+(Impact processing)
+[ landing ] -> [ impact ]
+down [ impact | e:ent ] -> [ impact | e:ent impact ]
+down [ e:cBox impact ] -> [ e:box impact ] sfx2
+[ impact ] -> [ ]
+
+(Box charging)
+[ e:box | e:orb ] -> [ e:cBox charge:f1 | e:orb ] again
+
+
+
+(Ground marking)
+[ ground ] -> [ ]
+up [ wall | no wall ] -> [ wall | ground ]
+up [ grate | no wall ] -> [ grate |  ground ]
+[ stationary e:cBox ] -> [ e:cBox ground ]
+
+ent up [ e:ent ground | ] -> [ e:ent ground | ground ]
++ up [ slime ground | ] -> [ slime ground | ground ]
++ up [ slimeFall ground | ] -> [ slimeFall ground | ground ]
++ up [ slimeStrcB ground | slimeStrcT | ] -> [ slimeStrcB ground | slimeStrcT | ground ]
+
+up [ < slime ground | no e:cBox ground ] -> [ < slime ground | ]
++ up [ < slimeStrcT | no e:cBox ground ] -> [ < slimeStrcT | ]
++ up [ e:ent no ground | no e:cBox ground ] -> [ e:ent | ]
+
+
+
+startloop
+(Entity pushing)
+horizontal [ > player no slimeSquash | stationary e:ent ] -> [ > player | > e:ent ]
+up [ > slime | stationary e:ent ] -> [ > slime | > e:ent ]
+vertical [ > slimeNest | stationary e:ent ] -> [ > slimeNest | > e:ent ]
+
+horizontal [ > slimeSquash | stationary e:ent ] -> [ > slimeSquash | up e:ent ]
+up [ stationary e:ent > slimeSquash ] -> [ > e:ent > slimeSquash ]
+[ > e:ent | stationary e:ent ] -> [ > e:ent | > e:ent ]
+
+(Entity stack moving)
+up [ horizontal player no slimeSquash no slimeNest | stationary e:ent ] -> [ horizontal player | horizontal e:ent ]
+up [ horizontal e:ent | stationary e:ent ] -> [ horizontal e:ent | horizontal e:ent ]
+
+(Movement stopping)
+[ > e:ent | wall ] -> [ action e:ent | wall ]
+[ > e:ent | grate ] -> [ action e:ent | grate ]
+[ > e:ent | action e:ent ] -> [ action e:ent | action e:ent ]
+
+horizontal [ > player | wall ] -> [ action player | wall ]
+horizontal [ > player | action e:ent ] -> [ action player | action e:ent ]
+up [ > player no slimeSquash | wall ] -> [ action player | wall ]
+up [ > player no slimeSquash | action e:ent ] -> [ action player | action e:ent ]
+
+horizontal [ > slimeSquash | grate ] -> [ action slimeSquash | grate ]
+[ > slimeNest | grate ] -> [ action slimeNest | grate ]
+down [ > slimeNest | wall ] -> [ action slimeNest | wall ]
+down [ > slimeNest | action e:ent ] -> [ action slimeNest | action e:ent ]
+
+[ up slimeStrcT ] -> [ slimeStrcT ]
+[ down slimeSquash ] -> [ slimeSquash ]
+
+up [ action player | horizontal e:ent ] -> [ action player | action e:ent ]
+up [ action e:ent | horizontal e:ent ] -> [ action e:ent | action e:ent ]
+endloop
+
+
+
+(Entity friction sfx)
+down [ horizontal e:ent | wall ] -> sfx0
+down [ horizontal e:ent | grate ] -> sfx0
+down [ horizontal e:ent | e:ent ] -> sfx0
+down [ horizontal e:cBox | no wall no grate no e:ent no player ] -> sfx3
+
+(Entity movement initiating)
+ent right [ | < e:ent ] -> [ e:ent:movL:f1 | ] again
+ent right [ > e:ent ] -> [ e:ent:movR:f1 ] again
+
+down [ e:ent no ground | ] -> [ > e:ent | ]
+[ down e:ent ] [ animating ] -> [ e:ent ] [ animating ]
+ent down [ > e:ent | ] -> [ | e:ent:fall:f1 ] again
+
+ent [ up e:ent ] -> [ e:ent:rise:f1 ] again
+
+(Slime movement initiating)
+up [ > slime | grate ] -> [ slime:flwU:f1 | grate ] again
+up [ grate | < slime ] -> [ grate slime:flwD:f1 | ] again
+right [ grate | < slime ] -> [ grate slime:flwL:f1 | ] again
+right [ > slime | grate ] -> [ slime:flwR:f1 | grate ] again
+right [ grate | < slimeStrcT ] -> [ grate slime:ntrL:f1 | ] again
+right [ > slimeStrcT | grate ] -> [ slime:ntrR:f1 | grate ] again
+
+[ up slimeNest ] -> [ slime:flwD:f4 reverse ] again
+down [ > slimeNest | ] -> [ | slime:flwU:f4 reverse ] again
+left [ > slimeNest | ] -> [ | slime:flwR:f4 reverse ] again
+[ right slimeNest ] -> [ slime:flwL:f4 reverse ] again
+
+right [ | < slime ] -> [ slime:move:f4 reverse | ] again
+right [ > slime ] -> [ slime:move:f1 ] again
+
+[ up slime ] -> [ slime:strc:f1 ] again
+down [ > slimeStrcT | slimeStrcB ] -> [ | slime:strc:f4 reverse ] again
+
+[ down slime ground ] -> [ slime:sqsh:f1 ground ] again
+[ up slimeSquash ] -> [ slime:sqsh:f4 reverse ] again
+
+down [ stationary slime no ground | ] -> [ | slime:drop:f1 ] again
+down [ stationary slimeFall no ground | ] -> [ | slime:fall:f1 ] again
+[ stationary slimeFall ground ] -> [ slime:land:f1 ground ] again
+
+right [ | < slimeStrcT ] -> [ slime:clmL:f1 | ] again
+right [ > slimeStrcT ] -> [ slime:clmR:f1 ] again
+up [ slimeStrcB | no slimeStrcT ] -> [ slime:rise:f1 | ] again
+
+right [ | < slimeSquash ] -> [ slime:sqzL:f1 | ] again
+right [ > slimeSquash ] -> [ slime:sqzR:f1 ] again
+
+[ doorOpen stationary slime ] -> [ doorOpen slime:exit:f1 ] again
+
+
+
+(Bolt collecting)
+[ bolt player ] [ door ] -> [ player ] [ door:fall:f1 ]
+[ bolt player ] [ door:fall:frmExt ] -> [ player ] [ door:fall:frmExt ]
+
+(Door opening)
+[ door ] -> [ door:rise:f1 ]
+[ door:rise:f1 ] [ bolt ] -> [ door ] [ bolt ]
+[ door:rise:f1 ] -> again
+
+(Turn state processing)
+random [ slime:anim:frm ] -> [ slime:anim:frm animating ]
+[ player ] [ animating ] -> [ player ] [ ] again
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+message The year is 20XX, and...      wait, this is a puzzle game.
+
+message Chapter 1 – Slime Chance of Success
+
+level 1•1
+title Learning to Flop
+
+###########
+#*......###
+#.........#
+##.p......#
+####......#
+####....*.#
+####.n.####
+###########
+
+level 1•2
+title Out of Reach
+
+###########
+##......###
+##...p..###
+##*.###...#
+#...###.n.#
+#....x..###
+#######.###
+###########
+
+level 1•3
+title Pancake Technique
+
+########
+#....###
+#....#.#
+#n...*.#
+###....#
+##.....#
+#pxx####
+########
+
+level 1•4
+title Elevated
+
+###########
+###......##
+###......##
+#.....p.x##
+#.....#####
+#..*..#..n#
+#.###.#..##
+#........##
+###########
+
+level 1•5
+title Stored Away
+
+##########
+#..#######
+#.*##....#
+#...#.n.x#
+#...p...##
+#.x#######
+##########
+
+level 1•6
+title Hanging Fruit
+
+############
+#...########
+#...*.#*...#
+#.p...##..n#
+###.....x###
+####x...####
+############
+
+level 1•7
+title Entrenched
+
+#########
+###.....#
+#....*..#
+#....#..#
+#.x.n...#
+#.x..p.##
+####.####
+#########
+
+level 1•8
+title Gracefall
+
+#############
+#####.......#
+#..##......*#
+#n...p......#
+##..xxx....##
+##.####....##
+#######....##
+#######.#####
+#############
+
+message Chapter 2 – A Grate Idea
+
+level 2•1
+title Not a Staircase
+
+#########
+#.......#
+#n..*...#
+#.x.....#
+##+....x#
+##..p..##
+#########
+
+level 2•2
+title Ventilation
+
+###########
+#####.....#
+#####..*..#
+#...+..#..#
+#xp.#.##.n#
+###.+.x...#
+###########
+
+level 2•3
+title Trap Door
+
+##########
+######*.##
+######...#
+#..n...x.#
+#......+##
+#..+##..##
+#x.p##..##
+##########
+
+level 2•4
+title Skylight
+
+#########
+#.......#
+#.#####.#
+#.m#..#+#
+#.##..#.#
+#.....#+#
+#.xx+.p.#
+#########
+
+level 2•5
+title Cement Mixer
+
+##########
+#........#
+#.......*#
+#.x..+p.##
+#.x...#.##
+#####n#.##
+##########
+
+level 2•6
+title Some of its Parts
+
+#########
+###..*###
+##..#####
+#n..#####
+#.+..p..#
+#...xxx.#
+#+.######
+#########
+
+message Chapter 3 – Rising Power
+
+level 3•1
+title Strange Energy
+
+#########
+##....###
+##*.....#
+#......n#
+#...x...#
+#.p.##o##
+#########
+
+level 3•2
+title Meteoric
+
+#########
+###.*#.p#
+#....#.##
+#n..##c##
+#.......#
+#.###...#
+#####o###
+#########
+
+level 3•3
+title Stairborne
+
+##########
+######..*#
+#n..#...##
+#...#...##
+##..c.px##
+#####o####
+##########
+
+level 3•4
+title Portable
+
+############
+##*x......##
+#..#.......#
+#..n.......#
+#....+#....#
+#..o.##.px.#
+############
+
+level 3•5
+title Step by Step
+
+##########
+#####...*#
+#...n....#
+#.p......#
+####...#+#
+#####o...#
+######.x.#
+##########
+
+level 3•6
+title Diving Board
+
+###########
+#.*....####
+#..##x....#
+#....+...n#
+#....o.p..#
+#..########
+#..########
+#..########
+###########
+
+level 3•7
+title Car Pool
+
+###########
+###.....*##
+##n.......#
+#.........#
+#.#.....#.#
+#+#...p.#+#
+#...o.x...#
+#######.###
+###########
+
+level 3•8
+title Skyward Slime
+
+###########
+##..*.....#
+##..#.....#
+#...#..##.#
+#.n.#..##+#
+#.........#
+#...p....+#
+#..xx.o..##
+###########
+
+message Congratulations! You beat every level!
+
+( . = background
+  # = wall
+  + = grate
+  p = player
+  
+  * = bolt
+  n = door
+  m = open door
+  
+  x = box
+  c = charged box
+  o = orb
+  
+  ###########
+  #.........#
+  #.........#
+  #.........#
+  #.........#
+  #.........#
+  #.........#
+  ########### )

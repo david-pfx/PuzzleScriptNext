@@ -28,6 +28,12 @@ const directionaggregates = {
     'parallel': ['<', '>']
 };
 
+var tagDirections = [
+    { keys: [ '^', 'v', '<', '>', 'perpendicular', 'parallel', 'orthgonal' ], values: [ 'up', 'down', 'left', 'right' ] },
+    { keys: [ 'horizontal' ], values: [ 'left', 'right' ] },
+    { keys: [ 'vertical' ], values: [ 'up', 'down' ] },
+];
+
 function getTag(state, t) {
     return Object.hasOwn(state.tags, t) && state.tags[t];
 }
@@ -72,19 +78,21 @@ class TagExpander {
         this.values = [];
 
         const tags = this.tail.filter(p => getTag(state, p));
-        if (tags.length > 0) {
-            this.keys.push(...tags);
-            this.values.push(...tags.map(t => state.tags[t]));
-        }
+        tags.forEach(t => {
+            this.keys.push(t);
+            this.values.push(state.tags[t]);
+        })
         const maps = this.tail.filter(p => getMapping(state, p));
-        if (maps.length > 0) {
-            this.keys.push(...maps);
-            this.values.push(...maps.map(m => getMappedValues(state, m)));
-        }
-        const dirs = this.tail.filter(p => relativeDirections.includes(p));
-        if (usedirs && dirs.length > 0) {
-            this.keys.push(...dirs);
-            this.values.push(...dirs.map(d => simpleAbsoluteDirections));
+        maps.forEach(m => {
+            this.keys.push(m);
+            this.values.push(getMappedValues(state, m));
+        });
+        if (usedirs) {
+            const dirs = this.tail.filter(p => tagDirections.find(d => d.keys.includes(p)));
+            dirs.forEach(d => {
+                this.keys.push(d);
+                this.values.push(tagDirections.find(t => t.keys.includes(d)).values);
+            });
         }
         this.expansion = cartesianProduct(...this.values);
     }
@@ -124,8 +132,9 @@ class TagExpander {
     }
 
     // return ident with substitution if available based on a specific expansion
-    getSubstitutedIdent(exp, ident) {
-        return this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
+    getSubstitutedIdent(exp, ident, index) {
+        const newident = this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
+        return simpleRelativeDirections.includes(ident) ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] : newident;
     }
 
     // return array of (possibly expanded) idents, one for each expansion
@@ -150,7 +159,8 @@ function expandObjectRef(state, objid, usedirs = false) {
 function expandObjectDef(state, objid, objvalue) {
     const expander = new TagExpander(state, objid, true);
     if (expander.keys.length == 0) return;
-    const newobjects = expander.expansion.map(exp => {
+
+    const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
         const newvalue = {
             lineNumber: objvalue.lineNumber,
@@ -162,18 +172,18 @@ function expandObjectDef(state, objid, objvalue) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
                 newvalue.cloneSprite = altspriteid;
-            else logError(`Source ${altspriteid} for sprite clone not found.`, objvalue.lineNumber);
+            // optional?
+            //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
         
         if (objvalue.transforms) {
-            newvalue.transforms = objvalue.transforms.map(m => {
-                const modi = [ ... m ];
-                const op = modi.shift();
-                const newm = [ expander.getSubstitutedIdent(exp, modi.shift()) ];
-                if (op == 'rot' && modi.length > 0)
-                    newm.push(expander.getSubstitutedIdent(exp, modi.shift()));
-                return [ op, ...newm, ...modi ];
+            newvalue.transforms = [];
+            objvalue.transforms.forEach(xform => {
+                const op = xform[0];
+                newvalue.transforms.push([ op, 
+                    expander.getSubstitutedIdent(exp, xform[1], index),
+                    (op == 'rot') ? expander.getSubstitutedIdent(exp, xform[2], index) : xform[2] ]);
             })
         }
         return [newid, newvalue];
@@ -246,7 +256,7 @@ function generateSpriteMatrix(state, obj) {
     }
     
     for (const tf of obj.transforms || []) {
-        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), ...tf.slice(2));
+        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), tf[2]);
     }
 }
 

@@ -1,0 +1,2036 @@
+title Jelly Is Sticky and More
+author Icely Puzzles
+homepage https://www.youtube.com/c/IcelyPuzzles
+
+run_rules_on_level_start
+noaction
+key_repeat_interval 0.12
+sprite_size 10x10
+
+=======
+TAGS
+=======
+rainbowmarks = rm bm wm ym gm lm pm tm
+
+========
+objects
+========
+Background
+white #eee
+1111111111
+1000000001
+1000000001
+1000000001
+1000000001
+1000000001
+1000000001
+1000000001
+1000000001
+1111111111
+
+Player
+Black White gray
+..........
+..22..22..
+.21022102.
+.21122112.
+..22..22..
+..........
+..........
+..........
+..........
+..........
+
+Red
+red lightred
+0000000000
+0000000000
+0011111100
+0011111100
+0011111100
+0011111100
+0011111100
+0011111100
+0000000000
+0000000000
+
+Blue
+blue lightblue
+copy: Red
+
+Yellow
+#dc0 #ff7
+copy: Red
+
+
+White
+#ECCD91 white
+copy: Red
+
+
+Gray
+gray lightgray
+copy: Red
+
+Purple
+#a0f #c8f
+copy: red
+
+Lime
+#af0 #ef8
+copy: red
+
+Rainbow
+#555 #f50 #ff0 #5f0 #0ff #05f #00f #50f #f0f
+0000000000
+0112233440
+0122334450
+0223344550
+0233445560
+0334455660
+0344556670
+0445566770
+0455667780
+0000000000
+(
+0011223344
+0112233445
+1122334455
+1223344556
+2233445566
+2334455667
+3344556677
+3445566778
+4455667788
+4556677880)
+
+(
+#f00 lightred blue lightblue yellow #ffc #cf0 #ef8
+0000222244
+0013333544
+0033335544
+0233355546
+2233555566
+2235555766
+2255557766
+2444466660
+4444666600)
+
+Teal
+#088 #3cc
+copy: red
+
+Lava
+#f00 #c00 #900
+1100100110
+1201000001
+0000201200
+0000000001
+2010000000
+0000000100
+1001000001
+0020001000
+0000000021
+1020001100
+
+Water
+blue #00c #009
+copy: Lava
+
+Unplayer
+#644 white #eaa #f00
+..........
+.322.322..
+.23022302.
+.21322132.
+..223.223.
+..........
+..........
+..........
+..........
+..........
+(
+gray
+..........
+..........
+..0....0..
+...0..0...
+....00....
+....00....
+...0..0...
+..0....0..
+..........
+..........)
+
+redt
+red lightred
+..........
+..........
+..........
+...0000...
+...0110...
+...0110...
+...0000...
+..........
+..........
+..........
+
+bluet
+blue lightblue
+copy: redt
+
+
+whitet
+brown #ffc
+copy: redt
+
+yellowt
+#dc0 #ff7
+copy: redt
+
+grayt
+gray lightgray
+copy: redt
+
+purplet
+#a0f #c8f
+copy: redt
+
+limet
+#af0 #ef8
+copy: redt
+
+
+tealt
+#088 #3cc
+copy: redt
+
+rainbowt
+gray #f50 #ff0 #5f0 #0ff #05f #00f #50f #f0f
+..........
+..........
+..000000..
+..012340..
+..02..50..
+..03..60..
+..045670..
+..000000..
+..........
+..........
+
+connect:up
+white
+..000000..
+..000000..
+..........
+..........
+..........
+..........
+..........
+..........
+..........
+..........
+
+connect:right
+white
+copy: connect:up rot:up:right
+
+connect:down
+white
+copy: connect:up rot:up:down
+
+connect:left
+white
+copy: connect:up rot:up:left
+
+
+Wall
+black #111
+copy: background
+
+Wallplayer
+black #111
+copy: Wall
+
+(Status)
+
+Check_Next
+TRANSPARENT
+
+Can_Move
+TRANSPARENT
+
+Cannot_Move
+TRANSPARENT
+
+Waiting
+TRANSPARENT
+
+unmark
+transparent
+
+mark1
+transparent
+
+mark2
+transparent
+
+mark3
+transparent
+
+mark4
+transparent
+
+mark5
+transparent
+
+mark6
+transparent
+
+mark7
+transparent
+
+mark8
+transparent
+
+Newly
+transparent
+
+(I am making a mark for each color so rainbow doesn't get more than 1 color copied at a time. Is this awful? ABSOLUTELY. This engine is poop.)
+
+
+rainbowmark:rm
+transparent
+
+rainbowmark:bm
+transparent
+
+rainbowmark:wm
+transparent
+
+rainbowmark:ym
+transparent
+
+rainbowmark:gm
+transparent
+
+rainbowmark:lm
+transparent
+
+rainbowmark:pm
+transparent
+
+rainbowmark:tm
+transparent
+
+cantmovemarker
+transparent
+
+removewatermark
+transparent
+
+NoPlayerBugHackMarker
+transparent
+
+LimeTargetsLimeModifier
+transparent
+
+
+=======
+LEGEND
+=======
+# = Wall
+A = Red
+B = Blue
+C = White
+D = Yellow
+E = Gray
+F = Purple
+G = Lime
+H = Rainbow
+I = Teal
+
+
+P = Player
+. = Background
+
+{ = White and Mark1
+} = White and Mark2
+: = White and Mark1 and Player
+; = White and Mark2 and Player
+⋁ = White and Mark1 and whitet
+⋀ = White and Mark2 and Whitet
+∑ = White and Mark1 and Player and whitet
+
+0 = redt
+1 = bluet
+2 = whitet
+3 = yellowt
+4 = grayt
+5 = purplet
+6 = limet
+7 = rainbowt
+8 = tealt
+
+𝟶 = redt and Red
+⑴ = bluet and Blue
+⑵ = whitet and White
+⑶ = yellowt and Yellow
+⑷ = grayt and Gray
+⑸ = purplet and purple
+⑹ = limet and lime
+⑺ = rainbowt and rainbow(⑼𝟶)
+⑻ = tealt and teal
+
+
+⋂ = whitet and Gray
+
+! = Red and Player
+@ = Blue and Player
+~ = White and Player
+$ = Yellow and Player
+% = Gray and Player
+& = Purple and Player
+* = Lime and Player
+` = Rainbow and Player
+? = Teal and Player
+W = Wallplayer and Player
+
+
+
+
+X = lava
+Y = water
+Z = unplayer
+t = lava and player
+u = water and player
+
+∞ = NoPlayerBugHackMarker
+↣ = LimeTargetsLimeModifier
+
+object = Wall or Red or Blue or Yellow or White or Gray or Purple or Lime or Rainbow or Teal or Wallplayer
+notWhite = Wall or Red or Blue or Yellow or Gray or Purple or Lime or Rainbow or Teal or Wallplayer
+notWall = Red or Blue or Yellow or White or Gray or Purple or Lime or Rainbow or Teal or Wallplayer
+notWallorRainbow = Red or Blue or Yellow or White or Gray or Purple or Lime or Teal
+status = Check_Next or Can_Move or Cannot_Move or Waiting
+targets = redt or bluet or whitet or yellowt or grayt or purplet or limet or rainbowt or tealt
+marks = mark1 or mark2 or mark3 or mark4 or mark5 or mark6 or mark7 or mark8
+
+=======
+SOUNDS
+=======
+
+sfx1 94176002:6
+sfx2 43711202:3
+sfx3 60530706:3
+Restart 65287309
+
+EndLevel 69949903 (65732208 30858908 61470100)
+sfx4 80512803 ( 91031002)
+sfx5 64281902:3
+sfx6 44809803:3
+(sfx7 3864)
+sfx8 62019504
+sfx9 7094902:5
+sfx10 65216007:1
+
+(
+random : 79651408
+random : 6417508
+random : 13945308
+random : 25331008
+random : 39959608)
+
+================
+COLLISIONLAYERS
+================
+Background
+status
+object
+mark1
+mark2
+mark3
+mark4
+mark5
+mark6
+mark7
+mark8
+unmark
+newly
+lava
+water
+unplayer
+connect:up
+connect:left
+connect:right
+connect:down
+player
+targets
+cantmovemarker
+removewatermark
+NOPLAYERBUGHACKMARKER 
+LimeTargetsLimeModifier
+rainbowmarks -> rainbowmark:rainbowmarks
+
+
+======
+RULES
+======
+
+(anonymous "Sudo Nim" provided the starting sticky code. everything else is me https://groups.google.com/g/puzzlescript/c/wkxM1SLxhyg?pli=1)
+[status] -> [] sfx10
+
+
+right [mark1 no unmark | mark1] -> [mark1 connect:right unmark | mark1 connect:left]
+[unmark] -> []
+up [mark1 no unmark | mark1] -> [mark1 connect:up unmark | mark1 connect:down]
+[mark1] -> []
+
+
+right [mark2 no unmark | mark2] -> [mark2 connect:right unmark | mark2 connect:left]
+[unmark] -> []
+up [mark2 no unmark | mark2] -> [mark2 connect:up unmark | mark2 connect:down]
+[mark2] -> []
+
+[> player object] -> [> player > object]
+
+(
+[> player lava] -> [> player > lava]
+[> player water] -> [> player > water]
+)
+
+(* Walls are immobile, empty spaces are no obstacle. *)
+
+[no notWall] -> [no notWall Can_Move]
+[Wall] -> [Wall Cannot_Move no Can_Move]
+
+StartLoop
+
+(* The first time through, an object checks to see whether it is blocked, unblocked, or ambiguous. *)
+
+[> Wallplayer | Lava] -> [Wallplayer Cannot_Move | Lava]
+[> Wallplayer | Water] -> [Wallplayer Cannot_Move | Water]
+[> object no status | Can_Move] -> [> object Can_Move | Can_Move]
+
+[> object no status | Cannot_Move] -> [object Cannot_Move | Cannot_Move]
+[> object no status | Waiting] -> [> object Waiting | Waiting]
+
+(* If there is something in the way, the momentum is transfered forward, and the object waits to figure out if the path ahead is blocked or clear. *)
+
+[> object no status | object no status] -> [> object Waiting | > object Check_Next] (* This may change depending on mechanic *)
+
+(* An object that is waiting checks to see if the block ahead of it has been decided yet. *)
+
+(
+[white Can_Move | white Cannot_Move] -> [stationary white Cannot_Move Newly | white Cannot_Move])
+right [white connect:right | white Cannot_Move connect:left] -> [stationary white Cannot_Move connect:right Newly | white Cannot_Move connect:left]
+left [white connect:left | white Cannot_Move connect:right] -> [stationary white Cannot_Move connect:left Newly | white Cannot_Move connect:right]
+down [white connect:down | white Cannot_Move connect:up] -> [stationary white Cannot_Move connect:down Newly | white Cannot_Move connect:up]
+up [white connect:up | white Cannot_Move connect:down] -> [stationary white Cannot_Move connect:up Newly | white Cannot_Move connect:down]
+
+[> object | Cannot_Move] -> [object Cannot_Move | Cannot_Move]
+
+[> object Waiting | Can_Move] -> [> object Can_Move | Can_Move]
+[> object Waiting | Cannot_Move] -> [object Cannot_Move | Cannot_Move]
+
+(
+[object Cannot_Move Newly | > object Can_Move] -> [object Cannot_Move Newly | object Cannot_Move Newly] (back-propagate))
+[object Cannot_Move Newly | > object no player Can_Move] -> [object Cannot_Move Newly | object Cannot_Move Newly] (back-propagate)
+
+[notWhite Cannot_Move Newly | perpendicular notWhite no player Can_Move] -> [notWhite Cannot_Move Newly | notWhite Cannot_Move Newly] (back-propagate, massive hack)
+
+ 
+(* An object that can definitely move will transfer movement to its neighbors *)
+
+[moving Red Can_Move | Red no status] -> [moving Red Can_Move | moving Red Check_Next]
+
+[moving Gray Can_Move | Gray no status] -> [moving Gray Can_Move | moving Gray Check_Next]
+
+[moving Teal Can_Move | Teal no status] -> [moving Teal Can_Move | moving Teal Check_Next]
+
+[moving Lime Can_Move | Lime no status] -> [moving Lime Can_Move | moving Lime Check_Next]
+
+[moving Purple Can_Move | Purple no status] -> [moving Purple Can_Move | moving Purple Check_Next]
+
+[moving Rainbow Can_Move | Rainbow no status] -> [moving Rainbow Can_Move | moving Rainbow Check_Next]
+
+
+[moving Yellow Can_Move | Yellow no status] -> [moving Yellow Can_Move | moving Yellow Check_Next]
+[moving Yellow Can_Move | Blue no status] -> [moving Yellow Can_Move | moving Blue Check_Next]
+[moving Blue Can_Move | Yellow no status] -> [moving Blue Can_Move | moving Yellow Check_Next]
+
+[moving Yellow Can_Move | White no status] -> [moving Yellow Can_Move | moving White Check_Next]
+[moving White Can_Move | Yellow no status] -> [moving White Can_Move | moving Yellow Check_Next]
+
+right [moving White Can_Move connect:right | White connect:left no status] -> [moving White Can_Move connect:right | moving White Check_Next connect:left]
+left [moving White Can_Move connect:left | White connect:right no status] -> [moving White Can_Move connect:left | moving White Check_Next connect:right]
+up [moving White Can_Move connect:up | White connect:down no status] -> [moving White Can_Move connect:up | moving White Check_Next connect:down]
+down [moving White Can_Move connect:down | White connect:up no status] -> [moving White Can_Move connect:down | moving White Check_Next connect:up]
+
+
+(Reds only stick to red.
+Blues only stick to yellow.
+Whites only stick to yellow.
+Yellows stick to yellow/blue/white.
+
+
+Grays solidify to white when one of them is adjacent to lava.
+Limes turn adjacent blocks to lime.
+Rainbows change color to the first adjacent block.)
+
+late [object player Lava] -> [Lava] sfx8
+late [object Lava] -> [Lava] sfx8
+late [connect:directions Lava] -> [Lava]
+
+late [object player Water] -> [Water removewatermark]
+late [object Water] -> [Water removewatermark]
+late [connect:directions Water] -> [Water removewatermark]
+late [Water removewatermark] -> [] sfx5
+
+late [player Unplayer] -> [Unplayer] sfx9
+
+late right [connect:right | no connect:left] -> [ | ]
+late left [connect:left | no connect:right] -> [ | ]
+late up [connect:up | no connect:down] -> [ | ]
+late down [connect:down | no connect:up] -> [ | ]
+
+[Check_Next] -> []
+
+EndLoop
+late [Newly] -> []
+
+[> object Can_Move connect:directions] -> [> object Can_Move > connect:directions]
+[> player Cannot_Move Gray | Cannot_Move Gray no player] -> [Cannot_Move Gray | player Cannot_Move Gray]
+
+[> player Cannot_Move] -> [player Cannot_Move]
+[> player object | Cannot_Move] -> [player object | Cannot_Move]
+
+
+late [Water | Gray] -> [Water | Gray mark1]
+late [Gray mark1 | Gray no mark1] -> [Gray mark1 | Gray mark1]
+late [Gray mark1] -> [White mark1] sfx1
+
+(Lime blocks smudge targets)
+late [Lime targets no limet] -> [Lime limet] sfx3
+
+(Teal in a square solidify)
+late right [Teal | Teal] -> [Teal mark1 | Teal mark1]
+late down [Teal | Teal] -> [Teal mark2 | Teal mark2]
+
+(when your poopoo script language doesn't let you detect a square with one easy line...)
+
+late right [Teal mark1 mark2 | Teal mark1 mark2] -> [Teal mark1 mark2 mark3 | Teal mark1 mark2 mark3]
+late down [Teal mark3 | Teal mark3] -> [Teal mark3 mark4 | Teal mark3 mark4]
+late right [Teal mark4 | Teal mark4] -> [Teal mark4 mark5 | Teal mark4 mark5]
+late down [Teal mark5 | Teal mark5] -> [Teal mark5 mark6 | Teal mark5 mark6]
+late right [Teal mark6 | Teal mark6] -> [Teal mark6 mark7 | Teal mark6 mark7]
+late down [Teal mark7 | Teal mark7] -> [Teal mark7 mark8 | Teal mark7 mark8]
+late [Teal mark8] -> [White mark1] sfx4
+
+late [Teal marks] -> [Teal]
+startloop
+late [Red | Rainbow no rainbowmark:bm] -> [Red | Rainbow rainbowmark:rm]
+
+(I feel like PatternScript will start looping if I do the notWall thing. So no. MORE SPAGHETTI IT IS. Wow imagine having a language where you can't check the 4 adjacent squares and can only check lines. AMAZING!)
+late [Blue | Rainbow rainbowmark:rm] -> [Blue | Rainbow rainbowmark:bm]
+late [Blue | Rainbow no rainbowmark:bm] -> [Blue | Rainbow rainbowmark:rm]
+
+late [white | Rainbow rainbowmark:rm] -> [white | Rainbow rainbowmark:bm]
+late [white | Rainbow no rainbowmark:bm] -> [white | Rainbow rainbowmark:rm]
+
+
+late [yellow | Rainbow rainbowmark:rm] -> [yellow | Rainbow rainbowmark:bm]
+late [yellow | Rainbow no rainbowmark:bm] -> [yellow | Rainbow rainbowmark:rm]
+late [gray | Rainbow rainbowmark:rm] -> [gray | Rainbow rainbowmark:bm]
+late [gray | Rainbow no rainbowmark:bm] -> [gray | Rainbow rainbowmark:rm]
+late [lime | Rainbow rainbowmark:rm] -> [lime | Rainbow rainbowmark:bm]
+late [lime | Rainbow no rainbowmark:bm] -> [lime | Rainbow rainbowmark:rm]
+
+late [purple | Rainbow rainbowmark:rm] -> [purple | Rainbow rainbowmark:bm]
+late [purple | Rainbow no rainbowmark:bm] -> [purple | Rainbow rainbowmark:rm]
+late [teal | Rainbow rainbowmark:rm] -> [teal | Rainbow rainbowmark:bm]
+late [teal | Rainbow no rainbowmark:bm] -> [teal | Rainbow rainbowmark:rm]
+
+
+(i think this structure is making some more-than-one-turn propagation issues happen, like if you have lots of rainbow and 2 different color types, I am not getting any retained rainbows!)
+late [White | Rainbow no rainbowmark:bm] -> [White mark1 | Rainbow mark1] sfx2
+late [Rainbow mark1] -> [White mark1] (for multicombines)
+late [notWallorRainbow | Rainbow rainbowmark:rm] -> [notWallorRainbow | notWallorRainbow] sfx2
+endloop
+(late [rainbowmark:bm] -> [] sfx9) (this doesn't work, I was hoping it would only trigger on newly changed rainbow situations)
+late [rainbowmark:rainbowmarks] -> []
+
+
+
+late right [mark1 no unmark | mark1] -> [mark1 connect:right unmark | mark1 connect:left]
+late [unmark] -> []
+late up [mark1 no unmark | mark1] -> [mark1 connect:up unmark | mark1 connect:down]
+late [marks] -> []
+
+(late [Wall | Purple] -> [Red | Red])
+
+late [Purple targets no purplet no bluet] -> [Purple bluet] sfx6
+
+late [Wallplayer no Player] -> [Wall]
+late [Player Wall] -> [Wallplayer Player]
+
+late [player no object] [NoPlayerBugHackMarker] -> cancel
+
+==============
+WINCONDITIONS
+==============
+
+all redt on red
+all bluet on blue
+all yellowt on yellow
+all whitet on white
+all grayt on gray
+all purplet on purple
+all limet on lime
+all rainbowt on rainbow
+all tealt on teal
+
+=======
+LEVELS
+=======
+
+(
+message Code for interactions with white + sticky objects is not quite consistent. If you see an incorrect move, it's not part of the solution and please undo it.)
+
+message Based on the game 'Jelly is Sticky' by Lunarch Studios, with extra mechanics added
+
+
+message Water Is Sink
+########
+#@#..yy#
+#.@..yy#
+#.bb.yy#
+#....yy#
+#yyyyyy#
+#yyyyy1#
+########
+
+
+message Flood
+###########
+#y1yyyy0yy#
+#yyyybyyyy#
+#yyybbbyyy#
+#yybb!bbyy#
+#yyybbbyyy#
+#yyyybyyyy#
+#yyyyyyyyy#
+###########
+
+message Influx
+###########
+#1yyyyy0yy#
+#yyyyayyyy#
+#yyyaaayyy#
+#yyaa@aayy#
+#yyyaaayyy#
+#yyyyayyyy#
+#yyyyyyyyy#
+###########
+
+message Waterbox
+##########
+#........#
+#.yyyyyy.#
+#.y.cc.y.#
+#1y{@{{y.#
+#yy{{.{yy#
+#.y....y.#
+#.yyyyyy.#
+#.2.2.2..#
+##########
+
+message Cement Is Sticky Three
+##########
+#%#####ee#
+#.###....#
+#.###.44.#
+#.###.44.#
+#...e.44.#
+#e.ae....#
+##########
+
+message Eye Can Wade Through
+##########
+#.....####
+#.....####
+#.....##4#
+#%ee..4..X
+#.....####
+#.....####
+##########
+
+message Move Through the Cement
+###########
+#......!.##
+#@.%.....##
+#@..c###b##
+#..baeee{{#
+#.abcb{eee#
+#beeeebe#4#
+###########
+
+message The Eye-Rolling Rotator
+########
+#.....##
+#.4444.#
+#......#
+#...ee.#
+#...%e.#
+#......#
+########
+
+
+message It Hardens Near Water
+##########
+#........#
+#.%...⑷#.#
+#..⑷...⑷.#
+#......2.#
+#⑷.y...#.#
+#........#
+##########
+
+message Finally Getting Hard
+##########
+#........#
+#.%......#
+#..⋂....⋂#
+#........#
+#⋂.y.....#
+#........#
+##########
+(
+##########
+#........x
+#.%......x
+#..⋂...⋂.x
+#........x
+#⋂.y.....x
+#........x
+#######..x
+##########)
+
+message Stream Snipe
+##########
+#........y
+#.%......y
+#..⋂...⋂.y
+#........y
+#⋂.......y
+#......yyy
+#######yyy
+##########
+
+message Art of Escapism
+##########
+#%ee.....#
+#e#...#..#
+#e.###...#
+#...##..4#
+##..###.4#
+#.#...444#
+##########
+
+message The Water Embers
+
+############
+##.......xx#
+#.....y.xxx#
+#.......x2x#
+#..e.....%.#
+#....e.....#
+#.########.#
+#....4.....#
+############
+
+message It's Champions Time
+
+############
+##.......xx#
+#.....y.xxx#
+#.......x2x#
+#e.......%.#
+#....e.....#
+#e########.#
+#..........#
+#####4######
+
+(
+message 
+###########
+#........y#
+#.........#
+#e.e.e.%..#
+#.........#
+#.#######.#
+#..4..4...#
+###########)
+
+message To The End and Back
+###############
+#xx..xxxxxxxx.#
+#x.....xxxx...#
+#....%ee.x...x#
+#.4.xxxx....xx#
+4......xx..xxx#
+#.xx.........x#
+#xxxxx.....x..#
+#xxxxxx...xxx.#
+#........xxxx.#
+###############
+
+message Been Burned One Too Many Times
+###############
+#...xxxxxxxxx.#
+#.....xx..xx..#
+#....%ee.....x#
+#4..xxxx....xx#
+4......xxx...x#
+#..x......xx..#
+#..xxx.......x#
+#..xxxx...xx..#
+#.xxxxx..xxx..#
+###############
+
+message Show This World Revenge
+###############
+#xx.xxxxxx.xx4#
+#......x...x..#
+#...x....%ee.x#
+#..xxxxx....xx#
+4......xex...x#
+#.......xxxx..x
+#..xxx........x
+#.xxxxx....x.##
+#.xxxxx..x...##
+#exxxxx..x...##
+###############
+
+message The Streams
+###############
+#yyyyyyyyyyyyy#
+#y.....y.....y#
+#y.a.a.y.....y#
+#y.....y.....y#
+#y..e..y...4.y#
+#y.%...y.....y#
+#y..e..y.....y#
+#y.....y.....y#
+#yyyyyyyyyyyyy#
+###############
+
+message Pity Stream
+###############
+#######y#######
+#......y...####
+#.e.a..y...####
+#......y...#4##
+#%.....y......#
+#......y....#.#
+#.a.e..y....0.#
+#......y......#
+#######y#######
+###############
+
+message Disaster Stream
+################
+#######yyy######
+#......yyy..####
+#...%a.yyy..####
+#....a.yyy..#2##
+#..!.a.yyx.....#
+#......xyy.....#
+#...%..yyy.....#
+#..%...yxy.....#
+#######yyy######
+################
+
+message Forge Out Of The Flames
+xxxxxxxxxxxxxxx
+xxx...xxxxxxx.x
+x.....xx..xx..x
+x....%.......xx
+#4..xxxx...exxx
+4......xxx...xx
+x.xx......xx..x
+xxxxxx......exx
+x.exxxx..exx..x
+x.xxxx⑷.exxx..x
+xxxxxxxxxxxxxxx
+
+
+message Cutastrophe
+##############
+#.....##.....#
+#.ee%....%ee.#
+#............#
+#............#
+#x.x4x..x4x.x#
+#............#
+#.x.x....x.x.#
+#............#
+#4#........#4#
+#x#xxxxxxxx###
+
+message Cutana
+###############
+#e............#
+#.%........e%.#
+#.............#
+#.............#
+#..x.....x.x..#
+#xxx.xx.xx.xxx#
+#.............#
+#...x.....x...#
+#.............#
+#4#..x...x..#4#
+#x#xxxxxxxxx#x#
+
+message Cementation Lock
+#y#xxxxxx#
+#@#.%..%.#
+#.#..%...#
+#.#....e.#
+#.#e.....x
+#.#ee.e..#
+#.#.....e#
+#1#444444#
+#y#xxxxxx#
+
+
+(###############
+#...xxxxxxxxx.#
+#.....xx..x...#
+#....%ee.....x#
+#4..xxxx....xx#
+4......xx....x#
+#..x.......x..#
+#..xxx.....x..#
+#..xxxx...xx..#
+#.xxxxx..xx...#
+###############)
+
+(
+message Eye Didn't Mean It
+##########
+#.....####
+#.e...#..#
+#...e.#..#
+#%......3#
+#.....##.#
+#..e..####
+##########
+
+message Red and Yellow Don't Stick
+)
+
+message Tealberry Is Sticky, But...
+##########
+#?###....#
+#.###.88.#
+#.###.ii.#
+#.###.22.#
+#...i.22.#
+#i..i....#
+##########
+
+
+message Square Tealberry Turns Solid
+
+##########
+#?###....#
+#..ii....#
+#.....22.#
+#.....22.#
+#...i.22.#
+#i..i....#
+##########
+
+message Double Tealberry
+
+##########
+#.###....#
+#?###....#
+#.i..ii..#
+#...2222.#
+#...2222.#
+##ii#ii..#
+######...#
+######...#
+##########
+
+message Double Tealberry Twist
+
+##########
+#?###....#
+#..ii....#
+#...2222.#
+#...2222.#
+#..i....i#
+#i...#.ii#
+##########
+
+message Pairwise Pack
+############
+#........XX#
+#.....!..XX#
+#........XX#
+#........XX#
+#.i...i..22#
+#.i......22#
+#.i....i.22#
+#.i...ii.22#
+############
+
+message 3x3 Creation
+
+############
+#..........#
+#.i.i.i....#
+#.......222#
+#.i.i.i.222#
+#....!..222#
+#.i.i.i....#
+#..........#
+############
+
+message 4x4 Creation
+###############
+#.............#
+#.i.i.i.i.....#
+#.............#
+#.i.i.i.i.2222#
+#....!....2222#
+#.i.i.i.i.2222#
+#.........2222#
+#.i.i.i.i.....#
+#.............#
+###############
+
+message Did You Notice You Didn't Need To Make A 4x4 The Previous Level
+(tried to make a level forcing it, but it seems hard to actually force it)
+
+###############
+#.............#
+#.............#
+#.............#
+#.i.i..i.i2222#
+#!i.i..i.i2222#
+#.i.i.i.i.2222#
+#.i.i.i.i.2222#
+#.............#
+#.............#
+###############
+
+
+message Lol
+###############
+#..222222222..#
+#..222222222..#
+#.............#
+#.?...???.?...#
+#.?...?.?.?...#
+#.???.???.???.#
+#.............#
+#.............#
+#.............#
+###############
+
+(
+#############
+#i.i.i.i....#
+#...........#
+#i.i.i.i2222#
+#...!...2222#
+#i.i.i.i2222#
+#.......2222#
+#i.i.i.i....#
+#############
+
+message What Do You Mean You Didn't Make A 4x4?!
+
+##################
+#..y.............#
+#.##.!.i.i.i.....#
+#..#.............#
+##.#.i.i.i.i.2222#
+#..#.........2222#
+#.##.i.i.i.i.2222#
+#..#.........2222#
+##.#.i.i.i.i.....#
+#?.#.............#
+##################)
+
+message Square Up The Deck
+##########
+#.....222#
+#...i.222#
+#...?.222#
+#.i......#
+#.ii.....#
+#........#
+#........#
+#.i....i.#
+#.ii..ii.#
+##########
+
+message Why Do They Say "Square Up The Deck" When The Deck Is A Rectangle
+##########
+#...?.222#
+#...i.22.#
+#.i...22.#
+#.ii..22.#
+#........#
+#........#
+#.i....i.#
+#.ii..ii.#
+##########
+
+message Torn and Restored
+#############
+######xxxx###
+######22..###
+######28..###
+######28..###
+######22..###
+######xx..###
+#...?......##
+#...i......##
+#.i........##
+#.ii........#
+#...........#
+#.........x##
+#.i....i..x##
+#.ii..ii...##
+#############
+
+message Protect The Wall of Deldos
+###############
+x...........⑵⑴x
+x.....?...i.⑴⑵x
+x...........⑵⑵x
+x.....i.....⑴⑴x
+x...........⑵⑵x
+x...........⑵⑵x
+xi....?.....⑴⑴x
+x...i....i..⑵⑵x
+###############
+x?...........8x
+###############
+
+
+
+message Lime Infects Targets
+#############
+#...........#
+#.22....{{..#
+#.23..3.{d..#
+#*2.....{.a.#
+#.20..0.{a..#
+#.22....{{.↣#
+#############
+
+message Lime Is Sticky, Who'd've Seen That Coming
+###########
+#####....##
+#*###....##
+#.###.....#
+#.###.....#
+#.###..e..#
+#.###.4⑷..#
+#.###.4⑷..#
+#...g.44..#
+#g.......↣#
+###########
+
+(
+message Update: Large Forehead Removed
+###########
+#*#########
+#.###..g..#
+#.###.....#
+#.###.⑷⑷.g#
+#.###.4⑷..#
+#.....44..#
+#.........#
+###########
+)
+(Imprint
+#..000000000{!!!!!!!!!#
+#..000000000{!!!***!**#
+#..000000000{!!!*!*!*!#
+#*.000000000{!!!*!*!*!#
+#..000000000{****!***!#
+#..000000000{!!!!!!!!!#
+#######################
+
+####################
+############.#######
+#..000000...{!!!!!!#
+#..000000...{!!!!!!#
+#..000000...{!!!!!!#
+#*.000000...{!!!!!!#
+#..000000...{!!!!!!#
+#..000000...{!!!!!!#
+##########{#d#######
+##########{{{#######
+##########xxx#######)
+
+message Assortment
+(The intended Cool Thing about this level is that the white can only go on the bottom left because it's got an empty space at the bottom. As it is now, it's really just a mess unfortunately.)
+###########
+#....*....#
+#0.b..b.{.#
+#...0a..{.#
+#1..2...g.#
+#2..1.i...#
+#.1.8...g↣#
+###########
+
+(Wow This Mechanic Really Does Not Have Much Design Space)
+message This Mechanic Really Sucks, Doesn't It?
+####################...################
+#gg##gg#ggggg##gggg#*.!#aa###aa##aaaa##
+#gg##gg#ggggg#ggggg#...#aaa##aa#aaaaaa#
+#gg##gg#gg####gg####...#aaaa#aa#aa##aa#
+#gggggg#gggg###gg###...#aaaaaaa#aa##aa#
+##gggg##gggg####gg##...#aa#aaaa#aa##aa#
+###gg###gg#######gg#...#aa##aaa#aa##aa#
+###gg###ggggg#ggggg#.0.#aa###aa#aaaaaa#
+###gg###ggggg#gggg##...#aa###aa##aaaa##
+#######################################
+
+message Thank You For Your Feedback
+
+message Goop Turns Targets Blue
+##########
+#&##.....#
+#.##.b44.#
+#.##.bbb.#
+#.##.....#
+#.##.b44.#
+#....b44.#
+#f.......#
+##########
+
+message Imprint
+#######################
+#######################
+#######################
+#######################
+#..0.0..0.0c.!!!!@!!@.#
+#&..00.0.0.c.!@!!@!!@.#
+#....00..0.c.!!!@!!!@.#
+#..0...0.0.c.!!!!!@@!.#
+#######################
+#######################
+#######################
+#######################
+
+message Economical
+###############
+#.............#
+#!..b..b..b..b#
+#f..f..f..f...#
+#.............#
+#.##.##.##0##.#
+#0##.##0##.##0#
+#.##0##.##.##.#
+###############
+
+
+(
+##########
+#........#
+#..f.b.f.#
+#........#
+#..b.b.f.#
+#0##!###0#
+#0#a.#.c0#
+#..ayaac.#
+#..aaacc.#
+..........
+message Blimesided
+#######################..
+#######################..
+##................#####..
+##.##############.#####..
+#..0.0..0.{!$!@{{.....#..
+#&..00.0.0{!@!!${.....#..
+#....05..0{{!@@*{.....#..
+#..0...0.0{$!!${{.....#..
+#######################..
+#######################..
+#######################..
+#######################..
+)
+
+message Touch The Rainbow
+##########
+#hhhhhhhh#
+#h######h#
+#h#..b.#h#
+#h..b!.#h#
+#h#b.00#h#
+#h######h#
+#hhhhhhhh#
+##########
+
+message Rainbow Copies Adjacent Jelly
+##########
+#!##.....#
+#@##.0.1.#
+#.##.1.0.#
+#.##.h...#
+#.##.....#
+#......h.#
+#........#
+##########
+
+message Select Your Character
+##########
+#abcedgfi#
+#........#
+#........#
+#.`..#...#
+#.....#..#
+####..####
+#...#.#.##
+#........#
+#.i.i222.#
+#.ii.222.#
+#........#
+#........#
+##########
+
+message Teal;DR
+##########
+#abcedgfi#
+#........#
+#.`......#
+#....#...#
+####..####
+#...#.X.##
+#.X.....##
+#X.i.....#
+X.ii.#22X#
+#.i..#22X#
+##XX###X##
+
+message A Rainbow Target
+##########
+#`......`#
+#........#
+#..a.....#
+#....a...#
+#a.....a.#
+#..a.....#
+#....a...#
+#......a.#
+#........#
+#...7....#
+#........#
+##########
+
+message A Trick To Stay Rainbow
+##########
+####b#####
+####`!####
+###b..####
+####.#####
+#........#
+#........#
+#........#
+#........#
+####.....#
+###b..####
+####7#####
+####.#####
+##########
+
+message Rainbow-to-White Connection
+##########
+#......{.#
+#{.2...{{#
+#{.22..}}#
+#{{.....}#
+#........#
+#.{..2.{{#
+#.......{#
+#....`...#
+#{{......#
+#......{.#
+#..c.{{{.#
+##########
+
+message A Purple Problem?
+##########
+#abcedgfi#
+#........#
+#........#
+#.`..#...#
+####..####
+#####.####
+#........#
+#........#
+#..1bb2..#
+#####.####
+#####.####
+##########
+
+message Another Purple Problem?
+##########
+#abcedgfi#
+#........#
+#........#
+#.`..#...#
+####..####
+####...###
+####....##
+#####...##
+#........#
+#........#
+#..1..2..#
+#####.####
+##########
+
+message ...Purple?
+##########
+#abcedgfi#
+#........#
+#........#
+#.`..#...#
+###c..####
+#####.####
+#........#
+#..5.f5..#
+#.b.44.b.#
+#........#
+##########
+
+(
+fails to restrain the trick, but it's honestly a workable red+blue puzzle
+##########
+#abcedgfi#
+#........#
+#........#
+#.`..#...#
+###b..####
+#####.####
+#..5..5..#
+#....f...#
+#.b....b.#
+#........#
+##########)
+
+(
+############
+#....#.#####
+#....#.....#
+#....#.0.0.#
+#....#..b..#
+#.f*.y.#&b.#
+#....#..b..#
+#....#.5.5.#
+#....#.....#
+#....#.#####
+############
+
+#####&######
+#*###{.#####
+#.###{{{{{.#
+#.###....{.#
+#.###.0b5{.#
+#..##.ba.{.#
+##.##.5b0{.#
+##..y....{.#
+#g..{{{{{{.#
+############)
+
+
+
+(
+supposed to be a setup where you drag a white box from the left into position, but can't make it work
+###############
+x.........{{.⑵x
+x........i{{?⑵x
+x........iiii⑵x
+x............⑴x
+x............⑵x
+x............⑵x
+x............⑴x
+xi...........⑵x
+###############
+x?...........8x
+###############
+)
+
+
+message Stop That Rainbow!!!
+###############
+#cf#ce#bie#abd#
+#b...........f#
+##.#dc.aab#e.b#
+#g.b#b0###bf.g#
+#c.fb#.cbb#h.b#
+#f......a.`..a#
+#gcabbfiec#cef#
+###############
+
+(alt version with living player at the bottom right, too complicated imo
+###############
+#cf#ce#bie#abd#
+#b...........f#
+##.#dc.aab#e.b#
+#g.b#b0###bf.g#
+#c.fb#.cbb#d.b#
+#f......a.`..a#
+#gcabbfiec#ce`#
+###############)
+
+message Lift the Lake
+##########
+#88888888#
+#....i...#
+#......%.#
+#.i......#
+#.i..i.i.#
+#iiiiiiii#
+#########w
+
+message What's Watching The Lake?
+##########
+#8888888##
+#.......##
+#.....%.##
+#.i....i##
+#.i.....##
+#iiiiiiiw#
+##########
+
+message Okay I Just Themed The Previous Two Levels As "Lake" When There Is A Water Mechanic That's Not Even Used, So Here Is A Real Lake Level
+##########
+#........#
+#4?.i..i4#
+#..ee..i.#
+#........#
+#.y..y...#
+#.y..y.y.#
+#yyyyyyyy#
+##########
+
+
+message Wall is Never Sticky
+###########
+#a......#w#
+#a.d#bd3#.#
+#a.dbad.#.#
+#a.db#d.#.#
+#a.db{d.#.#
+w..db{d..dX
+####a{#####
+
+
+message Walls are Invulnerable
+##############
+#............x
+#..!....0b.b.x
+#........w...x
+#yyy.........x
+##############
+#!...........0
+##############
+
+message What
+
+############
+############
+##p###0...##
+##.###....##
+##.###....##
+##..##..y.##
+##...a....##
+##a..a..y0##
+############
+############
+
+message Two Different Interpretations of "Invulnerable"
+###############
+#xxxxxxxxxxxxx#
+#x#######f⑸⑸⑸x#
+#xd......fi8fx#
+#xb##....f⑸⑸⑸x#
+#xd#####.xxxxx#
+#xb1####.xxxxx#
+#xd##...pe⑷⑷⑷x#
+#xb##....eb1ex#
+#xw######e⑷⑷⑷x#
+#xxxxxxxxxxxxx#
+###############
+
+message Spaghetti Bands
+(
+################
+#.......acf.####
+#.......adf.####
+#.......acf.####
+#.......adf.####
+#.....p.acf.####
+#.......bdf.####
+#aaaaaaaacf.####
+#cdcbcdcdcf.####
+#ffffffffff.####
+#..........!####
+#...........####
+#.............##
+#...........#5##
+################)
+
+(yes you can break the wall no I don't care)
+################
+#......af...####
+#......af...####
+#......af...####
+#......af...####
+#.....paf...####
+#aaaaaaaf...####
+#ffffffff...####
+#...........####
+#...........####
+#..........!####
+#...........####
+#.............##
+#...........#5##
+################
+
+
+message The Ghost In The Machine
+############### (you can get to the top right spot as blue, but it's too much nonsense)
+#{{{{{{{{{{{{{#
+#{!..a.......{#
+#{...aaaa.a..{#
+#{.a....a....{#
+#{.a.p..a...1{#
+#{.a....a....{#
+#{.a.....aa..{#
+#{..aaaa..a..{#
+#{..aaaa.....{#
+#{..........b{#
+#{{{{{{{{{{{{{#
+###############
+
+message A Mechanic That Makes You Stop Playing (Figuratively)
+#################
+#..............x#
+#.:::......yyy.x#
+#.:::...z..y2y.x#
+#.:::......yyy.x#
+#..........222.x#
+#################
+#!.............0#
+#################
+
+message Blanking
+
+#################
+#zzzzzzzzzzzzzzz#
+#zp.zaap...zz..z#
+#z..z..z...z0..z#
+#z..z..z...zz..z#
+#z..z..z.......z#
+#z.....z...#...z#
+#zzzz.zzz.#zzz.z#
+#z0............z#
+#zzzzzzzzzzzzzzz#
+#################
+
+message Finale
+(it's SO tempting to force a rainbow target at the very bottom but I won't)
+(6/1/2022: by "force" I meant, if you had to move it down as your very first move, because you are a rainbow and only rainbows/walls can move other rainbows without transforming. This context is now missing because there is a rainbow target now, but lol)
+###################
+#hhhhhhhh#hhhhhhhh#
+#h###############h#
+#h#`............#h#
+#h#.............#h#
+#h#.............#h#
+#h#.............#h#
+#h#.abcd...eigf.#h#
+#h######...######h#
+#h#x#0hh...hh1#y#h#
+#h#x#.##...##.#y#h#
+#h#x#2hh...hh3#y#h#
+#h#x#.##...##.#y#h#
+#h#x#4hh...hh8#y#h#
+#h#x####...####y#h#
+#h##hhh#...#hhh##h#
+#hhhh#hhh.hhh#hhhh#
+########6h5########
+#.#.#.#.#7#.#.#.#.#
+#!#@#~#$#.#%#?#*#&#
+###################
+(
+##############
+##############
+##abcedgfiwp##
+##..........##
+##..........##
+##.`..#.....##
+####c..#######
+######.#######
+##h..#..#..h##
+##h...g....h##
+##h..####..h##
+##h........h##
+##h........h##
+##h......7.h##
+##hhhhhhhhhh##
+##############
+##############
+)
+
+message BONUS CONTENT (Older Puzzles)
+
+message Two Easy
+
+#################
+#..aa...#.....00#
+#..aa.........00#
+#!............0.#
+#..aa.........00#
+#..aa...#.....00#
+#################
+
+message Three Easy
+
+#################
+#..aa...#.....00#
+#..aa.........00#
+#!......#.....0.#
+#...........aa00#
+#.......#...aa00#
+#################
+
+message Ominoes
+##############
+####..:{######
+####..;}######
+####..}.######
+####...{######
+####..{{######
+####...:######
+####..{.######
+####..:{######
+####..{.######
+####.};}######
+####..{.######
+##X#.{:{######
+##∑#..}.######
+####.};}######
+#............#
+#............#
+#............#
+#222222......#
+#222222......#
+#222222......#
+#222222......#
+##############
+
+(
+this puzzle used to be all-red pieces, and the right group of jelly was moved 1 to the left. idk if that version is possible.
+#################
+#..ee...#.....44#
+#..ee.........44#
+#%......#.....4.#
+#...........ee44#
+#.......#...ee44#
+#################
+)
+message Pudbam Competition
+
+#################################
+#...............................#
+#.{{{.{{{.....{.{{{.....222.2...#
+#...{.{....2..{.{...222...2.2...#
+#.{{{.{{{.222.{.{{{..~..222.2...#
+#.{.....{..2..{.{.{.222...2.2...#
+#.{{{.{{{.....{.{{{.....222.2...#
+#.......................{{{.....#
+#.......................{.......#
+#.....................{{{{{.....#
+#################################
+
+message Math Buds
+######################
+#...................∞#
+#.{{:................#
+#.{..................#
+#.{{{.....⋁⋁⋁........#
+#.{d{.....⋁32........#
+#.{{{.....⋁⋁⋁........#
+#........⋀⋀⋀⋁........#
+#........⋀⋁⋁⋁........#
+#........⋀⋀⋀.....{{:.#
+#........23⋀.....{d{.#
+#........⋀⋀⋀.....{{{.#
+#..................{.#
+#................{{{.#
+#....................#
+######################
+
+message Mind Your Decisions
+(3LOCUgquM7M)
+
+#XXXXXXXXXXXXXXXXX#
+#.................#
+#.@.???.....1.888.X
+#.@...?.###.1...8.X
+#.@.???.....1.888.X
+#.@.?...###.1...8.X
+#x@.???.....1.888.X
+#xx...........x...X
+#xxx..............X
+#xxxx.............X
+#xxxxx............X
+######XXXX#########
+
+message Final Exam
+
+########################
+#######222##############
+#######2..##############
+#######222##############
+#######2.2##############
+#######222##############
+#.....................∞#
+#.{.{.....{.{{{.{⋁{222.#
+#.{.{..{..{.{...{2...2.#
+#.{{{.{{{.{.{{{.{⋁{..2.#
+#...{..{..{...{.{2{..2.#
+#...{.....{.{{{.{⋁{..2.#
+#......................#
+#......~...............#
+#......................#
+########################
+(
+##############
+#............#
+#............#
+#.......3....#
+#............#
+#%eeeee......#
+#............#
+#.........4..#
+#............#
+#...........4#
+##############
+
+##############
+#............#
+#............#
+#.....{{{{{{{#
+#.....{d.....#
+#%{{{{{......#
+#.....d......#
+#.....d......#
+#............#
+#............#
+##############
+
+##########
+#!#####..#
+#.###....#
+#.###.f..#
+#.###....#
+#......5.#
+#........#
+##########
+
+##############
+#............#
+#...ii.......#
+#..i...cci...#
+#..?...cc....#
+#....i.......#
+#.iiiii..i.i.#
+#........iii.#
+#.iiiii......#
+#xxxx...6....#
+##############
+
+##############
+#............#
+#.....dddd.ee#
+#.....#....c.#
+#..........}.#
+#.........}}}#
+#..b.ddd...}.#
+#.a.p{{}}}}}.#
+#.a......01..#
+#xxxx...z....#
+##############
+
+##############
+#............#
+#.bddddddd.EE#
+#...a.#....c.#
+#.p.a......{.#
+#....{{...{{{#
+#..........{.#
+#......{{{{{.#
+#........01..#
+#XXXX...z....#
+##############
+
+##############
+#............#
+#............#
+#......{ddd..#
+#......{...{{#
+#..{{{{{{{{{.#
+#......{.....#
+#.p....{dddd.#
+#........01..#
+#xxxx...z....#
+##############
+
+##############
+#......{ceeee#
+#.bdaa.{{{...#
+#...a.#.{..c.#
+#.p.{{{{{....#
+#..c.........#
+#............#
+#............#
+#........01..#
+#xxxx...z....#
+##############
+
+##############
+#............#
+#.bd.a...EEEE#
+#...a.#.c..c.#
+#.p.a......{.#
+#....{{...{{{#
+#..........{.#
+#......{{{{{.#
+#........01..#
+#XXXX...z....#
+##############
+
+##############
+#............#
+#.bd.a...EEEE#
+#...aa#.c..c.#
+#.p.aa.....{.#
+#....{{...{{{#
+#..........{.#
+#......{{{{{.#
+#........01..#
+#XXXX...z....#
+##############)

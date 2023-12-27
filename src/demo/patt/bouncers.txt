@@ -1,0 +1,291 @@
+title Bouncers
+author Tyler Glaiel
+homepage twitter.com/tylerglaiel
+debug_switch obj
+========
+OBJECTS
+========
+
+(STATIC OBJECTS IN THE LEVEL)
+Bg
+#111111 #222222
+00010
+11111
+01000
+01000
+11111
+
+Wall
+DarkBlue DarkGreen #333333
+20002
+22022
+22122
+21112
+11111
+
+Hole
+DarkGray Gray Black
+.111.
+12221
+10001
+10001
+.111.
+
+
+(DYNAMIC OBJECTS IN THE LEVEL)
+
+Ball
+#003300 Green
+.000.
+01110
+01110
+01110
+.000.
+
+WinBall
+LightBlue LightGreen
+copy: Ball
+
+
+Ball:up
+#003300 Green Black
+.000.
+01210
+01110
+01110
+.000.
+
+Ball:directions
+#003300 Green black
+copy: Ball:up rot:up:>
+
+
+
+(PLAYER-CONTROLLED OBJECTS IN THE LEVEL)
+
+Selection
+white gray
+..1..
+..1..
+11011
+..1..
+..1..
+
+
+Bouncer:left
+White White Blue
+.221.
+2.1.2
+21..2
+2.1.2
+.221.
+
+Bouncer:directions
+White White Blue
+copy: Bouncer:left rot:left:>
+
+
+
+
+HudDivider
+white black
+00000
+11111
+11111
+11111
+11111
+
+
+Arrow
+Red
+..0..
+..00.
+00000
+..00.
+..0..
+
+
+IconGO
+green white
+10111
+10011
+10001
+10011
+10111
+
+Going
+green white
+copy: IconGo
+
+HudBG
+black
+
+Empty
+black
+
+PlayEmpty
+transparent
+
+
+
+
+
+=======
+LEGEND
+=======
+Background = Bg or HudBG
+. = bg and PlayEmpty
+S = Selection and PlayEmpty
+- = HudDivider and Wall
+H = HudBG and PlayEmpty
+A = Arrow and HudBG
+G = IconGO
+W = Wall
+O = Hole
+
+L = Bouncer:left and HudBG
+R = Bouncer:right and HudBG
+U = Bouncer:up and HudBG
+D = Bouncer:down and HudBG
+
+B = Ball:left
+N = Ball:right
+M = Ball:up
+K = Ball:down
+
+Player = Selection
+
+Bouncer = Bouncer:directions
+
+emptyPlayer = Selection and PlayEmpty
+
+gameGo = Selection and IconGO
+gameGoing =  Going
+
+MovingBall = Ball or Ball:directions
+
+=======
+SOUNDS
+=======
+SFX0 41242705 (place bouncer)
+SFX1 73889302 (press go)
+MovingBall Move 68254307 (ball move)
+SFX2 68257500 (pocket ball)
+SFX3 82752503 (ball switch direction)
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Arrow, Empty, bouncer:directions, PlayEmpty, IconGO, Going, Hole
+WinBall
+Wall, Ball, Ball:directions
+Selection, HudDivider
+
+
+======
+RULES
+======
+
+(action button: take icon to the right of the arrow, place under selector)
+directions [action selection PlayEmpty][Arrow|Bouncer:directions] -> [selection Bouncer:directions][Arrow|Empty] SFX0
+
+(win conditions)
+[Ball:directions Hole] -> [WinBall] again SFX2
+
+(slide unused icons over to the left if there's space between them and the arrow)
+right [Empty | Bouncer] -> [Bouncer | Empty]
+
+(selector on top of go button -> signals game to run)
+[action selection iconGO] -> [gameGoing] again SFX1
+
+(make genericball match the direction of the bouncer)
+[Ball Bouncer:>] -> [Ball:> Bouncer:>] again
+
+(if ball is going to move on top of a bouncer, switch it to generic ball first)
+[Going] [Bouncer|Ball:<] -> [Going] [Bouncer| < Ball] again SFX3
+
+(move the ball if Going)
+[Going] [Ball:>] -> [Going] [> Ball:>] again
+
+[Going] -> again
+
+==============
+WINCONDITIONS
+==============
+
+no MovingBall
+
+=======
+LEVELS
+=======
+
+message place bouncers, hit play
+
+......w.....
+..o...w.....
+......w.....
+......w.....
+......w..b..
+......s.....
+............
+g-----------
+-hhadluhhhhh
+
+message Level 2
+
+............
+......o.....
+..s.........
+......w.....
+...o.....b..
+......m.....
+............
+g-----------
+-hhalurhhhhh
+
+message Level 3
+
+............
+............
+..o.wwww....
+..s.n..b....
+....wwww.o..
+............
+............
+g-----------
+-hhaudrlhhhh
+
+message Level 4
+
+............
+............
+..o......o..
+............
+............
+.s..bbbb....
+............
+............
+..o......o..
+............
+g-----------
+-hhalrudu...
+
+message Level 5
+
+.....n......w...
+..wwww.k....o.w.
+......b..m......
+...o............
+.......w........
+.....b.w........
+......wwo.......
+w.ww.www........
+.o..............
+....s...........
+..........wwwo..
+g---------------
+-hhaddddddrrr...
+
+message I didn't feel like making more levels
