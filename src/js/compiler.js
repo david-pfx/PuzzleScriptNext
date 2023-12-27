@@ -289,6 +289,7 @@ function getObjectRefs(state, ident) {
 }
 
 // create a property object for an ident with parts, if possible and not already there
+// this fails if an expansion is an aggregate -- see isaac_and_mass
 function createObjectRef(state, ident) {
     const ref = getObjectRefs(state, ident);
     if (ref && ref.length > 1) {

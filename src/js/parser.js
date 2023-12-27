@@ -477,20 +477,19 @@ var codeMirrorFn = function() {
         } else if (state.section === 'objects') {
             expandLastObject(state);
         } else if (state.section === 'legend') {
+            state.names = [];
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
             state.names.push(...state.legend_aggregates.map(s => s[0]));
             state.names.push(...state.legend_properties.map(s => s[0]));
         } else if (section === 'levels') {
+            state.abbrevNames = [];
             state.abbrevNames.push(...Object.keys(state.objects));
             state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
             state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
         }
 
         state.section = section;
-        if (state.visitedSections.includes(state.section)) {
-            logError(`cannot duplicate sections (you tried to duplicate "${state.section.toUpperCase()}").`, state.lineNumber);
-        }
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
         state.visitedSections.push(state.section);
@@ -2062,7 +2061,11 @@ var codeMirrorFn = function() {
 
                 levels: [[]],
 
-                tags: { directions: [ 'up', 'right', 'down', 'left',  ] },      // matches P:S
+                tags: { // to match P:S
+                    directions: [ 'up', 'right', 'down', 'left' ], 
+                    horizontal: [ 'right', 'left' ], 
+                    vertical: [ 'up', 'down' ], 
+                },
                 mappings: {},
 
                 subsection: ''
