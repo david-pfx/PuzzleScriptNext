@@ -440,6 +440,14 @@ var codeMirrorFn = function() {
         return stream.string.slice(pos, stream.pos);
     }
 
+    function checkEol(stream, state) { 
+        const pos = stream.pos;
+        matchComment(stream, state);
+        const iseol = stream.eol();
+        stream.pos = pos;
+        return iseol;
+    }
+
     function blankLineHandle(state) {
         if (state.section == 'levels') {
             const toplevel = peek(state.levels);
@@ -455,13 +463,13 @@ var codeMirrorFn = function() {
     // parse a SECTION line, validate order etc
     function parseSection(stream, state) {
         const section = matchRegex(stream, /^\w+/, true);
-        const comment = matchComment(stream, state);
 
         // section must the only thing on the line, helps with backward compatibility
-        if (!(section && sectionNames.includes(section) && stream.eol())) {
+        if (!(section && sectionNames.includes(section) && checkEol(stream, state))) {
             pushBack(stream);
             return false;
         }
+        matchComment(stream, state);
 
         // finalise previous section
         if (state.section === '') {
