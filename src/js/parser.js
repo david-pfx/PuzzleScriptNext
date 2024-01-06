@@ -36,7 +36,7 @@ const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message',
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
 const commandargs_table = ['message', 'goto', 'status', 'gosub'];
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
-const soundverbs_directional = ['move','cantmove'];
+const soundverbs_directional = ['move', 'cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
 let soundverbs_movement = [ 'action' ];  // clicks to be added
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
@@ -322,7 +322,7 @@ var codeMirrorFn = function() {
             return !token ? null : token[0];
         }
 
-        checkComment() {
+        matchComment() {
             while (true) {
                 const token = matchComment(this.stream, this.state);
                 if (token)
@@ -331,13 +331,13 @@ var codeMirrorFn = function() {
             }
         }
         
-        checkEol() { 
-            this.checkComment();
+        matchEol() { 
+            this.matchComment();
             return this.stream.eol(); 
         }
 
-        checkEolSemi() { 
-            this.checkComment();
+        matchEolSemi() { 
+            this.matchComment();
             if (this.state.commentStyle == '//' && this.match(/^;/)) {
                 this.pushToken(';', 'SEMICOLON');
                 return true;
@@ -528,7 +528,7 @@ var codeMirrorFn = function() {
                     ident = token;
                     lexer.pushToken(token, 'METADATA');
 
-                    while (!lexer.checkEol()) {
+                    while (!lexer.matchEol()) {
                         if (token = lexer.match(/^\S+/, true)) {
                             kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
                                 : (token === "transparent") ? 'COLOR FADECOLOR'
@@ -541,7 +541,7 @@ var codeMirrorFn = function() {
                 } else logWarning(`Prelude option "${token.toUpperCase()}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
             } 
             if (ident) {
-                if (lexer.checkEol()) 
+                if (lexer.matchEol()) 
                     return checkArguments(ident, args);
                 else {
                     token = lexer.matchNotComment();
@@ -559,21 +559,21 @@ var codeMirrorFn = function() {
             let value
             if (prelude_keywords.includes(ident)) {
                 if (args.length > 1)
-                    logError(`MetaData ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
+                    logError(`Prelude option ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
                 else value = [ident, true];
             } else if (prelude_param_number.includes(ident)) {
                 if (args.length != 1 || parseFloat(args[0]) == NaN)
-                    logError(`MetaData ${ident.toUpperCase()} requires one numeric argument.`, state.lineNumber);
+                    logError(`Prelude option ${ident.toUpperCase()} requires one numeric argument.`, state.lineNumber);
                 else value = [ident, parseFloat(args[0])];
             } else if (prelude_param_single.includes(ident) || prelude_param_text.includes(ident)) {
-                if (args.length != 1)
-                    logError(`MetaData ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                if (!(args.length == 1 || ident.startsWith('mouse')))
+                    logError(`Prelude option ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
                 else if (ident.includes('_color') && !isColor(args[0]))
-                    logError(`MetaData ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
+                    logError(`Prelude option ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
                 else value = [ident, args[0]];
             } else if (prelude_param_multi.includes(ident)) {
                 if (args.length < 1)
-                    logError(`MetaData ${ident.toUpperCase()} has no arguments, but it needs at least one.`, state.lineNumber);
+                    logError(`Prelude option ${ident.toUpperCase()} has no arguments, but it needs at least one.`, state.lineNumber);
                 else value = [ident, args.join(' ')];
             } else throw 'args';
             return value;
@@ -639,7 +639,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.match(/^=/, true)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -649,7 +649,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             symbols.members = [];
             while (true) {
                 // todo: handle recursive tag defs
@@ -662,7 +662,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'ERROR');
                     return;
                 }
-                if (lexer.checkEol(state)) break;
+                if (lexer.matchEol()) break;
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
@@ -698,10 +698,10 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.lhs = token;
-                if (!(isDeclaredAs(state, token) == 'tag')) {       //>@@ todo: propobj
+                if (!(isDeclaredAs(state, token) == 'tag')) {       // todo: propobj
                     logError(`Expected a TAG name but "${token.toUpperCase()}" is not one.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
@@ -714,7 +714,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.match(/^=>/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -724,7 +724,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.rhs = token;
                 if (isAlreadyDeclared(state, token)) {
@@ -769,7 +769,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             
-            lexer.checkComment(state);
+            lexer.matchComment();
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
@@ -779,7 +779,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                     symbols.lhs.push(token);
                 }
-                lexer.checkComment(state);
+                lexer.matchComment();
             }
 
             if (token = lexer.match(/^->/)) {
@@ -791,7 +791,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             symbols.rhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!token) {      // what do we not allow?
@@ -803,7 +803,7 @@ var codeMirrorFn = function() {
                 }
             }
 
-            if (!lexer.checkEol(state)) {
+            if (!lexer.matchEol()) {
                 token = lexer.matchNotComment();
                 logError(`Unrecognised stuff in a mapping: "${token}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
@@ -839,7 +839,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             if (state.case_sensitive)
                 stream.string = mixedCase;
-            lexer.checkComment(state);
+            lexer.matchComment();
 
             while (true) {
                 let token = null;
@@ -865,7 +865,7 @@ var codeMirrorFn = function() {
                         else aliases.push(token);
                     }
                     lexer.pushToken(token, kind);
-                    if (lexer.checkEolSemi()) break;
+                    if (lexer.matchEolSemi()) break;
 
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid object name in OBJECT section: "${token}".`, state.lineNumber);
@@ -912,7 +912,7 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
-            while (!lexer.checkEolSemi()) {
+            while (!lexer.matchEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^[#\w]+/, true)) {
@@ -978,7 +978,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, kind);
                 values.push(value);
             }
-            lexer.checkEol();
+            lexer.matchEol();
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
     }
@@ -1006,7 +1006,7 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
-            while (!lexer.checkEolSemi()) { 
+            while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^copy:/i)) {
@@ -1014,7 +1014,7 @@ var codeMirrorFn = function() {
                         logError(`You already assigned a sprite source for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
                     else kind = 'KEYWORD';
                     lexer.pushToken(token, kind);
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     kind = 'ERROR';
                     if (!(token = lexer.matchObjectName(!state.case_sensitive)))      // ?? glyph too?
@@ -1029,7 +1029,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^scale:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[0-9.]+/);
                     const arg = parseFloat(token);
@@ -1043,7 +1043,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^flip:/)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     //token = lexer.match(/^[a-z^<>]+/i,  true);
                     token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
@@ -1058,12 +1058,12 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^[|-]/)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
                     symbols.transforms.push([ 'flip', token == '|' ? '>' : 'v']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
@@ -1080,7 +1080,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^translate:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     const args = token ? token.split(':') : null;
@@ -1095,7 +1095,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^rot:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[a-z:^<>]+/i,  true);
                     const parts = token && token.split(':');
@@ -1171,7 +1171,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(reg_soundevents, true)) {
                 // closemessage 1241234...
                 lexer.pushToken(token, 'SOUNDEVENT');
-                lexer.checkComment();
+                lexer.matchComment();
                 const tevent = token;
 
                 const tsounds = parseSoundSeedsTail();
@@ -1194,7 +1194,7 @@ var codeMirrorFn = function() {
                         if (soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token)) {
                             lexer.pushToken(token, 'SOUNDVERB');
                             tverb = token;
-                            lexer.checkComment();
+                            lexer.matchComment();
                         } else lexer.pushBack();
                     }
 
@@ -1205,7 +1205,7 @@ var codeMirrorFn = function() {
                         while (token = lexer.match(reg_sounddirectionindicators, true)) {
                             lexer.pushToken(token, 'DIRECTION');
                             tdirs.push(token);
-                            lexer.checkComment();
+                            lexer.matchComment();
                         }
 
                         const tsounds = parseSoundSeedsTail();
@@ -1234,7 +1234,7 @@ var codeMirrorFn = function() {
             while (token = lexer.match(/^(\d+(:[\d.]+)?|afx:[\w:=+-.]+)\b/i, true)) {
                 lexer.pushToken(token, 'SOUND');
                 tsounds.push(token);
-                lexer.checkComment();
+                lexer.matchComment();
             }
             if (token = lexer.matchNotComment()) {
                 logError(`I wasn't expecting anything after the sound declaration ${peek(tsounds)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);
@@ -1266,7 +1266,7 @@ var codeMirrorFn = function() {
                     logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
             }
-            lexer.checkComment(state);
+            lexer.matchComment();
 
             if (token = lexer.match(/^=/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
@@ -1275,7 +1275,7 @@ var codeMirrorFn = function() {
                 lexer.matchNotComment();
                 return;
             }
-            lexer.checkComment(state);
+            lexer.matchComment();
 
             while (true) {
                 let kind = 'ERROR';
@@ -1300,7 +1300,7 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                if (lexer.checkEol(state)) break;
+                if (lexer.matchEol()) break;
 
                 if (token = lexer.match(/^(and|or)\b/i, true)) {
                     if (symbols.andor && token != symbols.andor)
@@ -1370,7 +1370,7 @@ var codeMirrorFn = function() {
                 if (token = lexer.match(/^--[-^v<>-|]*/)) {
                     lexer.pushToken(token, 'LOGICWORD');
                     divider = token;
-                    if (lexer.checkEolSemi(state)) break;
+                    if (lexer.matchEolSemi()) break;
                 } else if (token = lexer.match(/^->/)) {
                     if (idents.length == 0 || prearrow != 0)
                         logError(`Cannot use arrow syntax here.`, state.lineNumber);
@@ -1399,13 +1399,13 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                if (lexer.checkEolSemi(state)) break;
+                if (lexer.matchEolSemi()) break;
 
-                // treat the comma as optional (as PS seems to do). Trailing comma is OK too
-                if (token = lexer.match(/^,/)) {
+                // treat the comma as optional (as PS seems to do). Trailing/extra comma is OK too
+                while (token = lexer.match(/^,/)) {
                     lexer.pushToken(token, 'LOGICWORD');
-                    if (lexer.checkEolSemi(state)) break;
                 } 
+                if (lexer.matchEolSemi()) break;
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
@@ -1446,7 +1446,7 @@ var codeMirrorFn = function() {
             if (divider) {
                 const chars = '^>v<|-';
                 const dirs = ['up', 'right', 'down', 'left', 'down', 'right' ];
-                const combos = ['downright', 'downleft', 'upright','upleft',
+                const combos = ['downright', 'downleft', 'upright', 'upleft',
                                 'leftdown', 'leftup', 'rightdown', 'rightup'];
                 const dirFirst = dirs[chars.indexOf(divider[2] || '>')];
                 const dirSecond = dirs[chars.indexOf(divider[3] || 'v')];
@@ -1537,9 +1537,9 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             getIdent();
-            if (!lexer.checkEol(state)) {
+            if (!lexer.matchEol()) {
                 if (token = lexer.match(/^(on)\b/u, true)) {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
@@ -1550,9 +1550,9 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                lexer.checkComment(state);
+                lexer.matchComment();
                 getIdent();
-                if (!lexer.checkEol(state)) {
+                if (!lexer.matchEol()) {
                     token = lexer.matchNotComment();
                     logError(`Error in win condition: I don't know what to do with "${token.toUpperCase()}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -1627,7 +1627,7 @@ var codeMirrorFn = function() {
                 }
             }
 
-            lexer.checkEol(state);
+            lexer.matchEol();
             return true;
         }
 
@@ -1751,7 +1751,7 @@ var codeMirrorFn = function() {
             // lastStream.lineStart = stream.lineStart;
             // lastStream.string = stream.string;
             //console.log(`get token`, lastStream);
-            //--- guard against looping
+            //--- guard against looping?
 
            	var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)

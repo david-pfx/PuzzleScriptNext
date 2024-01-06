@@ -457,7 +457,7 @@ function redrawCellGrid() {
     var renderBorderSize = smoothscreen ? 1 : 0;
 
 ////////////////////////////////////////////////////////////////////////////////
-    class RenderOrder {  // @@PS>
+    class RenderOrder {
         constructor(minMax) {
             this.minMax = minMax;
             // the iteration limits still used by smooth screen renderer
@@ -474,8 +474,6 @@ function redrawCellGrid() {
         
         // the position indexes to render, taking into account layer groups, zoomscreen etc
         getPosIndexes(group) {  // todo:
-            //const iter = iterXlate[group.dirMajor + group.dirMinor];
-            
             const ch = curlevel.height; // global
             const funcs = {      // outer loop            inner loop
                 downright: i => [ i[0],   i[2],    1, ch, i[1],   i[3],    1,  1 ],

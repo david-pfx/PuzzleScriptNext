@@ -577,6 +577,9 @@ function mouseAction(event,click,id) {
 						}
 					}
 				}
+			} else if (titleMode == 3) { // pause screen select
+				generatePauseScreen(-1, 0, hoverSelection);
+				selectPauseScreen(hoverSelection);
 			}
 		} else if (messageselected===false && (state.levels[curlevel].message || messagetext != "")) {
 			messageselected=true;
@@ -938,6 +941,9 @@ function mouseMove(event) {
 			} else if (titleMode == 2) {
 				generateLevelSelectScreen();
 				redraw();
+			} else if (titleMode == 3) {
+				generatePauseScreen(hoverSelection);
+				redraw();
 			}
 		}
 	} else if (dragging && "mouse_drag" in state.metadata) {
@@ -1252,7 +1258,10 @@ function checkKey(e,justPressed) {
         		stopSolving();
         		break;
         	}
-        	if (!titleScreen || titleMode > 1) {
+			if (!titleScreen) {
+				goToPauseScreen(); 
+				canvasResize();
+			} else if (!titleScreen || titleMode > 1) {
 				if ((timer/1000>0.5 || titleMode > 1) && !quittingTitleScreen && justPressed) {
 
 					titleSelection = 0;
@@ -1383,53 +1392,62 @@ function checkKey(e,justPressed) {
     	} else if (titleScreen) {
 			if (isSitelocked()) {return;}
 			if (quittingTitleScreen===false){
-    		if (titleMode===0) {
-    			if (inputdir===4&&justPressed) {
-    				titleButtonSelected();
-							clearInputHistory();
+				if (titleMode===0) {
+					if (inputdir===4&&justPressed) {
+						titleButtonSelected();
+						clearInputHistory();
+					}
+				} else if (titleMode == 3) {
+					if (inputdir == 4 && justPressed) {
+						selectPauseScreen();
+					} else if (inputdir == 0 || inputdir == 2) {
+						generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
+						redraw();
+					}
+				} else {
+					if (inputdir==4&&justPressed) {
+						if (titleSelected===false) {    				
+							tryPlayStartGameSound();
+							titleSelected=true;
+							timer=0;
+							quittingTitleScreen=true;
+							
+							if(titleMode == 1) {
+								generateTitleScreen();
+								document.dispatchEvent(new Event("psplusGameStarted"));
+							} else if(titleMode == 2) {
+								generateLevelSelectScreen();
+							}
+							redraw();
 						}
-    		} else {
-    			if (inputdir==4&&justPressed) {
-    				if (titleSelected===false) {    				
-						tryPlayStartGameSound();
-	    				titleSelected=true;
-	    				timer=0;
-	    				quittingTitleScreen=true;
+					}
+					else if (inputdir===0||inputdir===2) {
+						if (quittingTitleScreen || titleSelected) {
+							return;
+						}
+						
+						if (inputdir===0){
+							titleSelection--;    					
+						} else {
+							titleSelection++;    					    					
+						}
+
+						if(titleSelection >= titleSelectOptions) {
+							titleSelection -= titleSelectOptions;
+						} else if (titleSelection < 0) {
+							titleSelection += titleSelectOptions;
+						}
 						
 						if(titleMode == 1) {
 							generateTitleScreen();
-							document.dispatchEvent(new Event("psplusGameStarted"));
 						} else if(titleMode == 2) {
 							generateLevelSelectScreen();
+						} else if (titleMode == 3) {
+							generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
 						}
-	    				redraw();
-	    			}
-    			}
-    			else if (inputdir===0||inputdir===2) {
-					if (quittingTitleScreen || titleSelected) {
-						return;
+						redraw();
 					}
-					
-    				if (inputdir===0){
-    					titleSelection--;    					
-    				} else {
-    					titleSelection++;    					    					
-					}
-
-					if(titleSelection >= titleSelectOptions) {
-						titleSelection -= titleSelectOptions;
-					} else if (titleSelection < 0) {
-						titleSelection += titleSelectOptions;
-					}
-					
-					if(titleMode == 1) {
-						generateTitleScreen();
-					} else if(titleMode == 2) {
-						generateLevelSelectScreen();
-					}
-    				redraw();
-    			}
-    		}
+				}
 			}
     	} else {
     		if (inputdir==4&&justPressed) {    				
