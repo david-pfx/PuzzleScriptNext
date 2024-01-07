@@ -56,41 +56,6 @@ var games_gallery = [
     "homepage": "https://david-pfx.github.io/PuzzleScriptNext/"
   },
   {
-    "url": "play.html?demo=patt/bouncers",
-    "thumb": "patt_bouncers.gif",
-    "title": "Bouncers",
-    "author": "Tyler Glaiel",
-    "homepage": "twitter.com/tylerglaiel"
-  },
-  {
-    "url": "play.html?demo=patt/tubetransport",
-    "thumb": "patt_tubetransport.gif",
-    "title": "Tube Transport",
-    "author": "Noa",
-    "homepage": ""
-  },
-  {
-    "url": "play.html?demo=patt/tapaban",
-    "thumb": "patt_tapaban.gif",
-    "title": "Tapaban",
-    "author": "Menderbug",
-    "homepage": ""
-  },
-  {
-    "url": "play.html?demo=patt/cakemonsters",
-    "thumb": "patt_cakemonsters.gif",
-    "title": "Cake Monsters",
-    "author": "Matt Rix",
-    "homepage": "www.magicule.com"
-  },
-  {
-    "url": "play.html?demo=patt/castlemouse",
-    "thumb": "patt_castlemouse.gif",
-    "title": "Memories of Castlemouse",
-    "author": "Wayne Myers",
-    "homepage": "www.conniptions.org"
-  },
-  {
     "url": "play.html?demo=plus/gridblocked",
     "thumb": "plus_gridblocked.gif",
     "title": "Grid Blocked",
@@ -159,5 +124,82 @@ var games_gallery = [
     "title": "Magiciban",
     "author": "Auroriax",
     "homepage": "https://auroriax.itch.io/"
+  },
+  {
+    "url": "play.html?demo=patt/bouncers",
+    "thumb": "patt_bouncers.gif",
+    "title": "Bouncers",
+    "author": "Tyler Glaiel",
+    "homepage": "twitter.com/tylerglaiel"
+  },
+  {
+    "url": "play.html?demo=patt/tubetransport",
+    "thumb": "patt_tubetransport.gif",
+    "title": "Tube Transport",
+    "author": "Noa",
+    "homepage": ""
+  },
+  {
+    "url": "play.html?demo=patt/tapaban",
+    "thumb": "patt_tapaban.gif",
+    "title": "Tapaban",
+    "author": "Menderbug",
+    "homepage": ""
+  },
+  {
+    "url": "play.html?demo=patt/cakemonsters",
+    "thumb": "patt_cakemonsters.gif",
+    "title": "Cake Monsters",
+    "author": "Matt Rix",
+    "homepage": "www.magicule.com"
+  },
+  {
+    "url": "play.html?demo=patt/castlemouse",
+    "thumb": "patt_castlemouse.gif",
+    "title": "Memories of Castlemouse",
+    "author": "Wayne Myers",
+    "homepage": "www.conniptions.org"
+  },
+  {
+    "url": "play.html?demo=patt/coyote_time_lord",
+    "thumb": "patt_coyote_time_lord.gif",
+    "title": "Coyote Time Lord",
+    "author": "Clement Sparrow",
+    "homepage": "clement-sparrow.itch.io"
+  },
+  {
+    "url": "play.html?demo=patt/hat_tricks",
+    "thumb": "patt_hat_tricks.gif",
+    "title": "Hat Tricks",
+    "author": "Andrea Gilbert",
+    "homepage": "https://clickmazes.itch.io"
+  },
+  {
+    "url": "play.html?demo=patt/jelly_is_sticky",
+    "thumb": "patt_jelly_is_sticky.gif",
+    "title": "Jelly Is Sticky and More",
+    "author": "Icely Puzzles",
+    "homepage": "https://www.youtube.com/c/IcelyPuzzles"
+  },
+  {
+    "url": "play.html?demo=patt/level",
+    "thumb": "patt_level.gif",
+    "title": "Level",
+    "author": "Toombler",
+    "homepage": "https://toombler.itch.io"
+  },
+  {
+    "url": "play.html?demo=patt/magicians_have_long_handkerchiefs",
+    "thumb": "patt_magicians_have_long_handkerchiefs.gif",
+    "title": "Magicians Have Long Handkerchiefs",
+    "author": "Toombler and duyaa",
+    "homepage": "www.puzzlescript.net"
+  },
+  {
+    "url": "play.html?demo=patt/slimes_test",
+    "thumb": "patt_slimes_test.gif",
+    "title": "A Slime's Test for Intelligence",
+    "author": "Neonesque",
+    "homepage": "www.neonesque.itch.io"
   },
 ]

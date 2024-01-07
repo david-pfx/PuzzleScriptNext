@@ -148,13 +148,13 @@ var titleWidth=titletemplate_empty[0].length;
 var titleHeight=titletemplate_empty.length;
 var textMode=true;
 var titleScreen=true;
-var titleMode=0;//1 means title screen with options, 2 means level select
+var titleMode=0;//1 means title screen with options, 2 means level select, 3 means pause screen
 var titleSelection=0;
 var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
-let lineColorOverride = [];
+let lineColorOverride = [];		// a sparse array of line numbers and colours to use
 
 function showContinueOptionOnTitleScreen(){
 	if (state.metadata.level_select !== undefined) {
@@ -398,6 +398,90 @@ function generateTitleScreen()
 		}
 	}
 
+}
+// add pause screen
+function centerText(text, len, fill = " ") {
+	return (fill.repeat((len - text.length) / 2) + text).padEnd(len, fill);
+}
+
+function padToSize(textLines, width, height) {
+	const lines = textLines.map(l => l.padEnd(width));
+	while (lines.length < height) 
+		lines.push("");
+	return lines;
+}
+
+function goToPauseScreen() {
+	// todo: yuck!
+	levelSelectScrollPos = 0;
+	titleSelected = false;
+	timer = 0;
+	quittingTitleScreen = false;
+	quittingMessageScreen = false;
+	titleMode = 3;
+	titleScreen = true;
+	textMode = true;
+    againing = false;
+	messagetext = "";
+	statusText = "";
+
+	generatePauseScreen();
+	redraw();
+}
+
+let selectOption;
+function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
+	//console.log('pause screen', hoverLine, scrollIncrement);
+	const lines = [
+		"",
+		"-< GAME PAUSED >-",
+		state.levels[curlevel].title,
+		"",
+		"resume game",
+		!state.metadata.norestart ? "replay level from the start" : null,
+		state.metadata.level_select ? "go to level select screen" : null,
+		"exit to title screen",
+	].filter(l => l != null);
+	const options = [ 4, lines.length ];
+
+	if (scrollIncrement && levelSelectScrollPos + scrollIncrement >= options[0] && levelSelectScrollPos + scrollIncrement < options[1]) 
+		levelSelectScrollPos += scrollIncrement;
+	else if (levelSelectScrollPos == 0)
+		levelSelectScrollPos = options[0];
+
+	titleImage = padToSize(lines.map((l,x) => 
+		(x == selectLine) ? centerText(`# ${l} #`, 35, "#") :
+		(x == hoverLine && hoverLine >= options[0] && hoverLine < options[1]) ? centerText(`> ${l} <`, 35) : 
+		(x == levelSelectScrollPos) ? centerText(`# ${l} #`, 35) :
+		centerText(l, 35)), 35, 13);
+	selectOption = selectLine - options[0];
+}
+
+function selectPauseScreen(lineNo) {
+	//console.log('pause select',  selectOption);
+	const options = [
+		() => {
+			textMode = false;
+			titleScreen = false;
+			canvasResize();
+		},
+		!state.metadata.norestart ? () => {
+			DoRestart(true);
+			textMode = false;
+			titleScreen = false;
+			canvasResize();
+		} : null,
+		state.metadata.level_select ? () => {
+			gotoLevelSelectScreen();
+			redraw();
+		} : null,
+		() => {
+			goToTitleScreen();
+			redraw();
+		}
+	].filter(l => l != null);
+
+	options[selectOption]();
 }
 
 var levelSelectScrollPos = 0;
@@ -1098,10 +1182,7 @@ function setGameState(_state, command, randomseed) {
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
-		    titleMode = 0;
-		if (showContinueOptionOnTitleScreen()) {
-		    	titleMode=1;
-		    }
+			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
 			if (state.metadata.skip_title_screen!==undefined) {
 				consolePrint("skip_title_screen enabled, proceeding to do exactly as it says on the tin.")
@@ -2850,7 +2931,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
 	if (resetAutoTick || !state.metadata.realtime_interval)
     	autotick=0;
-	againinterval = state.metadata.again_interval?state.metadata.again_interval*1000 : 150;
+	againinterval = state.metadata.again_interval ? state.metadata.again_interval*1000 : 150;
 	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
 	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
@@ -2992,7 +3073,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 			if (checkLoop())
 				break; 
 		} else {
-			if (gosubTarget >=0 ) {			// PS>
+			if (gosubTarget >= 0) {
 				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
 				ruleGroupIndex = gosubTarget;
 				gosubTarget = -1;
@@ -3290,7 +3371,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 					sfxDestroyMask.setZero()
 					sfxCreateList = [];
 					sfxDestroyList = [];
-								// TODO: should
 
 				}
 
@@ -3402,12 +3482,12 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    		consoleCacheDump();
 			}
 			if (!dontModify){
-			processOutputCommands(level.commandQueue);
+				processOutputCommands(level.commandQueue);
 			}
     		addUndoState(bak);
 
 			if (!dontModify){
-	    	DoRestart(true);
+	    		DoRestart(true);
 			}
     		return true;
 		}

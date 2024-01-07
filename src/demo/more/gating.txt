@@ -1,0 +1,1528 @@
+title Gating
+author Jack Lance
+
+mouse_left
+mouse_right
+mouse_drag
+mouse_rdrag
+
+flickscreen 15x15
+
+realtime_interval 0.001
+
+========
+OBJECTS
+========
+Player
+transparent
+
+Background
+#aaeeee
+
+savemousea
+transparent
+
+savemouseb
+transparent
+
+
+savemousec
+transparent
+
+savemetal
+transparent
+
+savewall
+transparent
+
+saveup
+transparent
+
+saveleft
+transparent
+
+savedown
+transparent
+
+saveright
+transparent
+
+one
+transparent
+
+two
+transparent
+
+three
+transparent
+
+four
+transparent
+
+five
+transparent
+
+six
+transparent
+
+seven
+transparent
+
+goalone
+transparent
+
+goalzero
+transparent
+
+goaltwo
+transparent
+
+gottwo
+orange
+
+gotone
+yellow
+
+gotzero
+green
+
+mousea
+#008888 #003333
+.....
+.....
+.000.
+00010
+00000
+
+mouseb
+#008888 #003333
+.....
+.....
+.000.
+00010
+00000
+
+mousec
+#008888 #003333
+.....
+.....
+.000.
+00010
+00000
+
+nomousea
+#66bbbb #33aaaa
+.....
+.....
+.000.
+00010
+00000
+
+nomouseb
+#66bbbb #33aaaa
+.....
+.....
+.000.
+00010
+00000
+
+nomousec
+#66bbbb #33aaaa
+.....
+.....
+.000.
+00010
+00000
+
+PermaWall
+#002222
+
+Wall
+#002222
+
+metal
+#44bbbb #002222
+..1..
+.101.
+10001
+.101.
+..1..
+
+upmetal
+#44bbbb #002222
+.000.
+.000.
+.....
+.....
+.....
+
+downmetal
+#44bbbb #002222
+.....
+.....
+.....
+.000.
+.000.
+
+
+leftmetal
+#44bbbb #002222
+.....
+00...
+00...
+00...
+.....
+
+rightmetal
+#44bbbb #002222
+.....
+...00
+...00
+...00
+.....
+
+upnoleft
+#002222
+0....
+0....
+.....
+.....
+.....
+
+leftnoup
+#002222
+00...
+.....
+.....
+.....
+.....
+
+upleft
+#44bbbb
+0....
+.....
+.....
+.....
+.....
+
+upnoright
+#002222
+....0
+....0
+.....
+.....
+.....
+
+rightnoup
+#002222
+...00
+.....
+.....
+.....
+.....
+
+upright
+#44bbbb
+....0
+.....
+.....
+.....
+.....
+
+
+downnoleft
+#002222
+.....
+.....
+.....
+0....
+0....
+
+leftnodown
+#002222
+.....
+.....
+.....
+.....
+00...
+
+downleft
+#44bbbb
+.....
+.....
+.....
+.....
+0....
+
+downnoright
+#002222
+.....
+.....
+.....
+....0
+....0
+
+rightnodown
+#002222
+.....
+.....
+.....
+.....
+...00
+
+downright
+#44bbbb
+.....
+.....
+.....
+.....
+....0
+
+play
+#22cccc
+.0...
+.00..
+.000.
+.00..
+.0...
+
+stop1
+#22cccc
+.000.
+.000.
+..0..
+.000.
+.000.
+
+stop2
+#22cccc
+..00.
+..000
+00000
+000..
+.00..
+
+stop3
+#22cccc
+.....
+00.00
+00000
+00.00
+.....
+
+stop4
+#22cccc
+.00..
+000..
+00000
+..000
+..00.
+
+lmb
+transparent
+
+rmb
+transparent
+
+drag
+transparent
+
+rdrag
+transparent
+
+prev
+transparent
+
+cant
+transparent
+
+temp
+transparent
+
+supp
+transparent
+
+permanowall
+transparent
+
+mouseinput
+transparent
+
+finished
+transparent
+
+alldone
+transparent
+
+arrow
+#66bbbb
+.0...
+..0..
+0000.
+..0..
+.0...
+
+failure
+red
+
+messagepartone
+transparent
+
+messageparttwo
+transparent
+
+messagepartthree
+transparent
+
+oneinput
+transparent
+
+twoinputs
+transparent
+
+threeinputs
+transparent
+
+mousagepartone
+transparent
+
+mousageparttwo
+transparent
+
+goalafirst
+transparent
+
+goalbsecond
+transparent
+
+stop5
+#22cccc
+.000.
+00000
+00000
+00000
+.000.
+=======
+LEGEND
+=======
+a = oneinput and permawall
+b = twoinputs and permawall
+c = threeinputs and permawall
+. = Background
+# = PermaWall
+? = goalafirst and goalbsecond and goaltwo and arrow and permanowall
+u = mousea and permanowall and mouseinput
+j = mouseb and permanowall and mouseinput
+m = mousea and permanowall and mouseinput
+mouse = mousea or mouseb or mousec
+nomouse = nomousea or nomouseb or nomousec
+w = nomousea and permanowall and mouseinput
+s = nomouseb and permanowall and mouseinput
+x = nomousec and permanowall and mouseinput
+e = arrow and permanowall
+> = play and permawall
+1 = one and permawall
+2 = two and permawall
+3 = three and permawall
+4 = four and permawall
+5 = five and permawall
+6 = six and permawall
+7 = seven and permawall
+- = goalzero and arrow and permanowall
++ = goalone and arrow and permanowall
+@ = goaltwo and arrow and permanowall
+number = one or two or three or four or five or six or seven
+xmetal = rightmetal or leftmetal or downmetal or upmetal
+metalextra = upnoleft or leftnoup or upleft or upnoright or rightnoup or upright or downnoleft or leftnodown or downleft or downnoright or rightnodown or downright
+stop = stop1 or stop2 or stop3 or stop4
+mxxxx = metal or mouse
+savemouse = savemousea or savemouseb or savemousec
+savex = savemouse  or savemetal or savewall or saveup or savedown or saveleft or saveright
+goalx = goalzero or goalone or goaltwo
+gotx = gotzero or gotone or gottwo
+item = wall or mouse or metal or xmetal
+mpx = messagepartone or messageparttwo or messagepartthree or mousagepartone or mousageparttwo
+stopx = stop or stop5
+=======
+SOUNDS
+=======
+
+
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player
+permanowall
+mouseinput
+wall, metal, , permawall
+mousec
+mousea
+mouseb
+arrow
+savewall, savemetal, savemouse
+upmetal
+downmetal
+rightmetal
+leftmetal
+saveup
+saveleft
+savedown
+saveright
+upnoleft leftnoup upleft
+upnoright rightnoup upright
+downnoleft leftnodown downleft
+downnoright rightnodown downright
+lmb, rmb, drag, rdrag
+play, stop, temp
+prev
+cant
+supp
+nomouse
+number
+goalzero, goalone, goaltwo
+gotzero, gotone, gottwo
+finished
+alldone
+mpx
+oneinput, twoinputs, threeinputs
+failure
+stop5
+goalafirst
+goalbsecond
+======
+RULES
+======
+[rdrag] -> [rmb]
+
+
+
+right [number | no number] -> [number | number]
+down [number | no number] -> [number | number]
+
+down [mousea no number mouseinput||...|mousea no number mouseinput] -> [mousea mouseinput||...|mouseb mouseinput]
+down [mouseb no number mouseinput||...|mouseb no number mouseinput] -> [mouseb mouseinput||...|mousec mouseinput]
+down [mousea three mouseinput||...|mousea three mouseinput] -> [mousea three mouseinput||...|mouseb three mouseinput]
+down [mousea five mouseinput||...|mousea five mouseinput] -> [mousea five mouseinput||...|mouseb five mouseinput]
+down [mousea six mouseinput||...|mousea six mouseinput] -> [mousea six mouseinput||...|mouseb six mouseinput]
+down [mousea seven mouseinput||...|mousea seven mouseinput] -> [mousea seven mouseinput||...|mouseb seven mouseinput]
+down [mouseb seven mouseinput||...|mouseb seven mouseinput] -> [mouseb seven mouseinput||...|mousec seven mouseinput]
+
+up [play][drag no PermaWall no permanowall| prev metal] -> [play][upmetal metal prev| downmetal metal]
+down [play][drag no PermaWall no permanowall| prev metal] -> [play][downmetal metal prev| upmetal metal]
+left [play][drag no PermaWall no permanowall| prev metal] -> [play][leftmetal metal prev| rightmetal metal]
+right [play][drag no PermaWall no permanowall| prev metal] -> [play][rightmetal metal prev| leftmetal metal]
+
+[drag] -> [lmb]
+
+
+[play][lmb no prev][prev] -> [play][lmb prev][]
+[play][rmb no prev][prev] -> [play][rmb prev][]
+[play][lmb no prev] -> [play][lmb prev]
+[play][rmb no prev] -> [play][rmb prev]
+
+[play][rmb wall] -> [play][]
+[play][rmb no permawall no permanowall] -> [play][wall]
+
+[play][lmb metal] -> [play][]
+[play][lmb no permawall no permanowall] -> [play][metal]
+[play][lmb mouseinput mousea] -> [play][mouseinput nomousea]
+[play][lmb mouseinput mouseb] -> [play][mouseinput nomouseb]
+[play][lmb mouseinput mousec] -> [play][mouseinput nomousec]
+[play][lmb mouseinput nomousea] -> [play][mouseinput mousea]
+[play][lmb mouseinput nomouseb] -> [play][mouseinput mouseb]
+[play][lmb mouseinput nomousec] -> [play][mouseinput mousec]
+
+down [play][item no mouse| | | | | | | | | | | | | | | ] -> [play][item| | | | | | | | | | | | | | |item]
+down [play][no item| | | | | | | | | | | | | | |item no mouse] -> [play][| | | | | | | | | | | | | | |]
+
+[lmb play][arrow number] -> [lmb play][arrow number gotzero]
+
+[play][mouse no mouseinput] -> [play][]
+[lmb play][savex] -> [lmb play][]
+[lmb play][wall] -> [lmb play][wall savewall]
+[lmb play][mousea] -> [lmb play][mousea savemousea]
+[lmb play][mouseb] -> [lmb play][mouseb savemouseb]
+[lmb play][mousec] -> [lmb play][mousec savemousec]
+[lmb play][metal] -> [lmb play][metal savemetal]
+[lmb play][upmetal] -> [lmb play][saveup upmetal]
+[lmb play][downmetal] -> [lmb play][savedown downmetal]
+[lmb play][leftmetal] -> [lmb play][saveleft leftmetal]
+[lmb play][rightmetal] -> [lmb play][saveright rightmetal]
+[lmb play] -> [stop1]
+[lmb stopx][gotx] -> [lmb stopx][]
+[lmb stopx][item] -> [lmb stopx][]
+[lmb stopx][metalextra] -> [lmb stopx][]
+
+[lmb stopx][savewall] -> [lmb stopx][wall]
+[lmb stopx][savemousea] -> [lmb stopx][mousea]
+[lmb stopx][savemouseb] -> [lmb stopx][mouseb]
+[lmb stopx][savemousec] -> [lmb stopx][mousec]
+[lmb stopx][savemetal] -> [lmb stopx][metal]
+[lmb stopx][saveup] -> [lmb stopx][upmetal]
+[lmb stopx][savedown] -> [lmb stopx][downmetal]
+[lmb stopx][saveleft] -> [lmb stopx][leftmetal]
+[lmb stopx][saveright] -> [lmb stopx][rightmetal]
+[lmb stopx] -> [play]
+[stop1] -> [temp]
+[stop4] -> [stop1]
+[stop3] -> [stop4]
+[stop2] -> [stop3]
+[temp] -> [stop2]
+
+[supp] -> []
+[cant] -> []
+[stop][wall] -> [stop][wall supp]
+[stop][permawall] -> [stop][permawall supp]
+down [stop][mxxxx|supp] -> [stop][mxxxx supp|supp]
++ up [stop][upmetal | supp] -> [stop][upmetal supp | supp]
++ left [stop][leftmetal | supp] -> [stop][leftmetal supp | supp]
++ down [stop][downmetal | supp] -> [stop][downmetal supp | supp]
++ right [stop][rightmetal | supp] -> [stop][rightmetal supp | supp]
+
+down [mouse supp| mouse] -> [mouse|mouse] 
+
+[stop][mxxxx no supp] -> [stop][down mxxxx]
+
+[stop][no number mxxxx no supp][no number mxxxx no cant] -> [stop][no number mxxxx][no number mxxxx cant]
+[stop][one mxxxx no supp][one mxxxx no cant] -> [stop][one mxxxx][one mxxxx cant]
+[stop][two mxxxx no supp][two mxxxx no cant] -> [stop][two mxxxx][two mxxxx cant]
+[stop][three mxxxx no supp][three mxxxx no cant] -> [stop][three mxxxx][three mxxxx cant]
+[stop][four mxxxx no supp][four mxxxx no cant] -> [stop][four mxxxx][four mxxxx cant]
+[stop][five mxxxx no supp][five mxxxx no cant] -> [stop][five mxxxx][five mxxxx cant]
+[stop][six mxxxx no supp][six mxxxx no cant] -> [stop][six mxxxx][six mxxxx cant]
+[stop][seven mxxxx no supp][seven mxxxx no cant] -> [stop][seven mxxxx][seven mxxxx cant]
+
+[stop][wall] -> [stop][wall cant]
+[stop][metal arrow] -> [stop][metal arrow cant]
+[stop][permawall] -> [stop][permawall cant]
+right [stop][mxxxx|cant] -> [stop][mxxxx cant|cant]
++ up [stop][upmetal | cant] -> [stop][upmetal cant | cant]
++ left [stop][leftmetal | cant] -> [stop][leftmetal cant | cant]
++ down [stop][downmetal | cant] -> [stop][downmetal cant | cant]
++ right [stop][rightmetal | cant] -> [stop][rightmetal cant | cant]
+
+
+[stop][mouse no cant] -> [stop][right mouse]
+right [stop][right mxxxx | mxxxx] -> [stop][right mxxxx| right mxxxx]
++ right [stop][rightmetal metal| right metal] -> [stop][rightmetal right metal | right metal]
++ left [stop][leftmetal metal| right metal] -> [stop][leftmetal right metal | right metal]
++ down [stop][downmetal metal| right metal] -> [stop][downmetal right metal | right metal]
++ up [stop][upmetal metal| right metal] -> [stop][upmetal right metal | right metal]
+
+
+[moving metal xmetal] -> [moving metal moving xmetal]
+up [upmetal | no metal] -> [|]
+down [downmetal | no metal] -> [|]
+left [leftmetal | no metal] -> [|]
+right [rightmetal | no metal] -> [|]
+[xmetal no metal] -> []
+
+
+[mouse arrow] -> [stationary mouse arrow]
+
+[failure][moving mxxxx] -> [failure][stationary mxxxx]
+
+
+[stop][number arrow] -> [stop][number arrow finished]
+[stop][one finished][one moving mxxxx] -> [stop][one][one moving mxxxx]
+[stop][two finished][two moving mxxxx ] -> [stop][two][two moving mxxxx]
+[stop][three finished][three moving mxxxx ] -> [stop][three][three moving mxxxx]
+[stop][four finished][four moving mxxxx ] -> [stop][four][four moving mxxxx]
+[stop][five finished][five moving mxxxx] -> [stop][five][five moving mxxxx]
+[stop][six finished][six moving mxxxx ] -> [stop][six][six moving mxxxx]
+[stop][seven finished][seven moving mxxxx] -> [stop][seven][seven moving mxxxx]
+
+random [stop][finished goalafirst gotzero mouseb mousea no failure] -> [stop][finished goalafirst gotzero mouseb failure] message ERROR ON INPUT [1, 1], EXPECTED X FIRST BUT RECEIVED X AND Y CONCURRENTLY
+[failure][gotx no failure] -> [failure][]
+random [stop][finished goalafirst gotzero mouseb no failure] -> [stop][finished goalafirst gotzero mouseb failure] message ERROR ON INPUT [1, 1], EXPECTED X FIRST BUT RECEIVED Y
+[failure][gotx no failure] -> [failure][]
+random [stop][finished goalbsecond gotone mousea no failure] -> [stop][finished goalbsecond gotone mousea failure] message ERROR ON INPUT [1, 1], EXPECTED Y SECOND BUT RECEIVED X
+[failure][gotx no failure] -> [failure][]
+
+
+
+[stop][mouse arrow gotzero] -> [stop][ arrow gotone]
+[stop][mouse arrow gotone] -> [stop][ arrow gottwo]
+
+random [stop][finished goalzero gotx no gotzero no failure] -> [stop][finished gotx goalzero failure messagepartone]
+[failure][gotx no failure] -> [failure][]
+random [stop][finished goalone gotx no gotone no failure] ->[stop][finished gotx goalone failure messagepartone]
+[failure][gotx no failure] -> [failure][]
+random [stop][finished goaltwo gotx no gottwo no failure] ->[stop][finished gotx goaltwo failure messagepartone]
+[failure][gotx no failure] -> [failure][]
+
+
+
+
+[failure gotzero messagepartthree] -> [failure gotzero] message ...BUT RECEIVED NONE
+[failure gotone messagepartthree] -> [failure gotone] message ...BUT RECEIVED 1
+[failure gottwo messagepartthree] -> [failure gottwo] message ...BUT RECEIVED MULTIPLE
+
+
+[failure goalzero messageparttwo] -> [failure goalzero messagepartthree] message ...EXPECTED NO OUTPUT...
+[failure goalone messageparttwo] -> [failure goalone messagepartthree] message ...EXPECTED 1 OUTPUT...
+[failure goaltwo messageparttwo] -> [failure goaltwo messagepartthree] message ...EXPECTED 2 OUTPUTS...
+
+[oneinput][failure one messagepartone] -> [oneinput][failure one messageparttwo] message ERROR ON INPUT [1]...
+
+[twoinputs][failure one messagepartone] -> [twoinputs][failure one messageparttwo] message ERROR ON INPUT [0, 1]...
+[twoinputs][failure two messagepartone] -> [twoinputs][failure two messageparttwo] message ERROR ON INPUT [1, 0]...
+[twoinputs][failure three messagepartone] -> [twoinputs][failure three messageparttwo] message ERROR ON INPUT [1, 1]...
+
+[threeinputs][failure one messagepartone] -> [threeinputs][failure one messageparttwo] message ERROR ON INPUT [0, 0, 1]...
+[threeinputs][failure two messagepartone] -> [threeinputs][failure two messageparttwo] message ERROR ON INPUT [0, 1, 0]...
+[threeinputs][failure three messagepartone] -> [threeinputs][failure three messageparttwo] message ERROR ON INPUT [0, 1, 1]...
+[threeinputs][failure four messagepartone] -> [threeinputs][failure four messageparttwo] message ERROR ON INPUT [1, 0, 0]...
+[threeinputs][failure five messagepartone] -> [threeinputs][failure five messageparttwo] message ERROR ON INPUT [1, 0, 1]...
+[threeinputs][failure six messagepartone] -> [threeinputs][failure six messageparttwo] message ERROR ON INPUT [1, 1, 0]...
+[threeinputs][failure seven messagepartone] -> [threeinputs][failure seven messageparttwo] message ERROR ON INPUT [1, 1, 1]...
+
+
+
+([failure no mpx][gotx] -> [failure no mpx][]
+[failure no mpx][item] -> [failure no mpx][]
+[failure no mpx][metalextra] -> [failure no mpx][]
+[failure no mpx][savewall] -> [failure][wall]
+[failure no mpx][savemouse] -> [failure][mouse]
+[failure no mpx][savemetal] -> [failure][metal]
+[failure no mpx][saveup] -> [failure][upmetal]
+[failure no mpx][savedown] -> [failure][downmetal]
+[failure no mpx][saveleft] -> [failure][leftmetal]
+[failure no mpx][saveright] -> [failure][rightmetal])
+[failure no mpx][stop]-> [][stop5]
+
+[alldone] -> win
+
+[stop][arrow no number] -> [stop][arrow alldone]
+[stop][alldone][arrow number no finished] -> [stop][][arrow number]
+[failure][alldone] -> [failure][]
+
+
+late [metalextra] -> []
+late [upmetal no leftmetal] -> [upmetal upnoleft]
+late [leftmetal no upmetal] -> [leftmetal leftnoup]
+late [upmetal leftmetal] -> [upmetal leftmetal upleft]
+late [upmetal no rightmetal] -> [upmetal upnoright]
+late [rightmetal no upmetal] -> [rightmetal rightnoup]
+late [upmetal rightmetal] -> [upmetal rightmetal upright]
+late [downmetal no leftmetal] -> [downmetal downnoleft]
+late [leftmetal no downmetal] -> [leftmetal leftnodown]
+late [downmetal leftmetal] -> [downmetal leftmetal downleft]
+late [downmetal no rightmetal] -> [downmetal downnoright]
+late [rightmetal no downmetal] -> [rightmetal rightnodown]
+late [downmetal rightmetal] -> [downmetal rightmetal downright]
+
+[drag] -> []
+[lmb] -> []
+[rdrag] -> []
+[rmb] -> []
+
+==============
+WINCONDITIONS
+==============
+
+
+
+=======
+LEVELS
+=======
+message [right click = static]
+message [left click + drag = kinetic]
+message [left click play to test]
+
+message GOAL: [X] -> 1 IF X
+
+a##############
+#.............#
+#.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+
+message [left click inputs to toggle, for personal tests]
+
+message GOAL: [X,Y] -> 1 IF (X OR Y)
+
+b##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+2##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+3##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+
+
+message GOAL: [X,Y] -> 1 IF (X AND Y)
+
+b##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+2##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+3##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+
+message GOAL: [X,Y,Z] -> 1 IF (X AND Y AND Z)
+
+c##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+2##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+3##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+4##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+5##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+6##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+7##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+
+message GOAL: [X,Y] -> 1 IF (X XOR Y)
+
+b##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+2##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+3##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+
+
+
+message GOAL: [X,Y,Z] -> 1 IF (X OR Y OR Z)
+
+c##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+2##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+3##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+4##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+5##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+6##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+7##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+
+message GOAL: [X,Y] -> Y THEN X
+
+b##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+2##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+3##############
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............?
+###############
+
+message GOAL: [X,Y,Z] -> 1 IF (Y OR (X AND Z))
+
+c##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+2##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+3##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+4##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+5##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+6##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+7##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+
+
+message GOAL: [X,Y,Z] -> 1 IF (X + Y + Z = 2)
+
+c##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............e
+############>##
+1##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+2##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+3##############
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+4##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+5##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+6##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+w.............#
+#.............#
+#.............#
+#.............#
+#.............+
+###############
+7##############
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+m.............#
+#.............#
+#.............#
+#.............#
+#.............-
+###############
+
+
+
+
+
+
+
+
+
+
+

@@ -289,6 +289,7 @@ function getObjectRefs(state, ident) {
 }
 
 // create a property object for an ident with parts, if possible and not already there
+// todo: this fails if an expansion is an aggregate -- see isaac_and_mass
 function createObjectRef(state, ident) {
     const ref = getObjectRefs(state, ident);
     if (ref && ref.length > 1) {
@@ -721,7 +722,7 @@ function generateExtraMembersPart2(state) {
             if (object != null && object.layer !== undefined) {
                 var layerID = object.layer;
                 if (state.collisionLayers[layerID].length != 1) {
-                    logWarningNoLine("[PS+] Mouse object '"+name+"' (for input '"+ preludeTerm +"') could overlap with other objects on the same layer. Consider moving the object to its own layer.", true, false);
+                    logWarningNoLine("Mouse object '"+name+"' (for input '"+ preludeTerm +"') could overlap with other objects on the same layer. Consider moving the object to its own layer.", true, false);
                 }
             }
 
@@ -826,6 +827,7 @@ function levelsToArray(state) {
 	var processedLevels = [];
 	var sectionTerminated = false;
 	var previousSection = null;
+    let levelNo = 0;
 
 	for (var levelIndex = 0; levelIndex < levels.length; levelIndex++) {
 		var level = levels[levelIndex];
@@ -834,6 +836,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
+        let title, description
 		if (level[0] == 'message') {
 			o = {
 				message: level[1],
@@ -856,11 +859,14 @@ function levelsToArray(state) {
 			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
 			sectionTerminated = true;
 		} else if (level[0] == 'level') {
-            continue;       // todo:
+            title = level[1];           // !!!
 		} else if (level[0] == 'title') {
-            continue;       // todo:
+            description = level[1];     // todo: 
+            logWarning(`Option TITLE is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
 		} else {
 			o = levelFromString(state,level);
+            ++levelNo;
+            o.title = title || `Level ${levelNo}`;
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('Level unreachable due to previous GOTO.', o.lineNumber);
 		}
@@ -1235,7 +1241,8 @@ function processRuleString(rule, state, curRules) {
             } else if (token.match(reg_commandwords)) {
                 if (rhs===false) {
                     logError("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
-                } else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
+                } else if (incellrow) {//only a warning for legacy support reasons.
+                //} else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
                     logWarning("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 }
                 const tok = token.toLowerCase();
@@ -1248,7 +1255,7 @@ function processRuleString(rule, state, curRules) {
                         const index = findIndexAfterToken(origLine,tokens,i);
                         const str = origLine.substring(index).trim();
                         if (twid && str == "")
-                            logError('[PS+] You included a twiddleable property, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
+                            logError('You included a twiddleable option, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
                         //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
                         commands.push([tok, str == "" ? " " : str]);
                     }
@@ -3610,28 +3617,28 @@ function compile(command, text, randomseed) {
 
     if (IDE) {
         if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
-            logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
-            logWarning("[PS+] Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true);
+            logWarning("Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
+            logWarning("Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true);
         }
 
         if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
-            logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
+            logWarning("You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
         }
 
         if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
-            logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
+            logWarning("You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
         }
 
         if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
-            logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
+            logWarning("You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
         }
 
         if(state.metadata.runtime_metadata_twiddling_debug !== undefined) {
-            logWarning("[PS+] RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true);
+            logWarning("RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true);
         }
 
         if(state.metadata.level_select !== undefined && state.sections.length == 0) {
-            logWarning("[PS+] To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true);
+            logWarning("To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true);
         }
         if (isSitelocked()) {
             logError("The game is sitelocked. To continue testing, add the current domain '"+window.location.origin+ "' to the list.", undefined, true);

@@ -12,12 +12,12 @@ PuzzleScript Next is a combination of the work of many authors:
 
 ## New Features
 
-The latest version is Release v-23l27, with additional Pattern:Script compatible features and some bug fixes.
+The latest version is Release v-24a07, with additional Pattern:Script compatible features and some bug fixes.
 There also a number of new games included, so be sure to check out the gallery.
 
-Features included are:
-* MAPPINGS: compile-time symbols that convert a set of TAGS values into a different but related set of values.
-* Compressed gzip files are no longer built in the standalone version, for easier hosting.
+Features in this release are:
+* A new Pause screen, when Escape is pressed in game.
+* Level feature `LEVEL`, to set a name which is shown on the pause screen.
 
 Bug fixes:
 * An object with tags first mentioned in WINCONDITIONS now works correctly.
@@ -32,28 +32,29 @@ Bug fixes:
 * Verbose logging set by button recompiles and shows debugging steps correctly.
 
 Of note:
-* Sections can be in any order or omitted, but cannot be duplicated.
 * Several prelude settings defined in Pattern:Script are recognised but not yet implemented.
 * In-place sprite scaling is useful for text sprites, but is otherwise deprecated.
 * The sample games provided have been updated to the new conventions.
 * Sample program Pentaglyph has a compile error not detected by Pattern:Script.
+* Compressed gzip files are no longer built in the standalone version, for easier hosting.
 
 ### Pattern Script compatibility
 The following features are implemented.
 
 * The prelude section: `author_color`, `title_color`, `keyhint_color`.
 * The `TAGS` section: compile-time symbols that are expanded in objects, legend symbols, collision layers and rules.
-* The symbol `directions` is a pre-defined tag.
+* The symbols `directions`, `horizontal` and `vertical` are pre-defined tags.
 * The `MAPPINGS` section: compile-time symbols that convert a set of TAGS values into a different but related set of values.
 * The `OBJECTS` section: `copy:`, `translate:`, `shift:` and `rot:`.
 * Objects can be any size, and are aligned with the bottom left corner of the cell defined by `sprite_size`.
 * The `COLLISIONLAYERS` section: layer groups, delimited by `--`, `--^>` or similar.
 * The `SOUNDS` section: volume in the form `sfx1 88453607:11`.
 * The `RULES` section: tags as rule prefixes `dir [> p:dir] -> [> p:dir]` and relative direction parts `[> p:^] -> [v p:>]`.
+* Sections can be in any order, omitted or duplicated.
 
 Still to do:
-* Prelude `auto_level_titles`.
-* Level features `TITLE`, `LEVEL`.
+* Prelude `auto_level_titles`, `game_uri`, `level_title_style`, `show_level_title_in_menu`.
+* Level features `TITLE` and related level intro options.
 
 Documentation is here: https://github.com/ClementSparrow/Pattern-Script/wiki. 
 
