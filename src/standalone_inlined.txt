@@ -7269,7 +7269,7 @@ function redrawCellGrid() {
     var renderBorderSize = smoothscreen ? 1 : 0;
 
 ////////////////////////////////////////////////////////////////////////////////
-    class RenderOrder {  // @@PS>
+    class RenderOrder {
         constructor(minMax) {
             this.minMax = minMax;
             // the iteration limits still used by smooth screen renderer
@@ -7286,8 +7286,6 @@ function redrawCellGrid() {
         
         // the position indexes to render, taking into account layer groups, zoomscreen etc
         getPosIndexes(group) {  // todo:
-            //const iter = iterXlate[group.dirMajor + group.dirMinor];
-            
             const ch = curlevel.height; // global
             const funcs = {      // outer loop            inner loop
                 downright: i => [ i[0],   i[2],    1, ch, i[1],   i[3],    1,  1 ],
@@ -8066,13 +8064,13 @@ var titleWidth=titletemplate_empty[0].length;
 var titleHeight=titletemplate_empty.length;
 var textMode=true;
 var titleScreen=true;
-var titleMode=0;//1 means title screen with options, 2 means level select
+var titleMode=0;//1 means title screen with options, 2 means level select, 3 means pause screen
 var titleSelection=0;
 var titleSelectOptions=2;
 var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
-let lineColorOverride = [];
+let lineColorOverride = [];		// a sparse array of line numbers and colours to use
 
 function showContinueOptionOnTitleScreen(){
 	if (state.metadata.level_select !== undefined) {
@@ -8316,6 +8314,90 @@ function generateTitleScreen()
 		}
 	}
 
+}
+// add pause screen
+function centerText(text, len, fill = " ") {
+	return (fill.repeat((len - text.length) / 2) + text).padEnd(len, fill);
+}
+
+function padToSize(textLines, width, height) {
+	const lines = textLines.map(l => l.padEnd(width));
+	while (lines.length < height) 
+		lines.push("");
+	return lines;
+}
+
+function goToPauseScreen() {
+	// todo: yuck!
+	levelSelectScrollPos = 0;
+	titleSelected = false;
+	timer = 0;
+	quittingTitleScreen = false;
+	quittingMessageScreen = false;
+	titleMode = 3;
+	titleScreen = true;
+	textMode = true;
+    againing = false;
+	messagetext = "";
+	statusText = "";
+
+	generatePauseScreen();
+	redraw();
+}
+
+let selectOption;
+function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
+	//console.log('pause screen', hoverLine, scrollIncrement);
+	const lines = [
+		"",
+		"-< GAME PAUSED >-",
+		state.levels[curlevel].title,
+		"",
+		"resume game",
+		!state.metadata.norestart ? "replay level from the start" : null,
+		state.metadata.level_select ? "go to level select screen" : null,
+		"exit to title screen",
+	].filter(l => l != null);
+	const options = [ 4, lines.length ];
+
+	if (scrollIncrement && levelSelectScrollPos + scrollIncrement >= options[0] && levelSelectScrollPos + scrollIncrement < options[1]) 
+		levelSelectScrollPos += scrollIncrement;
+	else if (levelSelectScrollPos == 0)
+		levelSelectScrollPos = options[0];
+
+	titleImage = padToSize(lines.map((l,x) => 
+		(x == selectLine) ? centerText(`# ${l} #`, 35, "#") :
+		(x == hoverLine && hoverLine >= options[0] && hoverLine < options[1]) ? centerText(`> ${l} <`, 35) : 
+		(x == levelSelectScrollPos) ? centerText(`# ${l} #`, 35) :
+		centerText(l, 35)), 35, 13);
+	selectOption = selectLine - options[0];
+}
+
+function selectPauseScreen(lineNo) {
+	//console.log('pause select',  selectOption);
+	const options = [
+		() => {
+			textMode = false;
+			titleScreen = false;
+			canvasResize();
+		},
+		!state.metadata.norestart ? () => {
+			DoRestart(true);
+			textMode = false;
+			titleScreen = false;
+			canvasResize();
+		} : null,
+		state.metadata.level_select ? () => {
+			gotoLevelSelectScreen();
+			redraw();
+		} : null,
+		() => {
+			goToTitleScreen();
+			redraw();
+		}
+	].filter(l => l != null);
+
+	options[selectOption]();
 }
 
 var levelSelectScrollPos = 0;
@@ -9016,10 +9098,7 @@ function setGameState(_state, command, randomseed) {
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
-		    titleMode = 0;
-		if (showContinueOptionOnTitleScreen()) {
-		    	titleMode=1;
-		    }
+			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
 			if (state.metadata.skip_title_screen!==undefined) {
 				consolePrint("skip_title_screen enabled, proceeding to do exactly as it says on the tin.")
@@ -10768,7 +10847,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
 	if (resetAutoTick || !state.metadata.realtime_interval)
     	autotick=0;
-	againinterval = state.metadata.again_interval?state.metadata.again_interval*1000 : 150;
+	againinterval = state.metadata.again_interval ? state.metadata.again_interval*1000 : 150;
 	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
 	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
@@ -10910,7 +10989,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 			if (checkLoop())
 				break; 
 		} else {
-			if (gosubTarget >=0 ) {			// PS>
+			if (gosubTarget >= 0) {
 				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
 				ruleGroupIndex = gosubTarget;
 				gosubTarget = -1;
@@ -11208,7 +11287,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 					sfxDestroyMask.setZero()
 					sfxCreateList = [];
 					sfxDestroyList = [];
-								// TODO: should
 
 				}
 
@@ -11320,12 +11398,12 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    		consoleCacheDump();
 			}
 			if (!dontModify){
-			processOutputCommands(level.commandQueue);
+				processOutputCommands(level.commandQueue);
 			}
     		addUndoState(bak);
 
 			if (!dontModify){
-	    	DoRestart(true);
+	    		DoRestart(true);
 			}
     		return true;
 		}
@@ -11951,7 +12029,7 @@ const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message',
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
 const commandargs_table = ['message', 'goto', 'status', 'gosub'];
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
-const soundverbs_directional = ['move','cantmove'];
+const soundverbs_directional = ['move', 'cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
 let soundverbs_movement = [ 'action' ];  // clicks to be added
 let directions_table = ['action', 'up', 'down', 'left', 'right', '^', 'v', '<', '>', 
@@ -12237,7 +12315,7 @@ var codeMirrorFn = function() {
             return !token ? null : token[0];
         }
 
-        checkComment() {
+        matchComment() {
             while (true) {
                 const token = matchComment(this.stream, this.state);
                 if (token)
@@ -12246,13 +12324,13 @@ var codeMirrorFn = function() {
             }
         }
         
-        checkEol() { 
-            this.checkComment();
+        matchEol() { 
+            this.matchComment();
             return this.stream.eol(); 
         }
 
-        checkEolSemi() { 
-            this.checkComment();
+        matchEolSemi() { 
+            this.matchComment();
             if (this.state.commentStyle == '//' && this.match(/^;/)) {
                 this.pushToken(';', 'SEMICOLON');
                 return true;
@@ -12392,20 +12470,19 @@ var codeMirrorFn = function() {
         } else if (state.section === 'objects') {
             expandLastObject(state);
         } else if (state.section === 'legend') {
+            state.names = [];
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
             state.names.push(...state.legend_aggregates.map(s => s[0]));
             state.names.push(...state.legend_properties.map(s => s[0]));
         } else if (section === 'levels') {
+            state.abbrevNames = [];
             state.abbrevNames.push(...Object.keys(state.objects));
             state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
             state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
         }
 
         state.section = section;
-        if (state.visitedSections.includes(state.section)) {
-            logError(`cannot duplicate sections (you tried to duplicate "${state.section.toUpperCase()}").`, state.lineNumber);
-        }
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
         state.visitedSections.push(state.section);
@@ -12444,7 +12521,7 @@ var codeMirrorFn = function() {
                     ident = token;
                     lexer.pushToken(token, 'METADATA');
 
-                    while (!lexer.checkEol()) {
+                    while (!lexer.matchEol()) {
                         if (token = lexer.match(/^\S+/, true)) {
                             kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
                                 : (token === "transparent") ? 'COLOR FADECOLOR'
@@ -12457,7 +12534,7 @@ var codeMirrorFn = function() {
                 } else logWarning(`Prelude option "${token.toUpperCase()}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
             } 
             if (ident) {
-                if (lexer.checkEol()) 
+                if (lexer.matchEol()) 
                     return checkArguments(ident, args);
                 else {
                     token = lexer.matchNotComment();
@@ -12475,21 +12552,21 @@ var codeMirrorFn = function() {
             let value
             if (prelude_keywords.includes(ident)) {
                 if (args.length > 1)
-                    logError(`MetaData ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
+                    logError(`Prelude option ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
                 else value = [ident, true];
             } else if (prelude_param_number.includes(ident)) {
                 if (args.length != 1 || parseFloat(args[0]) == NaN)
-                    logError(`MetaData ${ident.toUpperCase()} requires one numeric argument.`, state.lineNumber);
+                    logError(`Prelude option ${ident.toUpperCase()} requires one numeric argument.`, state.lineNumber);
                 else value = [ident, parseFloat(args[0])];
             } else if (prelude_param_single.includes(ident) || prelude_param_text.includes(ident)) {
-                if (args.length != 1)
-                    logError(`MetaData ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                if (!(args.length == 1 || ident.startsWith('mouse')))
+                    logError(`Prelude option ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
                 else if (ident.includes('_color') && !isColor(args[0]))
-                    logError(`MetaData ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
+                    logError(`Prelude option ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
                 else value = [ident, args[0]];
             } else if (prelude_param_multi.includes(ident)) {
                 if (args.length < 1)
-                    logError(`MetaData ${ident.toUpperCase()} has no arguments, but it needs at least one.`, state.lineNumber);
+                    logError(`Prelude option ${ident.toUpperCase()} has no arguments, but it needs at least one.`, state.lineNumber);
                 else value = [ident, args.join(' ')];
             } else throw 'args';
             return value;
@@ -12555,7 +12632,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.match(/^=/, true)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -12565,7 +12642,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             symbols.members = [];
             while (true) {
                 // todo: handle recursive tag defs
@@ -12578,7 +12655,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'ERROR');
                     return;
                 }
-                if (lexer.checkEol(state)) break;
+                if (lexer.matchEol()) break;
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
@@ -12614,10 +12691,10 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.lhs = token;
-                if (!(isDeclaredAs(state, token) == 'tag')) {       //>@@ todo: propobj
+                if (!(isDeclaredAs(state, token) == 'tag')) {       // todo: propobj
                     logError(`Expected a TAG name but "${token.toUpperCase()}" is not one.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
@@ -12630,7 +12707,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.match(/^=>/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
@@ -12640,7 +12717,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.rhs = token;
                 if (isAlreadyDeclared(state, token)) {
@@ -12685,7 +12762,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             
-            lexer.checkComment(state);
+            lexer.matchComment();
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
@@ -12695,7 +12772,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                     symbols.lhs.push(token);
                 }
-                lexer.checkComment(state);
+                lexer.matchComment();
             }
 
             if (token = lexer.match(/^->/)) {
@@ -12707,7 +12784,7 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             symbols.rhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!token) {      // what do we not allow?
@@ -12719,7 +12796,7 @@ var codeMirrorFn = function() {
                 }
             }
 
-            if (!lexer.checkEol(state)) {
+            if (!lexer.matchEol()) {
                 token = lexer.matchNotComment();
                 logError(`Unrecognised stuff in a mapping: "${token}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
@@ -12755,7 +12832,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             if (state.case_sensitive)
                 stream.string = mixedCase;
-            lexer.checkComment(state);
+            lexer.matchComment();
 
             while (true) {
                 let token = null;
@@ -12781,7 +12858,7 @@ var codeMirrorFn = function() {
                         else aliases.push(token);
                     }
                     lexer.pushToken(token, kind);
-                    if (lexer.checkEolSemi()) break;
+                    if (lexer.matchEolSemi()) break;
 
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid object name in OBJECT section: "${token}".`, state.lineNumber);
@@ -12828,7 +12905,7 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
-            while (!lexer.checkEolSemi()) {
+            while (!lexer.matchEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^[#\w]+/, true)) {
@@ -12894,7 +12971,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, kind);
                 values.push(value);
             }
-            lexer.checkEol();
+            lexer.matchEol();
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
     }
@@ -12922,7 +12999,7 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
-            while (!lexer.checkEolSemi()) { 
+            while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
                 if (token = lexer.match(/^copy:/i)) {
@@ -12930,7 +13007,7 @@ var codeMirrorFn = function() {
                         logError(`You already assigned a sprite source for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
                     else kind = 'KEYWORD';
                     lexer.pushToken(token, kind);
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     kind = 'ERROR';
                     if (!(token = lexer.matchObjectName(!state.case_sensitive)))      // ?? glyph too?
@@ -12945,7 +13022,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^scale:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[0-9.]+/);
                     const arg = parseFloat(token);
@@ -12959,7 +13036,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^flip:/)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     //token = lexer.match(/^[a-z^<>]+/i,  true);
                     token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
@@ -12974,12 +13051,12 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^[|-]/)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
                     symbols.transforms.push([ 'flip', token == '|' ? '>' : 'v']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
@@ -12996,7 +13073,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^translate:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     const args = token ? token.split(':') : null;
@@ -13011,7 +13088,7 @@ var codeMirrorFn = function() {
 
                 } else if (token = lexer.match(/^rot:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
-                    lexer.checkComment(state);
+                    lexer.matchComment();
 
                     token = lexer.match(/^[a-z:^<>]+/i,  true);
                     const parts = token && token.split(':');
@@ -13087,7 +13164,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(reg_soundevents, true)) {
                 // closemessage 1241234...
                 lexer.pushToken(token, 'SOUNDEVENT');
-                lexer.checkComment();
+                lexer.matchComment();
                 const tevent = token;
 
                 const tsounds = parseSoundSeedsTail();
@@ -13110,7 +13187,7 @@ var codeMirrorFn = function() {
                         if (soundverbs_directional.includes(token) || soundverbs_movement.includes(token) || soundverbs_other.includes(token)) {
                             lexer.pushToken(token, 'SOUNDVERB');
                             tverb = token;
-                            lexer.checkComment();
+                            lexer.matchComment();
                         } else lexer.pushBack();
                     }
 
@@ -13121,7 +13198,7 @@ var codeMirrorFn = function() {
                         while (token = lexer.match(reg_sounddirectionindicators, true)) {
                             lexer.pushToken(token, 'DIRECTION');
                             tdirs.push(token);
-                            lexer.checkComment();
+                            lexer.matchComment();
                         }
 
                         const tsounds = parseSoundSeedsTail();
@@ -13150,7 +13227,7 @@ var codeMirrorFn = function() {
             while (token = lexer.match(/^(\d+(:[\d.]+)?|afx:[\w:=+-.]+)\b/i, true)) {
                 lexer.pushToken(token, 'SOUND');
                 tsounds.push(token);
-                lexer.checkComment();
+                lexer.matchComment();
             }
             if (token = lexer.matchNotComment()) {
                 logError(`I wasn't expecting anything after the sound declaration ${peek(tsounds)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);
@@ -13182,7 +13259,7 @@ var codeMirrorFn = function() {
                     logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
             }
-            lexer.checkComment(state);
+            lexer.matchComment();
 
             if (token = lexer.match(/^=/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
@@ -13191,7 +13268,7 @@ var codeMirrorFn = function() {
                 lexer.matchNotComment();
                 return;
             }
-            lexer.checkComment(state);
+            lexer.matchComment();
 
             while (true) {
                 let kind = 'ERROR';
@@ -13216,7 +13293,7 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                if (lexer.checkEol(state)) break;
+                if (lexer.matchEol()) break;
 
                 if (token = lexer.match(/^(and|or)\b/i, true)) {
                     if (symbols.andor && token != symbols.andor)
@@ -13286,7 +13363,7 @@ var codeMirrorFn = function() {
                 if (token = lexer.match(/^--[-^v<>-|]*/)) {
                     lexer.pushToken(token, 'LOGICWORD');
                     divider = token;
-                    if (lexer.checkEolSemi(state)) break;
+                    if (lexer.matchEolSemi()) break;
                 } else if (token = lexer.match(/^->/)) {
                     if (idents.length == 0 || prearrow != 0)
                         logError(`Cannot use arrow syntax here.`, state.lineNumber);
@@ -13315,13 +13392,13 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                if (lexer.checkEolSemi(state)) break;
+                if (lexer.matchEolSemi()) break;
 
-                // treat the comma as optional (as PS seems to do). Trailing comma is OK too
-                if (token = lexer.match(/^,/)) {
+                // treat the comma as optional (as PS seems to do). Trailing/extra comma is OK too
+                while (token = lexer.match(/^,/)) {
                     lexer.pushToken(token, 'LOGICWORD');
-                    if (lexer.checkEolSemi(state)) break;
                 } 
+                if (lexer.matchEolSemi()) break;
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
         }
@@ -13362,7 +13439,7 @@ var codeMirrorFn = function() {
             if (divider) {
                 const chars = '^>v<|-';
                 const dirs = ['up', 'right', 'down', 'left', 'down', 'right' ];
-                const combos = ['downright', 'downleft', 'upright','upleft',
+                const combos = ['downright', 'downleft', 'upright', 'upleft',
                                 'leftdown', 'leftup', 'rightdown', 'rightup'];
                 const dirFirst = dirs[chars.indexOf(divider[2] || '>')];
                 const dirSecond = dirs[chars.indexOf(divider[3] || 'v')];
@@ -13453,9 +13530,9 @@ var codeMirrorFn = function() {
                 return;
             }
 
-            lexer.checkComment(state);
+            lexer.matchComment();
             getIdent();
-            if (!lexer.checkEol(state)) {
+            if (!lexer.matchEol()) {
                 if (token = lexer.match(/^(on)\b/u, true)) {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
@@ -13466,9 +13543,9 @@ var codeMirrorFn = function() {
                     return;
                 }
 
-                lexer.checkComment(state);
+                lexer.matchComment();
                 getIdent();
-                if (!lexer.checkEol(state)) {
+                if (!lexer.matchEol()) {
                     token = lexer.matchNotComment();
                     logError(`Error in win condition: I don't know what to do with "${token.toUpperCase()}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -13543,7 +13620,7 @@ var codeMirrorFn = function() {
                 }
             }
 
-            lexer.checkEol(state);
+            lexer.matchEol();
             return true;
         }
 
@@ -13667,7 +13744,7 @@ var codeMirrorFn = function() {
             // lastStream.lineStart = stream.lineStart;
             // lastStream.string = stream.string;
             //console.log(`get token`, lastStream);
-            //--- guard against looping
+            //--- guard against looping?
 
            	var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
@@ -13977,7 +14054,11 @@ var codeMirrorFn = function() {
 
                 levels: [[]],
 
-                tags: { directions: [ 'up', 'right', 'down', 'left',  ] },      // matches P:S
+                tags: { // to match P:S
+                    directions: [ 'up', 'right', 'down', 'left' ], 
+                    horizontal: [ 'right', 'left' ], 
+                    vertical: [ 'up', 'down' ], 
+                },
                 mappings: {},
 
                 subsection: ''
@@ -14281,6 +14362,7 @@ function getObjectRefs(state, ident) {
 }
 
 // create a property object for an ident with parts, if possible and not already there
+// todo: this fails if an expansion is an aggregate -- see isaac_and_mass
 function createObjectRef(state, ident) {
     const ref = getObjectRefs(state, ident);
     if (ref && ref.length > 1) {
@@ -14713,7 +14795,7 @@ function generateExtraMembersPart2(state) {
             if (object != null && object.layer !== undefined) {
                 var layerID = object.layer;
                 if (state.collisionLayers[layerID].length != 1) {
-                    logWarningNoLine("[PS+] Mouse object '"+name+"' (for input '"+ preludeTerm +"') could overlap with other objects on the same layer. Consider moving the object to its own layer.", true, false);
+                    logWarningNoLine("Mouse object '"+name+"' (for input '"+ preludeTerm +"') could overlap with other objects on the same layer. Consider moving the object to its own layer.", true, false);
                 }
             }
 
@@ -14818,6 +14900,7 @@ function levelsToArray(state) {
 	var processedLevels = [];
 	var sectionTerminated = false;
 	var previousSection = null;
+    let levelNo = 0;
 
 	for (var levelIndex = 0; levelIndex < levels.length; levelIndex++) {
 		var level = levels[levelIndex];
@@ -14826,6 +14909,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
+        let title, description
 		if (level[0] == 'message') {
 			o = {
 				message: level[1],
@@ -14848,11 +14932,14 @@ function levelsToArray(state) {
 			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
 			sectionTerminated = true;
 		} else if (level[0] == 'level') {
-            continue;       // todo:
+            title = level[1];           // !!!
 		} else if (level[0] == 'title') {
-            continue;       // todo:
+            description = level[1];     // todo: 
+            logWarning(`Option TITLE is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
 		} else {
 			o = levelFromString(state,level);
+            ++levelNo;
+            o.title = title || `Level ${levelNo}`;
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('Level unreachable due to previous GOTO.', o.lineNumber);
 		}
@@ -15227,7 +15314,8 @@ function processRuleString(rule, state, curRules) {
             } else if (token.match(reg_commandwords)) {
                 if (rhs===false) {
                     logError("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
-                } else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
+                } else if (incellrow) {//only a warning for legacy support reasons.
+                //} else if (incellrow || rightBracketToRightOf(tokens,i)){//only a warning for legacy support reasons.
                     logWarning("Commands should only appear at the end of rules, not in or before the pattern-detection/-replacement sections.", lineNumber);
                 }
                 const tok = token.toLowerCase();
@@ -15240,7 +15328,7 @@ function processRuleString(rule, state, curRules) {
                         const index = findIndexAfterToken(origLine,tokens,i);
                         const str = origLine.substring(index).trim();
                         if (twid && str == "")
-                            logError('[PS+] You included a twiddleable property, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
+                            logError('You included a twiddleable option, but did not specify a value. The twiddle may behave strangely. Please use "set", "default", "wipe", or specify the correct value. See the documentation for more info.', lineNumber);
                         //needs to be nonempty or the system gets confused and thinks it's a whole level message rather than an interstitial.
                         commands.push([tok, str == "" ? " " : str]);
                     }
@@ -17602,28 +17690,28 @@ function compile(command, text, randomseed) {
 
     if (IDE) {
         if (state.metadata.tween_length !== undefined && state.lateRules.length >= 1) {
-            logWarning("[PS+] Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
-            logWarning("[PS+] Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true);
+            logWarning("Using tweens in a game that also has LATE rules is currently experimental! If you change objects that moved with LATE then tweens might not play!", undefined, true);
+            logWarning("Note that if you change objects that have moved in LATE rules, their tweens won't play!", undefined, true);
         }
 
         if(state.metadata.level_select_unlocked_ahead !== undefined && state.metadata.level_select_unlocked_rollover !== undefined) {
-            logWarning("[PS+] You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
+            logWarning("You can't use both level_select_unlocked_ahead and level_select_unlocked_rollover at the same time, so please choose only one!", undefined, true);
         }
 
         if(state.metadata.level_select === undefined && (state.metadata.level_select_lock !== undefined || state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined || state.metadata.continue_is_level_select !== undefined || state.metadata.level_select_solve_symbol !== undefined)) {
-            logWarning("[PS+] You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
+            logWarning("You're using level select prelude flags, but didn't define the 'level_select' flag.", undefined, true);
         }
 
         if(state.metadata.level_select_lock === undefined && (state.metadata.level_select_unlocked_ahead !== undefined || state.metadata.level_select_unlocked_rollover !== undefined)) {
-            logWarning("[PS+] You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
+            logWarning("You've defined a level unlock condition, but didn't define the 'level_select_lock' flag.", undefined, true);
         }
 
         if(state.metadata.runtime_metadata_twiddling_debug !== undefined) {
-            logWarning("[PS+] RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true);
+            logWarning("RUNTIME_METADATA_TWIDDLING_DEBUG is deprecated, however you can now use verbose logging instead to see when metadata is changed.", undefined, true);
         }
 
         if(state.metadata.level_select !== undefined && state.sections.length == 0) {
-            logWarning("[PS+] To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true);
+            logWarning("To use LEVEL_SELECT, you need to create some sections first, otherwise the level list will be empty! Please see the docs for more info.", undefined, true);
         }
         if (isSitelocked()) {
             logError("The game is sitelocked. To continue testing, add the current domain '"+window.location.origin+ "' to the list.", undefined, true);
@@ -18265,6 +18353,11 @@ function mouseAction(event,click,id) {
 						}
 					}
 				}
+			} else if (titleMode == 3) { // pause screen select
+				generatePauseScreen(-1, 0, hoverSelection);
+				timer=0;
+				quittingTitleScreen = true;
+				redraw();
 			}
 		} else if (messageselected===false && (state.levels[curlevel].message || messagetext != "")) {
 			messageselected=true;
@@ -18626,6 +18719,9 @@ function mouseMove(event) {
 			} else if (titleMode == 2) {
 				generateLevelSelectScreen();
 				redraw();
+			} else if (titleMode == 3) {
+				generatePauseScreen(hoverSelection);
+				redraw();
 			}
 		}
 	} else if (dragging && "mouse_drag" in state.metadata) {
@@ -18940,7 +19036,10 @@ function checkKey(e,justPressed) {
         		stopSolving();
         		break;
         	}
-        	if (!titleScreen || titleMode > 1) {
+			if (!titleScreen) {
+				goToPauseScreen(); 
+				canvasResize();
+			} else if (!titleScreen || titleMode > 1) {
 				if ((timer/1000>0.5 || titleMode > 1) && !quittingTitleScreen && justPressed) {
 
 					titleSelection = 0;
@@ -19071,53 +19170,65 @@ function checkKey(e,justPressed) {
     	} else if (titleScreen) {
 			if (isSitelocked()) {return;}
 			if (quittingTitleScreen===false){
-    		if (titleMode===0) {
-    			if (inputdir===4&&justPressed) {
-    				titleButtonSelected();
-							clearInputHistory();
+				if (titleMode===0) {
+					if (inputdir===4&&justPressed) {
+						titleButtonSelected();
+						clearInputHistory();
+					}
+				} else if (titleMode == 3) {
+					if (inputdir == 4 && justPressed) {
+						generatePauseScreen(-1, 0, levelSelectScrollPos);
+						timer = 0;
+						quittingTitleScreen=true;
+						redraw();
+					} else if (inputdir == 0 || inputdir == 2) {
+						generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
+						redraw();
+					}
+				} else {
+					if (inputdir==4&&justPressed) {
+						if (titleSelected===false) {    				
+							tryPlayStartGameSound();
+							titleSelected=true;
+							timer=0;
+							quittingTitleScreen=true;
+							
+							if(titleMode == 1) {
+								generateTitleScreen();
+								document.dispatchEvent(new Event("psplusGameStarted"));
+							} else if(titleMode == 2) {
+								generateLevelSelectScreen();
+							}
+							redraw();
 						}
-    		} else {
-    			if (inputdir==4&&justPressed) {
-    				if (titleSelected===false) {    				
-						tryPlayStartGameSound();
-	    				titleSelected=true;
-	    				timer=0;
-	    				quittingTitleScreen=true;
+					}
+					else if (inputdir===0||inputdir===2) {
+						if (quittingTitleScreen || titleSelected) {
+							return;
+						}
+						
+						if (inputdir===0){
+							titleSelection--;    					
+						} else {
+							titleSelection++;    					    					
+						}
+
+						if(titleSelection >= titleSelectOptions) {
+							titleSelection -= titleSelectOptions;
+						} else if (titleSelection < 0) {
+							titleSelection += titleSelectOptions;
+						}
 						
 						if(titleMode == 1) {
 							generateTitleScreen();
-							document.dispatchEvent(new Event("psplusGameStarted"));
 						} else if(titleMode == 2) {
 							generateLevelSelectScreen();
+						} else if (titleMode == 3) {
+							generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
 						}
-	    				redraw();
-	    			}
-    			}
-    			else if (inputdir===0||inputdir===2) {
-					if (quittingTitleScreen || titleSelected) {
-						return;
+						redraw();
 					}
-					
-    				if (inputdir===0){
-    					titleSelection--;    					
-    				} else {
-    					titleSelection++;    					    					
-					}
-
-					if(titleSelection >= titleSelectOptions) {
-						titleSelection -= titleSelectOptions;
-					} else if (titleSelection < 0) {
-						titleSelection += titleSelectOptions;
-					}
-					
-					if(titleMode == 1) {
-						generateTitleScreen();
-					} else if(titleMode == 2) {
-						generateLevelSelectScreen();
-					}
-    				redraw();
-    			}
-    		}
+				}
 			}
     	} else {
     		if (inputdir==4&&justPressed) {    				
@@ -19165,6 +19276,8 @@ function update() {
 				nextLevel();
 			} else if(titleMode == 2) {
 				gotoLevel(titleSelection);
+			} else if(titleMode == 3) {
+				selectPauseScreen();
 			}
         }
     }
