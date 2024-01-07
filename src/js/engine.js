@@ -429,8 +429,9 @@ function goToPauseScreen() {
 	redraw();
 }
 
+let selectOption;
 function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
-	console.log('pause screen', hoverLine, scrollIncrement);
+	//console.log('pause screen', hoverLine, scrollIncrement);
 	const lines = [
 		"",
 		"-< GAME PAUSED >-",
@@ -453,10 +454,11 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 		(x == hoverLine && hoverLine >= options[0] && hoverLine < options[1]) ? centerText(`> ${l} <`, 35) : 
 		(x == levelSelectScrollPos) ? centerText(`# ${l} #`, 35) :
 		centerText(l, 35)), 35, 13);
+	selectOption = selectLine - options[0];
 }
 
 function selectPauseScreen(lineNo) {
-	console.log('pause select',  levelSelectScrollPos);
+	//console.log('pause select',  selectOption);
 	const options = [
 		() => {
 			textMode = false;
@@ -479,7 +481,7 @@ function selectPauseScreen(lineNo) {
 		}
 	].filter(l => l != null);
 
-	options[(lineNo || levelSelectScrollPos) - 4]();
+	options[selectOption]();
 }
 
 var levelSelectScrollPos = 0;

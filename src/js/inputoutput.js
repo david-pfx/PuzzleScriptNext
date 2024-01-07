@@ -579,7 +579,9 @@ function mouseAction(event,click,id) {
 				}
 			} else if (titleMode == 3) { // pause screen select
 				generatePauseScreen(-1, 0, hoverSelection);
-				selectPauseScreen(hoverSelection);
+				timer=0;
+				quittingTitleScreen = true;
+				redraw();
 			}
 		} else if (messageselected===false && (state.levels[curlevel].message || messagetext != "")) {
 			messageselected=true;
@@ -1399,7 +1401,10 @@ function checkKey(e,justPressed) {
 					}
 				} else if (titleMode == 3) {
 					if (inputdir == 4 && justPressed) {
-						selectPauseScreen();
+						generatePauseScreen(-1, 0, levelSelectScrollPos);
+						timer = 0;
+						quittingTitleScreen=true;
+						redraw();
 					} else if (inputdir == 0 || inputdir == 2) {
 						generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
 						redraw();
@@ -1495,6 +1500,8 @@ function update() {
 				nextLevel();
 			} else if(titleMode == 2) {
 				gotoLevel(titleSelection);
+			} else if(titleMode == 3) {
+				selectPauseScreen();
 			}
         }
     }

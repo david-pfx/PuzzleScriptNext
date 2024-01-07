@@ -836,6 +836,7 @@ function levelsToArray(state) {
 		}
 		
 		var o;
+        let title, description
 		if (level[0] == 'message') {
 			o = {
 				message: level[1],
@@ -858,12 +859,14 @@ function levelsToArray(state) {
 			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
 			sectionTerminated = true;
 		} else if (level[0] == 'level') {
-            continue;       // todo:
+            title = level[1];           // !!!
 		} else if (level[0] == 'title') {
-            continue;       // todo:
+            description = level[1];     // todo: 
+            logWarning(`Option TITLE is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
 		} else {
 			o = levelFromString(state,level);
-            o.title = `Level ${++levelNo}`;
+            ++levelNo;
+            o.title = title || `Level ${levelNo}`;
 			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
 			if(sectionTerminated) logWarning('Level unreachable due to previous GOTO.', o.lineNumber);
 		}
