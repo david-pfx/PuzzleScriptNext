@@ -408,21 +408,18 @@ var codeMirrorFn = function() {
             return (state.commentLevel > 0) ? '' : null;
         // set comment style if first time
         if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
-            if (stream.match(/\//, false)) {
+            if (stream.match(/^\//, false)) {
                 state.commentStyle = '//';
-                reg_notcommentstart = /(.(?!\/\/))+/;
-
+                reg_notcommentstart = /(.(?!\/\/))+|[^\(]+/;
             } else {
                 state.commentStyle = '()';
-                reg_notcommentstart = /[^\(]+/;
             }
         }
         // handle // comments
         if (state.commentStyle == '//'){
-            if (!stream.match('//'))
-                return null;
-            return stream.match(/.*/)[0];
-        }
+            if (stream.match('//', false))
+                return stream.match(/.*/)[0];
+                    }
         // handle () comments
         if (state.commentLevel == 0 && stream.peek() != '(')
             return null;
