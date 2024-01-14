@@ -51,7 +51,6 @@
 
     <div class="container">
 
-
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
@@ -60,12 +59,10 @@
 </ol>
 <p>
 
-
 <h1>Sections of a PuzzleScript file</h1>
 <p>
 A puzzlescript file is divided into the following sections. 
 <p>
-
   <ul class="nav nav-pills">
     <li><a href="prelude.html">Prelude</a></li>
     <li><a href="objects.html">Objects</a></li>
@@ -77,155 +74,234 @@ A puzzlescript file is divided into the following sections.
     <li><a href="levels.html">Levels</a></li>
   </ul>
 
-
-
-
-
     <h2>Rules</h2>
-    See <a href="rules101.html">Rules 101</a> for an introduction to rules. 
-   	<p>
-   	Rules are about pattern replacement.  There's a left side, and a right side, the engine looks for occurrences of the left side, possibly in many different orientations, and when it finds one, it replaces the contents with what's on the right.
-   	<p>
-   	Let's look at the <a href="../editor.html?demo=sokoban_basic_debug">standard sokoban example</a> more closely:
-   	<p>
-   	<pre><code>[ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
-   	<p>
+	<p>See <a href="rules101.html">Rules 101</a> for an introduction to rules. </p>
+    
+   	<p>Rules are about pattern replacement.  
+		In the simplest case there's a left side, and a right side. 
+		The engine looks for occurrences of the left side, possibly in many different orientations, and when it finds one, it replaces the contents with what's on the right.
+		(There can also be rule prefixes and commands, but we'll get to those.)
+	</p>
+   	
+   	<p>Let's look at the <a href="../editor.html?demo=sokoban_basic_debug">standard sokoban example</a> more closely.</p>
+   	<pre><code>RULES
+=====		
+[ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
    	<h3>Left-hand Side</h3>
    	<p>
-   	The left-hand side specifies what the rule looks for.  It's looking for two cells, side by side, one having a player, and one having a crate.  There's an arrow next to the player, and it's pointing at the crate - that means that we are looking for a player that's trying to move towards the crate (Directional arrows are relative - if you want absolute directions, for gravity, for instance you can use absolute directions such as <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, and <b>RIGHT</b>).
-   	<p>
-   	There is no arrow next to crate, this means that the pattern doesn't care whether or not its moving.  If one wanted to specifically search for crates that were not moving, one would type 
-   	<p>
-   	   	<pre><code>[ > Player | STATIONARY Crate ] -> [ > Player | > Crate ]</code></pre>
-	<p>
-  If you want to search if two things overlap, just mention them side by side
-  <p>
-    <pre><code>[ Player Spikes ] -> [ DeadPlayer Spikes ]</code></pre>
-  <p>
-	If one wanted to match any player movements, not just movements towards the crate, one could replace the arrow with the <b>MOVING</b> keyword.
-   	<p>
+   	The left-hand side specifies what the rule looks for.  
+	It's looking for two cells, side by side, one having a player, and one having a crate. 
+	There's an arrow next to the player, and it's pointing at the crate - that means that we are looking for a player that's trying to move towards the crate. 
+	Directional arrows are relative - if you want absolute directions, for gravity, for instance you can use absolute directions such as <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, and <b>RIGHT</b>.</p>
+
+	<p>There is no arrow next to crate, this means that the pattern doesn't care whether or not its moving. 
+		If you wanted to specifically search for crates that were not moving, you would do it like this.</p>
+
+   	<pre><code>[ > Player | STATIONARY Crate ] -> [ > Player | > Crate ]</code></pre>
+	
+  	<p>If you want to search if two things overlap, just mention them side by side.</p>
+	<pre><code>[ Player Spikes ] -> [ DeadPlayer Spikes ]</code></pre>
+
+	<p>If one wanted to match any player movements, not just movements towards the crate, one could replace the arrow with the <b>MOVING</b> keyword.</p>
+	
    	   	<pre><code>[ MOVING Player | STATIONARY Crate ] -> [ MOVING Player | MOVING Crate ]</code></pre>
-	<p>
-	Note that the compiler can infer that the crate should be made to move in the same direction to how the player is moving.
-	<p>
-	What if you want to search for somewhere there <em>isn't</em> a crate?  You can use the <b>NO</b> keyword.
-   	<p>
+	<p>Note that the compiler can infer that the crate should be made to move in the same direction to how the player is moving.</p>
+	<p>What if you want to search for somewhere there <em>isn't</em> a crate?  You can use the <b>NO</b> keyword.</p>
+
    	   	<pre><code>[ < Player | No Crate ] -> [ < Player | Crate ] (leave a trail of crates behind you)</code></pre>
-	<p>
-	It's possible for a rule to search for several disconnected bits.  For instance, you could have a bird that vanishes whenever the cat tries to jump up:
-	   	<p>
+
+	<p>It's possible for a rule to search for several disconnected bits.  
+		For instance, you could have a bird that vanishes whenever the cat tries to jump up:
    	   	<pre><code>[ UP Cat ]  [ Bird ] -> [ UP Cat ] [ ]</code></pre>
-	<p>
-	It's possible to restrict rules to only operating in particular directions - for instance, the following removes anything that steps on lava:
-	<p>
+
+	<p>It's possible to restrict rules to only operating in particular directions - for instance, the following removes anything that steps on lava:</p>
    	   	<pre><code>DOWN [ Mortal | Lava ]  -> [ Corpse | Lava ]</code></pre>
-	<p>
-	The direction <b>DOWN</b> indicates what direction the pattern will be oriented.
-	<p>
-	One can also have ellipses in patterns, that allow for them to be variable length.  Here's a lava gun that turns anyone in line with it into a Corpse:
-	<p>
+
+	<p>The direction <b>DOWN</b> indicates what direction the pattern will be oriented.</p>
+
+	<p>You can also have ellipses in patterns, that allow for them to be variable length.  
+		Here's a lava gun that turns anyone in line with it into a Corpse:</p>
 		<pre><code> late [ LavaGun | ... | Mortal ] -> [ LavaGun | ... | Corpse ]</code></pre>
 	<p>
   If the compiler was dumb, it would decompile this into something like
-  <p>
     <pre><code>(92) late [ LavaGun | Mortal ] -> [ LavaGun | Corpse ]
 (92) late [ LavaGun | | Mortal ] -> [ LavaGun | | Corpse ]
 (92) late [ LavaGun | | | Mortal ] -> [ LavaGun | | | Corpse ]
 (92) late [ LavaGun | | | | Mortal ] -> [ LavaGun | | | | Corpse ]
 (92) ... etc.</code></pre>
-  <p>
-  and never finish compiling.
-  <p>
-	A technical point that might occasionally be relevant : ellipsis-based rules search from smallest to biggest.  
-	<p>
-		Also, it's possible to use two ellipses in a single pattern, such as stiff like this.
-		<pre><code>(92) [ > Player | ... | Crate | ... | Crate ] -> [ > Player | ... | > Crate | ... | Crate ]
-		</code></pre>
-		<p>
-			(Please be a little bit careful with using multiple ellipses in a single rule - it might get a bit slow).
-			<p>
-	<h3>Right-hand Side</h3>
-	If we had the following rule
-   	<p>
+
+<p>and never finish compiling.</p>
+<p>A technical point that might occasionally be relevant: ellipsis-based rules search from smallest to biggest.  </p>
+<p>Also, it's possible to use two ellipses in a single pattern, such as stuff like this.</p>
+	<pre><code>(92) [ > Player | ... | Crate | ... | Crate ] -> [ > Player | ... | > Crate | ... | Crate ]</code></pre>
+<p>(Please be a little bit careful with using multiple ellipses in a single rule - it might get a bit slow).</p>
+
+<h3>Right-hand Side</h3>
+	<p>If we had the following rule</p>
    	<pre><code>[ > Player | > Crate ] -> [ > Player | Crate ]</code></pre>
-   	<p>
-   	it would tell us to remove the movement from crate.  However, the following one would not change anything:
-   	<p>
+   	<p>it would tell us to remove the movement from crate.  
+		However, the following one would not change anything:</p>
    	<pre><code>[ > Player | Crate ] -> [ > Player | Crate ]</code></pre>
-   	<p>
-   	the rule is - <em>the only things that are removed are things that are referred to.</em>, that goes for both movements and objects.
-   	<p>
-   	If you want to specify that an object of a particular type be removed, without referring to it on the left-hand side, you can use the <b>NO</b> key word:
-     <p>
+
+   	<p>The rule is - <em>the only things that are removed are things that are referred to</em>, and that goes for both movements and objects.</p>
+   	<p>If you want to specify that an object of a particular type be removed, without referring to it on the left-hand side, you can use the <b>NO</b> key word:</p>
    	<pre><code>[ > Player |  ] -> [ > Player | NO Wall ]</code></pre>
-   	<p>	
-   	<h2><span id="commands"></span>Commands</h2>
+
+<h3>Prefixes</h3>
+	These are some things you can put at the beginning of the rule, before the left-hand side.
+	<dl>
+		<dt>Directions</dt>
+		<dd>The possible rule directions are <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, <b>RIGHT</b>, <b>HORIZONTAL</b>, <b>VERTICAL</b>, <b>ORTHOGONAL</b>.
+			Use these to confine pattern matching to only those directions.
+			If no direction is specified, the default is all four.</dd>
+
+		<dt>+</dt>
+		<dd>The rule is added to the previous rule in a rule group.
+			See <a href="executionorder.html">execution order</a> for more detail.</dd>
+
+		<dt>global</dt>
+		<dd>The rule is executed without regard for the <b>radius</b> setting in the <a href="preamble.html">preamble</a>.</dd>
+
+		<dt>late</dt>	
+		<dd>The rule is added to a special set of rules that are executed after the movement phase. </dd>
+
+		<dt>once</dt>
+		<dd>The rule is executed exactly once, rather than "as often as it can be."</dd>
+
+		<dt>random</dt>
+		<dd>What this does is it works not on a single rule but on a rule group.
+			It looks at all possible applications of all rules in that group, and picks one at random.
+			<p>
+			There are also some other ways to do randomness.
+			See <a href="randomness.html">Randomness</a> for a detailed explanation.
+
+		</dd>
+
+		<dt>rigid</dt>
+		<dd>A tag that gets applied to a rule, so that all the members of its rule-group must move if any do, or the entire group is disabled for that turn.
+			See <a href="rigidbodies.html">Extended Rigid Bodies</a> for a detailed explanation.
+		</dd>
+
+		<dt>Tags</dt>
+		<dd>The rule is expanded for each member of the tag value set, see <a href="tags.html">tags</a>.</dd>
+	</dl>
+
+
+<h3><span id="commands"></span>Commands</h3>
    	<p>
-   	Sometimes you want other things to happen than to just replace tiles with tiles.  That's what commands are for. 
+   	Sometimes you want other things to happen than to just replace tiles with tiles.  
+	That's what commands are for. 
+	They go after the right-hand side. 
    	<p>
-   	You can install a checkpoint, so that when people hit reset, they're taken back to this point, rather than the start of the level:
+   	As an example, you can install a checkpoint, so that when people hit reset they're taken back to this point rather than the start of the level:
    	<p>
    	<pre><code>late [ Player SavePoint ] -> CHECKPOINT</code></pre>
    	<p>
-   	In several games, it's important that if the player can't move, nothing else can happen either - so that you can't make time tick forward by repeatedly walking into walls.  There's a prelude setting for this, require_player_movement, but you can also simulate it as follows
+   	In several games, it's important that if the player can't move, nothing else can happen either - so that you can't make time tick forward 
+	by repeatedly walking into walls.  
+	There's a prelude setting for this, <b>require_player_movement</b>, but you can also simulate it as follows.
    	<pre><code>[ Player ] -> [ Player Shadow ]
 late [ Player Shadow ] -> CANCEL
 late [ Shadow ] -> [ ]</code></pre>   
 <p>
 	At the start of the turn, you put a counter on the square the player's in, and if they're still together after the movement phase, then cancel the whole move.
 	<p>
-	You can combine several commands together, so you could say
-	<p>
+	You can combine several commands together, so you could do this if you wanted to play a sound effect as well.
 	<pre><code>late [ Player Shadow ] -> CHECKPOINT SFX3</code></pre>
 	<p>
-	If you wanted to play a sound effect as well.
+	You can have as many as you like, but if any command has a text argument, it must the the last on the line.</p>
 	<p>
-	You can combine commands with regular rules, if you want:
+	You can combine commands with regular rules, if you want. 
    	<p>   	   	
 <pre><code> [ > Player | Person ] -> [ &lt; Player | Person ] message Woah, buddy, back off!</code></pre>
-   	<p>   	   	
-   	Here're all the available commands:
+<br>
+
+<h4>Available Commands</h4>
    	<p>
     <dl>
       <dt>again</dt>
-      <dd>means that there'll be a small pause after this turn, after which another turn will be fired off, with no player input - a way of doing non-interactive animations and other fun things :) .  You can control the time between frames with the 'again_interval' prelude switch. 
+      <dd>Means that there'll be a small pause after this turn, after which another turn will be fired off, with no player input - a way of doing non-interactive animations and other fun things.  
+		You can control the time between frames with the <b>again_interval</b> prelude switch. 
       <p>
       <pre><code><a href="../editor.html?demo=againexample" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>random [ no Sheep ] -> [ Sheep ] again</code></pre>
       <p>
       Again is a moderately intelligent command - it only triggers if changes happen - so it won't loop infinitely if it's doing nothing.</dd>
       <dt>cancel</dt>
-      <dd>cancels the entire turn, and reverts back to how it was at the start of the turn. basically "forget everything and pretend nothing happened"</dd>
+      <dd>Cancels the entire turn, and reverts back to how it was at the start of the turn. basically "forget everything and pretend nothing happened".</dd>
+
       <dt>checkpoint</dt>
-      <dd>saves the game state.  Now, whenever the person presses <b>R</b> to restart, or your do the RESTART command, they'll spawn here instead.</dd>
-      <dt>restart</dt>
-      <dd>Same as pressing R</dd>
-      <dt>Win</dt>
-      <dd>Wins the level!</dd>
-      <dt>Message</dt>
-      <dd>Gives the player a message.  So you can say things like "Message Hello World".  Reads everything to its right, so it has to be the rightmost argument.</dd>
-      <dt>sfx0 ... sfx10</dt>
-      <dd>Sound effects banks - you associate these to sounds in the <a href="sounds.html">sounds</a> section, and then you can trigger them in rules by mentioning them.</dd>
-	  
-	  <h1 id="psplus">New in PS+ <img src="../images/mascot_32.png"> </h1>
-	  <dt>Prelude flags (zoomscreen, intervals, etc.)</dt>
-      <dd>If <b>runtime_metadata_twiddling</b> is enabled, there are some prelude flags you can invoke as a command to change them at runtime. <a href="plus_runtime_metadata_twiddling.html">More info here.</a></dd>
-	  <dt>nosave</dt>
-	  <dd>Forces the engine to NOT save the current state to the undo stack. Useful if you still want to process turns where not much is happening, but don't want them to flood the undo stack.</dd>
-	  <dt>undo</dt>
-	  <dd>Undoes a turn. Unlike 'cancel', it will not just cancel the current turn, but will also undo the previous one, just like what would happen if you pressed Z.</dd>
-	  <dt>quit</dt>
-	  <dd>If you add quit after a rule, it'll behave as if the player pressed Escape: meaning it will quit out of the level. It is intended to allow mouse-controlled games to click a button to back to the title screen or level select without using the keyboard.</dd>
-	  <dt>Goto</dt>
-      <dd>Immediately switches to a different level. This does not count as a win and cannot be undone by the player. Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
+      <dd>Saves the game state.  
+		Now, whenever the person presses <b>R</b> to restart, or you do the RESTART command, they'll spawn here instead.</dd>
+
+	  <dt>gosub <i>subroutine name</i></dt>
+	  <dd>Begins executing rules in the named subroutine.
+		Execution continues until the end of the subroutine, and then returns to the next rule after this one.
+	  </dd>
+
+ 	  <dt>goto</dt>
+      <dd>Immediately switches to a different level. 
+		This does not count as a win and cannot be undone by the player. 
+		Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
       <pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
 late [ Player Hub ] -> GOTO Hub</code></pre></dd>
+
+      <dt>message <i>text to display</i></dt>
+      <dd>Gives the player a message.  
+		So you can say things like "Message Hello World".  
+		Reads everything to its right, so it has to be the rightmost argument.</dd>
+
+	  <dt>nosave</dt>
+	  <dd>Forces the engine to NOT save the current state to the undo stack. 
+		Useful if you still want to process turns where not much is happening, but don't want them to flood the undo stack.</dd>
+
+	  <dt>prelude flags (zoomscreen, intervals, etc.)</dt>
+      <dd>If <b>runtime_metadata_twiddling</b> is enabled, there are some prelude flags you can invoke as a command to change them at runtime. 
+		<a href="plus_runtime_metadata_twiddling.html">More info here.</a></dd>
+
+	  <dt>quit</dt>
+	  <dd>If you add <b>quit</b> after a rule, it'll behave as if the player pressed Escape: meaning it will quit out of the level. 
+		It is intended to allow mouse-controlled games to click a button to back to the title screen or level select without using the keyboard.</dd>
+
+      <dt>restart</dt>
+      <dd>Same as pressing R</dd>
+
+      <dt>sfx0 ... sfx10</dt>
+      <dd>Sound effects banks - you associate these with sounds in the <a href="sounds.html">sounds</a> section, and then you can trigger them in rules by mentioning them as commands.</dd>
+	  
+      <dt>status <i>text to display</i></dt>
+      <dd>Displays the text in the status line, if enabled the setting in the <a href="preamble.html">preamble</a>.
+		The text stays there until it is cleared.
+
+      <dt>win</dt>
+      <dd>Wins the level!</dd>
+
+	  <dt>undo</dt>
+	  <dd>Undoes a turn. 
+		Unlike <b>cancel</b>, it will not just cancel the current turn, but will also undo the previous one, just like what would happen if you pressed Z.</dd>
+
     </dl>
 	<p>
-   	<h3>What stuff is hard to do?</h3>
+   	<h3>Not Really Rules</h3>
+	<p>There are a few things that go in the Rules section but are not really rules.</p>
+
+	<dt>startloop</dt>
+	<dd>Marks the start of a set of rules that can be executed multiple times.
+		Check out the <a href="executionorder.html">execution order</a> docs for more information (specifically about rule-groups and loop construction).
+	</dd>
+
+	<dt>endloop</dt>
+	<dd>Marks the end of a set of rules that started with <b>startloop</b>.</dd>
+
+	<dt>subroutine</dt>
+	<dd>Marks the start of a set of rules that can be called by the <b>gosub</b> command.
+		The subroutine ends at the next <b>subroutine</b> or the end of the rules section.
+	</dd>
+
+   	<h3>Stuff That is Hard to Do</h3>
    	<p>
-	<h4>Loops</h4> 
-	<p>
-	Wait actually loops are pretty easy.  Check out the <a href="executionorder.html">execution order</a> docs for more information (specifically about rule-groups and the StartLoop/EndLoop construction).
+   	<h4>Real-time behaviours</h4>
+   	<p>
+	Just because you can, it doesn't mean that you should, but if you want to do something realtime <a href="realtime.html">have a look here</a>.
 	<p>
    	<h4>Counting</h4> 
    	<p>
@@ -238,24 +314,6 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
    	<h4>Extended Movements</h4>
    	Movements that play out over many turns.  You can't attach variables to states - all movements are cleared out at the end of turns.  You end up having to have a different object for each frame, and it gets messy.  Having an platform character that jumps into 4 tiles into the air, I haven't figured out how to do in an elegant way.  But there might be a way.
    	<p>
-   	<h4>Real-time behaviours</h4>
-   	<p>
-	Just because you can, it doesn't mean that you should, but if you want to do something realtime <a href="realtime.html">have a look here</a>.
-	<p>
-   	<h4>Extended Rigid Bodies</h4>
-   	<p>
-   	It's definitely possible, just experimental.  See <a href="rigidbodies.html">this</a> document.
-   	<p>
-   	<h4>Randomness</h4>
-   	<p>
-   	Definitely possible, just a bit half-baked.  See <a href="randomness.html">this</a> document.
-   	<p>
-
-
-
-
-
-
 
     </div><!-- /.container -->
 

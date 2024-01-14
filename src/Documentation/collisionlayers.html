@@ -82,16 +82,75 @@ A puzzlescript file is divided into the following sections.
     <p>
     Objects can be placed on different layers:
     <p>
-    <pre><code>Background
+    <pre><code>COLLISIONLAYERS
+===============      
+Background
 Target
 Player, Wall, Crate</code></pre>
-    <p>
-The main purpose of layers is in resolving movements: two objects on the same layer cannot coexist in a single cell.  The order of layers also determines in what order things are drawn.
-<p>
-The Background layer is a special layer.  Every game must have one.  Every tile must have a background tile.  However, by defining 
-<p><pre><code>Background = Background1 or Background2</code></pre><p>
-in the <a href="legend.html">legend</a>, you can have several tile types on the background layer. Every tile must have a background tile. If you don't specify one explicitly for a tile, it is inferred based on what other background tiles are used in the level it's in.
-<p>
+    <p>The purpose of layers is twofold. 
+Firstly, it is about resolving movements: two objects on the same layer cannot coexist in a single cell. 
+If an object tries to move into a cell where there is already an object in that layer, it will be blocked. 
+</p>
+<p>Secondly the order of layers determines in what order things are drawn.
+  Objects are drawn from back to front, earlier objects are hidden by later ones.
+</p>
+<p>The Background layer is a special layer. 
+  Every game must have one.  Every tile must have a background tile. 
+  However, by defining 
+<pre><code>Background = Background1 or Background2</code></pre>
+in the <a href="legend.html">legend</a>, you can have several tile types on the background layer. 
+Every tile must have a background tile. 
+If you don't specify one explicitly for a tile, it is inferred based on what other background tiles are used in the level it's in.
+
+  <h3>Layer groups</h3>
+  <p>If there are objects that can overflow from the cells that contain them, it may be necessary to control the order in which objects are rendered.
+     The intent is to avoid one object (which includes the background) drawing over another object in an adjoining cell. 
+     This is achieved by separating the collision layers into layer groups. 
+     Note that this feature only affects rendering, not collision detection.</p>
+  <p>Objects in (the visible part of) the level are rendered in the order defined by these rules:
+  <ol>
+    <li>All objects in the layers of a layer group are rendered before (and thus, under) the objects in the layers of higher groups.</li>
+    <li>Inside a layer group, all the objects in a cell are rendered before the objects in the next cell. 
+      Cell order can be redefined (see below) but defaults to the writing direction used in English: rightward to the end of the line, then downward to the next line.</li>
+    <li>Inside a cell and layer group, the objects are rendered layer by layer, from the lowest layer of the group to the highest one.</li>
+  </ol>
+  
+  <p>You use a <code>--</code> line to separate layer groups. 
+    So if for instance you want to make a pseudo-3D effect with background tiles filling their cells, characters and walls that overflow their cells upward, 
+    and shadows under the characters and walls that overflow upward and leftward, you could have a collision layer definition like this.
+  <pre><code>Background
+  Shadows
+  --
+  Character, Wall</code></pre>
+  <p>This way you make sure that a shadow will not overdraw a character or wall in the cell above or left of the one that casts the shadow.
+  
+  <h3>Rendering directions</h3>
+  <p>The default cell ordering is not always what you want, so you can redefine it for each layer group. 
+    To do this, add two characters after the separation line. 
+    These characters can be <code>^</code> (upward), <code>v</code> (downward), <code>></code> (rightward), or <code><</code> (leftward). 
+    The direction defined by the first character is used first, and when a (horizontal or vertical) line along that direction is filled, 
+    the direction defined by the second character is used for a new line, parallel to the former. 
+    Hence, the default group separator <code>--</code> is actually equivalent to <code>-->v</code>.</p>
+  <p>Tip: if you want to make a group separator look nicer, you can add <code>--</code> at the end, like that for instance: <code>--^>--</code>.</p>
+  <p>The characters <code>|</code> (default vertical direction) and <code>-</code> (default horizontal direction) can also be used. 
+    They are currently equivalent to <code>v</code> and <code>></code> respectively. 
+    A typical use of these characters is to switch for a vertical-first rendering with a group separator like <code>--|-</code>.
+  
+  <h3>Tags and Collision Layers</h3>
+    If you use something like Player:Charge (where Charge is defined as a tag) in a collision layer, it will do as if Player:Charge was defined as the following property:
+    <pre><code>Player:Charge = Player:Positive or Player:Negative or Player:Neutral.</code></pre>
+    
+    <p>And it will thus put all three types of players in the same collision layer. 
+      But sometimes you want things to go in different layers, and you can use another kind of parameter expansion for that. 
+      If you write:</p>
+    
+    <pre><code>Charge -> Player:Charge Crate:Charge</code></pre>
+    
+    <p>It will generate three collisions layers (one for each value of Charge), so that it's equivalent to:</p>
+    <pre><code>Player:Positive Crate:Positive
+Player:Negative Crate:Negative
+Player:Neutral  Crate:Neutral</code></pre>
+    
     </div><!-- /.container -->
 
 
