@@ -82,11 +82,11 @@ A puzzlescript file is divided into the following sections.
     This section has several purposes.  
     Firstly, it's a place where you can set up single-character names for things so that you can type them in levels.
     You can use almost any Unicode character, so there are lots to choose from.
-    Best to avoid using special characters such as <b><>^v|</b> to avoid confusing the parser.
+    Best to avoid using special characters such as <b>[ | ] < > ^ v</b> to avoid confusing the parser.
     <p>
     <pre><code>LEGEND
 ======
-      
+
 P = Player
 . = Background
 # = Wall
@@ -94,15 +94,15 @@ P = Player
 O = Target</code></pre>
 <p>
   
-  The second purpose is to define aggregate objects using <b>AND</b>, where several objects (in different layers) can be placed in the grid at the same time.
+  Secondly it lets you define aggregate objects using <b>and</b>, where several objects (in different layers) can be placed in a grid tile at the same time.
 </p>
 <pre><code>@ = Crate and Target
-deadpile = player and ash and Target
+deadpile = deadplayer and ash and Target
 
-[ player target fire ]
+[ player target fire ] -> [ deadpile ]
 </code></pre>
   <p>
-	And finally, it lets you define property objects using <b>OR</b>, that you can refer to in rules and elsewhere:
+	And finally, it lets you define property objects using <b>or</b>, that you can refer to in rules and elsewhere.
 	<p>
 	<pre><code>Flying = Bat or Bird
 Obstacle = Wall or Lava or Water

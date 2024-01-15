@@ -87,50 +87,47 @@ A puzzlescript file is divided into the following sections.
    	<pre><code>RULES
 =====		
 [ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
-   	<h3>Left-hand Side</h3>
    	<p>
    	The left-hand side specifies what the rule looks for.  
 	It's looking for two cells, side by side, one having a player, and one having a crate. 
 	There's an arrow next to the player, and it's pointing at the crate - that means that we are looking for a player that's trying to move towards the crate. 
-	Directional arrows are relative - if you want absolute directions, for gravity, for instance you can use absolute directions such as <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, and <b>RIGHT</b>.</p>
+	Directional arrows are relative - if you want absolute directions, for gravity, for instance you can use absolute directions such as <b>up</b>, <b>down</b>, <b>left</b>, and <b>right</b>.</p>
 
 	<p>There is no arrow next to crate, this means that the pattern doesn't care whether or not its moving. 
 		If you wanted to specifically search for crates that were not moving, you would do it like this.</p>
 
-   	<pre><code>[ > Player | STATIONARY Crate ] -> [ > Player | > Crate ]</code></pre>
+   	<pre><code>[ > Player | stationary Crate ] -> [ > Player | > Crate ]</code></pre>
 	
   	<p>If you want to search if two things overlap, just mention them side by side.</p>
 	<pre><code>[ Player Spikes ] -> [ DeadPlayer Spikes ]</code></pre>
 
-	<p>If one wanted to match any player movements, not just movements towards the crate, one could replace the arrow with the <b>MOVING</b> keyword.</p>
+	<p>If one wanted to match any player movements, not just movements towards the crate, one could replace the arrow with the <b>moving</b> keyword.</p>
 	
-   	   	<pre><code>[ MOVING Player | STATIONARY Crate ] -> [ MOVING Player | MOVING Crate ]</code></pre>
+   	   	<pre><code>[ MOVING Player | stationary Crate ] -> [ moving Player | moving Crate ]</code></pre>
 	<p>Note that the compiler can infer that the crate should be made to move in the same direction to how the player is moving.</p>
-	<p>What if you want to search for somewhere there <em>isn't</em> a crate?  You can use the <b>NO</b> keyword.</p>
+	<p>What if you want to search for somewhere there <em>isn't</em> a crate?  You can use the <b>no</b> keyword.</p>
 
-   	   	<pre><code>[ < Player | No Crate ] -> [ < Player | Crate ] (leave a trail of crates behind you)</code></pre>
+   	   	<pre><code>[ < Player | no Crate ] -> [ < Player | Crate ] (leave a trail of crates behind you)</code></pre>
 
 	<p>It's possible for a rule to search for several disconnected bits.  
 		For instance, you could have a bird that vanishes whenever the cat tries to jump up:
-   	   	<pre><code>[ UP Cat ]  [ Bird ] -> [ UP Cat ] [ ]</code></pre>
+   	   	<pre><code>[ up Cat ]  [ Bird ] -> [ up Cat ] [ ]</code></pre>
 
 	<p>It's possible to restrict rules to only operating in particular directions - for instance, the following removes anything that steps on lava:</p>
-   	   	<pre><code>DOWN [ Mortal | Lava ]  -> [ Corpse | Lava ]</code></pre>
+   	   	<pre><code>down [ Mortal | Lava ]  -> [ Corpse | Lava ]</code></pre>
 
-	<p>The direction <b>DOWN</b> indicates what direction the pattern will be oriented.</p>
+	<p>The direction <b>down</b> indicates what direction the pattern will be oriented.</p>
 
 	<p>You can also have ellipses in patterns, that allow for them to be variable length.  
 		Here's a lava gun that turns anyone in line with it into a Corpse:</p>
 		<pre><code> late [ LavaGun | ... | Mortal ] -> [ LavaGun | ... | Corpse ]</code></pre>
-	<p>
-  If the compiler was dumb, it would decompile this into something like
-    <pre><code>(92) late [ LavaGun | Mortal ] -> [ LavaGun | Corpse ]
+	<p>If the compiler was dumb, it would decompile this into something like this, and never finish compiling.</p>
+  <pre><code>(92) late [ LavaGun | Mortal ] -> [ LavaGun | Corpse ]
 (92) late [ LavaGun | | Mortal ] -> [ LavaGun | | Corpse ]
 (92) late [ LavaGun | | | Mortal ] -> [ LavaGun | | | Corpse ]
 (92) late [ LavaGun | | | | Mortal ] -> [ LavaGun | | | | Corpse ]
 (92) ... etc.</code></pre>
 
-<p>and never finish compiling.</p>
 <p>A technical point that might occasionally be relevant: ellipsis-based rules search from smallest to biggest.  </p>
 <p>Also, it's possible to use two ellipses in a single pattern, such as stuff like this.</p>
 	<pre><code>(92) [ > Player | ... | Crate | ... | Crate ] -> [ > Player | ... | > Crate | ... | Crate ]</code></pre>
@@ -144,14 +141,14 @@ A puzzlescript file is divided into the following sections.
    	<pre><code>[ > Player | Crate ] -> [ > Player | Crate ]</code></pre>
 
    	<p>The rule is - <em>the only things that are removed are things that are referred to</em>, and that goes for both movements and objects.</p>
-   	<p>If you want to specify that an object of a particular type be removed, without referring to it on the left-hand side, you can use the <b>NO</b> key word:</p>
-   	<pre><code>[ > Player |  ] -> [ > Player | NO Wall ]</code></pre>
+   	<p>If you want to specify that an object of a particular type be removed, without referring to it on the left-hand side, you can use the <b>no</b> key word:</p>
+   	<pre><code>[ > Player |  ] -> [ > Player | no Wall ]</code></pre>
 
 <h3>Prefixes</h3>
-	These are some things you can put at the beginning of the rule, before the left-hand side.
+	These are some things you can put at the beginning of a rule, before the left-hand side.
 	<dl>
 		<dt>Directions</dt>
-		<dd>The possible rule directions are <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, <b>RIGHT</b>, <b>HORIZONTAL</b>, <b>VERTICAL</b>, <b>ORTHOGONAL</b>.
+		<dd>The possible rule directions are <b>up</b>, <b>down</b>, <b>left</b>, <b>right</b>, <b>horizontal</b>, <b>vertical</b>, <b>orthogonal</b>.
 			Use these to confine pattern matching to only those directions.
 			If no direction is specified, the default is all four.</dd>
 
@@ -166,15 +163,15 @@ A puzzlescript file is divided into the following sections.
 		<dd>The rule is added to a special set of rules that are executed after the movement phase. </dd>
 
 		<dt>once</dt>
-		<dd>The rule is executed exactly once, rather than "as often as it can be."</dd>
+		<dd>The rule is executed exactly once, rather than "as often as it can be."
+			See <a href="executionorder.html">execution order</a> for more detail.</dd>
 
 		<dt>random</dt>
-		<dd>What this does is it works not on a single rule but on a rule group.
+		<dd>This prefix works not on a single rule but on a rule group.
 			It looks at all possible applications of all rules in that group, and picks one at random.
 			<p>
 			There are also some other ways to do randomness.
 			See <a href="randomness.html">Randomness</a> for a detailed explanation.
-
 		</dd>
 
 		<dt>rigid</dt>
@@ -195,19 +192,19 @@ A puzzlescript file is divided into the following sections.
    	<p>
    	As an example, you can install a checkpoint, so that when people hit reset they're taken back to this point rather than the start of the level:
    	<p>
-   	<pre><code>late [ Player SavePoint ] -> CHECKPOINT</code></pre>
+   	<pre><code>late [ Player SavePoint ] -> checkpoint</code></pre>
    	<p>
    	In several games, it's important that if the player can't move, nothing else can happen either - so that you can't make time tick forward 
 	by repeatedly walking into walls.  
 	There's a prelude setting for this, <b>require_player_movement</b>, but you can also simulate it as follows.
    	<pre><code>[ Player ] -> [ Player Shadow ]
-late [ Player Shadow ] -> CANCEL
+late [ Player Shadow ] -> cancel
 late [ Shadow ] -> [ ]</code></pre>   
 <p>
 	At the start of the turn, you put a counter on the square the player's in, and if they're still together after the movement phase, then cancel the whole move.
 	<p>
 	You can combine several commands together, so you could do this if you wanted to play a sound effect as well.
-	<pre><code>late [ Player Shadow ] -> CHECKPOINT SFX3</code></pre>
+	<pre><code>late [ Player Shadow ] -> checkpoint sfx3</code></pre>
 	<p>
 	You can have as many as you like, but if any command has a text argument, it must the the last on the line.</p>
 	<p>
@@ -233,7 +230,7 @@ late [ Shadow ] -> [ ]</code></pre>
       <dd>Saves the game state.  
 		Now, whenever the person presses <b>R</b> to restart, or you do the RESTART command, they'll spawn here instead.</dd>
 
-	  <dt>gosub <i>subroutine name</i></dt>
+	  <dt>gosub Check for Dead Player</dt>
 	  <dd>Begins executing rules in the named subroutine.
 		Execution continues until the end of the subroutine, and then returns to the next rule after this one.
 	  </dd>
@@ -245,9 +242,8 @@ late [ Shadow ] -> [ ]</code></pre>
       <pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
 late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 
-      <dt>message <i>text to display</i></dt>
+      <dt>message You're dead. Press Undo or Restart to try again.</dt>
       <dd>Gives the player a message.  
-		So you can say things like "Message Hello World".  
 		Reads everything to its right, so it has to be the rightmost argument.</dd>
 
 	  <dt>nosave</dt>
@@ -268,7 +264,7 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
       <dt>sfx0 ... sfx10</dt>
       <dd>Sound effects banks - you associate these with sounds in the <a href="sounds.html">sounds</a> section, and then you can trigger them in rules by mentioning them as commands.</dd>
 	  
-      <dt>status <i>text to display</i></dt>
+      <dt>status You Win! Press R to play again.</dt>
       <dd>Displays the text in the status line, if enabled the setting in the <a href="preamble.html">preamble</a>.
 		The text stays there until it is cleared.
 
@@ -292,7 +288,7 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 	<dt>endloop</dt>
 	<dd>Marks the end of a set of rules that started with <b>startloop</b>.</dd>
 
-	<dt>subroutine</dt>
+	<dt>subroutine Check for Dead Player</dt>
 	<dd>Marks the start of a set of rules that can be called by the <b>gosub</b> command.
 		The subroutine ends at the next <b>subroutine</b> or the end of the rules section.
 	</dd>
@@ -305,15 +301,19 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 	<p>
    	<h4>Counting</h4> 
    	<p>
-   	If you had a rule that said "if there are two walls next to the player, destroy it", that would be tough.  You can do it with tricks, like putting temporary counters down as markers, but it's not hooked up that way.
+   	If you had a rule that said "if there are two walls next to the player, destroy it", that would be tough.  
+	You can do it with tricks, like putting temporary counters down as markers, but it's not hooked up that way.
    	<p>
    	<h4>Diagonal Directions</h4>
    	<p>
-   	If you can think of an interesting use for diagonal directions, just let me know and I'll try add it back in.
+   	If you can think of an interesting use for diagonal directions, please do let me know.
    	<p>
    	<h4>Extended Movements</h4>
-   	Movements that play out over many turns.  You can't attach variables to states - all movements are cleared out at the end of turns.  You end up having to have a different object for each frame, and it gets messy.  Having an platform character that jumps into 4 tiles into the air, I haven't figured out how to do in an elegant way.  But there might be a way.
-   	<p>
+   	Movements that play out over many turns.  
+	You can't attach variables to states - all movements are cleared out at the end of turns.  
+	You end up having to have a different object for each frame, and it gets messy.  
+	Having an platform character that jumps into 4 tiles into the air, I haven't figured out how to do in an elegant way.  
+	But there might be a way.
 
     </div><!-- /.container -->
 
