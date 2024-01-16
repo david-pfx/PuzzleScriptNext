@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Levels - PuzzleScript Next Documentation</title>
+    <title>Win Conditions - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -52,13 +52,15 @@
 
     <div class="container">
 
+
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
   <li>Sections</li>
-  <li class="active">Levels</li>
+  <li class="active">Mappings</li>
 </ol>
 <p>
+
 
 <h1>Sections of a PuzzleScript file</h1>
 <p>
@@ -73,124 +75,19 @@ A puzzlescript file is divided into the following sections.
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
-    <li class="active"><a href="levels.html">Levels</a></li>
+    <li><a href="levels.html">Levels</a></li>
     <li><a href="tags.html">Tags</a></li>
-    <li><a href="mappings.html">Mappings</a></li>
+    <li class="active"><a href="mappings.html">Mappings</a></li>
   </ul>
 
-  <p>
-    <h2>Levels</h2>
+
+
+
     <p>
-    Here's where all the fun happens!  The level section of a game looks something like this.
-    <p>
-    <pre><code>=======
-LEVELS
-=======
-
-#########
-#.......#
-#.*.*.O.#
-#..*..O.#
-#.P.*.*.#
-#.......#
-#########
-
-MESSAGE Woah, that was tough, eh?!
-
-#########
-#.....@.#
-#.P.*.O.#
-#.......#
-#########
-
-#########
-#.....@.#
-#.P.*.O.#     
-#.......#
-#########
-
-MESSAGE Thank you for playing the game.</code></pre>
-<p>Levels are separated by blank lines, and you can also display messages and do some other things if you want to. </p>
-<p>If you click ⌘/Ctrl+Left Click on the level in the text editor, it will load the level in game.</p>
-
-<h3>Level Commands</h3>
-
-<dl>
-  <dt>message So you thought that was too easy? Try this!</dt>
-  <dd>The message text is displayed before or after a level.</dd>
-
-  <dt>section Tutorial levels</dt>
-  <dd>The name of the section will appear in the level select screen, and may be the target of a <b>goto</b>.</dd>
-
-  <dt>level Crossing the Bridge</dt>
-  <dd>Sets the name of the level. 
-    If you don't, it will be named "Level N", where N is the number of the level. 
-    This name will appear in the pause menu and in the "continue from" option of the title screen. 
-    It should be short (maximum 16 characters) and make sense for the player. </dd>
-  <dt>Levels</dt>
-  <dd>The level itself comes after any other commands and ends with a blank line.
-    Each character in the level grid defines the contents of a single tile.
-<p>Those single characters can be set up in the <a href="legend.html">legend</a> like this.
-  If you want to have several objects occupying a single tile, you specify this with <b>and</b>.
-<p>
-<pre><code>LEGEND
-=======
-. = Background
-# = Wall
-P = Player
-* = Crate
-@ = Crate and Target
-O = Target
+    <h2>Mappings</h2>
+    <pre><code>MAPPINGS
+========
 </code></pre>
-
-</dd>
-</dl>
-
-<h4>Level Select Example</h4>
-
-<p>If you want to use the <b>level_select</b> feature or the <b>goto</b> commands, you need to divide your game into named sections.</p>
-<p>You can use a <b>goto</b> command to redirect the player to any named section after the preceding level was won.</p>
-
-<pre><code>MESSAGE Select your preferred difficulty setting.
-
-#########
-#...P...#
-#.E...H.#
-#########
-
-SECTION Easy Levels
-
-#########
-#.P..*O.#
-#########
-
-#########
-#.P.*.O.#
-#########
-
-GOTO The End
-
-SECTION Hard Levels
-
-#########
-#.P..*O.#
-#.......#
-#########
-
-#########
-#.P.....#
-#...* O.#
-#########
-
-SECTION The End
-
-MESSAGE Congratulations!</code></pre>
-
-<h3>What stuff is hard to do?</h3>
-<p>Branching. 
-There is no support for it in terms of this level structure. 
-If you want a continuous open world you can set <b>zoomscreen</b> or <b>flickscreen</b> in the prelude.
-If you can think of an elegant way to implement level branching in the engine, do let me know.</p>
 
     </div><!-- /.container -->
 
