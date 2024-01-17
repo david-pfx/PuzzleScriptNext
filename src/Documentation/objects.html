@@ -114,14 +114,19 @@ PINK YELLOW #000000
   <li>green</li><li>darkgreen</li><li>lightgreen</li><li>blue</li><li>lightblue</li><li>darkblue</li><li>purple</li><li>pink</li>
   <li>transparent</li></ul></b></blockquote>
 
+  <p>See this <a href="../editor.html?demo=next/color_chart">Color Chart</a> for a display of the colors in the default palette. 
+    You can change the palette if you like.</p>
+
   <p>Or you can use hex codes if you prefer. 
     <ul>
-      <li>Three and four digit codes represent regular RGB colors, so <b>#FFFF00</b> is magenta and <b>#FFF</b> is white.</li>
-      <li>Four and eight digit codes represent RGBA colors, so <b>#0000FF80</b> is semi-transparent blue and <b>#8888</b> is semi-transparent grey.</li>
+      <li>Three and four digit codes represent regular RGB colors, so <b>#FF00FF</b> is <span style="color:#ff00ff">magenta</span> 
+        and <b>#0FF</b> is <span style="color: #0ff">cyan</span>.</li>
+      <li>Four and eight digit codes represent RGBA colors, so <b>#0000FF80</b> is semi-transparent <span style="color:#0000FF80">blue</span> 
+        and <b>#8888</b> is semi-transparent <span style="color: #8888">grey</span>.</li>
     </ul></p>
 
   <h4>The Grid</h4>
-  <p>The third and following lines are rows of numeric digits making up the sprite grid (or they can be omitted). 
+  <p>The third and following lines are rows of numeric digits making up the sprite grid (or they can be omitted, and then you just get a square). 
     The dots represent transparency, and the numbers 0..9 index the colors in the second line, for as many colors as there are.</p>
 
     <p>In the simple case each line is <b>sprite_size</b> in length and there are <b>sprite_size</b> of them.
@@ -133,7 +138,7 @@ PINK YELLOW #000000
     You can use control this, see <a href="collisionlayers.html">CollisionLayers</a>.
   </p>
 
-  <h4>Transforms</h4>
+  <h4>Transforms <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></h4>
   <p>Following the sprite grid are one or more lines of object transforms.
     The transforms are executed in order, left to right, and modify the sprite grid as they do so.
     These are the available transforms.

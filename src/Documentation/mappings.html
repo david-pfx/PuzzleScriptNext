@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Win Conditions - PuzzleScript Next Documentation</title>
+    <title>Mappings - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -84,9 +84,36 @@ A puzzlescript file is divided into the following sections.
 
 
     <p>
-    <h2>Mappings</h2>
+    <h2>Mappings <img src="../images/pspatt.png" alt="Pattern:Script"></h2>
+
+    <p>Tags let you define a name that is expanded into its values, but within each expansion all the values will be the same, and sometimes you don't want that.
+      Sometimes you want the expansion to be rock-paper-scissors in one part of a rule and scissors-rock-paper in another part.
+      Or you want cat-dog-bird in one part and miaow-woof-tweet in another.
+      Or you want the next nunmber in a sequence.
+      That's where mappings come in. They look like this.
     <pre><code>MAPPINGS
 ========
+firstplayer => secondplayer
+rock paper scissors -> paper scissors rock 
+
+animal => makescall
+cat dog bird -> miaow woof tweet
+
+Int => IntUp
+I0 I1 I2 I3 I4 I5 I6 I7 I8 I9 -> I1 I2 I3 I4 I5 I6 I7 I8 I9 I0
+
+Secondary => ColorComponent1
+Purple Orange Green -> Blue Red Yellow
+</code></pre>
+
+<p>The rule direction is just one expansion parameter like others, and the relative directions <b>> < v ^ perpendicular parallel orthogonal</b> are predefined mappings for directions.
+  So you can write rules like this.</p>
+  
+<pre><code>(the player faces the direction of the key pressed)
+[ > Player:directions ] -> [ > Player:> ]
+
+(players can push wheelchairs only when they face one, standing behind it)
+[ > Player:> | WheelChair:> ] -> [ > Player:> | > WheelChair:> ]
 </code></pre>
 
     </div><!-- /.container -->

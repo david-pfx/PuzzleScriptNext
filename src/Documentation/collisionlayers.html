@@ -101,11 +101,12 @@ If an object tries to move into a cell where there is already an object in that 
   Every game must have one.  Every tile must have a background tile. 
   However, by defining 
 <pre><code>Background = Background1 or Background2</code></pre>
-in the <a href="legend.html">legend</a>, you can have several tile types on the background layer. 
-Every tile must have a background tile. 
-If you don't specify one explicitly for a tile, it is inferred based on what other background tiles are used in the level it's in.
 
-  <h3>Layer groups</h3>
+<p>In the <a href="legend.html">legend</a>, you can have several tile types on the background layer. 
+Every tile must have a background tile. 
+If you don't specify one explicitly for a tile, it is inferred based on what other background tiles are used in the level it's in.</p>
+
+  <h3>Layer groups <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></h3>
   <p>If there are objects that can overflow from the cells that contain them, it may be necessary to control the order in which objects are rendered.
      The intent is to avoid one object (which includes the background) drawing over another object in an adjoining cell. 
      This is achieved by separating the collision layers into layer groups. 
@@ -127,7 +128,7 @@ If you don't specify one explicitly for a tile, it is inferred based on what oth
   Character, Wall</code></pre>
   <p>This way you make sure that a shadow will not overdraw a character or wall in the cell above or left of the one that casts the shadow.
   
-  <h3>Rendering directions</h3>
+  <h3>Rendering directions <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></h3>
   <p>The default cell ordering is not always what you want, so you can redefine it for each layer group. 
     To do this, add two characters after the separation line. 
     These characters can be <code>^</code> (upward), <code>v</code> (downward), <code>></code> (rightward), or <code><</code> (leftward). 
@@ -139,7 +140,7 @@ If you don't specify one explicitly for a tile, it is inferred based on what oth
     They are currently equivalent to <code>v</code> and <code>></code> respectively. 
     A typical use of these characters is to switch for a vertical-first rendering with a group separator like <code>--|-</code>.
   
-  <h3>Tags and Collision Layers</h3>
+  <h3>Tags and Collision Layers <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></h3>
     If you use something like Player:Charge (where Charge is defined as a tag) in a collision layer, it will do as if Player:Charge was defined as the following property:
     <pre><code>Player:Charge = Player:Positive or Player:Negative or Player:Neutral.</code></pre>
     

@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Win Conditions - PuzzleScript Next Documentation</title>
+    <title>Tags - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -52,7 +52,6 @@
 
     <div class="container">
 
-
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
@@ -60,7 +59,6 @@
   <li class="active">Tags</li>
 </ol>
 <p>
-
 
 <h1>Sections of a PuzzleScript file</h1>
 <p>
@@ -80,17 +78,116 @@ A puzzlescript file is divided into the following sections.
     <li><a href="mappings.html">Mappings</a></li>
   </ul>
 
-
-
-
     <p>
-    <h2>Tags</h2>
+    <h2>Tags <img src="../images/pspatt.png" alt="Pattern:Script"></h2>
+
+    <p>Have you ever felt the need to create a family of similar objects, and found it takes a lot of cutting and pasting in the editor?
+    That's what the Tags section is about.
+    Start with a single object, then use tags and sprite transforms to create a whole family of objects and the rules to go with them and for next to no effort.
+    Nice!</p>
+
+    <p>Here is a sample Tags section.</p>
     <pre><code>TAGS
 ====
+Int = I0 I1 I2 I3 I4 I5 I6 I7 I8 I9
+Bool = True False Maybe
+Primary = Red Yellow Blue
+Secondary = Purple Orange Green
+Color = Primary Secondary Trash
+AX = A1 A2 A3 A4 A5
+
+// these are pre-defined, so you don't need to:
+//directions = up right down left
+//horizontal = right left
+//vertical = up down
 </code></pre>
 
-    </div><!-- /.container -->
+<p>Couple of things to note.
+  The tag name is before the equals sign, and the values follow.
+  If a value is already defined as a tag name, then all its values are included, and so on.
+  The Color tag therefore has 7 values.
+</p>
+<h3>Objects</h3>
+<p>When the tag name is used in defining an object, it is expanded into its values like this.</p>
 
+<pre><code>OBJECTS
+=======  
+
+redborder:directions
+red
+00000000
+.000000.
+........
+........
+........
+........
+........
+........
+rot:up:>
+
+blueborder:directions
+blue
+copy:redborder:directions
+
+greenthing:directions
+green
+copy:redborder:directions flip:^ translate:>:3 shift:v:2
+
+temp:Int:Color:AX
+transparent
+</code></pre>
+
+<p>The first definition creates four red border objects called redborder:up, redborder:right, redborder:down, redborder:left.
+  Each object is rotated by 90 degrees, to make up the four sides of a square.
+  Then the second definition creates another four matching blue border objects.
+</p>
+<p>You can do something similar with <b>flip</b>, <b>shift</b> and <b>translate</b>, replaced the absolute direction by relative, 
+  for a rather strange green thing as per the third example.
+  </p>
+<p>How it works is that the object name is divided into 'parts' separated by colons. Each part, if it is a tag name, is expanded into all its values.
+  So how many temporary objects does the final definition create?
+  The answer is 350! 
+  That's 10 Ints, 7 colors and 5 AX's.
+  Not sure why you'd need so many, but that's what it does.
+</p>
+<h3>Rules</h3>
+<p>Now where are you going to use all these objects? In rules, of course!</p>
+<code><pre>
+[ greenthing:directions | crate ] -> [ | crate ]
+[ greenthing:directions | crate ] -> [  | greenthing:directions ]
+[ greenthing:directions | crate ] -> [ greenthing:directions | greenthing:directions ]
+directions [ greenthing:directions | crate ] -> [ greenthing:directions | greenthing:directions ]
+[ player | temp:Int:Color:AX ] -> [ temp:Int:Color:AX | player ]
+</pre></code>
+<p>The first rule obviously finds any greenthings (eight different kinds) next to crates and destroys them.
+  But it does so in quite a clever way.
+  The original object you defined is replaced by the tag expansion, and then the original object is redefined as a <b>property object</b>.
+  The result is that the first rule only expands to 4 basic rules, one for each direction.
+  (As well, each of the objects created by tags can be redefined without triggering an error.
+  Sometimes that turns out to be quite useful.)
+</p>
+<p>The second rule replaces crates by greenthings.
+  In this case the rule has to be expanded, so this one rule turns into 16.
+  At least you didn't have to type them yourself.
+</p>
+<p>The third rules shows the use of a tag as a rule prefix.
+  Again, the expansion is to 16 basic rules.
+</p>
+<p>As you can imagine, if you use objects with a lot of tag values (like temp:Int:Color:AX), the expansion can be enormous (1400 rules in the case of the fourth rule).</p>
+<h3>WinConditions and CollisionLayers</h3>
+<p>Object names with Tag parts also work in the these sections, and there is a special feature.</p>
+
+<code><pre>COLLISIONLAYERS
+redborder:directions, blueborder:directions
+Int Color AX -> temp:Int:Color:AX
+</pre></code>
+
+<p>The first line puts the 8 border objects into the same layer, which makes perfect sense because they could never interfere with each other.
+  The second line puts the 350 temporary objects each into its own layer, one for each tag value and combination on the left of the arrow!
+</p>
+
+
+    </div><!-- /.container -->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

@@ -119,14 +119,15 @@ MESSAGE Thank you for playing the game.</code></pre>
   <dt>message So you thought that was too easy? Try this!</dt>
   <dd>The message text is displayed before or after a level.</dd>
 
-  <dt>section Tutorial levels</dt>
+  <dt>section Tutorial levels <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
   <dd>The name of the section will appear in the level select screen, and may be the target of a <b>goto</b>.</dd>
 
-  <dt>level Crossing the Bridge</dt>
+  <dt>level Crossing the Bridge <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></dt>
   <dd>Sets the name of the level. 
     If you don't, it will be named "Level N", where N is the number of the level. 
     This name will appear in the pause menu and in the "continue from" option of the title screen. 
     It should be short (maximum 16 characters) and make sense for the player. </dd>
+
   <dt>Levels</dt>
   <dd>The level itself comes after any other commands and ends with a blank line.
     Each character in the level grid defines the contents of a single tile.
@@ -146,7 +147,7 @@ O = Target
 </dd>
 </dl>
 
-<h4>Level Select Example</h4>
+<h4>Level Select Example <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></h4>
 
 <p>If you want to use the <b>level_select</b> feature or the <b>goto</b> commands, you need to divide your game into named sections.</p>
 <p>You can use a <b>goto</b> command to redirect the player to any named section after the preceding level was won.</p>

@@ -110,7 +110,7 @@ CloseMessage 1241234
 Sfx0 213424
 Sfx3 213424</code></pre>
 <p>
-<h3>Sound Volume</h3>
+<h3>Sound Volume <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></h3>
 You can specify a volume after the seed like this.
 <pre><code>Player Move Up 142315:12
 Player Move Down 142313:6
@@ -154,7 +154,16 @@ in particular directions during a movement phase.
 <dd>Triggers when that object successfully moves horizontally.  
   <b>Vertical</b> is also valid here.</dd>
 
+<h3>Command Events</h3>
+Sounds in this group are triggered by rule commands.
 
+<dt><b>Cancel</b> 123413</dt>
+<dd>Played when the a rule triggers the <b>cancel</b> command.</dd>
+
+<dt><b>SFX0</b> 123434</dt>
+<dd>Can be anything form <b>SFX0</b> to <b>SFX10</b>.  
+  These are custom sound events that can be triggered from rules.</dd>
+  
 <h3>Game Events</h3>
 Sounds in this group are triggered by an event for the game as a whole.
 
@@ -184,16 +193,6 @@ Sounds in this group are triggered by an event for the game as a whole.
 
 <dt><b>Undo</b> 123413</dt>
 <dd>Played when the player presses the undo button (Z).</dd>
-
-<h3>Game Events</h3>
-Sounds in this group are triggered by rule commands.
-
-<dt><b>Cancel</b> 123413</dt>
-<dd>Played when the a rule triggers the <b>cancel</b> command.</dd>
-
-<dt><b>SFX0</b> 123434</dt>
-<dd>Can be anything form <b>SFX0</b> to <b>SFX10</b>.  
-  These are custom sound events that can be triggered from rules.</dd>
 
 </dl>
    
