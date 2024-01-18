@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -58,9 +58,10 @@
 </ol>
 <p>
 
-<h1>Runtime Metadata Twiddling <img src="../images/psplus_mascot_32.png"></h1>
+<h1>Runtime Metadata Twiddling <img src="../images/mascot_32.png"></h1>
 <br>
-If you want to change the realtime_interval of your game during runtime, you can add <b>runtime_metadata_twiddling</b> to your prelude. To see log output of metadata changes, add <b>runtime_metadata_twiddling_debug</b>.
+If you want to change the <b>realtime_interval</b> of your game during runtime, you can add <b>runtime_metadata_twiddling</b> to your prelude. 
+To see log output of metadata changes, add <b>runtime_metadata_twiddling_debug</b>.
 <p></p>
 After this prelude flag has been set, you can change the parameters of some prelude flags based on rule patterns like this:
 
@@ -72,17 +73,17 @@ Any changes you make with this will be included in the undo history of the level
 Currently the prelude flags that support this are:
 
 <ul>
-<li>zoomscreen</li>
-<li>flickscreen</li>
-<li>smoothscreen</li>
-<li>key_repeat_interval</li>
-<li>realtime_interval</li>
-<li>again_interval</li>
-<li>background_color</li>
-<li>text_color (for <b>message</b>)</li>
-<li>message_text_align (for <b>message</b>)</li>
-<li>noundo (set to anything to enable and <b>wipe</b> to disable, see below)</li>
-<li>norestart (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+<li><b>zoomscreen</b></li>
+<li><b>flickscreen</b></li>
+<li><b>smoothscreen</b></li>
+<li><b>key_repeat_interval</b></li>
+<li><b>realtime_interval</b></li>
+<li><b>again_interval</b></li>
+<li><b>background_color</b></li>
+<li><b>text_color</b> (for <b>message</b>)</li>
+<li><b>message_text_align</b> (for <b>message</b>)</li>
+<li><b>noundo</b> (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+<li><b>norestart</b> (set to anything to enable and <b>wipe</b> to disable, see below)</li>
 </ul>
 
 You can also combine these directives with rule patterns and other flags like <b>nosave</b> and <b>again</b>. Just like with <b>message</b>, the prelude flag needs to be the rightmost argument in the rule:
@@ -100,8 +101,7 @@ You use these special keywords like this:
 <pre><code>[> Player | WipeButton] -> realtime_interval wipe
 </code></pre>
 
-<h1>Special cases</h1>
-<h2>noundo</h2>
+<h2>Special case - noundo</h2>
 
 Once a turn ends with <b>noundo</b> being set, that turn becomes irreversible, meaning you can't undo back past it. This is different from using the <b>nosave</b> command, which will only avoid saving the current turn to the undo stack. So if you have:
 
@@ -111,9 +111,9 @@ Once a turn ends with <b>noundo</b> being set, that turn becomes irreversible, m
 [> Player | SkipSave] -> nosave
 </code></pre>
 
-It will skip each turn after you walked off an <b>SkipSave</b> object when undoing, and you will be unable to rewind to any turns you did before stepping on the <b>SkipUndo</b> button. <a href="https://auroriax.github.io/PuzzleScript/editor.html?hack=b1c465cf3860ec2d7d7dd166883c60d5">Example available here.</a>
+It will skip each turn after you walked off a <b>SkipSave</b> object when undoing, and you will be unable to rewind to any turns you did before stepping on the <b>SkipUndo</b> button. <a href="https://auroriax.github.io/PuzzleScript/editor.html?hack=b1c465cf3860ec2d7d7dd166883c60d5">Example available here.</a>
 <p></p>
-<i>Documentation page adapted from a draft by minotalen</i>
+
     </div><!-- /.container -->
 
 

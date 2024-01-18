@@ -228,11 +228,6 @@ var codeMirrorFn = function() {
 
     // utility functions used by parser
 
-    // return last element in array, or null
-    function peek(a) {
-        return a && a.length > 0 ? a[a.length - 1] : null;
-    }
-
     function hasParts(ident) {
         return ident.split(':').length > 1;
     }
@@ -408,21 +403,18 @@ var codeMirrorFn = function() {
             return (state.commentLevel > 0) ? '' : null;
         // set comment style if first time
         if (!state.commentStyle && stream.match(/^(\/\/)|\(/, false)) {
-            if (stream.match(/\//, false)) {
+            if (stream.match(/^\//, false)) {
                 state.commentStyle = '//';
-                reg_notcommentstart = /(.(?!\/\/))+/;
-
+                reg_notcommentstart = /(.(?!\/\/))+|[^\(]+/;
             } else {
                 state.commentStyle = '()';
-                reg_notcommentstart = /[^\(]+/;
             }
         }
         // handle // comments
         if (state.commentStyle == '//'){
-            if (!stream.match('//'))
-                return null;
-            return stream.match(/.*/)[0];
-        }
+            if (stream.match('//', false))
+                return stream.match(/.*/)[0];
+                    }
         // handle () comments
         if (state.commentLevel == 0 && stream.peek() != '(')
             return null;
@@ -450,7 +442,7 @@ var codeMirrorFn = function() {
 
     function blankLineHandle(state) {
         if (state.section == 'levels') {
-            const toplevel = peek(state.levels);
+            const toplevel = state.levels.at(-1);
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
@@ -1237,7 +1229,7 @@ var codeMirrorFn = function() {
                 lexer.matchComment();
             }
             if (token = lexer.matchNotComment()) {
-                logError(`I wasn't expecting anything after the sound declaration ${peek(tsounds)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);
+                logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);
                 return null;
             } else return tsounds;
         }
@@ -1605,9 +1597,20 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(message|goto|title|level|section)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(message|goto|title|level|section|link)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
+
+                if (token == 'link') {
+                    if (!(token = lexer.matchObjectName())) 
+                        logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
+                    else if (!isAlreadyDeclared(state, token))
+                        logError(`LINK object needs to be already defined.`, state.lineNumber);
+                    else {
+                        symbols.link = token;
+                        lexer.pushToken(token, 'NAME');
+                    }
+                }
                 symbols.text = lexer.matchAll();
                 if (symbols.text.length > 0)
                     lexer.pushToken(symbols.text, `METADATATEXT`);  // empty causes havoc
@@ -1632,42 +1635,25 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            if (symbols.start == 'section')
-                state.currentSection = symbols.text;
+            // look for marker level that says a blank line has been seen
+            let toplevel = state.levels.at(-1);
+            if (toplevel && toplevel.length == 0) {
+                state.levels.pop();
+                toplevel = null;
+            }
+            const cmds = [ 'goto', 'level', 'message', 'section', 'title', ];
+            if (cmds.includes(symbols.start))
+                state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
             else {
-                // look for marker level that says a blank line has been seen
-                let toplevel = peek(state.levels);
-                if (toplevel && toplevel.length == 0) {
-                    state.levels.pop();
-                    toplevel = null;
-                }
-                const cmds = [ 'message', 'goto', 'level', 'title' ];
-                if (cmds.includes(symbols.start))
-                    state.levels.push([ symbols.start, symbols.text, state.lineNumber, state.currentSection ]);
+                if (toplevel == null || cmds.includes(toplevel[0]))
+                    state.levels.push([ state.lineNumber, null, symbols.gridline ]);
                 else {
-                    if (toplevel == null || cmds.includes(toplevel[0]))
-                        state.levels.push([ state.lineNumber, state.currentSection, symbols.gridline ]);
-                    else {
-                        // if (symbols.gridline.length != toplevel[2].length)
-                        //     logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
-                        toplevel.push(symbols.gridline);
-                    }
+                    // if (symbols.gridline.length != toplevel[2].length)
+                    //     logWarning("Maps must be rectangular, yo (In a level, the length of each row must be the same).", state.lineNumber);
+                    toplevel.push(symbols.gridline);
                 }
             }
         }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // because of all the early-outs in the token function, this is really just right now attached
-    // too places where we can early out during the legend. To make it more versatile we'd have to change 
-    // all the early-outs in the token function to flag-assignment for returning outside the case 
-    // statement.
-    function endOfLineProcessing(state, mixedCase){
-        // if (state.section==='legend'){
-        //     processLegendLine(state,mixedCase);
-        // } else if (state.section ==='sounds'){
-        //     processSoundsLine(state);
-        //}
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1699,7 +1685,6 @@ var codeMirrorFn = function() {
 
                 tokenIndex: state.tokenIndex,
                 // PS+ SECTION command argument if any
-                currentSection: state.currentSection,
                 current_line_wip_array: state.current_line_wip_array.slice(),
 
                 legend_synonyms: state.legend_synonyms.map(p => p.slice()),
@@ -1773,15 +1758,12 @@ var codeMirrorFn = function() {
 
             if (state.tokenIndex !== -4 && matchComment(stream, state) != null) {
                 state.sol_after_comment = state.sol_after_comment  || sol;
-                if (stream.eol())
-                    endOfLineProcessing(state, mixedCase);  
                 return 'comment';
             }
 
             stream.eatWhile(/[ \t]/);
 
             if (sol && stream.eol()) {
-                endOfLineProcessing(state,mixedCase);  
                 return blankLineHandle(state);
             }
 
@@ -2034,7 +2016,6 @@ var codeMirrorFn = function() {
 
                 tokenIndex: 0,
 
-                currentSection: null,
                 current_line_wip_array: [],
 
                 legend_synonyms: [],

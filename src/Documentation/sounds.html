@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Sounds - PuzzleScript Documentation</title>
+    <title>Sounds - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -56,15 +56,15 @@
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
-  <li>Bird's-eye View</li>
+  <li>Sections</li>
   <li class="active">Sounds</li>
 </ol>
 <p>
 
 
-<h1>Bird's-eye view of a PuzzleScript file</h1>
+<h1>Sections of a PuzzleScript file</h1>
 <p>
-A puzzlescript file is divided into 8 sections:
+A puzzlescript file is divided into the following sections. 
 <p>
 
   <ul class="nav nav-pills">
@@ -75,6 +75,8 @@ A puzzlescript file is divided into 8 sections:
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
+    <li><a href="tags.html">Tags</a></li>
+    <li><a href="mappings.html">Mappings</a></li>
     <li><a href="levels.html">Levels</a></li>
   </ul>
 
@@ -84,15 +86,20 @@ A puzzlescript file is divided into 8 sections:
     <p>
     Here's where you hook up sounds to in-game actions.
     <p>
-    There are sound buttons above the console, that produce sound seeds that you can use in this section.  
+    There are sound buttons above the console, that produce sound seeds that you can use in this section.
+    Each time you click on a button, you get a new randomly generated sound within a category, like "explosion sound" or "bird tweet sound".  
+    Keep trying -- sooner or later you'll get one you like.
     <p>
     <img src="images/soundbuttons.png">
     <p>
     These numbers are saved representations of the sounds, and you use them in the sound sections.
+    You can click on the links in the console window to hear the sound.
     <p>
     A sound section could look like the following:
     <p>
-    <pre><code>Player Move Up 142315
+    <pre><code>SOUNDS
+======
+Player Move Up 142315
 Player Move Down 142313
 Player Move Right 142311
 Crate Move 412312
@@ -103,17 +110,65 @@ CloseMessage 1241234
 Sfx0 213424
 Sfx3 213424</code></pre>
 <p>
-here are the possible sound events declarations
+<h3>Sound Volume <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h3>
+You can specify a volume after the seed like this.
+<pre><code>Player Move Up 142315:12
+Player Move Down 142313:6
+Endgame 123413:20
+</code></pre>
+<p>The sound volume is a scale of tenths, so that a volume of 6 is 60% and 20 is 200% of default.
+  You can use any integer value between 1 and 39 included.
+  </p>
+<p>Note that increasing the volume of a sound can add distortion to it, and conversely, decreasing the volume of a sound can make it sound smoother. 
+  The reason is that the volume setting directly multiplies the soundwave's amplitude before it is capped to 1, and this capping causes distortion. 
+</p>
+
+<h3>Object Events</h3>
+Sound events in this group are triggered by something happening to a particular object.
+Note that <b>move</b> and <b>cantmove</b> can be supplied with directions, so that certain sounds play if you move (or can't) 
+move in particular directions during a movement phase.  
 <dl>
 
-<dt><b>Cancel</b> 123413</dt>
-<dd>Played when the a rule triggers the CANCEL command.</dd>
-
 <dt>Crate <b>Action</b> 123414</dt>
-<dd>Triggers when a crate is subject to the 'action' during a movement phase.</dd>
+<dd>Triggers when a crate is subject to the <b>action</b> during a movement phase.</dd>
 
 <dt>Crate <b>Create</b> 123414</dt>
 <dd>Triggers when a crate is created.</dd>
+
+<dt>Player <b>CantMove</b> 4123412</dt>
+<dd>Triggers when that object unsuccessfully moves, in any direction.</dd>
+
+<dt>Player <b>CantMove</b> Down Left 4123412</dt>
+<dd>Triggers when that object unsuccessfully moves, either down or left.</dd>
+
+<dt>Crate <b>Destroy</b> 123414</dt>
+<dd>Triggers when a crate is destroyed.</dd>
+
+<dt>Player <b>Move</b> 4123412</dt>
+<dd>Triggers when that object successfully moves, in any direction.</dd>
+
+<dt>Player <b>Move</b> Down Left 4123412</dt>
+<dd>Triggers when that object successfully moves either down or left.</dd>
+
+<dt>Player <b>Move</b> Horizontal 4123412</dt>
+<dd>Triggers when that object successfully moves horizontally.  
+  <b>Vertical</b> is also valid here.</dd>
+
+<h3>Command Events</h3>
+Sounds in this group are triggered by rule commands.
+
+<dt><b>Cancel</b> 123413</dt>
+<dd>Played when the a rule triggers the <b>cancel</b> command.</dd>
+
+<dt><b>SFX0</b> 123434</dt>
+<dd>Can be anything form <b>SFX0</b> to <b>SFX10</b>.  
+  These are custom sound events that can be triggered from rules.</dd>
+  
+<h3>Game Events</h3>
+Sounds in this group are triggered by an event for the game as a whole.
+
+<dt><b>CloseMessage</b> 123434</dt>
+<dd>Makes a sound when the player closes a message window</dd>
 
 <dt><b>EndGame</b> 123413</dt>
 <dd>When you finish the game, and end up back at the title screen.</dd>
@@ -121,32 +176,8 @@ here are the possible sound events declarations
 <dt><b>EndLevel</b> 123413</dt>
 <dd>When you finish a level.</dd>
 
-<dt>Player <b>CantMove</b> 4123412</dt>
-<dd>Triggers when that object unsuccessfully moves, in any direction.</dd>
-<dt>Player <b>CantMove</b> Down Left 4123412</dt>
-<dd>Triggers when that object unsuccessfully moves, either down or left.</dd>
-
-<dt><b>CloseMessage</b> 123434</dt>
-<dd>makes a sound when the player closes a message window</dd>
-
-
-<dt>Crate <b>Destroy</b> 123414</dt>
-<dd>Triggers when a crate is destroyed.</dd>
-
-<dt>Player <b>Move</b> 4123412</dt>
-<dd>Triggers when that object successfully moves, in any direction.</dd>
-<dt>Player <b>Move</b> Down Left 4123412</dt>
-<dd>Triggers when that object successfully moves either down or left.</dd>
-<dt>Player <b>Move</b> Horizontal 4123412</dt>
-<dd>Triggers when that object successfully moves horizontally.  Vertical is also valid here.</dd>
-
-
 <dt><b>Restart</b> 123413</dt>
 <dd>Played when the player presses the restart button (R).</dd>
-
-
-<dt><b>SFX0</b> 123434</dt>
-<dd>Can be anything form SFX0 to SFX10.  These are custom sound events that can be triggered from rules.</dd>
 
 <dt><b>ShowMessage</b> 123434</dt>
 <dd>makes a sound when a message appears</dd>
@@ -158,16 +189,12 @@ here are the possible sound events declarations
 <dd>Played at the start of each level.</dd>
 
 <dt><b>TitleScreen</b> 123414</dt>
-<dd>Triggers when the title-screen is loaded.</dd>
-
-
+<dd>Triggers when the title screen is loaded.</dd>
 
 <dt><b>Undo</b> 123413</dt>
 <dd>Played when the player presses the undo button (Z).</dd>
 
 </dl>
-
-<b>move</b> and <b>cantmove</b> can be supplied with directions, so that certain sounds play if you move in particular directions.  
    
 
     </div><!-- /.container -->

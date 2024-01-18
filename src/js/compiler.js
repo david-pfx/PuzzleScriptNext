@@ -823,57 +823,59 @@ function levelFromString(state,level) {
 }
 //also assigns glyphDict
 function levelsToArray(state) {
-	var levels = state.levels;
-	var processedLevels = [];
-	var sectionTerminated = false;
-	var previousSection = null;
-    let levelNo = 0;
+	const levels = [];
+    const links = [];
+    let section, title, description, gotoFlag;
+    
+    if (state.levels.at(-1).length == 0)
+        state.levels.pop();
 
-	for (var levelIndex = 0; levelIndex < levels.length; levelIndex++) {
-		var level = levels[levelIndex];
-		if (level.length == 0) {
-			continue;
-		}
-		
-		var o;
-        let title, description
+    let levelNo = 1;
+    state.levels.forEach(level => {
+        title ||= `Level ${levelNo}`;
 		if (level[0] == 'message') {
-			o = {
-				message: level[1],
+            if (gotoFlag) logWarning('Message unreachable due to previous GOTO.', level[2]);
+            const wrapTest = wordwrap(level[1], 35);  // todo: 35
+            if (wrapTest.length > 12)       // todo: 12
+                logWarning('Message too long to fit on screen.', level[2]);
+            levels.push({
+                message: level[1],
 				lineNumber: level[2],
-				section: level[3]
-			};
-			splitMessage = wordwrap(o.message,intro_template[0].length);
-			if (splitMessage.length>12){
-				logWarning('Message too long to fit on screen.', level[2]);
-			}
-			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
-			if(sectionTerminated) logWarning('Message unreachable due to previous GOTO.', level[2]);
+				section: section
+			});
 		} else if (level[0] == 'goto') {
-			o = {
-				target: level[1],
+            if (gotoFlag) logWarning('GOTO unreachable due to previous GOTO.', level[2]);
+            levels.push( {
+                target: level[1],
 				lineNumber: level[2],
-				section: level[3]
-			};
-			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
-			if(sectionTerminated) logWarning('GOTO unreachable due to previous GOTO.', o.lineNumber);
-			sectionTerminated = true;
+				section: section
+			});
+            gotoFlag = true;
+		} else if (level[0] == 'section') {
+            section = level[1];
+            gotoFlag = false;
 		} else if (level[0] == 'level') {
             title = level[1];           // !!!
 		} else if (level[0] == 'title') {
             description = level[1];     // todo: 
             logWarning(`Option TITLE is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
+		} else if (level[0] == 'link') {
+            links.push({
+                target: level[1],
+				lineNumber: level[2],
+                object: level[3],
+                level: title,
+            })
 		} else {
-			o = levelFromString(state,level);
+            if (gotoFlag) logWarning('Level unreachable due to previous GOTO.', level[2]);
+            level[1] = section; // todo: fix it
+			levels.push(levelFromString(state, level));
+            levels.at(-1).title = title;
             ++levelNo;
-            o.title = title || `Level ${levelNo}`;
-			if(o.section != previousSection) {sectionTerminated = false; previousSection = o.section;}
-			if(sectionTerminated) logWarning('Level unreachable due to previous GOTO.', o.lineNumber);
+            title = null;
 		}
-		processedLevels.push(o);
-	}
-
-	state.levels = processedLevels;
+	});
+	state.levels = levels;
 }
 
 function extractSections(state) {

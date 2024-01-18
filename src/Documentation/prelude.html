@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Prelude - PuzzleScript Documentation</title>
+    <title>Prelude - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -53,19 +53,18 @@
     <div class="container">
 
 
-
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
-  <li>Bird's-eye View</li>
+  <li>Sections</li>
   <li class="active">Prelude</li>
 </ol>
 <p>
 
-
-<h1>Bird's-eye view of a PuzzleScript file</h1>
+<h1>Sections of a PuzzleScript file</h1>
 <p>
-A puzzlescript file is divided into 8 sections:
+A puzzlescript file is divided into the following sections. 
+Each section is optional, and sections can appear in any order and any number of times.
 <p>
 
   <ul class="nav nav-pills">
@@ -76,58 +75,93 @@ A puzzlescript file is divided into 8 sections:
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
+    <li><a href="tags.html">Tags</a></li>
+    <li><a href="mappings.html">Mappings</a></li>
     <li><a href="levels.html">Levels</a></li>
   </ul>
 
-
-
     <h2>Prelude</h2>
       <p>
-      Before any of the "official" sections are declared, you can give details about your project in this section, and also set some editor options.
+      Before any of the "official" sections are declared, you can give details about your project in this section, and also set some useful options, 
+      which can make for some very different games.
       <p>
-      <pre><code>title 2D Whale World
-author increpare
-homepage www.increpare.com
+      <pre><code>title My Very First Game
+author My Games Handle
+homepage www.myhomepage.com
 
 require_player_movement
 key_repeat_interval 0.12
 </code></pre>
 
-Here are the possible options:
+Here are the possible settings.
 		<p>
 		<dl>
-			<dt>author increpare</dt>
+      <dt>// comment <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
+      <dd>Comments in this form start with a double slash and extend to the end of the line.
+        Once you've used one of these comments in the preamble, you can use them throughout your game.
+        You can then also use semicolon as end of line, such as this object declaration.</dd>
+        <code><pre>
+// some temporary objects
+temp1;transparent;
+temp2;blue;
+</pre></code>
+      <dt>again_interval 0.1</dt>      
+      <dd>The amount of time (in seconds) it takes an 'again' input event to trigger.</dd>
+
+			<dt>author Games Wizard</dt>
 			<dd>Your name goes here.  This will appear in the title screen of the game.</dd>
+
+      <dt>author_color darkred <img src="../images/pspatt.png" title="Pattern:Script" height="16"></dt>
+      <dd>Controls the font color of the author name in the title screen.</dd>
+      Like all colors, it can accept a color name or a hex code. See <a href="objects.html">the objects page</a> for more detail.
+
+      <dt>background_color blue</dt>
+      <dd>Controls the background color of title/message screens, as well as the background color of the website.</dd>
+      Like all colors, it can accept a color name or a hex code. See <a href="objects.html">the objects page</a> for more detail.
+
+      <dt>case_sensitive <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Will force the compiler to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.
+        The main aim of this was to allow a larger range of characters to be used in levels.
+        Since the entire range of Unicode characters is available for this purpose, this option is deprecated.
+      </dd>
+
 			<dt>color_palette mastersystem</dt>
 			<dd>By default, when you use colour names, they are pulled from a variation of <a href="http://androidarts.com/palette/16pal.htm">Arne</a>'s 16-Colour palette.  However, there are other palettes to choose from:
 			<p>
-<ul>
-<li>1 - mastersystem </li>
-<li>2 - gameboycolour </li>
-<li>3 - amiga </li>
-<li>4 - arnecolors </li>
-<li>5 - famicom  </li>
-<li>6 - atari </li>
-<li>7 - pastel  </li>
-<li>8 - ega </li>
-<li>9 - amstrad </li>
-<li>10 - proteus_mellow </li>
-<li>11 - proteus_rich </li>
-<li>12 - proteus_night </li>
-<li>13 - c64 </li>
-<li>14 - whitingjp </li>
-</ul>
-<p>
-(you can also refer to them by their numerical index)
+        <ul>
+        <li>1 - mastersystem </li>
+        <li>2 - gameboycolour </li>
+        <li>3 - amiga </li>
+        <li>4 - arnecolors </li>
+        <li>5 - famicom  </li>
+        <li>6 - atari </li>
+        <li>7 - pastel  </li>
+        <li>8 - ega </li>
+        <li>9 - amstrad </li>
+        <li>10 - proteus_mellow </li>
+        <li>11 - proteus_rich </li>
+        <li>12 - proteus_night </li>
+        <li>13 - c64 </li>
+        <li>14 - whitingjp </li>
+        </ul>
+        <p>
+        (you can also refer to them by their numerical index)
 			</dd>
-      <dt>again_interval 0.1</dt>      
-      <dd>The amount of time it takes an 'again' event to trigger.</dd>
-      <dt>background_color blue</dt>
-      <dd>Can accept a color name or hex code (in the form #412bbc). Controls the background color of title/message screens, as well as the background color of the website.  Text_color is its sibling.</dd>
+
+      <dt>continue_is_level_select <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Don't show an extra option for the Level Select on the main menu. 
+        Instead, the "continue" button will open it, instead of continuing the game.</dd>
+
+      <dt>custom_font <i>data:font/otf;base64,</i> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Allows you to load in a custom font file via a data stream. 
+        This works best with monospace fonts & font files with very small sizes (under 20KB). 
+        If you have a font file and you want to convert it into base64, use a tool like <a href="https://base64.guru/converter/encode/file">File to Base64</a> with the "Data URI" output format, then paste it into the editor.</dd>
+
 			<dt><span id="debug"></span>debug</dt>
 			<dd>This outputs the compiled instructions whenever you build your file.  For instance, the line
 			<p>
-			<pre><code><a href="../editor.html?demo=sokoban_basic_debug" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
+			<pre><code><a href="../editor.html?demo=sokoban_basic_debug" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
+        <span class="glyphicon glyphicon-cog"> Edit</span></a>[ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
 			<p>
 			is compiled into four instructions, as the output from debug shows when you hit 'RUN':
 			<pre>===========
@@ -147,117 +181,200 @@ Rule Assembly : (4 rules)
           A plus-sign on the left of the line indicates that the rule is grouped with the previous one as part of a rule-group and the engine will loop through the group as a whole trying to apply the rules until no more rules in the group can be applied (See <a href="executionorder.html#zoom3">the rules page</a> for more info).
         </li>  
       </ul>
-      <p>
-        The compiler does a lot of stuff to the rules you give to it to 'simplify' them in various ways.  One thing it does for instance is replace all relative directions ( <b>^</b>, <b>v</b>, <b>&lt;</b>, and <b>></b>), with <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, and <b>RIGHT</b>, which often involves splitting a single rule into many more rules (as above). An other thing you'll notice is that the core engine has rules only going <B>DOWN</B> and  <b>RIGHT</b> - rules in other directions are flipped.  For more information about directions in puzzlescript, see <a href="directions.html">this page</a>.
-      
+      <p>The compiler does a lot of stuff to the rules you give to it to 'simplify' them in various ways.  
+        One thing it does for instance is replace all relative directions ( <b>^</b>, <b>v</b>, <b>&lt;</b>, and <b>></b>), with <b>UP</b>, <b>DOWN</b>, <b>LEFT</b>, and <b>RIGHT</b>, which often involves splitting a single rule into many more rules (as above). 
+        And other thing you'll notice is that the core engine has rules only going <B>DOWN</B> and  <b>RIGHT</b> - rules in other directions are flipped.  
+        For more information about directions in puzzlescript, see <a href="directions.html">this page</a>.</p>
 			</dd>
+      <p>You can also get this output in the editor by clicking on the <img src="../images/birdy.gif" height="24" width="24"> button.</p>
 
 			<dt>flickscreen WxH</dt>
 			<dd>
 				Setting flickscreen divides each level into WxH grids, and zooms the camera in so that the player can only see one at a time - the camera does not follow the player around on a move-to-move basis, but if the player moves from one part of this grid to another, the camera <em>flicks</em> to the new position.  See <a href="../editor.html?hack=6880313">Legend of Zokoban</a> for a cute example.
 			</dd>
-			<dt>homepage www.mypage.com</dt>
+
+      <dt>font_size 1.5 <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Font size is in em, meaning 1 is the default and is treated as a percentage (e.g. 0.5 is half font size & 2 is double the normal font size). 
+        Can only be used with custom_font.</dd>
+
+      <dt>homepage www.myhomepage.com</dt>
 			<dd>
 			The homepage of the author.  This doesn't appear directly in the game itself, but is included in the shared game and exported HTML build.
 			</dd>
+
+      <dt>keyhint_color blue <img src="../images/pspatt.png" title="Pattern:Script" height="16"></dt>
+      <dd>Controls the font color of lines giving hints about the keys to use, at the bottom of the title screen, pause menu, and message screens.</dd>
+      Like all colors, it can accept a color name or a hex code. See <a href="objects.html">the objects page</a> for more detail.
+
 			<dt>key_repeat_interval 0.1</dt> 
 			<dd>
-			When you hold down a key, how long is the delay between repeated presses getting sent to the game (in seconds)?  The default value is 1.5.
+			When you hold down a key, how long is the delay between repeated presses getting sent to the game (in seconds)?  The default value is 0.15.
 			</dd>
+
+      <dt>level_select <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Adding this will add a level select to your game. 
+        By default, this will allow the player to play all levels in any order. 
+        In order to add entries to the level select, add a <b>section</b> in-between your levels.</dd>
+
+      <dt>level_select_lock <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Will lock any levels that haven't been solved yet or are next to be solved.</dd>
+
+      <dt>level_select_solve_symbol <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Which symbol to display for levels that have been solved in the level select. 
+        It's a checkmark by default, but you can change it in case you're using a <b>custom_font</b> that doesn't have a checkmark glyph.</dd>
+
+      <dt>level_select_unlocked_ahead <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>How many levels to unlock ahead after the last solved level when <b>level_select_lock</b> is on, 1 by default.<br>
+      If you set it to 3, then section 1, 2, and 3 will be available.   
+      If you solve section 2, then you'll unlock 4 and 5. (So there will always be three levels unlocked AFTER the last solved level at max.)</dd>
+
+      <dt>level_select_unlocked_rollover <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Alternative to LEVEL_SELECT_UNLOCKED_AHEAD that more strictly limits the number of unsolved levels at any time.<br>
+      If you set this to 3, then section 1, 2, and 3 will be available at the start.   
+      If you solve section 2, then only section 4 will unlock. (So there will only ever be three "unsolved" levels at most.) </dd>
+
+      <dt>local_radius <i>radius</i> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>If you set the local_radius flag to a whole number, then the game will only check rules that are in that amount of tiles (a square radius) around the player (or one of the players if you have multiple players in the level). If you still want to have rules to be checked anywhere on the level, preface them with the <b>global</b> keyword like this: 
+      <pre><code>(Rows of global crates can push each other, even outside of the player radius)
+  global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
+        You generally don't need to use this unless you have a really big level, a ton of rules, and your game would otherwise run slowly.</dd>
+
+      <dt>message_text_align right <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>How to align text for messages: <b>left</b>, <b>center</b> (default), or <b>right</b>. 
+        If you need more control over the text layout, you can also use <b>\n</b> to add a newline.</dd>
+
+        <br><b>Note:</b>
+      <p>The following few options deal with using the mouse.
+        You can find more information about <a href="mouse_input.html">mouse input here</a>.
+      </p>
+
+      <dt>mouse_left <b>lmb</b> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>If the player clicks on a specific tile of the screen, then this object will be created there before any other rules are done. 
+        If you don't specify an object name, it will look for an object called <b>lmb</b>. 
+        Once you add this flag, various things (like the title screen) will change to reflect that the game is mainly mouse-controlled.</dd>
+
+      <dt>mouse_drag <b>drag</b> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>If the player has clicked and is moving their mouse, it will place this object & start a turn when the cursor moves into a different cell. 
+        If you don't specify an object name, it will look for an object called <b>drag</b></dd>
+
+      <dt>mouse_up <b>lmb</b> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>If the player has clicked and is releasing their mouse button, it will place this object then do a turn.</dd>
+
+      <dt>mouse_right, mouse_rdrag, mouse_rup <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Similar to the above three, but for the right mouse button and the defaults are <b>rmb</b> and <b>rdrag</b>.
+        Note that you can also ⌘/Ctrl+Left Click to get the right mouse button behaviour in-game.</dd>
+
       <dt>noaction</dt>
-      <dd>Changes the action key (X) instruction from the title screen, and does not respond when the player pressed it (outside of menus and cutscenes and the like).</dd>
+      <dd>Removes the action key (X) instruction from the title screen, and does not respond when the player presses it (outside of menus and the like).</dd>
+
       <dt><span id="norepeat_action"></span>norepeat_action</dt>
-      <dd>For many games, you don't want holding action down to retrigger it - games where you're toggling a switch, say.  For these games, set norepeat_action, and the action button will only respond to individual presses.</dd>
+      <dd>For many games, you don't want holding the action key down to retrigger it - games where you're toggling a switch, say.  
+        For these games, set this option and the action button will only respond to individual presses.</dd>
+
+      <dt>norestart</dt>
+      <dd>Disables the restart key (R). Not sure why you would want to do this, but it's there.</dd>
+        
 			<dt>noundo</dt>
-			<dd>Disables the undo key (Z) (I generally advise against disabling undo, FWIW).</dd>
-			<dt>norestart</dt>
-			<dd>Disables the restart key (R)</dd>
-      <dt><span id="realtime_interval"></span>realtime_interval</dt> 
-      <dd>The number indicates how long each realtime frame should be.  In the above case, twice a second the game engine will tick, but with no input.  Player input is processed as regular. See <a href="realtime.html">this documentation</a> for more info on making realtime games.</dd>     
+      <dd>Disables the undo key (Z). I would generally advise against disabling undo, but it may be needed in games that depend on randomness.</dd>
+
+      <dt><span id="realtime_interval"></span>realtime_interval 0.5</dt> 
+      <dd>The number indicates how long each realtime frame should be.  
+        In the above case, twice a second the game engine will tick, but with no input.  
+        Player input is processed as regular. 
+        See <a href="realtime.html">this documentation</a> for more info on making realtime games.</dd>
+
 			<dt>require_player_movement</dt>
 			<dd>
-			This is a common requirement in games - if the player doesn't move, cancel the whole move.  This is equivalent, where there's only one player character, to the following:
+			This is a common requirement in games - if the player doesn't move, cancel the whole move.  
+      This is equivalent, where there's only one player character, to the following:
 			<pre><code>[ Player ]->[ Player Temp ]
 late [ Player Temp ] -> CANCEL
 late [ Temp ] -> [ ]</code></pre>
 			</dd>
+
 			<dt>run_rules_on_level_start</dt>
 			<dd>
-			For some games you will want, before the player sees the level, for the rules to be applied once.  (Games that have rules that generate level graphics on the fly, for instance, may want this.  Try out <a href="../editor.html?demo=dreizack">this game</a> with and without the prelude option and compare results.</a>)
+			For some games you will want, before the player sees the level, for the rules to be applied once. 
+      Games that have rules that generate level graphics on the fly, for instance, may want this.  
+      Try out <a href="../editor.html?demo=dreizack">this game</a> with and without the prelude option and compare results.</a>
 			</dd>
+
+      <dt>runtime_metadata_twiddling <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Allows you to change some prelude properties while the game is running using commands. 
+        <a href="runtime_metadata_twiddling.html">More info here.</a></dd>
+
+      <dt>runtime_metadata_twiddling_debug <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Will log to the console whenever a prelude property is changed.</dd>
+
       <dt>scanline</dt>
-      <dd>Applies a scanline visual effect - only draws every other line</dd>      
-      <dt>text_color blue</dt>
-      <dd>Can accept a color name or hex code (in the form #412bbc). Controls the font color of title/message screens, as well as the font color in the website. Background_color is its sibling.</dd>
+      <dd>Applies a scanline visual effect - only draws every other line. Weird.</dd>
+
+      <dt>sitelock_origin_whitelist <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Causes your game to only be able to run on websites with the listed origins, separated by whitespaces. 
+        An origin is for example <b>https://polyomino.com</b>.</dd>
+
+      <dt>sitelock_hostname_whitelist <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Causes your game to only be able to run on websites with the listed hostnames, separated by whitespaces. 
+        A hostname is for example <b>polyomino.com</b>.</dd>
+  
+      <dt>smoothscreen <i>flick</i> WxH <i>IxJ S</i> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Zooms the camera in to a WxH section of the map around the playerand smoothly scrolls to follow the player. 
+        The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. 
+        The optional S argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. 
+        Additionally, the optional <b>flick</b> keyword makes the camera move like flickscreen, where the camera always moves the full boundary width/height. 
+        To get a smooth version of flick screen, provide the <b>flick</b> keyword and make WxH and IxJ the same dimensions.</dd>
+
+      <dt>smoothscreen_debug <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Render debug information about the smoothscreen camera. The red circle and box represent the camera's position and the boundary around it. The blue circle and box are at the position the camera is moving towards. The green circle marks the location of the player that is being followed by the camera.</dd>
+
+      <dt>sprite_size 12 <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Sets the size of the sprite grid to 12x12.
+        The default is 5x5 for compatibility, but this allows you to pick some other square resolution. 
+        Note that sprites larger or smaller than this size are allowed. 
+        See <a href="objects.html">the objects page</a> for more detail.
+        <p>
+        If you need help with upscaling your sprites, <a href="sprite_upscaler.html">there's a helpful tool available here.</a></dd>
+
+      <dt>skip_title_screen <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Will skip the title screen when the game initializes. 
+        Instead, it will act like the "continue" button has been pressed, opening either the level, message, or level select based on game progress and other prelude flags.</dd>
+
+      <dt>text_controls <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Will overwrite the default keyboard/mouse control text in the title screen with the text you specify here! 
+        It can display up to three lines of text at once, and supports using \n to add a newline.</dd>
+
+      <dt>text_color #039</dt>
+      <dd>Controls the font color of title/message screens, as well as the font color in the website.
+        Like all colors, it can accept a color name or a hex code. See <a href="objects.html">the objects page</a> for more detail.</dd>
+          
+      <dt>text_message_continue <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Override the text below MESSAGEs that normally says 'X to continue' or 'Click to continue'.</dd>
+
 			<dt>title My Amazing Puzzle Game</dt>
 			<dd>The name of your game.  Appears on the title screen.</dd>
-      <dt>throttle_movement</dt>
-      <dd>For use in conjunction with realtime_interval - this stops you from moving crazy fast - repeated keypresses of the same movement direction will not increase your speed. This doesn't apply to the action button.  If you can think of an example that requires action be throttled, just let me know and I'll try accommodate you.</dd>
-      <dt><span id="verbose_logging"></span>verbose_logging</dt>
-      <dd>As you play the game, spits out information about all rules applied as you play, and also allows visual inspection of what exactly the rules do with the <a href="visual_debugger.html">visual debugger</a>.</dd>
-			<dt>zoomscreen WxH</dt>
-			<dd>Zooms the camera in to a WxH section of the map around the player, centered on the player.  <a href="../editor.html?demo=sokoban_basic_zoomscreen">Silly example</a>.</dd>
-      <h1 id="psplus">New in PS+ <img src="../images/psplus_mascot_32.png"></h1>
-      <dt> There are many new prelude flags in PuzzleScript Plus, allowing you to enable mouse controls, level select, text settings, camera/tweening options, and much more.</dt>
-      <dd></dd>
-      <h2>Mouse controls (ThatScar)</h2>
-      <dt>mouse_left <i>object</i></dt>
-      <dd>If the player clicks on a specific tile of the screen, then this object will be created there before any other rules are done. If you don't specify an object name, it will look for an object called "lmb". Once you add this flag, various things (like the title screen) will change to reflect that the game is mainly mouse-controlled.</dd>
-      <dt>mouse_drag <i>object</i></dt>
-      <dd>If the player has clicked and is moving their mouse, it will place this object & start a turn when the cursor moves into a different cell. If you don't specify an object name, it will look for an object called "drag"</dd>
-      <dt>mouse_up <i>object</i></dt>
-      <dd>If the player has clicked and is releasing their mouse button, it will place this object then do a turn.</dd>
-      <dt>mouse_right, mouse_rdrag, mouse_rup <i>object</i></dt>
-      <dd>Similar to the above three, but for the right mouse button. Note that you can also Ctrl + Left Click to get the right mouse button behaviour in-game.</dd>
-      <h2 id="level_select">Level Select (Dario)</h2>
-      <dt>level_select</dt>
-      <dd>Adding this will add a level select to your game. By default, this will allow the player to play all levels in any order. In order to add entries to the level select, add a <b>section</b> in-between your levels.</dd>
-      <dt>continue_is_level_select</dt>
-      <dd>Don't show an extra option for the Level Select on the main menu. Instead, the "continue" button will open it, instead of continuing the game.</dd>
-      <dt>level_select_lock</dt>
-      <dd>Will lock any levels that haven't been solved yet or are next to be solved.</dd>
-      <dt>level_select_unlocked_ahead</dt>
-      <dd>How many levels to unlock ahead after the last solved level when <b>level_select_lock</b> is on, 1 by default.<br>
-      If you set it to 3, then section 1, 2, and 3 will be available. If you solve section 2, then you'll unlock 4 and 5. (So there will always be three levels unlocked AFTER the last solved level at max.)</dd>
-      <dt>level_select_unlocked_rollover</dt>
-      <dd>Alternative to LEVEL_SELECT_UNLOCKED_AHEAD that more strictly limits the number of unsolved levels at any time.<br>
-      If you set this to 3, then section 1, 2, and 3 will be available at the start. If you solve section 2, then only section 4 will unlock. (So there will only ever be three "unsolved" levels at most.) </dd>
-      <dt>level_select_solve_symbol</dt>
-      <dd>Which symbol to display for levels that have been solved in the level select. It's a checkmark by default, but you can change it in case you're using a <b>custom_font</b> that doesn't have a checkmark glyph.</dd>
-      <h2>Text settings (Dario & PS+)</h2>
-      <dt>custom_font <i>data:font/otf;base64,</i></dt>
-      <dd>Allows you to load in a custom font file via a data stream. This works best with monospace fonts & font files with very small sizes (under 20KB). If you have a font file and you want to convert it into base64, use a tool like <a href="https://base64.guru/converter/encode/file">File to Base64</a> with the "Data URI" output format, then paste it into the editor.</dd>
-      <dt>font_size <i>size</i></dt>
-      <dd>Font size is in em, meaning 1 is the default and is treated as a percentage (e.g. 0.5 is half font size & 2 is double the normal font size). Can only be used with custom_font.</dd>
-      <dt>message_text_align <i>left/center/right</i></dt>
-      <dd>How to align text for messages: 'left', 'center' (default), or 'right'. If you need more control over the text layout, you can also use \n to manually add a newline.</dd>
-      <h2>Smoothscreen (sftrabbit)</h2>
-      <dt>smoothscreen <i>flick</i> WxH <i>IxJ S</i></dt>
-      <dd>Zooms the camera in to a WxH section of the map around the playerand smoothly scrolls to follow the player. The optional argument IxJ (default: 1x1) specifies a boundary in which the player can move without moving the camera. The optional S argument (default: 0.125) specifies how far the camera will move towards the player each frame as a fraction of the distance to the player. Additionally, the optional <i>flick</i> keyword makes the camera move like flickscreen, where the camera always moves the full boundary width/height. To get a smooth version of flick screen, provide the <i>flick</i> keyword and make WxH and IxJ the same dimensions.</dd>
-      <dt>smoothscreen_debug</dt>
-      <dd>Render debug information about the smoothscreen camera. The red circle and box represent the camera's position and the boundary around it. The blue circle and box are at the position the camera is moving towards. The green circle marks the location of the player that is being followed by the camera.</dd>
-      <h2>Runtime Metadata Twiddling (PS+)</h2>
-      <dt>runtime_metadata_twiddling</dt>
-      <dd>Allows you to change some prelude properties while the game is running using commands. <a href="plus_runtime_metadata_twiddling.html">More info here.</a></dd>
-      <dt>runtime_metadata_twiddling_debug</dt>
-      <dd>Will log into the console whenever a prelude property is changed.</dd>
-      <h2 id="local_radius">Local Radius (Jack Lance)</h2>
-      <dt>local_radius <i>radius</i></dt>
-      <dd>If you set the local_radius flag to a whole number, then the game will only check rules that are in that amount of tiles (a square radius) around the player (or one of the players if you have multiple players in the level). If you still want to have rules to be checked anywhere on the level, preface them with the <b>global</b> keyword like this: 
-<pre><code>(Rows of global crates can push each other, even outside of the player radius)
-global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
-        You generally don't need to use this unless you have a really big level, a ton of rules, and your game would otherwise run slowly.</dd>
-      <h2 id="tweening">Tweening (PS+)</h2>
-      <p>Although you can animate your game using again, PS+ offers a more generalized method of inbetweening movement you can use instead!<br>
-        Note that it has a number of limitations. It should work for simple games, but might not be powerful enough for complex games.</p>
-      <dt>tween_length <i>0.05</i></dt>
-      <dd>Enables tweens for LEFT, RIGHT, UP, and DOWN object movement, and for ACTION (will fade in that object). Tweens will take the duration you specify in seconds An object must execute its movement for this animation to play, currently there is no way to play an animation without moving.<br>
-        Note that if the next turn starts before this tween is completed, the previous tween instantly completes. For this reason, we recommend setting the tween_length very low, somewhere between 0.05 and 0.075 seconds, but at least lower than the AGAIN_INTERVAL and KEY_REPEAT_INTERVAL, and to avoid using it in games that use REALTIME_INTERVAL.
-      Additionally, late rules can tamped with this system, so it's not recommended to use these rules in games that use LATE rules.</dd>
-        <dt>tween_easing <i>easeInQuad</i></dt>
-        <dd>When using TWEEN_LENGTH, you can use these to indicate how the movement should lerp. Just like with COLOR_PALETTE you can use either the name or the number.
 
+      <dt>title_color #FF5555 <img src="../images/pspatt.png" title="Pattern:Script" height="16"></dt>
+      <dd>Controls the font color of titles in the title screen and pause menu.</dd>
+      Like all colors, it can accept a color name or a hex code. See <a href="objects.html">the objects page</a> for more detail.
+
+      <dt>throttle_movement</dt>
+      <dd>For use in conjunction with realtime_interval - this stops you from moving crazy fast - repeated keypresses of the same movement direction will not increase your speed. This doesn't apply to the action button.  
+        If you can think of an example that requires action to be throttled, just let me know.</dd>
+
+      <dt>tween_length 0.05 <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>Enables tween animation as an alternative to using <b>again</b>.
+        Tweens are enabled for for LEFT, RIGHT, UP, and DOWN object movement, and for ACTION (will fade in that object), and will take the duration you specify in seconds. 
+        An object must execute its movement for this animation to play, currently there is no way to play an animation without moving.
+        <br><br>Note that if the next turn starts before this tween is completed, the previous tween instantly completes. 
+        For this reason, you should set the tween_length very low, somewhere between 0.05 and 0.075 seconds, but at least lower than the AGAIN_INTERVAL and KEY_REPEAT_INTERVAL, and to avoid using it in games that use REALTIME_INTERVAL.
+        Additionally, late rules can tamped with this system, so it's not recommended to use these rules in games that use LATE rules.
+        <br><br>Note that it has a number of limitations, and while it works well for simple games, it might not be powerful enough for complex games.</p>
+      </dd>
+
+      <dt>tween_easing easeInQuad <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd>When using <b>tween_length</b>, use these to indicate how the movement should lerp. 
           The following options are valid. (To view these in action, see <a href="https://easings.net/" target="_blank">easings.net</a>).
+        You can use either the name or the number.
           <ul>
           <li>1: linear (default)</li>
           <li>2: easeInQuad</li>
@@ -273,28 +390,16 @@ global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
           <li>12: easeOutQuint</li>
           <li>13: easeInOutQuint</li>
         </ul></dd>
-        <dt>tween_snap <i>5</i></dt>
+        <dt>tween_snap 5 <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
         <dd>By default, the tween will snap to the SPRITE_SIZE to conform to the pixel grid. However, with this prelude you can overwrite this if you want the transition to happen more granually when the canvas is drawn on a large scale. You can even put it to a very high number (like 1000) to make the snapping essentially smoothless.</dd>
-      <h2>Misc. (Dario)</h2>
-      <dt>case_sensitive</dt>
-      <dd>Will force the engine to be case sensitive, to see "a" and "A" or "moved" and "moveD" as different objects.</dd>
-      <dt>sprite_size <i>size</i></dt>
-      <dd>Instead of 5x5, this option allows you to pick other square resolutions for your sprites. Do note that all sprites MUST be of this size for the game to display correctly. If you need help with upscaling your sprites, <a href="plus_sprite_upscaler_tool.html">there's a helpful tool available here.</a></dd>
-      <h2>Misc. (PS+)</h2>
-      <dt>skip_title_screen</dt>
-      <dd>Will skip the title screen when the game initializes. Instead, it will act like the "continue" button has been pressed, opening either the level, message, or level select based on game progress and other prelude flags.</dd>
-      <dt>text_controls</dt>
-      <dd>Will overwrite the default keyboard/mouse control text in the title screen with the text you specify here! It can display up to three lines of text at once, and supports using \n to add a newline.</dd>
-      <dt>text_message_continue</dt>
-      <dd>Override the text below MESSAGEs that normally says 'X to continue' or 'Click to continue'.</dd>
-      <dt>sitelock_origin_whitelist</dt>
-      <dd>Causes your game to only be able to run on websites with the listed origins, separated by whitespaces. An origin is for example <b>https://auroriax.github.io:1234</b>.</dd>
-      <dt>sitelock_hostname_whitelist</dt>
-      <dd>Causes your game to only be able to run on websites with the listed hostnames, separated by whitespaces. A hostname is for example <b>auroriax.github.io</b>.</dd>
+
+      <dt><span id="verbose_logging"></span>verbose_logging</dt>
+      <dd>As you play the game, spits out information about all rules applied as you play, and also allows visual inspection of what exactly the rules do with the <a href="visual_debugger.html">visual debugger</a>.</dd>
+      <p>You can switch this on in the editor by clicking on the <img src="../images/birdy.gif" height="24" width="24"> button.</p>
+
+			<dt>zoomscreen 10x10</dt>
+			<dd>Zooms the camera in to a 10x10 (WxH) section of the map around the player, centered on the player.  <a href="../editor.html?demo=sokoban_basic_zoomscreen">Silly example</a>.</dd>
     </dl>
-
-
-
 
     </div><!-- /.container -->
 
