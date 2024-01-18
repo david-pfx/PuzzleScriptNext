@@ -125,7 +125,7 @@
     <p>
     This technique is used  in the <a href="rigidbodies.html">extended rigid bodies</a> section (warning: it's a bit of an arcane subject).
     <p>
-    <h3><span id="loops" ></span>StartLoop/EndLoop</h3>
+    <h3><span id="loops" ></span>StartLoop and EndLoop</h3>
     <p>
     Having rule-groups is nice, and they should be your first port of call for loop-constructions.  
     But <a href="rigidbodies.html#rigid_keyword">there are reasons</a> why you might want to nest loops, to have groups of rule groups iterating themselves in a loop to exhaustion.
@@ -149,7 +149,7 @@ DOWN [ crate | up player ] -> [ up crate | up player ]
 DOWN [ down player | crate ] -> [ down player | down crate ]
 RIGHT [ crate | left player ] -> [ left crate | left player ]
 RIGHT [ right player | crate ] -> [ right player | right crate ]
-ENDLOOP</code></pre>
+ENDLOOP</pre></code>
 <p>
   So, what does this do? This is in this case exactly the same as the rule-group.  
   It iterates each rule separately, and once it reaches <b>endloop</b>, if any rule changed any movement or object during the run it jumps back to the <b>startloop</b> line (even if changes were subsequently reverted later in the loop).  
@@ -169,6 +169,35 @@ ENDLOOP</code></pre>
   It's actually a pretty simple/chill construct that does more or less what it says on the tin.  
   I'd still recommend rule-groups as a first port-of-call, but these are here if you need them. :)
 <p>
+
+  <h3><span id="gosub" ></span>Gosub and Subroutine</h3>
+
+  <p>The <b>subroutine</b> keyword defines a set of rules that can only be reached by <b>gosub</b> to that subroutine. 
+    The code looks like this (from 2048).</p>
+  <pre><code><a href="../editor.html?demo=next/2048" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
+    <span class="glyphicon glyphicon-cog"> Edit</span></a>[ stationary spot ] -> gosub Startup
+[ > spot ] -> gosub Move Tiles
+[ > spot ] -> gosub Drop New Tile
+[ spot ] -> gosub Check Move
+[ spot ] -> gosub Finish
+
+subroutine Startup
+startloop
+  random [ seed ][ empty ] -> [] [ 1 ]
+endloop
+
+subroutine Drop New Tile
+random [ empty ] -> [ random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 1 random 2 ]
+
+subroutine Move Tiles
+// and so on
+</code></pre>  
+  <p>The code is taken from 2048.txt, so take a look at that to see how it can help to structure your games.</p>
+  
+  <p>Just one more thing -- don't try to put a <b>gosub</b> inside a <b>startloop endloop</b>. 
+    Right now it won't work but the compiler doesn't tell you.
+    In a future release it will either work, or trigger an error.</p>
+  
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->

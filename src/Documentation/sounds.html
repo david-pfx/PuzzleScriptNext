@@ -195,7 +195,60 @@ Sounds in this group are triggered by an event for the game as a whole.
 <dd>Played when the player presses the undo button (Z).</dd>
 
 </dl>
-   
+
+<h3>Animation</h3>
+
+<p>The Sounds section also lets an object have an animation instead of or as well as a sound.
+  Use it like this. </p>
+<pre><code>player move up afx:slide
+player cantmove up afx:slide
+player move left afx:zoom
+player cantmove left afx:zoom
+
+m lclick afx:turn
+w lclick afx:fade
+
+b create  afx:turn
+b destroy afx:turn
+y create  afx:fade:scale
+y destroy afx:fade:
+
+player lclick 32169907 afx:turn=.25,0      // anticlockwise 90
+player rclick 32169907 afx:turn=-.25,0     // clockwise 90
+</code></pre>
+
+<p>All animations start with `afx` and have one or more parameters separated by `:`. 
+  Each parameter may have an argument separated by `=`.
+  The animations and their parameters are as follows.</p>
+
+  <dl>
+    <dt>slide[=n,m...]</dt>
+    <dd>Animates a sliding movement of an object</dd>
+
+    <dt>zoom[=n,m...]</dt>
+    <dd>animates zooming in or out (resizing) of an object</dd>
+
+    <dt>fade[=n,m...]</dt>
+    <dd>animates fading (alpha, transparency) of an object</dd>
+
+    <dt>turn[=n,m...]</dt>
+    <dd>animates turning (rotation) of an object</dd>
+
+    <dt>ease[=function]</dt>
+    <dd>applies an easing `function` (non-linear tweening), as per <b>tween_easing</b> in the prelude.</dd>
+  </dl>
+
+<p> An argument of `n,m...` is a comma-separated list of values that define the animation, how the value changes over time.
+  Default values are defined in a table in the source code and will be documented here once stable.
+  Meanwhile feel free to experiment.</p>
+
+<p> All animations take place in a single period of time, set by in the prelude by <b>animate_interval</b>. 
+  Multiple animations may be applied to an object.
+  The default is 0.25 sec. Note that if you enable tweening by setting `tween_length`, animation is disabled.</p>
+<pre><code>
+ animate_interval 0.4   // set animations to run in 0.4 secs
+ // tween_length = 0.4  // tweening must not be set
+</code></pre>
 
     </div><!-- /.container -->
 

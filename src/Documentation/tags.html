@@ -74,8 +74,8 @@ A puzzlescript file is divided into the following sections.
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
     <li class="active"><a href="tags.html">Tags</a></li>
-    <li><a href="mappings.html">Mappings</a></li>
     <li><a href="levels.html">Levels</a></li>
+    <li><a href="mappings.html">Mappings</a></li>
   </ul>
 
     <p>
@@ -152,13 +152,12 @@ transparent
 </p>
 <h3>Rules</h3>
 <p>Now where are you going to use all these objects? In rules, of course!</p>
-<code><pre>
-[ greenthing:directions | crate ] -> [ | crate ]
+<pre><code>[ greenthing:directions | crate ] -> [ | crate ]
 [ greenthing:directions | crate ] -> [  | greenthing:directions ]
 [ greenthing:directions | crate ] -> [ greenthing:directions | greenthing:directions ]
 directions [ greenthing:directions | crate ] -> [ greenthing:directions | greenthing:directions ]
 [ player | temp:Int:Color:AX ] -> [ temp:Int:Color:AX | player ]
-</pre></code>
+</code></pre>
 <p>The first rule obviously finds any greenthings (eight different kinds) next to crates and destroys them.
   But it does so in quite a clever way.
   The original object you defined is replaced by the tag expansion, and then the original object is redefined as a <b>property object</b>.
@@ -177,10 +176,10 @@ directions [ greenthing:directions | crate ] -> [ greenthing:directions | greent
 <h3>WinConditions and CollisionLayers</h3>
 <p>Object names with Tag parts also work in the these sections, and there is a special feature.</p>
 
-<code><pre>COLLISIONLAYERS
+<pre><code>COLLISIONLAYERS
 redborder:directions, blueborder:directions
 Int Color AX -> temp:Int:Color:AX
-</pre></code>
+</code></pre>
 
 <p>The first line puts the 8 border objects into the same layer, which makes perfect sense because they could never interfere with each other.
   The second line puts the 350 temporary objects each into its own layer, one for each tag value and combination on the left of the arrow!
