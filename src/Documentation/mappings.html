@@ -75,25 +75,26 @@ A puzzlescript file is divided into the following sections.
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
-    <li><a href="levels.html">Levels</a></li>
     <li><a href="tags.html">Tags</a></li>
     <li class="active"><a href="mappings.html">Mappings</a></li>
+    <li><a href="levels.html">Levels</a></li>
   </ul>
 
 
 
 
     <p>
-    <h2>Mappings <img src="../images/pspatt.png" alt="Pattern:Script"></h2>
+    <h2>Mappings <img src="../images/pspatt.png" title="Pattern:Script"></h2>
 
-    <p>Tags let you define a name that is expanded into its values, but within each expansion all the values will be the same, and sometimes you don't want that.
+    <p>So tags let you define a name that is expanded into its values, but within each expansion all the values will be the same, and sometimes you don't want that.
       Sometimes you want the expansion to be rock-paper-scissors in one part of a rule and scissors-rock-paper in another part.
       Or you want cat-dog-bird in one part and miaow-woof-tweet in another.
-      Or you want the next nunmber in a sequence.
-      That's where mappings come in. They look like this.
+      Or you want the next number in a sequence.</p>
+    <p>That's where mappings come in. They look like this.</p>
+      
     <pre><code>MAPPINGS
 ========
-firstplayer => secondplayer
+first => second
 rock paper scissors -> paper scissors rock 
 
 animal => makescall
@@ -106,6 +107,27 @@ Secondary => ColorComponent1
 Purple Orange Green -> Blue Red Yellow
 </code></pre>
 
+<p>And they might be used in rules like this.</p>
+
+<code><pre>// get the play that wins for the second player
+first [ getwin player:first ] -> [ getwin player:second ]
+
+// get the next number in sequence
+Int [ Counter:Int TempCountThis ] -> [ Counter:IntUp TempCountedThis ]
+</pre></code>
+<p>Which reads: </p>
+  <ul>
+    <li>if the 'getwin' flag is set, replace any of the played:first family of objects by its played:second equivalent</li>
+    <li>if the 'TempCountedThis' flag is set, replace any of the Counter:Int family of objects by its Counter:IntUp equivalent</li>
+  </ul>
+
+<p>Specifically, the first rule will be expanded exactly as if it had been written like this.</p>
+
+<pre><code>[ getwin player:rock ] -> [ getwin player:paper ]
+[ getwin player:paper ] -> [ getwin player:scissors ]
+[ getwin player:scissors ] -> [ getwin player:rock ]  
+</code></pre>
+
 <p>The rule direction is just one expansion parameter like others, and the relative directions <b>> < v ^ perpendicular parallel orthogonal</b> are predefined mappings for directions.
   So you can write rules like this.</p>
   
@@ -115,7 +137,7 @@ Purple Orange Green -> Blue Red Yellow
 (players can push wheelchairs only when they face one, standing behind it)
 [ > Player:> | WheelChair:> ] -> [ > Player:> | > WheelChair:> ]
 </code></pre>
-
+<p>Mappings are not things you're going to use all the time, but when you need them, they're there.</p>
     </div><!-- /.container -->
 
 

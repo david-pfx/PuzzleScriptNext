@@ -75,9 +75,9 @@ A puzzlescript file is divided into the following sections.
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
-    <li><a href="levels.html">Levels</a></li>
     <li><a href="tags.html">Tags</a></li>
     <li><a href="mappings.html">Mappings</a></li>
+    <li><a href="levels.html">Levels</a></li>
   </ul>
 
     <h2>Objects</h2>
@@ -103,11 +103,11 @@ PINK YELLOW #000000
   <h4>Object Names</h4>
   <p>The first line is the name of the object, and aliases too if you like.
     So the extra <b>P</b> on the line is another name for the Player object (and you can have as many aliases as you like).
-    This is convenient for putting objects into a level, but you can get the same result in the Legend section if you prefer.
+    This is convenient for creating single characters needed for putting objects into a level, but you can get the same result in the Legend section if you prefer.
 
   <h4>Colors</h4>
   <p>The second line is a list of colors. 
-	  The available colour names are as follows, but the exact shade of color is set according to the <b>palette</b> setting 
+	  The available color names are as follows, but the exact shade of color is set according to the <b>palette</b> setting 
     in the <a href="preamble.html">preamble</a>.</p>
 <blockquote><b><ul class="list-inline"><li>black</li><li>white</li><li>lightgray/grey</li><li>gray/grey</li><li>darkgray/grey</li>
   </li><li>red</li><li>darkred</li><li>lightred</li><li>brown</li><li>darkbrown</li><li>lightbrown</li><li>orange</li><li>yellow</li>
@@ -138,21 +138,21 @@ PINK YELLOW #000000
     You can use control this, see <a href="collisionlayers.html">CollisionLayers</a>.
   </p>
 
-  <h4>Transforms <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></h4>
+  <h4>Transforms <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h4>
   <p>Following the sprite grid are one or more lines of object transforms.
     The transforms are executed in order, left to right, and modify the sprite grid as they do so.
-    These are the available transforms.
+    These are the things you can do.
 
-    <dt>copy: player</dt>
-    <dd>The sprite grid is replaced by one taken from another object.
+    <dt>copy:crate</dt>
+    <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
       <p>
       Note: the <b>copy:</b> transform can be written on the first line, for compatibility. 
       This usage is deprecated.
     </dd>
 
     <dt>flip:right</dt>
-    <dd>Mirrors the grid vertically. 
-      As expected, <b>down</b> mirrors the grid horizontally.
+    <dd>Mirrors the grid vertically, left <-> right. 
+      As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
       <p>
       The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
     </dd>

@@ -72,9 +72,9 @@ A puzzlescript file is divided into the following sections.
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li class="active"><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
-    <li><a href="levels.html">Levels</a></li>
     <li><a href="tags.html">Tags</a></li>
     <li><a href="mappings.html">Mappings</a></li>
+    <li><a href="levels.html">Levels</a></li>
   </ul>
 
     <h2>Rules</h2>
@@ -155,19 +155,19 @@ A puzzlescript file is divided into the following sections.
 		<dt>Directions</dt>
 		<dd>The possible rule direction prefixes are <b>up</b>, <b>down</b>, <b>left</b>, <b>right</b>, <b>horizontal</b>, <b>vertical</b>, <b>orthogonal</b>.
 			Use these to confine pattern matching to only those directions.
-			If no direction is specified, the default is all four.</dd>
+			If no direction prefix is specified, the default is all four.</dd>
 
 		<dt>+</dt>
 		<dd>The rule is added to the previous rule in a rule group.
 			See <a href="executionorder.html">execution order</a> for more detail.</dd>
 
-		<dt>global <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+		<dt>global <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
 		<dd>The rule is executed without regard for the <b>radius</b> setting in the <a href="preamble.html">preamble</a>.</dd>
 
 		<dt>late</dt>	
 		<dd>The rule is added to a special set of rules that are executed after the movement phase. </dd>
 
-		<dt>once <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+		<dt>once <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
 		<dd>The rule is executed exactly once, rather than "as often as it can be."
 			See <a href="executionorder.html">execution order</a> for more detail.</dd>
 
@@ -184,14 +184,14 @@ A puzzlescript file is divided into the following sections.
 			See <a href="rigidbodies.html">Extended Rigid Bodies</a> for a detailed explanation.
 		</dd>
 
-		<dt>Tags <img src="../images/pspatt.png" alt="Pattern:Script" height="16"></dt>
+		<dt>Tags <img src="../images/pspatt.png" title="Pattern:Script" height="16"></dt>
 		<dd>The rule is expanded for each member of the tag value set, see <a href="tags.html">tags</a>.</dd>
 	</dl>
 
 
 <h3><span id="commands"></span>Commands</h3>
    	<p>
-   	Sometimes you want other things to happen than to just replace tiles with tiles.  
+   	Sometimes just replacing tiles with tiles is not enough, you want other things to happen.  
 	That's what commands are for. 
 	They go after the right-hand side. 
    	<p>
@@ -211,11 +211,13 @@ late [ Shadow ] -> [ ]</code></pre>
 	You can combine several commands together, so you could do this if you wanted to play a sound effect as well.
 	<pre><code>late [ Player Shadow ] -> checkpoint sfx3</code></pre>
 	<p>
-	You can have as many as you like, but if any command has a text argument, it must the the last on the line.</p>
+	You can have as many as you like, but if any command has a text argument, it must the the last on the line because it will swallow the rest.</p>
 	<p>
-	You can combine commands with regular rules, if you want. 
+	You can have combine commands with regular rules, if you want. 
    	<p>   	   	
-<pre><code> [ > Player | Person ] -> [ &lt; Player | Person ] message Woah, buddy, back off!</code></pre>
+<pre><code>[ > Player | Person ] -> [ &lt; Player | Person ] message Woah, buddy, back off!
+[ > Player | Person ] -> [ &lt; Player | Corpse ] again message Working on it...
+</code></pre>
 <br>
 
 <h4>Available Commands</h4>
@@ -235,12 +237,12 @@ late [ Shadow ] -> [ ]</code></pre>
       <dd>Saves the game state.  
 		Now, whenever the person presses <b>R</b> to restart, or you do the RESTART command, they'll spawn here instead.</dd>
 
-	  <dt>gosub Check for Dead Player <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+	  <dt>gosub Check for Dead Player <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
 	  <dd>Begins executing rules in the named subroutine.
 		Execution continues until the end of the subroutine, and then returns to the next rule after this one.
 	  </dd>
 
- 	  <dt>goto <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+ 	  <dt>goto <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
       <dd>Immediately switches to a different level. 
 		This does not count as a win and cannot be undone by the player. 
 		Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
@@ -251,25 +253,25 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
       <dd>Gives the player a message.  
 		Reads everything to its right, so it has to be the rightmost argument.</dd>
 
-	  <dt>nosave <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+	  <dt>nosave <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
 	  <dd>Forces the engine to NOT save the current state to the undo stack. 
 		Useful if you still want to process turns where not much is happening, but don't want them to flood the undo stack.</dd>
 
-	  <dt>prelude flags (zoomscreen, intervals, etc.) <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+	  <dt>prelude flags (zoomscreen, intervals, etc.) <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
       <dd>If <b>runtime_metadata_twiddling</b> is enabled, there are some prelude flags you can invoke as a command to change them at runtime. 
 		<a href="runtime_metadata_twiddling.html">More info here.</a></dd>
 
-	  <dt>quit <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+	  <dt>quit <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
 	  <dd>If you add <b>quit</b> after a rule, it'll behave as if the player pressed Escape: meaning it will quit out of the level. 
 		It is intended to allow mouse-controlled games to click a button to back to the title screen or level select without using the keyboard.</dd>
 
-      <dt>restart <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+      <dt>restart <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
       <dd>Same as pressing R</dd>
 
       <dt>sfx0 ... sfx10</dt>
       <dd>Sound effects banks - you associate these with sounds in the <a href="sounds.html">sounds</a> section, and then you can trigger them in rules by mentioning them as commands.</dd>
 	  
-      <dt>status You Win! Press R to play again. <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+      <dt>status You Win! Press R to play again. <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
       <dd>Displays the text in the status line, if enabled the setting in the <a href="preamble.html">preamble</a>.
 		The text stays there until it is cleared.
 
@@ -278,7 +280,7 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 		If there is a <b>goto</b> level command, it goes to that level instead.
 	  </dd>
 
-	  <dt>undo <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></dt>
+	  <dt>undo <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
 	  <dd>Undoes a turn. 
 		Unlike <b>cancel</b>, it will not just cancel the current turn, but will also undo the previous one, just like what would happen if you pressed Z.</dd>
 
@@ -295,7 +297,7 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 	<dt>endloop</dt>
 	<dd>Marks the end of a set of rules that started with <b>startloop</b>.</dd>
 
-	<dt>subroutine Check for Dead Player <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+	<dt>subroutine Check for Dead Player <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
 	<dd>Marks the start of a set of rules that can be called by the <b>gosub</b> command.
 		The subroutine ends at the next <b>subroutine</b> or the end of the rules section.
 	</dd>
