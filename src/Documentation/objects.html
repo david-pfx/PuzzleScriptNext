@@ -143,40 +143,41 @@ PINK YELLOW #000000
     The transforms are executed in order, left to right, and modify the sprite grid as they do so.
     These are the things you can do.
 <dl>
-    <dt>copy:crate</dt>
-    <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
-      <p>
-      Note: the <b>copy:</b> transform can be written on the first line, for compatibility. 
-      This usage is deprecated.
-    </dd>
+  <dt>copy:crate</dt>
+  <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
+    Note: 
+    <li>If the object does not exist, the default square is used instead.</li>
+    <li>the <b>copy:</b> transform can be written on the first line, for compatibility. 
+    This usage is deprecated.</li>
+  </dd>
 
-    <dt>flip:right</dt>
-    <dd>Mirrors the grid vertically, left <-> right. 
-      As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
-      <p>
-      The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
-    </dd>
+  <dt>flip:right</dt>
+  <dd>Mirrors the grid vertically, left <-> right. 
+    As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
+    <p>
+    The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
+  </dd>
 
-    <dt>shift:down:3</dt>
-    <dd>Shifts the pixels of the grid down 3, in a circular fashion. 
-      Pixels falling off the bottom reappear at the top.
-      You can use negative numbers too.
-    </dd>
+  <dt>shift:down:3</dt>
+  <dd>Shifts the pixels of the grid down 3, in a circular fashion. 
+    Pixels falling off the bottom reappear at the top.
+    You can use negative numbers too.
+  </dd>
 
-    <dt>rot:up:right</dt>
-    <dd>Rotates the grid so that what was <b>up</b> is now <b>right</b>.
-      In this case, that would be a 90 degree rotation.
-    </dd>
+  <dt>rot:up:right</dt>
+  <dd>Rotates the grid so that what was <b>up</b> is now <b>right</b>.
+    In this case, that would be a 90 degree rotation.
+  </dd>
 
-    <dt>translate:right:5</dt>
-    <dd>Moves the grid across 5 pixels to the right.
-      You can use negative numbers too.
-    </dd>
-  </dl>
+  <dt>translate:right:5</dt>
+  <dd>Moves the grid across 5 pixels to the right.
+    You can use negative numbers too.
+  </dd>
+</dl>
     <p>In each case of an absolute direction you can use the relative directions <b>> < ^ v</b> instead.
     This becomes important when used in conjunction with <a href="tags.html">tags</a>.</p>
 
-<h3>Text Sprites</h3>
+<h3>Text Sprites  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
 
 <p>Instead of a sprite matrix, you can create an object that displays as a string of text.
   You can see it working in <a href="https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/333">333</a>.
