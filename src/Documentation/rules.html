@@ -131,7 +131,7 @@ A puzzlescript file is divided into the following sections.
 (92) late [ LavaGun | | Mortal ] -> [ LavaGun | | Corpse ]
 (92) late [ LavaGun | | | Mortal ] -> [ LavaGun | | | Corpse ]
 (92) late [ LavaGun | | | | Mortal ] -> [ LavaGun | | | | Corpse ]
-(92) ... etc.</code></pre>
+(92) ... etc. But fortunately it's smarter than that.</code></pre>
 
 <p>A technical point that might occasionally be relevant: ellipsis-based rules search from smallest to biggest.  </p>
 <p>Also, it's possible to use two ellipses in a single pattern, such as stuff like this.</p>
@@ -162,14 +162,31 @@ A puzzlescript file is divided into the following sections.
 			See <a href="executionorder.html">execution order</a> for more detail.</dd>
 
 		<dt>global <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
-		<dd>The rule is executed without regard for the <b>radius</b> setting in the <a href="preamble.html">preamble</a>.</dd>
+		<dd>The rule is executed without regard for the <b>radius</b> setting in the <a href="prelude.html">prelude</a>.</dd>
 
 		<dt>late</dt>	
 		<dd>The rule is added to a special set of rules that are executed after the movement phase. </dd>
 
 		<dt>once <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
-		<dd>The rule is executed exactly once, rather than "as often as it can be."
-			See <a href="executionorder.html">execution order</a> for more detail.</dd>
+		<dd><p>The standard defined behaviour per the PuzzleScript documentation is that "Each rule gets applied in turn as often as it can be".
+			A rule with a `once` prefix simply executes once instead.
+			Even if "something happens", the rule is executed just the once.</p>
+		<p>This turns out to useful in situations where after running the rule, the result is such that the rule would still apply.
+		Without this feature, it's necessary to use movement flags or lay down temporary objects to achieve the same effect.
+		There is a new game Bridges to show it in use.
+		Here is how the code looks (from Bridges).</p></dd>
+
+<pre><code><a href="../editor.html?demo=next/bridges" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>// calculate a count for each cell, using the once prefix so the rule applies only once
+[ cell ] -> [ cell c0 ]
+up    once [ cell count | singley ] -> [ cell count1 | singley ]
+down  once [ cell count | singley ] -> [ cell count1 | singley ]
+left  once [ cell count | singlex ] -> [ cell count1 | singlex ]
+right once [ cell count | singlex ] -> [ cell count1 | singlex ]
+up    once [ cell count | doubley ] -> [ cell count2 | doubley ]
+down  once [ cell count | doubley ] -> [ cell count2 | doubley ]
+left  once [ cell count | doublex ] -> [ cell count2 | doublex ]
+right once [ cell count | doublex ] -> [ cell count2 | doublex ]
+</code></pre>
 
 		<dt>random</dt>
 		<dd>This prefix works not on a single rule but on a rule group.
@@ -187,7 +204,6 @@ A puzzlescript file is divided into the following sections.
 		<dt>Tags <img src="../images/pspatt.png" title="Pattern:Script" height="16"></dt>
 		<dd>The rule is expanded for each member of the tag value set, see <a href="tags.html">tags</a>.</dd>
 	</dl>
-
 
 <h3><span id="commands"></span>Commands</h3>
    	<p>
@@ -272,7 +288,7 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
       <dd>Sound effects banks - you associate these with sounds in the <a href="sounds.html">sounds</a> section, and then you can trigger them in rules by mentioning them as commands.</dd>
 	  
       <dt>status You Win! Press R to play again. <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
-      <dd>Displays the text in the status line, if enabled the setting in the <a href="preamble.html">preamble</a>.
+      <dd>Displays the text in the status line, if enabled the setting in the <a href="prelude.html">prelude</a>.
 		The text stays there until it is cleared.
 
       <dt>win</dt>

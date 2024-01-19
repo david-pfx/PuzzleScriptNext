@@ -100,15 +100,15 @@ PINK YELLOW #000000
 .2.2.</code></pre>
 	<p>Which gives you this wee fella: <img src="images/player.png"></p>
 
-  <h4>Object Names</h4>
+  <h3>Object Names</h3>
   <p>The first line is the name of the object, and aliases too if you like.
     So the extra <b>P</b> on the line is another name for the Player object (and you can have as many aliases as you like).
     This is convenient for creating single characters needed for putting objects into a level, but you can get the same result in the Legend section if you prefer.
 
-  <h4>Colors</h4>
+  <h3>Colors</h3>
   <p>The second line is a list of colors. 
 	  The available color names are as follows, but the exact shade of color is set according to the <b>palette</b> setting 
-    in the <a href="preamble.html">preamble</a>.</p>
+    in the <a href="prelude.html">prelude</a>.</p>
 <blockquote><b><ul class="list-inline"><li>black</li><li>white</li><li>lightgray/grey</li><li>gray/grey</li><li>darkgray/grey</li>
   </li><li>red</li><li>darkred</li><li>lightred</li><li>brown</li><li>darkbrown</li><li>lightbrown</li><li>orange</li><li>yellow</li>
   <li>green</li><li>darkgreen</li><li>lightgreen</li><li>blue</li><li>lightblue</li><li>darkblue</li><li>purple</li><li>pink</li>
@@ -125,12 +125,12 @@ PINK YELLOW #000000
         and <b>#8888</b> is semi-transparent <span style="color: #8888">grey</span>.</li>
     </ul></p>
 
-  <h4>The Grid</h4>
+  <h3>The Grid</h3>
   <p>The third and following lines are rows of numeric digits making up the sprite grid (or they can be omitted, and then you just get a square). 
     The dots represent transparency, and the numbers 0..9 index the colors in the second line, for as many colors as there are.</p>
 
     <p>In the simple case each line is <b>sprite_size</b> in length and there are <b>sprite_size</b> of them.
-    This defaults to 5x5, but you can set it set to a different value in the <a href="preamble.html">preamble</a>.</p>
+    This defaults to 5x5, but you can set it set to a different value in the <a href="prelude.html">prelude</a>.</p>
 
   <p>The sprite grid can be smaller or larger, and does not have to be square.
     It will be rendered with the bottom left-hand corner aligned with the tile. 
@@ -138,44 +138,68 @@ PINK YELLOW #000000
     You can use control this, see <a href="collisionlayers.html">CollisionLayers</a>.
   </p>
 
-  <h4>Transforms <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h4>
+  <h3>Transforms <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h3>
   <p>Following the sprite grid are one or more lines of object transforms.
     The transforms are executed in order, left to right, and modify the sprite grid as they do so.
     These are the things you can do.
+<dl>
+  <dt>copy:crate</dt>
+  <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
+    Note: 
+    <li>If the object does not exist, the default square is used instead.</li>
+    <li>the <b>copy:</b> transform can be written on the first line, for compatibility. 
+    This usage is deprecated.</li>
+  </dd>
 
-    <dt>copy:crate</dt>
-    <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
-      <p>
-      Note: the <b>copy:</b> transform can be written on the first line, for compatibility. 
-      This usage is deprecated.
-    </dd>
+  <dt>flip:right</dt>
+  <dd>Mirrors the grid vertically, left <-> right. 
+    As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
+    <p>
+    The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
+  </dd>
 
-    <dt>flip:right</dt>
-    <dd>Mirrors the grid vertically, left <-> right. 
-      As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
-      <p>
-      The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
-    </dd>
+  <dt>shift:down:3</dt>
+  <dd>Shifts the pixels of the grid down 3, in a circular fashion. 
+    Pixels falling off the bottom reappear at the top.
+    You can use negative numbers too.
+  </dd>
 
-    <dt>shift:down:3</dt>
-    <dd>Shifts the pixels of the grid down 3, in a circular fashion. 
-      Pixels falling off the bottom reappear at the top.
-      You can use negative numbers too.
-    </dd>
+  <dt>rot:up:right</dt>
+  <dd>Rotates the grid so that what was <b>up</b> is now <b>right</b>.
+    In this case, that would be a 90 degree rotation.
+  </dd>
 
-    <dt>rot:up:right</dt>
-    <dd>Rotates the grid so that what was <b>up</b> is now <b>right</b>.
-      In this case, that would be a 90 degree rotation.
-    </dd>
-
-    <dt>translate:right:5</dt>
-    <dd>Moves the grid across 5 pixels to the right.
-      You can use negative numbers too.
-    </dd>
-
-    <br>
+  <dt>translate:right:5</dt>
+  <dd>Moves the grid across 5 pixels to the right.
+    You can use negative numbers too.
+  </dd>
+</dl>
     <p>In each case of an absolute direction you can use the relative directions <b>> < ^ v</b> instead.
     This becomes important when used in conjunction with <a href="tags.html">tags</a>.</p>
+
+<h3>Text Sprites  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
+
+<p>Instead of a sprite matrix, you can create an object that displays as a string of text.
+  You can see it working in <a href="https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/333">333</a>.
+  Use it like this. 
+</p>
+<pre><code>s; purple; text: S
+t; orange; text: tea for two
+3; pink; text: 3
+4; pink; text: 4
+number8 scale: 0.5; green; text: 8
+</code></pre>
+    
+<p>These are the things you can do.</p>
+
+<dl>
+  <dt>text: 2048</dt>
+  <dd>The string of characters is trimmed and centred to fit in the cell. 
+    Text objects use the custom font, or Monospace fallback, rather than the built-in font.
+  </dd>
+  <dt>scale: 0.8</dt>
+  <dd>The text is scaled, relative to 1.0. </dd>
+</dl>
 
     </div><!-- /.container -->
 

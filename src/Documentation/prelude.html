@@ -100,8 +100,7 @@ Here are the possible settings.
       <dd>Comments in this form start with a double slash and extend to the end of the line.
         Once you've used one of these comments in the preamble, you can use them throughout your game.
         You can then also use semicolon as end of line, such as this object declaration.</dd>
-        <code><pre>
-// some temporary objects
+      <pre><code>// some temporary objects
 temp1;transparent;
 temp2;blue;
 </pre></code>
@@ -152,10 +151,33 @@ temp2;blue;
       <dd>Don't show an extra option for the Level Select on the main menu. 
         Instead, the "continue" button will open it, instead of continuing the game.</dd>
 
-      <dt>custom_font <i>data:font/otf;base64,</i> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
-      <dd>Allows you to load in a custom font file via a data stream. 
-        This works best with monospace fonts & font files with very small sizes (under 20KB). 
-        If you have a font file and you want to convert it into base64, use a tool like <a href="https://base64.guru/converter/encode/file">File to Base64</a> with the "Data URI" output format, then paste it into the editor.</dd>
+      <dt>custom_font data:font/otf;base64,<i>font data</i> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
+      <dd><p>Allows you to load in a custom font file via a data stream. 
+      It looks something like this.</p>
+<pre><code>(Monogram by Datagoblin: https://datagoblin.itch.io/monogram)
+custom_font data:font/otf;base64,AAEAAAAOAIAAAwBgRkZUTWd... (long string of characters being the font data)
+</code></pre>
+        <p>This works best with monospace fonts & font files with very small sizes (under 20KB). 
+          If you have a font file and you want to convert it into base64, use a tool like 
+          <a href="https://base64.guru/converter/encode/file">File to Base64</a> with the "Data URI" output format, then paste it into the editor.</p>
+
+        <p>The custom font setting can be a link to a font file on the Web, preferably of type `woff2`.
+          You can find font files that are freely accessible in various places, including Google Fonts.</p>
+        <ul>
+          <li>Search for VT323 and you will find <a href="https://fonts.google.com/specimen/VT323">it here</a>.</li>
+          <li>Then search a bit more and find <a href="https://fonts.googleapis.com/css2?family=VT323">this link</a>.</li>
+          <li>On this page there is (finally) <a href="https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2">this link</a> to the downloadable font file.</li>
+          <li>Use it like this.</li>
+        </ul>  
+      
+        <p></p>
+        <pre><code>custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2     
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+</code></pre>
+        <p>Note that text pages like the title screen and message text are displayed as full lines of text.
+          This means that there will be a variation in character widths, and even in a Monospace font wide characters like `大 ⚐` will display at full width.</p>
+        </dd>
+
 
 			<dt><span id="debug"></span>debug</dt>
 			<dd>This outputs the compiled instructions whenever you build your file.  For instance, the line
@@ -339,6 +361,12 @@ late [ Temp ] -> [ ]</code></pre>
       <dd>Will skip the title screen when the game initializes. 
         Instead, it will act like the "continue" button has been pressed, opening either the level, message, or level select based on game progress and other prelude flags.</dd>
 
+      <dt>status_line <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+      <dd>Reserves some space at the bottom of the screen for displaying a status line.
+        Use it with the <b>status</b> command, see <a href="rules.html#commands">rules commands</a>.
+      </dd>
+
+      </dt>
       <dt>text_controls <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
       <dd>Will overwrite the default keyboard/mouse control text in the title screen with the text you specify here! 
         It can display up to three lines of text at once, and supports using \n to add a newline.</dd>

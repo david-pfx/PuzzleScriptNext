@@ -109,12 +109,12 @@ Purple Orange Green -> Blue Red Yellow
 
 <p>And they might be used in rules like this.</p>
 
-<code><pre>// get the play that wins for the second player
+<pre><code>// get the play that wins for the second player
 first [ getwin player:first ] -> [ getwin player:second ]
 
 // get the next number in sequence
 Int [ Counter:Int TempCountThis ] -> [ Counter:IntUp TempCountedThis ]
-</pre></code>
+</code></pre>
 <p>Which reads: </p>
   <ul>
     <li>if the 'getwin' flag is set, replace any of the played:first family of objects by its played:second equivalent</li>
