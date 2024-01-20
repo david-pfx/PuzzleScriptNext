@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Objects - PuzzleScript Documentation</title>
+    <title>Objects - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -57,14 +57,14 @@
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
-  <li>Bird's-eye View</li>
+  <li>Sections</li>
   <li class="active">Objects</li>
 </ol>
 <p>
 
-<h1>Bird's-eye view of a PuzzleScript file</h1>
+<h1>Sections of a PuzzleScript file</h1>
 <p>
-A puzzlescript file is divided into 8 sections:
+A puzzlescript file is divided into the following sections. 
 <p>
 
   <ul class="nav nav-pills">
@@ -75,122 +75,133 @@ A puzzlescript file is divided into 8 sections:
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
+    <li><a href="tags.html">Tags</a></li>
+    <li><a href="mappings.html">Mappings</a></li>
     <li><a href="levels.html">Levels</a></li>
   </ul>
 
-
-
-
-
-
-
-
-
     <h2>Objects</h2>
-    Here's where your in-game objects are all declared.  The simplest way is to give something a name and a color:
+    Here's where your in-game objects are all declared.  The simplest way is to give something a name and a color.
     <p>
-    <pre><code>Player
+    <pre><code>OBJECTS
+=======      
+Player P
 Blue</code></pre>
     If you do this, the player will be a blue square. 
     <p>
     You can specify a sprite as a 5x5 grid as follows:
     <p>    
-    <pre><code>Player 
-PINK YELLOW BLACK    
-.222.
-.000.
-22122
-.222.
-.2.2.</code></pre>
-	<p>
-	Which gives you this wee fella:
-	<p>
-    <img src="images/player.png">
-    <p>
-    The dots represent transparency, and the numbers 0..9 index the colours in the second line.
-    <p>
-    I'm getting slightly ahead of myself here, but I should mention the following convenience: instead of doing it in the legend section, you can specify a character that you can use to refer to the object when level editing just by putting it after its real name:
-    <p>
     <pre><code>Player P
-PINK WHITE BLACK    
+PINK YELLOW #000000    
 .222.
 .000.
 22122
 .222.
 .2.2.</code></pre>
-	<p>
-	The available colour names are:
-	<p>
-<blockquote><ul class="list-inline"><li>black</li><li>white</li><li>lightgray/grey</li><li>gray/grey</li><li>darkgray/grey</li></li><li>red</li><li>darkred</li><li>lightred</li><li>brown</li><li>darkbrown</li><li>lightbrown</li><li>orange</li><li>yellow</li><li>green</li><li>darkgreen</li><li>lightgreen</li><li>blue</li><li>lightblue</li><li>darkblue</li><li>purple</li><li>pink</li><li>transparent</li></ul></blockquote>
-	<p>
-	You can use hex-codes instead of these names, if you prefer:
-    <pre><code>Player 
-#FF5555 #FFFFFF #000000    
-.222.
-.000.
-22122
-.222.
-.2.2.</code></pre>
-<p>
-	<p>
+	<p>Which gives you this wee fella: <img src="images/player.png"></p>
 
-    <h1 id="psplus">New in PS+ <img src="../images/psplus_mascot_32.png"></h1>
+  <h3>Object Names</h3>
+  <p>The first line is the name of the object, and aliases too if you like.
+    So the extra <b>P</b> on the line is another name for the Player object (and you can have as many aliases as you like).
+    This is convenient for creating single characters needed for putting objects into a level, but you can get the same result in the Legend section if you prefer.
+
+  <h3>Colors</h3>
+  <p>The second line is a list of colors. 
+	  The available color names are as follows, but the exact shade of color is set according to the <b>palette</b> setting 
+    in the <a href="prelude.html">prelude</a>.</p>
+<blockquote><b><ul class="list-inline"><li>black</li><li>white</li><li>lightgray/grey</li><li>gray/grey</li><li>darkgray/grey</li>
+  </li><li>red</li><li>darkred</li><li>lightred</li><li>brown</li><li>darkbrown</li><li>lightbrown</li><li>orange</li><li>yellow</li>
+  <li>green</li><li>darkgreen</li><li>lightgreen</li><li>blue</li><li>lightblue</li><li>darkblue</li><li>purple</li><li>pink</li>
+  <li>transparent</li></ul></b></blockquote>
+
+  <p>See this <a href="../editor.html?demo=next/color_chart">Color Chart</a> for a display of the colors in the default palette. 
+    You can change the palette if you like.</p>
+
+  <p>Or you can use hex codes if you prefer. 
+    <ul>
+      <li>Three and four digit codes represent regular RGB colors, so <b>#FF00FF</b> is <span style="color:#ff00ff">magenta</span> 
+        and <b>#0FF</b> is <span style="color: #0ff">cyan</span>.</li>
+      <li>Four and eight digit codes represent RGBA colors, so <b>#0000FF80</b> is semi-transparent <span style="color:#0000FF80">blue</span> 
+        and <b>#8888</b> is semi-transparent <span style="color: #8888">grey</span>.</li>
+    </ul></p>
+
+  <h3>The Grid</h3>
+  <p>The third and following lines are rows of numeric digits making up the sprite grid (or they can be omitted, and then you just get a square). 
+    The dots represent transparency, and the numbers 0..9 index the colors in the second line, for as many colors as there are.</p>
+
+    <p>In the simple case each line is <b>sprite_size</b> in length and there are <b>sprite_size</b> of them.
+    This defaults to 5x5, but you can set it set to a different value in the <a href="prelude.html">prelude</a>.</p>
+
+  <p>The sprite grid can be smaller or larger, and does not have to be square.
+    It will be rendered with the bottom left-hand corner aligned with the tile. 
+    If it is larger, it will overflow and hide tiles above and to the right.
+    You can use control this, see <a href="collisionlayers.html">CollisionLayers</a>.
+  </p>
+
+  <h3>Transforms <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h3>
+  <p>Following the sprite grid are one or more lines of object transforms.
+    The transforms are executed in order, left to right, and modify the sprite grid as they do so.
+    These are the things you can do.
+<dl>
+  <dt>copy:crate</dt>
+  <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
+    Note: 
+    <li>If the object does not exist, the default square is used instead.</li>
+    <li>the <b>copy:</b> transform can be written on the first line, for compatibility. 
+    This usage is deprecated.</li>
+  </dd>
+
+  <dt>flip:right</dt>
+  <dd>Mirrors the grid vertically, left <-> right. 
+    As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
     <p>
-      For starters, you can now use transparent colors when defining a hex color (like #ff000088).
-<p></p>
-      But you can also clone entire sprites between objects. If you're making a game with a lot of very similar sprites, this technique will help you to avoid sprite data duplication.
+    The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
+  </dd>
 
-      Say we have two walls, Wall and AltWall. In classic Puzzlescript, you'd define them like this in the OBJECTS section:
-      
-<pre><code>Wall #
-BROWN DARKBROWN
-00010
-11111
-01000
-11111
-00010
+  <dt>shift:down:3</dt>
+  <dd>Shifts the pixels of the grid down 3, in a circular fashion. 
+    Pixels falling off the bottom reappear at the top.
+    You can use negative numbers too.
+  </dd>
 
-AltWall $
-BLUE DARKBLUE
-00010
-11111
-01000
-11111
-00010</code></pre>
-      
-      However, since both have the same sprite matrix, you can also define the second object like this in Puzzlescript Plus:
-      
-<pre><code>AltWall $ copy:Wall
-BLUE DARKBLUE</code></pre>
-      
-      This copies the sprite from Wall to AltWall using the copy:, and then applies the new palette. (You must still specify the colors, even if they would stay the same.) There are some limitations with this system, but most of those should throw an error if run into them.
-      <p></p>
-      You can use this in some hacky ways which are especially handy if you have a large <b>sprite_size</b>. For example, imagine these wall corners that we want to autogenerate between walls. Of course, we could create four sprites with the corner rotating 90 degrees in each, but with some trickery, we could also do:
-      
-<pre><code>EdgeTopLeft
-black transparent transparent transparent
-00.11
-0...1
-.....
-2...3
-22.33
+  <dt>rot:up:right</dt>
+  <dd>Rotates the grid so that what was <b>up</b> is now <b>right</b>.
+    In this case, that would be a 90 degree rotation.
+  </dd>
 
-EdgeTopRight copy:EdgeTopLeft
-transparent black transparent transparent
+  <dt>translate:right:5</dt>
+  <dd>Moves the grid across 5 pixels to the right.
+    You can use negative numbers too.
+  </dd>
+</dl>
+    <p>In each case of an absolute direction you can use the relative directions <b>> < ^ v</b> instead.
+    This becomes important when used in conjunction with <a href="tags.html">tags</a>.</p>
 
-EdgeBottomLeft copy:EdgeTopLeft
-transparent transparent black transparent
+<h3>Text Sprites  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
 
-EdgeBottomRight copy:EdgeTopLeft
-transparent transparent transparent black    </code></pre>
-      
-      By applying <b>transparent</b> tactically, we can essentially wrap four non-overlapping sprites into one.
-    </p>
+<p>Instead of a sprite matrix, you can create an object that displays as a string of text.
+  You can see it working in <a href="https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/333">333</a>.
+  Use it like this. 
+</p>
+<pre><code>s; purple; text: S
+t; orange; text: tea for two
+3; pink; text: 3
+4; pink; text: 4
+number8 scale: 0.5; green; text: 8
+</code></pre>
+    
+<p>These are the things you can do.</p>
 
-
+<dl>
+  <dt>text: 2048</dt>
+  <dd>The string of characters is trimmed and centred to fit in the cell. 
+    Text objects use the custom font, or Monospace fallback, rather than the built-in font.
+  </dd>
+  <dt>scale: 0.8</dt>
+  <dd>The text is scaled, relative to 1.0. </dd>
+</dl>
 
     </div><!-- /.container -->
-
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

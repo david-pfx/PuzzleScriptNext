@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Legend - PuzzleScript Next Documentation</title>
+    <title>Mappings - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -53,14 +53,14 @@
     <div class="container">
 
 
-
 <p>
 <ol class="breadcrumb">
   <li><a href="documentation.html">Documentation</a></li>
   <li>Sections</li>
-  <li class="active">Legend</li>
+  <li class="active">Mappings</li>
 </ol>
 <p>
+
 
 <h1>Sections of a PuzzleScript file</h1>
 <p>
@@ -70,53 +70,74 @@ A puzzlescript file is divided into the following sections.
   <ul class="nav nav-pills">
     <li><a href="prelude.html">Prelude</a></li>
     <li><a href="objects.html">Objects</a></li>
-    <li class="active"><a href="legend.html">Legend</a></li>
+    <li><a href="legend.html">Legend</a></li>
     <li><a href="sounds.html">Sounds</a></li>
     <li><a href="collisionlayers.html">CollisionLayers</a></li>
     <li><a href="rules.html">Rules</a></li>
     <li><a href="winconditions.html">WinConditions</a></li>
     <li><a href="tags.html">Tags</a></li>
-    <li><a href="mappings.html">Mappings</a></li>
+    <li class="active"><a href="mappings.html">Mappings</a></li>
     <li><a href="levels.html">Levels</a></li>
   </ul>
 
 
-    <h2>Legend</h2>
-    This section does a few things.  
-    Firstly, it's a place where you can set up single-character names for things so that you can type them in levels.
-    You can use almost any Unicode character, so there are lots to choose from.
-    Best to avoid using special characters such as <b>[ | ] < > ^ v</b> to avoid confusing the parser.
+
+
     <p>
-    <pre><code>LEGEND
-======
+    <h2>Mappings <img src="../images/pspatt.png" title="Pattern:Script"></h2>
 
-P = Player
-. = Background
-# = Wall
-* = Crate
-O = Target
-⌘ = Box
-£ = Pound
-⁂ = Stars
+    <p>So tags let you define a name that is expanded into its values, but within each expansion all the values will be the same, and sometimes you don't want that.
+      Sometimes you want the expansion to be rock-paper-scissors in one part of a rule and scissors-rock-paper in another part.
+      Or you want cat-dog-bird in one part and miaow-woof-tweet in another.
+      Or you want the next number in a sequence.</p>
+    <p>That's where mappings come in. They look like this.</p>
+      
+    <pre><code>MAPPINGS
+========
+first => second
+rock paper scissors -> paper scissors rock 
+
+animal => makescall
+cat dog bird -> miaow woof tweet
+
+Int => IntUp
+I0 I1 I2 I3 I4 I5 I6 I7 I8 I9 -> I1 I2 I3 I4 I5 I6 I7 I8 I9 I0
+
+Secondary => ColorComponent1
+Purple Orange Green -> Blue Red Yellow
 </code></pre>
-<p>
+
+<p>And they might be used in rules like this.</p>
+
+<pre><code>// get the play that wins for the second player
+first [ getwin player:first ] -> [ getwin player:second ]
+
+// get the next number in sequence
+Int [ Counter:Int TempCountThis ] -> [ Counter:IntUp TempCountedThis ]
+</code></pre>
+<p>Which reads: </p>
+  <ul>
+    <li>if the 'getwin' flag is set, replace any of the played:first family of objects by its played:second equivalent</li>
+    <li>if the 'TempCountedThis' flag is set, replace any of the Counter:Int family of objects by its Counter:IntUp equivalent</li>
+  </ul>
+
+<p>Specifically, the first rule will be expanded exactly as if it had been written like this.</p>
+
+<pre><code>[ getwin player:rock ] -> [ getwin player:paper ]
+[ getwin player:paper ] -> [ getwin player:scissors ]
+[ getwin player:scissors ] -> [ getwin player:rock ]  
+</code></pre>
+
+<p>The rule direction is just one expansion parameter like others, and the relative directions <b>> < v ^ perpendicular parallel orthogonal</b> are predefined mappings for directions.
+  So you can write rules like this.</p>
   
-  Secondly it lets you define aggregate objects using <b>and</b>, where several objects (in different layers) can be placed in a grid tile at the same time.
-</p>
-<pre><code>@ = Crate and Target
-deadpile = deadplayer and ash and Target
+<pre><code>(the player faces the direction of the key pressed)
+[ > Player:directions ] -> [ > Player:> ]
 
-[ player target fire ] -> [ deadpile ]
+(players can push wheelchairs only when they face one, standing behind it)
+[ > Player:> | WheelChair:> ] -> [ > Player:> | > WheelChair:> ]
 </code></pre>
-  <p>
-	And finally, it lets you define property objects using <b>or</b>, that you can refer to in rules and elsewhere.
-	<p>
-	<pre><code>Flying = Bat or Bird
-Obstacle = Wall or Lava or Water
-
-[ > player | obstacle ] -> [ player | obstacle ]  (moving stops here)</code></pre>
-	<p><b>Note:</b> legend lines may be expanded if they use names with tag parts. See <a href="tags.html">tags and mappings</a>.
-
+<p>Mappings are not things you're going to use all the time, but when you need them, they're there.</p>
     </div><!-- /.container -->
 
 

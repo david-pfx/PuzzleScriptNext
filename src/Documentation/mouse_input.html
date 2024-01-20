@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -58,29 +58,48 @@
 </ol>
 <p>
 
-<h1>Moue input <img src="../images/psplus_mascot_32.png"></h1>
-<br>
-The mouse system was considered for the original PuzzleScript, but didn't end up being implemented. PuzzleScript Plus uses a slightly upgraded version of PuzzleClick by ThatScar that implements mouse controls. It's handy, but it takes a bit of getting used to, as you'll need to account for some edge cases. Let's get clickin'!
+<h1>Mouse Input</h1>
+  <p>PuzzleScript Next has two mouse input systems. 
+    <ul>
+      <li>One is very simple and is based on movements, like other kinds of input. </li>
+      <li>The other is rather more complex and is based on dropping objects where a tile is clicked or dragged.</li>
+    </ul>
+    So let's get clickin'!
+  </p>
 
-<h1>Simple example</h1>
+<h2>Movement Based  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h2>
+<p>This feature is enabled by prelude setting <b>mouse_clicks</b>.
+  You can see it in action in <a href="https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/netgame">Netgame</a>.
+  Use it like this. 
+  </p>
+<pre><code>mouse_clicks
 
-<p>You don't use direction words like LEFT or ACTION with the mouse system. Instead, before the turn begins, the game creates the assigned object on the tile you clicked or dragged into. You can define these objects in the prelude, see <a src="http://127.0.0.1:5501/src/Documentation/prelude.html#psplus">the full list of flags here</a>.</p>
+RULES
+[ lclick crate ] -> [ ] // destroys a crate
+[ rclick background | player ] -> [ crate | player ] // creates a crate
+</code></pre>  
 
-Let's say you have an object called TREE that you want to create on a clicked tile. In the prelude, add:
+<p>If you left or right click on an object, it will receive the movements <b>lclick</b> or <b>rclick</b> (<b>mclick</b> and <b>hover</b> are reserved for future use). </p>
+<p>These movements are also displayed in the Visual Debugger to show where the click happened, using a new style of glyph.</p>
+
+<h2>Object Based <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"></h2>
+
+<p>You don't use direction words like <b>left</b> or <b>action</b> with this mouse system. 
+  Instead, before the turn begins, the game creates the assigned object on the tile you clicked or dragged into. 
+  You can define these objects in the prelude, see <a src="prelude.html">the full list of flags here</a>.</p>
+
+<p>Let's say you have an object called "tree" that you want to create on a clicked tile. In the prelude, add:</p>
 
 <pre><code><a href="../editor.html?demo=plus_mouse_tree_click" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_left TREE</code></pre>
-<p>Where "TREE" is the name of the object you want to spawn upon mouse click. Now start a level, click a tile, and a tree pops up! This works even in games that don't have any rules.</p>
+<p>Where "tree" is the name of the object you want to spawn upon mouse click. 
+  Now start a level, click a tile, and a tree pops up! 
+  This works even in games that don't have any rules.</p>
 
 <img src="./images/plus_treeplanting.gif" width="300px">
-<br>
 <p>Once you add any of the mouse prelude flags, then menus will also automatically support mouse input. Even the level select will work!</p>
 
-<h1>Complex example</h1>
-
 Directly creating objects like this usually only suffices for very simple games. Usually, you want to create a temporary object that you handle separately before your main gameplay code.
-
 Let's say that clicking on a tree should remove it. Create an extra object called CLICK, add it on a new layer, and change the line in the prelude to:
-
 <pre><code>mouse_left CLICK</code></pre>
 
 Then add the following rules:
@@ -90,23 +109,25 @@ Then add the following rules:
 <p>Now you can click to plant a tree, and then click it again to remove it.</p>
 
 <img src="./images/plus_tree_remove.gif" width="300px">
-<br>
-<p>
-Do note objects created by mouse input are just normal objects! They need to be assigned to a layer, and they won't be cleared automatically after the turn ends. So make sure you add a rule to remove these temporary objects, if you don't need them any more. For example, in this program we could add <b>[Click] -> []</b> as the last rule.
-</p>
+<p>Do note objects created by mouse input are just normal objects.
+  They need to be assigned to a layer, and they won't be cleared automatically after the turn ends. 
+  So make sure you add a rule to remove these temporary objects, if you don't need them any more. 
+  For example, in this program we could add <b>[Click] -> []</b> as the last rule.</p>
 
-<h1>Dragging</h1>
+<h3>Dragging</h3>
 
-<p>
-If you click and hold your mouse button down and move across the screen, you can follow it with <b>mouse_drag</b> (or <b>mouse_rdrag</b> for the right mouse button).</p>
+<p>If you click and hold your mouse button down and move across the screen, you can follow it with <b>mouse_drag</b> (or <b>mouse_rdrag</b> for the right mouse button).</p>
 
-<p>
-Consider the following scenario. On one frame, I press the mouse button into this position. Then next frame, because of a lag spike or a super sensitive mouse, the cursor instantly jumps three tiles to the right. At first glance, you might expect that the only detected inputs would be the press on the original tile, and a drag on the current tile.</p>
+<p>Consider the following scenario. 
+  On one frame, I press the mouse button into this position. 
+  Then next frame, because of a lag spike or a super sensitive mouse, the cursor instantly jumps three tiles to the right. 
+  At first glance, you might expect that the only detected inputs would be the press on the original tile, and a drag on the current tile.</p>
 
-<p>But in these cases, PuzzleClick will attempt to fire a drag event for each cell that has been dragged through. In other words, a drag object will always appear orthogonally adjacent to the last previous drag object (or pressed in case of the first drag event). However, it will fire a lot of turns quickly, which might clutter the undo stack (there's a solution, see below), or impact performance in complex games.</p>
+<p>But in these cases, the system will try to fire a drag event for each cell that has been dragged through. 
+  In other words, a drag object will always appear orthogonally adjacent to the last previous drag object (or pressed in case of the first drag event). 
+  However, it will fire a lot of turns quickly, which might clutter the undo stack (there's a solution, see below), or impact performance in complex games.</p>
 
-<p>
-  For example, here's a way to create a CURSOR object that appears on the tile of the previous drag, then moves towards the tile of the current drag:
+<p>For example, here's a way to create a "cursor" object that appears on the tile of the previous drag, then moves towards the tile of the current drag:</p>
   <pre><code><a href="../editor.html?demo=plus_mouseblocks" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>(Whenever mouse is clicked, create cursor at that position)
 [MouseClick] [Cursor] -> [MouseClick] []
 [MouseClick] [DragTarget] -> [MouseClick] []
@@ -118,14 +139,16 @@ Consider the following scenario. On one frame, I press the mouse button into thi
 
 <img src="./images/plus_blockdrag.gif" width="300px">
 
-<h1>Undo and NOSAVE</h1>
+<h3>Undo and NOSAVE</h3>
 <p>By default PuzzleScript logs every turn into the undo system. However especially with dragging, you'll end up generating a lot of undo states, to the point where it could be a hassle to undo all of those. If you're running a turn where nothing interesting is happening, then you can trigger the command NOSAVE to exclude that turn from the undo stack.
 </p>
 
 <p>See the <a href="./rules.html#psplus">commands list</a> for more info.</p>
 
-<h1>Event order</h1>
-If there's a case where multiple events are fired with a single input, they resolve in this order. (Click on "Edit" for an input test with verbose logging.)
+<h3>Event order</h3>
+
+<p>If there's a case where multiple events are fired with a single input, they resolve in this order. (Click on "Edit" for an input test with verbose logging.)</p>
+
 <pre><code><a href="../editor.html?demo=plus_mouse_input_test" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_up
 mouse_rup
 mouse_left
@@ -134,9 +157,9 @@ mouse_drag
 mouse_rdrag
 </code></pre>
 
-<h1>Mobile support</h1>
+<h2>Mobile support</h2>
 
-Games with the input system will also work on mobile, with a couple of limitations:
+Games with either input system will also work on mobile, with a couple of limitations.
 <ul>
 <li>The swipe controls to control player movement are disabled. (You can still control the player with a keyboard.)</li>
 <li>You can't use the right mouse button on mobile.</li>

@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Directions - PuzzleScript Documentation</title>
+    <title>Directions - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -63,7 +63,7 @@
 
 <h1>Intermediate Directions and Movement</h1>
 <p>
-Relative directions rotate along with their pattern
+Relative directions rotate along with their pattern. This:
 <p>
 <pre><code>[ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
 <p>
@@ -102,7 +102,7 @@ Huzzah!
 <hr>
 
 <p>
-There are horizontal directons as well - if you want something that moves horizontally when you move horizontally, but ignores you otherwise, you do this
+There are horizontal directons as well - if you want something that moves horizontally when you move horizontally, but ignores you otherwise, do this:
 <p>
 <pre><code>[ Horizontal  Player ] [ Crate ] -> [  Horizontal  Player ] [  Horizontal Crate  ]</code></pre>
 and get this:
@@ -120,9 +120,10 @@ There is, and it's this:
 <p>
 <pre><code>[ Perpendicular Player | Crate ] -> [ Perpendicular Player | Perpendicular Crate ]</code></pre>
 <p>
-Parallel is also a keyword, and means what you think it might :)
+Parallel is also a keyword, and means what you think it might. 😀
 <p>
-Tip: if you don't know what something does in the examples (or in your own code :S ), it can be helpful to add the <a href="prelude.html#debug">DEBUG</a> flag to the <a href="prelude.html#debug">prelude</a> to see how the compiler interprets it.
+Tip: if you don't know what something does in the examples (or in your own code 😆), it can be helpful to add the <b>debug</b> flag to the <a href="prelude.html#debug">prelude</a> to see how the compiler interprets it.
+Or you can just click on the debug button in the editor console.
 <p>
     </div><!-- /.container -->
 

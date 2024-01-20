@@ -1,0 +1,89 @@
+title test min tags
+author polyomino
+homepage www.polyomino.com
+
+// test program for new TAG section
+
+verbose_logging
+debug
+debug_switch tag,map,obj,layer,prop
+
+====
+TAGS
+====
+Int = I0 I1 I2 I3 I4 I5 I6 I7 I8 I9
+Bool = True False Maybe
+Primary = Red Yellow Blue
+Secondary = Purple Orange Green
+Color = Primary Secondary Trash
+AX = A1 A2 A3 A4 A5
+
+// these are pre-defined, so you don't need to:
+//directions = up right down left
+//horizontal = right left
+//vertical = up down
+
+========
+MAPPINGS
+========
+
+========
+OBJECTS
+========
+Background .; grey
+PLAYER P; yellow
+crate c; pink
+
+redborder:directions
+red
+00000000
+.000000.
+........
+........
+........
+........
+........
+........
+rot:up:>
+
+blueborder:directions
+blue
+copy:redborder:directions
+
+greenthing:directions
+green
+copy:redborder:directions flip:^ translate:>:3 shift:v:2
+
+temp:Int:Color:AX
+transparent
+=======
+LEGEND
+=======
+
+================
+COLLISIONLAYERS
+================
+Background
+Player, crate
+--
+redborder:directions, blueborder:directions
+greenthing:directions
+Int Color AX -> temp:Int:Color:AX
+======
+RULES
+======
+
+[ greenthing:directions | crate ] -> [ | crate ]
+[ greenthing:directions | crate ] -> [  | greenthing:directions ]
+[ greenthing:directions | crate ] -> [ greenthing:directions | greenthing:directions ]
+directions [ greenthing:directions | crate ] -> [ greenthing:directions | greenthing:directions ]
+
+
+=======
+LEVELS
+=======
+
+.........
+..p......
+..c......
+.........

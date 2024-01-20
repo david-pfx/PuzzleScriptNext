@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
 
-    <title>Extended Rigid Bodies - PuzzleScript Documentation</title>
+    <title>Extended Rigid Bodies - PuzzleScript Next Documentation</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png"> PuzzleScript Plus</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -41,10 +41,10 @@
               <li class="active"><a href="documentation.html">Documentation</a></li>
           </ul>          
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
             <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
-            <li><a href="https://github.com/Auroriax/PuzzleScriptPlus">GitHub</a></li>
-            <li><a href="https://github.com/sponsors/increpare">Sponsor Increpare</a></li>
-            <li><a href="./about.html">About</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -88,15 +88,20 @@ but upon closer inspection it will reveal itself to be rather a flimsy construct
 </p><p>
 There are many different ways to solve this, depending on what your needs are. I'm going to approach the cases from simplest to most complex. For the purpose of illustration I'll be focussing on multiban style rules - where you can push objects, and the objects can furthermore push eachother.
 </p><p>
-WARNING: Here be a rabbit hole - there are many approaches of increasing complexity, depending on what you want to achieve.  I'd <em>strongly</em> advise to not read down any further into this document than you need to. This topic starts out fun but at its deepest extents is <em>exceedingly</em> delicate, and more akin to a research-subject than something of practical utility. This document was originally just a description of the RIGID keyword, but owing to its complexity/it being overkill in most situations, it ended up being a catalogue of helpful ways <em>not</em> to use it.
+WARNING: Here be a rabbit hole - there are many approaches of increasing complexity, depending on what you want to achieve.  
+I'd <em>strongly</em> advise to not read down any further into this document than you need to. 
+This topic starts out fun but at its deepest extents is <em>exceedingly</em> delicate, and more akin to a research-subject than something of practical utility. 
+This document was originally just a description of the RIGID keyword, but owing to its complexity/it being overkill in most situations, 
+it ended up being a catalogue of helpful ways <em>not</em> to use it.
 </p><p>
-SO, let's start are catalogue of cases:
+SO, let's start our catalogue of cases:
 </p><p>
  <h3><span id="one_one"></span>One Player, One Extended body.</h3>
 </p><p>
  <img src="images/rigid_11.gif">
 </p><p>
- This is the easiest. You just push everything, and if one crate can't be pushed, you cancel everything:
+ This is the easiest. 
+ You just push everything, and if one crate can't be pushed, you cancel everything:
 </p><p>
  <pre><code><a href="../editor.html?demo=rigid_11" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[ > Player | Crate ] -> [ > Player | > Crate ]
 [ > Crate ] [ stationary Crate ] -> [ > Crate ] [ > Crate ]
@@ -252,13 +257,15 @@ And I might be feeling good about myself, but there's still a lot of ways that m
 </p><p>
  Well that's no good at all. 
 </p><p>
- Anyway, this goes on and on and you can patch things up until the cows come home but ultimately you'll be nervous you're missing something. It's a gigantic and subtle kettle of worms, as I hope I've demonstrated.
+ Anyway, this goes on and on and you can patch things up until the cows come home but ultimately you'll be nervous you're missing something. 
+ It's a gigantic and subtle kettle of worms, as I hope I've demonstrated.
 </p><p>
  So how did I go about trying to help the engine support this in a more robust way? Read on!
 </p><p>
 <h3><span id="rigid_keyword"></span>The RIGID keyword</h3>
 </p><p>
-Initially I thought the solution would be to add a keyword to <em>objects</em>, to mark them as <b>rigid</b>. However, I later realized that it was far nicer, and cooler, and more in-keeping with the engine, to think of rigidity as something you could apply instead to <em>rules</em>. 
+Initially I thought the solution would be to add a keyword to <em>objects</em>, to mark them as <b>rigid</b>. 
+However, I later realized that it was far nicer, and cooler, and more in-keeping with the engine, to think of rigidity as something you could apply instead to <em>rules</em>. 
 </p><p>
 Let's just dive in and explain exactly what it is. 
 </p><p>
@@ -268,21 +275,22 @@ Let's just dive in and explain exactly what it is.
 </p><p>
  <h4>Semantics of RIGID</h4>
  <ul>
-<li>The RIGID keyword is a keyword that can be applied to any rule.</li>
+<li>The <b>rigid</b> keyword is a keyword that can be applied to any rule.</li>
  <li>When a RIGID RULE triggers movements, the MOVEMENTS are tagged as being RIGID, and coming from a particular RULE-GROUP.
  <p>
  <ul>
- <li>Even if a rigid rule doesn't change the state of the level (let's say it tries to apply movements that already exist), it will still tag all movements as being rigid and coming from its rule-group.</li>
+ <li>Even if a RIGID rule doesn't change the state of the level (let's say it tries to apply movements that already exist), it will still tag all movements as being RIGID and coming from its rule-group.</li>
  <li>Assigning ACTION counts as assigning a movement.</li>
  <li>Assigning STATIONARY counts as assigning a movement.</li>
- <li>There does need to be <em>some</em> movement mentioned though: <code>rigid [ Crate ] -> [ Crate ] Sfx0</code> will not cause anything to be marked as rigid.</li>
- <li>If a movement is implicitly removed, by it being mentioned on the left but not on the right, it is not marked as being rigid (e.g. <code>rigid [ right Crate ] -> [ Crate ] </code> will not cause anything to be marked as rigid, whereas <code>rigid [ right Crate ] -> [ stationary Crate ] </code> will).</li>
+ <li>There does need to be <em>some</em> movement mentioned though: <code>rigid [ Crate ] -> [ Crate ] Sfx0</code> will not cause anything to be marked as RIGID.</li>
+ <li>If a movement is implicitly removed, by it being mentioned on the left but not on the right, it is not marked as being RIGID 
+  (e.g. <code>rigid [ right Crate ] -> [ Crate ] </code> will not cause anything to be marked as RIGID, whereas <code>rigid [ right Crate ] -> [ stationary Crate ] </code> will).</li>
  <li>Even if subsequent rules (even in other rule-groups) alter the movement of this object, the RIGID tag persists.</li>
  <li>Even if subsequent rules (even in other rule-groups) delete the objects, the RIGID tag persists and any subsequent unresolvable movements created on that tile in that layer will trigger the rigid cancellation.</li>
  <li>Even a RIGID rule removing an object on a layer causes that position and that layer to be marked as RIGID.</li>
  </ul>
  </p><p>
- I guess the rule-of-thumb is that RIGID applies a tag to a layer when any movement-related stuff is mentioned on the RHS of a rule.
+ I guess the rule-of-thumb is that <b>rigid</b> applies a tag to a layer when any movement-related stuff is mentioned on the RHS of a rule.
  </p>
  </li>
  <li>During the MOVE-RESOLUTION PHASE, if a MOVEMENT cannot be resolved, and if the movement is associated with a RIGID tag, the whole RULE-GROUP is disabled for that turn, and the TURN is simulated again from the beginning. This may happen iteratively, with additional RULE-GROUPS being disabled on subsequent resimulations.</li>
@@ -323,7 +331,9 @@ rigid [ > LittleBlock | BigBlock ] -> [ > LittleBlock | > BigBlock ]
 + rigid [ moving BigBlock | BigBlock ] -> [ moving BigBlock | moving BigBlock ]
 + [ > BigBlock | LittleBlock ] -> [ > BigBlock | > LittleBlock ]</code></pre>
 </p><p>
-The rule is, anything that adds motion to a BigBlock has to be marked as rigid. Repeating the code twice isn't so bad, really, but if one has more than two block types, there's no compact method of encompassing all the ways that they can interact without maybe introducing one thing that I should mention.  We'll need to take a few steps back and look at a simple but related scenario:
+The rule is, anything that adds motion to a BigBlock has to be marked as rigid. 
+Repeating the code twice isn't so bad, really, but if one has more than two block types, there's no compact method of encompassing all the ways that they can interact without maybe introducing one thing that I should mention.  
+We'll need to take a few steps back and look at a simple but related scenario:
 </p><p>
 Let's try to model two crate types, where crates can push crates.
 </p><p>
@@ -344,7 +354,9 @@ RULES
 [ > Crate | Crate ] -> [ > Crate | > Crate ]
 </code></pre>
 </p><p>
-Thich works splendidly. But what if we weren't allowed to refer to the Crate but instead had to refer to them individually, or weren't allowed to combine them together into a rulegroup in the second rule? We could try something like:
+Which works splendidly. 
+But what if we weren't allowed to refer to the Crate but instead had to refer to them individually, or weren't allowed to combine them together into a rulegroup in the second rule? 
+We could try something like:
 </p><p>
 <pre><code><a href="../editor.html?demo=twolittlecrates2" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[ >  Player | Crate ] -> [  >  Player | > Crate  ]     
 
@@ -407,11 +419,15 @@ However, we don't have this luxury for rigidbodies (Can you tell why not? It's b
 
 endloop</code></pre>
 </p><p>
-And this gives us the image at the beginning of this document. It works even if there are multiple player characters moving in multiple directions at a single time:
+And this gives us the image at the beginning of this document. 
+It works even if there are multiple player characters moving in multiple directions at a single time:
 </p><p>
     <img src="images/rigidbodies.gif">
 </p><p>
-Anyway, that's it.  Thanks for bearing with me through this rather labourious description.  <a href="mailto:analytic@gmail.com">Drop me a mail</a> if you noticed I made a mistake anywhere.  This material is hairy, so it's very possible there are some errors above.
+Anyway, that's it.  
+Thanks for bearing with me through this rather labourious description.  
+Let me know if you noticed I made a mistake anywhere.  
+This material is hairy, so it's very possible there are some errors above.
 </p>
 </div><!-- /.container -->
 
