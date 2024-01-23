@@ -46,6 +46,12 @@ function isMappedTo(state, key, target) {
     return Object.hasOwn(state.mappings, key) && state.mappings[key].fromKey == target;
 }
 
+// is there a mapping fomr => key?
+function canMapValue(state, key, from) {
+    const map = state.mappings[key];
+    return map && map.fromKey == from;
+}
+
 function getMappedValue(state, key, value) {
     const map = state.mappings[key];
     const index = map.fromValues.indexOf(value);
@@ -1223,7 +1229,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  // PS>
+            } else if (isAlreadyDeclared(state, token) || createObjectRef(state, token)) { // @@
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -1420,11 +1426,15 @@ function expandRuleWithPrefixes(state, rule) {
 // function to be used during deep clone rule
 // note: will fail badly if map and tag are not a match, so check beforehand!
 function replaceObjectPrefix(state, objid, prefixes, exp) {
+    // in each could be any prefix and we need to find which one
+    const fnGetTag = p => prefixes.includes(p) && exp[prefixes.indexOf(p)];
+    const fnGetMap = p => {
+        const pref = prefixes.find(x => canMapValue(state, p, x));
+        return pref && getMappedValue(state, p, exp[prefixes.indexOf(pref)]);
+    };
+
     return objid.split(':')
-        .map(p => prefixes.includes(p) ? exp[prefixes.indexOf(p)]
-            //: Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(p)])
-            : Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(state.mappings[p].fromKey)])
-            : p)
+        .map(p => fnGetTag(p) || fnGetMap(p) || p)
         .join(':');
 }
 

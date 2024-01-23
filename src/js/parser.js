@@ -755,6 +755,7 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        else delete state.mappings[state.objects_candname];
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -765,7 +766,7 @@ var codeMirrorFn = function() {
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
-                    logError(`The name "${token}" needs to be defined by ${fromIdent}.`, state.lineNumber);
+                    logError(`The name "${token}" needs to be defined by ${mapping.fromKey}.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
                     lexer.pushToken(token, 'NAME');

@@ -16,13 +16,22 @@ tag2 = t21 t22 t23 t24
 tag3 = t31 tag1 tag2
 tagbool = true false
 dirs = up down left right
-nums = n1 n2 n3 n4 n5
+num4 = n1 n2 n3 n4
+num5 = n1 n2 n3 n4 n5
 
 ========
 MAPPINGS
 ========
-nums => nexts
-n1 n2 n3 n4 n5 -> n2 n3 n4 n5 n1
+num4 => next4
+n1 n2 n3 n4 -> n2 n3 n4 n4
+num4 => prev4
+n1 n2 n3 n4 -> n1 n1 n2 n3
+
+num5 => next5
+n1 n2 n3 n4 n5 -> n2 n3 n4 n5 n5
+num5 => prev5
+n1 n2 n3 n4 n5 -> n1 n1 n2 n3 n4
+
 dirs => revs
 up down left right -> down up right left
 
@@ -76,6 +85,12 @@ pink
 obj7:false
 purple
 
+objn4:num4
+green
+
+objn5:num5
+blue
+
 =======
 LEGEND
 =======
@@ -97,10 +112,18 @@ objax, obj2:dirs, obj3:dirs
 dirs -> obj4:dirs, obj5:tag1:dirs
 obj6:tag1:dirs:tag2
 obj7:true,obj7:false
+objn4:num4, objn5:num5
 
 ======
 RULES
 ======
+
+// mappings
+num4 [ objn4:num4 ] -> [ objn4:num4 ]
+num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:num4 ]
+num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:next4 ]
+num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:prev5 ]       // invalid
+num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:next5 ]
 
 // check props
 right [ ^ p | obj6:t12:up:tag2 ] -> [ p | ]

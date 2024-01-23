@@ -1,0 +1,1436 @@
+title New Isometric Test
+author jcGyo
+homepage https://www.puzzlescript.net
+run_rules_on_level_start
+zoomscreen 40x25
+local_radius 40
+again_interval 0.06
+norepeat_action
+
+//( converted to use tags )
+debug_switch tag,map,obj,layer,prop
+
+TAGS
+====
+NNN = _0 _1 _2 _3 _4 _5
+NN4 = _0 _1 _2 _3 _4
+
+UULL  = R_UULL D_UULL L_UULL U_UULL
+UUL   = R_UUL  D_UUL  L_UUL  U_UUL 
+UUR   = R_UUR  D_UUR  L_UUR  U_UUR 
+UURR  = R_UURR D_UURR L_UURR U_UURR
+ULL   = R_ULL  D_ULL  L_ULL  U_ULL 
+UL    = R_UL   D_UL   L_UL   U_UL  
+UR    = R_UR   D_UR   L_UR   U_UR  
+URR   = R_URR  D_URR  L_URR  U_URR 
+LL    = R_LL   D_LL   L_LL   U_LL  
+L     = R_L    D_L    L_L    U_L   
+R     = R_R    D_R    L_R    U_R   
+RR    = R_RR   D_RR   L_RR   U_RR  
+DLL   = R_DLL  D_DLL  L_DLL  U_DLL 
+DL    = R_DL   D_DL   L_DL   U_DL  
+DR    = R_DR   D_DR   L_DR   U_DR  
+DRR   = R_DRR  D_DRR  L_DRR  U_DRR 
+
+
+Top   = UULL UUL UUR UURR
+Mid1  = ULL  UL  UR  URR
+Mid2  = LL   L   R   RR
+Bot   = DLL  DL  DR  DRR
+
+Sprites = Top Mid1 Mid2 Bot  
+
+RRR = R_UULL R_UUL R_UUR R_UURR R_ULL R_UL R_UR R_URR R_LL R_L R_R R_RR R_DLL R_DL R_DR R_DRR R_Top R_Mid1 R_Mid2 R_Bot 
+DDD = D_UULL D_UUL D_UUR D_UURR D_ULL D_UL D_UR D_URR D_LL D_L D_R D_RR D_DLL D_DL D_DR D_DRR D_Top D_Mid1 D_Mid2 D_Bot  
+LLL = L_UULL L_UUL L_UUR L_UURR L_ULL L_UL L_UR L_URR L_LL L_L L_R L_RR L_DLL L_DL L_DR L_DRR L_Top L_Mid1 L_Mid2 L_Bot  
+UUU = U_UULL U_UUL U_UUR U_UURR U_ULL U_UL U_UR U_URR U_LL U_L U_R U_RR U_DLL U_DL U_DR U_DRR U_Top U_Mid1 U_Mid2 U_Bot  
+
+ODD = Sprites
+
+MAPPINGS
+========
+NN4 => NN4d
+_0 _1 _2 _3 _4 -> _0 _0 _1 _2 _3
+
+//NNN => NNinc
+//_0 _1 _2 _3 _4 _5 -> _1 _2 _3 _4 _5 _5
+
+//NNN => NN4d
+//_0 _1 _2 _3 _4 _5 -> _0 _0 _1 _2 _3 _4
+
+========
+OBJECTS
+========
+
+Background
+black
+
+Player
+transparent
+
+Player:NN4
+transparent
+
+Grass0ULL
+#028A0F
+.....
+.....
+.....
+....0
+..000
+
+Grass0UL
+#028A0F
+.....
+...00
+.0000
+00000
+00000
+
+Grass0UR
+#028A0F
+.....
+00...
+0000.
+00000
+00000
+
+Grass0URR
+#028A0F
+.....
+.....
+.....
+0....
+000..
+
+Grass0DLL
+#028A0F
+00000
+..000
+....0
+.....
+.....
+
+Grass0DL
+#028A0F
+00000
+00000
+00000
+.0000
+...00
+
+Grass0DR
+#028A0F
+00000
+00000
+00000
+0000.
+00...
+
+Grass0DRR
+#028A0F
+00000
+000..
+0....
+.....
+.....
+
+Grass1ULL
+#3CB043
+.....
+.....
+.....
+....0
+..000
+
+Grass1UL
+#3CB043
+.....
+...00
+.0000
+00000
+00000
+
+Grass1UR
+#3CB043
+.....
+00...
+0000.
+00000
+00000
+
+Grass1URR
+#3CB043
+.....
+.....
+.....
+0....
+000..
+
+Grass1DLL
+#3CB043
+00000
+..000
+....0
+.....
+.....
+
+Grass1DL
+#3CB043
+00000
+00000
+00000
+.0000
+...00
+
+Grass1DR
+#3CB043
+00000
+00000
+00000
+0000.
+00...
+
+Grass1DRR
+#3CB043
+00000
+000..
+0....
+.....
+.....
+
+Grass2ULL
+#AEF359
+.....
+.....
+.....
+....0
+..000
+
+Grass2UL
+#AEF359
+.....
+...00
+.0000
+00000
+00000
+
+Grass2UR
+#AEF359
+.....
+00...
+0000.
+00000
+00000
+
+Grass2URR
+#AEF359
+.....
+.....
+.....
+0....
+000..
+
+Grass2DLL
+#AEF359
+00000
+..000
+....0
+.....
+.....
+
+Grass2DL
+#AEF359
+00000
+00000
+00000
+.0000
+...00
+
+Grass2DR
+#AEF359
+00000
+00000
+00000
+0000.
+00...
+
+Grass2DRR
+#AEF359
+00000
+000..
+0....
+.....
+.....
+
+Grass3ULL
+#466D1D
+.....
+.....
+.....
+....0
+..000
+
+Grass3UL
+#466D1D
+.....
+...00
+.0000
+00000
+00000
+
+Grass3UR
+#466D1D
+.....
+00...
+0000.
+00000
+00000
+
+Grass3URR
+#466D1D
+.....
+.....
+.....
+0....
+000..
+
+Grass3DLL
+#466D1D
+00000
+..000
+....0
+.....
+.....
+
+Grass3DL
+#466D1D
+00000
+00000
+00000
+.0000
+...00
+
+Grass3DR
+#466D1D
+00000
+00000
+00000
+0000.
+00...
+
+Grass3DRR
+#466D1D
+00000
+000..
+0....
+.....
+.....
+
+Grass4ULL
+#3DED97
+.....
+.....
+.....
+....0
+..000
+
+Grass4UL
+#3DED97
+.....
+...00
+.0000
+00000
+00000
+
+Grass4UR
+#3DED97
+.....
+00...
+0000.
+00000
+00000
+
+Grass4URR
+#3DED97
+.....
+.....
+.....
+0....
+000..
+
+Grass4DLL
+#3DED97
+00000
+..000
+....0
+.....
+.....
+
+Grass4DL
+#3DED97
+00000
+00000
+00000
+.0000
+...00
+
+Grass4DR
+#3DED97
+00000
+00000
+00000
+0000.
+00...
+
+Grass4DRR
+#3DED97
+00000
+000..
+0....
+.....
+.....
+
+Ground0LL
+grey
+
+Ground0L
+grey
+
+Ground0R
+darkgrey
+
+Ground0RR
+darkgrey
+
+Ground1LL
+grey
+
+Ground1L
+grey
+
+Ground1R
+darkgrey
+
+Ground1RR
+darkgrey
+
+Ground1halfLL
+grey
+
+Ground1halfL
+grey
+
+Ground1halfR
+darkgrey
+
+Ground1halfRR
+darkgrey
+
+Ground2LL
+grey
+
+Ground2L
+grey
+
+Ground2R
+darkgrey
+
+Ground2RR
+darkgrey
+
+Ground2halfLL
+grey
+
+Ground2halfL
+grey
+
+Ground2halfR
+darkgrey
+
+Ground2halfRR
+darkgrey
+
+Ground3LL
+grey
+
+Ground3L
+grey
+
+Ground3R
+darkgrey
+
+Ground3RR
+darkgrey
+
+Ground3halfLL
+grey
+
+Ground3halfL
+grey
+
+Ground3halfR
+darkgrey
+
+Ground3halfRR
+darkgrey
+
+Ground4LL
+grey
+
+Ground4L
+grey
+
+Ground4R
+darkgrey
+
+Ground4RR
+darkgrey
+
+Ground4halfLL
+grey
+
+Ground4halfL
+grey
+
+Ground4halfR
+darkgrey
+
+Ground4halfRR
+darkgrey
+
+GroundDLL
+grey
+00000
+..000
+....0
+.....
+.....
+
+GroundDL
+grey
+00000
+00000
+00000
+.0000
+...00
+
+GroundDRR
+darkgrey
+00000
+000..
+0....
+.....
+.....
+
+GroundDR
+darkgrey
+00000
+00000
+00000
+0000.
+00...
+
+GrassTile
+transparent
+
+Height1
+transparent
+
+Height2
+transparent
+
+Height3
+transparent
+
+Height4
+transparent
+
+Temp
+transparent
+
+
+
+Player:NN4:R_UULL
+#A5D6E8 #F5FCFF
+.....
+.....
+.....
+....0
+...01
+
+Player:NN4:R_UUL
+#A5D6E8 #F5FCFF
+...00
+.0011
+01111
+11111
+11111
+
+Player:NN4:R_UUR
+#A5D6E8 #F5FCFF #BDD9E4 #97C7D9
+00...
+110..
+1110.
+11110
+11223
+
+Player:NN4:R_UURR
+transparent
+
+Player:NN4:R_ULL
+#A5D6E8 #F5FCFF #D3F3FF
+..011
+..011
+..011
+.0011
+.0211
+
+Player:NN4:R_UL
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4
+11111
+11110
+11103
+11143
+22244
+
+Player:NN4:R_UR
+#A5D6E8 #BDD9E4 #97C7D9 #ADD5E4 #B8212E #930F17
+01231
+12342
+24353
+35333
+33331
+
+Player:NN4:R_URR
+#97C7D9 #BDD9E4 #A5D6E8 #3366E4 #3366FF
+0....
+122..
+1222.
+1122.
+1134.
+
+Player:NN4:R_LL
+#A5D6E8 #F5FCFF #D3F3FF
+.0211
+.0221
+..002
+..010
+..011
+
+Player:NN4:R_L
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4 #3366FF
+11223
+11111
+22115
+00005
+11114
+
+Player:NN4:R_R
+#BDD9E4 #ADD5E4 #3366FF #3366E4
+00000
+10000
+20000
+33000
+30000
+
+Player:NN4:R_RR
+#BDD9E4 #ADD5E4 #97C7D9 #3366FF #3366E4
+01433
+0224.
+02...
+01...
+002..
+
+Player:NN4:R_DLL
+#A5D6E8 #F5FCFF
+.0111
+..011
+...00
+.....
+.....
+
+Player:NN4:R_DL
+#A5D6E8 #F5FCFF #BDD9E4
+11112
+11112
+01112
+.0002
+....0
+
+Player:NN4:R_DR
+#BDD9E4 #97C7D9 #3366FF
+00000
+00000
+02211
+0222.
+1....
+
+Player:NN4:R_DRR
+#97C7D9 #3366FF
+110..
+111..
+.....
+.....
+.....
+
+Player:NN4:D_UULL
+transparent
+
+Player:NN4:D_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+Player:NN4:D_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player:NN4:D_UURR
+#A5D6E8 #BDD9E4 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player:NN4:D_ULL
+#A5D6E8 #D3F3FF #3366FF #F5FCFF 
+....0
+..003
+.0110
+.1133
+.2233
+
+
+Player:NN4:D_UL
+#D3F3FF #A5D6E8 #F5FCFF #EB212E #9C0F17 
+01101
+13010
+04030
+00040
+20000
+
+Player:NN4:D_UR
+#F5FCFF #A5D6E8 #D3F3FF #BDD9E4 #ADD5E4 
+00003
+10333
+23333
+23333
+03444
+
+Player:NN4:D_URR
+#BDD9E4 #97C7D9 #ADD5E4 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player:NN4:D_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+00023
+.0113
+...13
+...13
+..133
+
+
+Player:NN4:D_L
+#F5FCFF #3366FF #D3F3FF 
+00000
+00002
+00001
+00011
+00001
+
+
+Player:NN4:D_R
+#D3F3FF #F5FCFF #3366FF #ADD5E4 #BDD9E4 #A5D6E8 #97C7D9 
+03344
+14444
+21433
+25666
+11444
+
+
+Player:NN4:D_RR
+#BDD9E4 #ADD5E4 #97C7D9 
+0012.
+0112.
+122..
+202..
+002..
+
+
+Player:NN4:D_DLL
+#A5D6E8 #3366FF 
+..011
+..111
+.....
+.....
+.....
+
+
+Player:NN4:D_DL
+#F5FCFF #A5D6E8 #3366FF 
+00000
+00000
+11220
+.2220
+....1
+
+
+Player:NN4:D_DR
+#F5FCFF #A5D6E8 #BDD9E4 #97C7D9 
+00222
+00222
+00223
+0131.
+1....
+
+
+Player:NN4:D_DRR
+#BDD9E4 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player:NN4:L_UULL
+transparent
+
+
+Player:NN4:L_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+
+Player:NN4:L_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player:NN4:L_UURR
+#A5D6E8 #BCD9E3 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player:NN4:L_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+....0
+..002
+.0112
+.0122
+.0122
+
+
+Player:NN4:L_UL
+#F5FCFF 
+00000
+00000
+00000
+00000
+00000
+
+
+Player:NN4:L_UR
+#F5FCFF #BCD9E3 
+00001
+00111
+11111
+11111
+11111
+
+
+Player:NN4:L_URR
+#BCD9E3 #97C7D9 #ACD4E3 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player:NN4:L_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+01233
+.1111
+...13
+...13
+.0133
+
+
+Player:NN4:L_L
+#A5D6E8 #F5FCFF #BCD9E3 
+01112
+11112
+11112
+11112
+11112
+
+
+Player:NN4:L_R
+#BCD9E3 
+00000
+00000
+00000
+00000
+00000
+
+
+Player:NN4:L_RR
+#BCD9E3 #ACD4E3 #97C7D9 
+0012.
+0012.
+002..
+002..
+002..
+
+
+Player:NN4:L_DLL
+#3366FF #A5D6E8 #F5FCFF 
+.0112
+....1
+.....
+.....
+.....
+
+
+Player:NN4:L_DL
+#F5FCFF #A5D6E8 #BCD9E3 
+00002
+00002
+11002
+..112
+....1
+
+
+Player:NN4:L_DR
+#BCD9E3 #A5D6E8 #97C7D9 
+00000
+00000
+00002
+0221.
+1....
+
+
+Player:NN4:L_DRR
+#BCD9E3 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player:NN4:U_UULL
+#A5D6E8 #F5FCFF 
+.....
+.....
+.....
+....0
+...01
+
+
+Player:NN4:U_UUL
+#A5D6E8 #F5FCFF 
+...00
+.0011
+01111
+11111
+11111
+
+
+Player:NN4:U_UUR
+#A5D6E8 #F5FCFF #BCD9E3 #97C7D9 
+00...
+110..
+1110.
+11113
+11123
+
+
+Player:NN4:U_UURR
+transparent
+
+
+Player:NN4:U_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+..022
+..022
+..022
+.0022
+.0122
+
+
+Player:NN4:U_UL
+#F5FCFF #BCD9E3 
+00000
+00000
+00000
+00001
+00001
+
+
+Player:NN4:U_UR
+#F5FCFF #BCD9E3 
+01111
+11111
+11111
+11111
+11111
+
+
+Player:NN4:U_URR
+#97C7D9 #BCD9E3 #ACD4E3 #A5D6E8 
+0....
+100..
+1223.
+1120.
+1120.
+
+
+Player:NN4:U_LL
+#A5D6E8 #D3F3FF #F5FCFF 
+.0122
+.0122
+..022
+..022
+..022
+
+
+Player:NN4:U_L
+#F5FCFF #BCD9E3 
+00001
+00001
+00001
+00001
+00001
+
+
+Player:NN4:U_R
+#BCD9E3 #97C7D9 
+00001
+00000
+00000
+00000
+00000
+
+
+Player:NN4:U_RR
+#BCD9E3 #97C7D9 #ACD4E3 #A5D6E8 #3366E3 #3366FF 
+00215
+1131.
+01...
+01...
+0014.
+
+
+Player:NN4:U_DLL
+#A5D6E8 #F5FCFF 
+.0111
+..011
+...00
+.....
+.....
+
+
+Player:NN4:U_DL
+#F5FCFF #A5D6E8 #BCD9E3 #97C7D9 
+00002
+00002
+10000
+.1110
+....3
+
+
+Player:NN4:U_DR
+#BCD9E3 #97C7D9 
+00000
+00000
+00011
+011..
+1....
+
+
+Player:NN4:U_DRR
+#BCD9E3 #97C7D9 #3366E3 
+0112.
+1....
+.....
+.....
+.....
+
+DownMarker:NN4
+transparent
+
+UpMarker:NN4
+transparent
+
+LeftMarker:NN4
+transparent
+
+RightMarker:NN4
+transparent
+
+PlayerStart
+transparent
+
+AtLevel:NN4
+transparent
+
+GameOver
+#660000 (#66000066)
+
+=======
+LEGEND
+=======
+
+. = Background
+* = GrassTile
+P = Player and PlayerStart
+Q = PlayerStart
+1 = Height1
+2 = Height2
+3 = Height3
+4 = Height4
+
+Grass0Up = Grass0ULL or Grass0UL or Grass0UR or Grass0URR
+Grass0Down = Grass0DLL or Grass0DL or Grass0DR or Grass0DRR
+
+Grass1Up = Grass1ULL or Grass1UL or Grass1UR or Grass1URR
+Grass1Down = Grass1DLL or Grass1DL or Grass1DR or Grass1DRR
+
+Grass2Up = Grass2ULL or Grass2UL or Grass2UR or Grass2URR
+Grass2Down = Grass2DLL or Grass2DL or Grass2DR or Grass2DRR
+
+Grass3Up = Grass3ULL or Grass3UL or Grass3UR or Grass3URR
+Grass3Down = Grass3DLL or Grass3DL or Grass3DR or Grass3DRR
+
+Grass4Up = Grass4ULL or Grass4UL or Grass4UR or Grass4URR
+Grass4Down = Grass4DLL or Grass4DL or Grass4DR or Grass4DRR
+
+GroundD = GroundDLL or GroundDL or GroundDR or GroundDRR
+
+Ground0 = Ground0LL or Ground0L or Ground0R or Ground0RR
+
+Ground1 = Ground1LL or Ground1L or Ground1R or Ground1RR
+
+Ground1half = Ground1halfLL or Ground1halfL or Ground1halfR or Ground1halfRR
+
+Ground2 = Ground2LL or Ground2L or Ground2R or Ground2RR
+
+Ground2half = Ground2halfLL or Ground2halfL or Ground2halfR or Ground2halfRR
+
+Ground3 = Ground3LL or Ground3L or Ground3R or Ground3RR
+
+Ground3half = Ground3halfLL or Ground3halfL or Ground3halfR or Ground3halfRR
+
+Ground4 = Ground4LL or Ground4L or Ground4R or Ground4RR
+
+Ground4half = Ground4halfLL or Ground4halfL or Ground4halfR or Ground4halfRR
+
+Ground = GroundD or Ground1 or Ground2 or Ground3 or Ground4
+
+HeightMarker = Height1 or Height2 or Height3 or Height4
+
+DirMarkers:_0 = UpMarker:_0 or DownMarker:_0 or LeftMarker:_0 or RightMarker:_0
+DirMarkers:_1 = UpMarker:_1 or DownMarker:_1 or LeftMarker:_1 or RightMarker:_1
+DirMarkers:_2 = UpMarker:_2 or DownMarker:_2 or LeftMarker:_2 or RightMarker:_2
+DirMarkers:_3 = UpMarker:_3 or DownMarker:_3 or LeftMarker:_3 or RightMarker:_3
+DirMarkers:_4 = UpMarker:_4 or DownMarker:_4 or LeftMarker:_4 or RightMarker:_4
+
+PlayerSprites = Player:NN4:Sprites
+
+PlayerLayers = Player:NN4
+
+Walkable:_0 = Grass0ULL
+Walkable:_1 = Grass1ULL or Player:_0:UULL
+Walkable:_2 = Grass2ULL or Player:_1:UULL
+Walkable:_3 = Grass3ULL or Player:_2:UULL
+Walkable:_4 = Grass4ULL or Player:_3:UULL
+
+CurLevel = AtLevel:NN4
+
+BlocksMovement:_0 = Player:_0 or Ground1LL
+BlocksMovement:_1 = Player:_1 or Ground2LL
+BlocksMovement:_2 = Player:_2 or Ground3LL
+BlocksMovement:_3 = Player:_3 or Ground4LL
+BlocksMovement:_4 = Player:_4
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+
+GrassTile
+GroundD
+Ground0
+Grass0Down
+Grass0Up
+
+Player:_0:Bot
+Ground1
+Player:_0:Mid2
+Ground1half
+Player:_0:Mid1
+Grass1Down
+Player:_0:Top
+Grass1Up
+
+Player:_1:Bot
+Ground2
+Player:_1:Mid2
+Ground2half
+Player:_1:Mid1
+Grass2Down
+Player:_1:Top
+Grass2Up
+
+Player:_2:Bot
+Ground3
+Player:_2:Mid2
+Ground3half
+Player:_2:Mid1
+Grass3Down
+Player:_2:Top
+Grass3Up
+
+Player:_3:Bot
+Ground4
+Player:_3:Mid2
+Ground4half
+Player:_3:Mid1
+Grass4Down
+Player:_3:Top
+Grass4Up
+
+Player:_4:Sprites
+
+HeightMarker
+NN4 -> DirMarkers:NN4
+
+Player
+NN4 -> Player:NN4
+
+CurLevel
+
+PlayerStart
+
+Temp
+
+GameOver
+
+======
+RULES
+======
+
+[Player no CurLevel] [CurLevel] -> [Player CurLevel] []
+
+[stationary Player] [PlayerSprites] -> [Player] []
+
+[Player:_0 no Walkable:_0] [no GameOver] -> [Player:_0] [GameOver]
+[moving Player] [GameOver] -> cancel
+
+(Falling)
+(Player 1)
+DOWN NN4 [Player AtLevel:NN4 Player:NN4 RightMarker:NN4 no Walkable:NN4||] ->[||Player AtLevel:NN4d Player:NN4 RightMarker:NN4d]
+DOWN NN4 [Player AtLevel:NN4 Player:NN4  LeftMarker:NN4 no Walkable:NN4||] ->[||Player AtLevel:NN4d Player:NN4  LeftMarker:NN4d]
+DOWN NN4 [Player AtLevel:NN4 Player:NN4    UpMarker:NN4 no Walkable:NN4||] ->[||Player AtLevel:NN4d Player:NN4    UpMarker:NN4d]
+DOWN NN4 [Player AtLevel:NN4 Player:NN4  DownMarker:NN4 no Walkable:NN4||] ->[||Player AtLevel:NN4d Player:NN4  DownMarker:NN4d]
+
+(Player 2)
+DOWN NN4 [Player:NN4 RightMarker:NN4 no Walkable:NN4 no AtLevel:NN4||] ->[||Player:NN4d RightMarker:NN4d]
+DOWN NN4 [Player:NN4  LeftMarker:NN4 no Walkable:NN4 no AtLevel:NN4||] ->[||Player:NN4d  LeftMarker:NN4d]
+DOWN NN4 [Player:NN4    UpMarker:NN4 no Walkable:NN4 no AtLevel:NN4||] ->[||Player:NN4d    UpMarker:NN4d]
+DOWN NN4 [Player:NN4  DownMarker:NN4 no Walkable:NN4 no AtLevel:NN4||] ->[||Player:NN4d  DownMarker:NN4d]
+
+NN4 [action Player CurLevel] [Player:NN4 no AtLevel:NN4] -> [] [Player:NN4 Player AtLevel:NN4]
+
+GLOBAL RIGHT[GrassTile no HeightMarker|HeightMarker] -> [GrassTile HeightMarker|]
+
+
+(Active Player Setup)
+RIGHT[GrassTile no PlayerStart||PlayerStart Player] -> [GrassTile PlayerStart Player||]
+
+UP [PlayerStart no HeightMarker Player|] -> [|Player:_0 Player AtLevel:_0]
+
+UP [PlayerStart Height1 Player|||] -> [Height1|||Player:_1 Player AtLevel:_1]
+
+UP [PlayerStart Height2 Player|||||] -> [Height2|||||Player:_2 Player AtLevel:_2]
+
+UP [PlayerStart Height3 Player|||||||] -> [Height3|||||||Player:_3 Player AtLevel:_3]
+
+UP [PlayerStart Height4 Player|||||||||] -> [Height4|||||||||Player:_4 Player AtLevel:_4]
+
+(Second Player Setup)
+RIGHT[GrassTile no PlayerStart||PlayerStart] -> [GrassTile PlayerStart||]
+
+UP [PlayerStart no HeightMarker|] -> [|Player:_0]
+
+UP [PlayerStart Height1|||] -> [Height1|||Player:_1]
+
+UP [PlayerStart Height2|||||] -> [Height2|||||Player:_2]
+
+UP [PlayerStart Height3|||||||] -> [Height3|||||||Player:_3]
+
+UP [PlayerStart Height4|||||||||] -> [Height4|||||||||Player:_4]
+
+(Setup Movement)
+
+NN4 [orthogonal Player Player:NN4 AtLevel:NN4] -> [Player orthogonal Player:NN4 AtLevel:NN4]
+
+NN4 [Player:NN4 no DirMarkers:NN4] -> [Player:NN4 RightMarker:NN4]
+NN4 [Up    Player:NN4 DirMarkers:NN4] -> [Up    Player:NN4 UpMarker:NN4   ]
+NN4 [Down  Player:NN4 DirMarkers:NN4] -> [Down  Player:NN4 DownMarker:NN4 ]
+NN4 [Left  Player:NN4 DirMarkers:NN4] -> [Left  Player:NN4 LeftMarker:NN4 ]
+NN4 [Right Player:NN4 DirMarkers:NN4] -> [Right Player:NN4 RightMarker:NN4]
+
+(Prevent movement when stacked)
+(
+UP [orthogonal Player:_0:||Player:1] -> [Player:_0:||Player:1]
+UP [orthogonal Player:1:||Player:_2] -> [Player:1:||Player:2]
+UP [orthogonal Player:2:||Player:3] -> [Player:2:||Player:3]
+UP [orthogonal Player:3:||Player:4] -> [Player:3:||Player:4])
+
+NN4 RIGHT [UP Player:NN4 Player DirMarkers:NN4||] -> [||temp DirMarkers:NN4]
+NN4 UP [temp DirMarkers:NN4|Walkable:NN4 no BlocksMovement:NN4] -> [|Walkable:NN4 Player:NN4 Player DirMarkers:NN4]
+NN4 RIGHT [||temp DirMarkers:NN4] -> [Player:NN4 Player DirMarkers:NN4||]
+
+NN4 RIGHT [RIGHT Player:NN4 Player DirMarkers:NN4||] -> [||temp DirMarkers:NN4]
+NN4 DOWN [temp DirMarkers:NN4|Walkable:NN4 no BlocksMovement:NN4] -> [|Walkable:NN4 Player:NN4 Player DirMarkers:NN4]
+NN4 RIGHT [||temp DirMarkers:NN4] -> [Player:NN4 Player DirMarkers:NN4||]
+
+NN4 LEFT [DOWN Player:NN4 Player DirMarkers:NN4||] -> [||temp DirMarkers:NN4]
+NN4 DOWN [temp DirMarkers:NN4|Walkable:NN4 no BlocksMovement:NN4] -> [|Walkable:NN4 Player:NN4 Player DirMarkers:NN4]
+NN4 LEFT [||temp DirMarkers:NN4] -> [Player:NN4 Player DirMarkers:NN4||]
+
+NN4 LEFT [LEFT Player:NN4 Player DirMarkers:NN4||] -> [||temp DirMarkers:NN4]
+NN4 UP [temp DirMarkers:NN4|Walkable:NN4 no BlocksMovement:NN4] -> [|Walkable:NN4 Player:NN4 Player DirMarkers:NN4]
+NN4 LEFT [||temp DirMarkers:NN4] -> [Player:NN4 Player DirMarkers:NN4||]
+
+(Build Ground)
+
+GLOBAL UP [GrassTile no HeightMarker|] -> [GrassTile Grass0DLL|Grass0ULL]
+GLOBAL RIGHT [Grass0DLL|no Grass0DL||] -> [Grass0DLL Ground0LL|Grass0DL Ground0L|Grass0DR Ground0R|Grass0DRR Ground0RR]
+GLOBAL RIGHT [Grass0ULL|||] -> [Grass0ULL|Grass0UL|Grass0UR|Grass0URR]
+
+GLOBAL RIGHT [GrassTile HeightMarker|||] -> [GrassTile HeightMarker Ground0LL|HeightMarker Ground0L|HeightMarker Ground0R|HeightMarker Ground0RR]
+
+GLOBAL UP [Ground0LL Height4|||||||||] -> [Height4 Ground0LL|Ground1LL|Ground1halfLL|Ground2LL|Ground2halfLL|Ground3LL|Ground3halfLL|Ground4LL|Ground4halfLL Grass4DLL|Grass4ULL]
+GLOBAL UP [Ground0L  Height4|||||||||] -> [Height4 Ground0L |Ground1L |Ground1halfL |Ground2L |Ground2halfL |Ground3L |Ground3halfL |Ground4L |Ground4halfL  Grass4DL |Grass4UL ]
+GLOBAL UP [Ground0R  Height4|||||||||] -> [Height4 Ground0R |Ground1R |Ground1halfR |Ground2R |Ground2halfR |Ground3R |Ground3halfR |Ground4R |Ground4halfR  Grass4DR |Grass4UR ]
+GLOBAL UP [Ground0RR Height4|||||||||] -> [Height4 Ground0RR|Ground1RR|Ground1halfRR|Ground2RR|Ground2halfRR|Ground3RR|Ground3halfRR|Ground4RR|Ground4halfRR Grass4DRR|Grass4URR]
+
+GLOBAL UP [Ground0LL Height3|||||||] -> [Height3 Ground0LL|Ground1LL|Ground1halfLL|Ground2LL|Ground2halfLL|Ground3LL|Ground3halfLL Grass3DLL|Grass3ULL]
+GLOBAL UP [Ground0L  Height3|||||||] -> [Height3 Ground0L |Ground1L |Ground1halfL |Ground2L |Ground2halfL |Ground3L |Ground3halfL  Grass3DL |Grass3UL ]
+GLOBAL UP [Ground0R  Height3|||||||] -> [Height3 Ground0R |Ground1R |Ground1halfR |Ground2R |Ground2halfR |Ground3R |Ground3halfR  Grass3DR |Grass3UR ]
+GLOBAL UP [Ground0RR Height3|||||||] -> [Height3 Ground0RR|Ground1RR|Ground1halfRR|Ground2RR|Ground2halfRR|Ground3RR|Ground3halfRR Grass3DRR|Grass3URR]
+
+GLOBAL UP [Ground0LL Height2|||||] -> [Height2 Ground0LL|Ground1LL|Ground1halfLL|Ground2LL|Ground2halfLL Grass2DLL|Grass2ULL]
+GLOBAL UP [Ground0L  Height2|||||] -> [Height2 Ground0L |Ground1L |Ground1halfL |Ground2L |Ground2halfL  Grass2DL |Grass2UL ]
+GLOBAL UP [Ground0R  Height2|||||] -> [Height2 Ground0R |Ground1R |Ground1halfR |Ground2R |Ground2halfR  Grass2DR |Grass2UR ]
+GLOBAL UP [Ground0RR Height2|||||] -> [Height2 Ground0RR|Ground1RR|Ground1halfRR|Ground2RR|Ground2halfRR Grass2DRR|Grass2URR]
+
+GLOBAL UP [Ground0LL Height1|||] -> [Height1 Ground0LL|Ground1LL|Ground1halfLL Grass1DLL|Grass1ULL]
+GLOBAL UP [Ground0L  Height1|||] -> [Height1 Ground0L |Ground1L |Ground1halfL  Grass1DL |Grass1UL ]
+GLOBAL UP [Ground0R  Height1|||] -> [Height1 Ground0R |Ground1R |Ground1halfR  Grass1DR |Grass1UR ]
+GLOBAL UP [Ground0RR Height1|||] -> [Height1 Ground0RR|Ground1RR|Ground1halfRR Grass1DRR|Grass1URR]
+GLOBAL DOWN [Ground0|no Ground0]->[Ground0|Ground0]
+
+(Render)
+
+(Layer 0)
+NN4 LATE [Player:NN4 no Player:NN4:LL] [Player:NN4:Sprites] -> [Player:NN4] []
+NN4 LATE [Player:NN4 RightMarker:NN4] -> [Player:NN4 RightMarker:NN4 Player:NN4:R_LL]
+NN4 LATE DOWN  [||Player:NN4:R_LL|  ] -> [Player:NN4:R_UULL|Player:NN4:R_ULL|Player:NN4:R_LL |Player:NN4:R_DLL ]
+NN4 LATE RIGHT [Player:NN4:R_LL  |||] -> [Player:NN4:R_LL  |Player:NN4:R_L  |Player:NN4:R_R  |Player:NN4:R_RR  ]
+NN4 LATE RIGHT [Player:NN4:R_ULL |||] -> [Player:NN4:R_ULL |Player:NN4:R_UL |Player:NN4:R_UR |Player:NN4:R_URR ]
+NN4 LATE RIGHT [Player:NN4:R_UULL|||] -> [Player:NN4:R_UULL|Player:NN4:R_UUL|Player:NN4:R_UUR|Player:NN4:R_UURR]
+NN4 LATE RIGHT [Player:NN4:R_DLL |||] -> [Player:NN4:R_DLL |Player:NN4:R_DL |Player:NN4:R_DR |Player:NN4:R_DRR ]
+
+NN4 LATE [Player:NN4 DownMarker:NN4] -> [Player:NN4 Player:NN4:D_LL DownMarker:NN4]
+NN4 LATE DOWN  [||Player:NN4:D_LL|  ] -> [Player:NN4:D_UULL|Player:NN4:D_ULL|Player:NN4:D_LL |Player:NN4:D_DLL ]
+NN4 LATE RIGHT [Player:NN4:D_LL  |||] -> [Player:NN4:D_LL  |Player:NN4:D_L  |Player:NN4:D_R  |Player:NN4:D_RR  ]
+NN4 LATE RIGHT [Player:NN4:D_ULL |||] -> [Player:NN4:D_ULL |Player:NN4:D_UL |Player:NN4:D_UR |Player:NN4:D_URR ]
+NN4 LATE RIGHT [Player:NN4:D_UULL|||] -> [Player:NN4:D_UULL|Player:NN4:D_UUL|Player:NN4:D_UUR|Player:NN4:D_UURR]
+NN4 LATE RIGHT [Player:NN4:D_DLL |||] -> [Player:NN4:D_DLL |Player:NN4:D_DL |Player:NN4:D_DR |Player:NN4:D_DRR ]
+
+NN4 LATE [Player:NN4 LeftMarker:NN4] -> [Player:NN4 Player:NN4:L_LL LeftMarker:NN4]
+NN4 LATE DOWN  [||Player:NN4:L_LL|  ] -> [Player:NN4:L_UULL|Player:NN4:L_ULL|Player:NN4:L_LL |Player:NN4:L_DLL ]
+NN4 LATE RIGHT [Player:NN4:L_LL  |||] -> [Player:NN4:L_LL  |Player:NN4:L_L  |Player:NN4:L_R  |Player:NN4:L_RR  ]
+NN4 LATE RIGHT [Player:NN4:L_ULL |||] -> [Player:NN4:L_ULL |Player:NN4:L_UL |Player:NN4:L_UR |Player:NN4:L_URR ]
+NN4 LATE RIGHT [Player:NN4:L_UULL|||] -> [Player:NN4:L_UULL|Player:NN4:L_UUL|Player:NN4:L_UUR|Player:NN4:L_UURR]
+NN4 LATE RIGHT [Player:NN4:L_DLL |||] -> [Player:NN4:L_DLL |Player:NN4:L_DL |Player:NN4:L_DR |Player:NN4:L_DRR ]
+
+NN4 LATE [Player:NN4 UpMarker:NN4] -> [Player:NN4 Player:NN4:U_LL UpMarker:NN4]
+NN4 LATE DOWN  [||Player:NN4:U_LL|  ] -> [Player:NN4:U_UULL|Player:NN4:U_ULL|Player:NN4:U_LL |Player:NN4:U_DLL ]
+NN4 LATE RIGHT [Player:NN4:U_LL  |||] -> [Player:NN4:U_LL  |Player:NN4:U_L  |Player:NN4:U_R  |Player:NN4:U_RR  ]
+NN4 LATE RIGHT [Player:NN4:U_ULL |||] -> [Player:NN4:U_ULL |Player:NN4:U_UL |Player:NN4:U_UR |Player:NN4:U_URR ]
+NN4 LATE RIGHT [Player:NN4:U_UULL|||] -> [Player:NN4:U_UULL|Player:NN4:U_UUL|Player:NN4:U_UUR|Player:NN4:U_UURR]
+NN4 LATE RIGHT [Player:NN4:U_DLL |||] -> [Player:NN4:U_DLL |Player:NN4:U_DL |Player:NN4:U_DR |Player:NN4:U_DRR ]
+
+LATE NN4 [Player:NN4 no Walkable:NN4] -> again
+
+=======
+LEVELS
+=======
+
+message Press x to switch characters
+
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+..................*4..................................*4...................
+................*4..*4..............................*4..*4.................
+..............*4..*3..*2..........................*4..*3..*2...............
+............*4..*1..*2..*1......................*4..*1..*2..*1.............
+..........*4..*3..*1..*1..*...................*4..*3..*1..*1..*............
+........*4..*3Q.*2..*1..*...*1..............*4..*3..*2..*1..*...*1.........
+......*4..*3..*2..*1..*...*1..*...........*4..*3..*2..*1..*...*1..*........
+....*4..*3..*2..*1..*1..*...*...*1......*4..*3..*2..*1..*1..*...*...*1.....
+..*4..*3..*2..*1..*...*1..*...*...*1..*1..*3..*2..*1..*...*1..*...*...*1...
+....*4..*3..*2..*...*1..*...*...*1..*1..*1..*3..*2..*...*1..*...*...*1.....
+......*4..*3..*...*...*1..*...*1..........*1..*3..*...*...*1..*...*1.......
+........*4P.*...*...*...*...*1..............*1..*...*...*...*...*1.........
+..........*...*...*...*...*1..................*...*...*...*...*1...........
+............*...*...*...*.......................*...*...*...*..............
+..............*...*...*...........................*...*...*................
+................*...*...............................*...*..................
+..................*...................................*....................

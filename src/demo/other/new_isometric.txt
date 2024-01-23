@@ -1,0 +1,4009 @@
+title New Isometric Test
+author jcGyo
+homepage https://www.puzzlescript.net
+run_rules_on_level_start
+zoomscreen 40x25
+local_radius 40
+again_interval 0.06
+norepeat_action
+
+========
+OBJECTS
+========
+
+Background
+black
+
+Player
+transparent
+
+Player0
+transparent
+
+Player1
+transparent
+
+Player2
+transparent
+
+Player3
+transparent
+
+Player4
+transparent
+
+Grass0ULL
+#028A0F
+.....
+.....
+.....
+....0
+..000
+
+Grass0UL
+#028A0F
+.....
+...00
+.0000
+00000
+00000
+
+Grass0UR
+#028A0F
+.....
+00...
+0000.
+00000
+00000
+
+Grass0URR
+#028A0F
+.....
+.....
+.....
+0....
+000..
+
+Grass0DLL
+#028A0F
+00000
+..000
+....0
+.....
+.....
+
+Grass0DL
+#028A0F
+00000
+00000
+00000
+.0000
+...00
+
+Grass0DR
+#028A0F
+00000
+00000
+00000
+0000.
+00...
+
+Grass0DRR
+#028A0F
+00000
+000..
+0....
+.....
+.....
+
+Grass1ULL
+#3CB043
+.....
+.....
+.....
+....0
+..000
+
+Grass1UL
+#3CB043
+.....
+...00
+.0000
+00000
+00000
+
+Grass1UR
+#3CB043
+.....
+00...
+0000.
+00000
+00000
+
+Grass1URR
+#3CB043
+.....
+.....
+.....
+0....
+000..
+
+Grass1DLL
+#3CB043
+00000
+..000
+....0
+.....
+.....
+
+Grass1DL
+#3CB043
+00000
+00000
+00000
+.0000
+...00
+
+Grass1DR
+#3CB043
+00000
+00000
+00000
+0000.
+00...
+
+Grass1DRR
+#3CB043
+00000
+000..
+0....
+.....
+.....
+
+Grass2ULL
+#AEF359
+.....
+.....
+.....
+....0
+..000
+
+Grass2UL
+#AEF359
+.....
+...00
+.0000
+00000
+00000
+
+Grass2UR
+#AEF359
+.....
+00...
+0000.
+00000
+00000
+
+Grass2URR
+#AEF359
+.....
+.....
+.....
+0....
+000..
+
+Grass2DLL
+#AEF359
+00000
+..000
+....0
+.....
+.....
+
+Grass2DL
+#AEF359
+00000
+00000
+00000
+.0000
+...00
+
+Grass2DR
+#AEF359
+00000
+00000
+00000
+0000.
+00...
+
+Grass2DRR
+#AEF359
+00000
+000..
+0....
+.....
+.....
+
+Grass3ULL
+#466D1D
+.....
+.....
+.....
+....0
+..000
+
+Grass3UL
+#466D1D
+.....
+...00
+.0000
+00000
+00000
+
+Grass3UR
+#466D1D
+.....
+00...
+0000.
+00000
+00000
+
+Grass3URR
+#466D1D
+.....
+.....
+.....
+0....
+000..
+
+Grass3DLL
+#466D1D
+00000
+..000
+....0
+.....
+.....
+
+Grass3DL
+#466D1D
+00000
+00000
+00000
+.0000
+...00
+
+Grass3DR
+#466D1D
+00000
+00000
+00000
+0000.
+00...
+
+Grass3DRR
+#466D1D
+00000
+000..
+0....
+.....
+.....
+
+Grass4ULL
+#3DED97
+.....
+.....
+.....
+....0
+..000
+
+Grass4UL
+#3DED97
+.....
+...00
+.0000
+00000
+00000
+
+Grass4UR
+#3DED97
+.....
+00...
+0000.
+00000
+00000
+
+Grass4URR
+#3DED97
+.....
+.....
+.....
+0....
+000..
+
+Grass4DLL
+#3DED97
+00000
+..000
+....0
+.....
+.....
+
+Grass4DL
+#3DED97
+00000
+00000
+00000
+.0000
+...00
+
+Grass4DR
+#3DED97
+00000
+00000
+00000
+0000.
+00...
+
+Grass4DRR
+#3DED97
+00000
+000..
+0....
+.....
+.....
+
+Ground0LL
+grey
+
+Ground0L
+grey
+
+Ground0R
+darkgrey
+
+Ground0RR
+darkgrey
+
+Ground1LL
+grey
+
+Ground1L
+grey
+
+Ground1R
+darkgrey
+
+Ground1RR
+darkgrey
+
+Ground1halfLL
+grey
+
+Ground1halfL
+grey
+
+Ground1halfR
+darkgrey
+
+Ground1halfRR
+darkgrey
+
+Ground2LL
+grey
+
+Ground2L
+grey
+
+Ground2R
+darkgrey
+
+Ground2RR
+darkgrey
+
+Ground2halfLL
+grey
+
+Ground2halfL
+grey
+
+Ground2halfR
+darkgrey
+
+Ground2halfRR
+darkgrey
+
+Ground3LL
+grey
+
+Ground3L
+grey
+
+Ground3R
+darkgrey
+
+Ground3RR
+darkgrey
+
+Ground3halfLL
+grey
+
+Ground3halfL
+grey
+
+Ground3halfR
+darkgrey
+
+Ground3halfRR
+darkgrey
+
+Ground4LL
+grey
+
+Ground4L
+grey
+
+Ground4R
+darkgrey
+
+Ground4RR
+darkgrey
+
+Ground4halfLL
+grey
+
+Ground4halfL
+grey
+
+Ground4halfR
+darkgrey
+
+Ground4halfRR
+darkgrey
+
+GroundDLL
+grey
+00000
+..000
+....0
+.....
+.....
+
+GroundDL
+grey
+00000
+00000
+00000
+.0000
+...00
+
+GroundDRR
+darkgrey
+00000
+000..
+0....
+.....
+.....
+
+GroundDR
+darkgrey
+00000
+00000
+00000
+0000.
+00...
+
+GrassTile
+transparent
+
+Height1
+transparent
+
+Height2
+transparent
+
+Height3
+transparent
+
+Height4
+transparent
+
+Temp
+transparent
+
+
+
+Player0R_UULL
+#A5D6E8 #F5FCFF
+.....
+.....
+.....
+....0
+...01
+
+Player0R_UUL
+#A5D6E8 #F5FCFF
+...00
+.0011
+01111
+11111
+11111
+
+Player0R_UUR
+#A5D6E8 #F5FCFF #BDD9E4 #97C7D9
+00...
+110..
+1110.
+11110
+11223
+
+Player0R_UURR
+transparent
+
+Player0R_ULL
+#A5D6E8 #F5FCFF #D3F3FF
+..011
+..011
+..011
+.0011
+.0211
+
+Player0R_UL
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4
+11111
+11110
+11103
+11143
+22244
+
+Player0R_UR
+#A5D6E8 #BDD9E4 #97C7D9 #ADD5E4 #B8212E #930F17
+01231
+12342
+24353
+35333
+33331
+
+Player0R_URR
+#97C7D9 #BDD9E4 #A5D6E8 #3366E4 #3366FF
+0....
+122..
+1222.
+1122.
+1134.
+
+Player0R_LL
+#A5D6E8 #F5FCFF #D3F3FF
+.0211
+.0221
+..002
+..010
+..011
+
+Player0R_L
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4 #3366FF
+11223
+11111
+22115
+00005
+11114
+
+Player0R_R
+#BDD9E4 #ADD5E4 #3366FF #3366E4
+00000
+10000
+20000
+33000
+30000
+
+Player0R_RR
+#BDD9E4 #ADD5E4 #97C7D9 #3366FF #3366E4
+01433
+0224.
+02...
+01...
+002..
+
+Player0R_DLL
+#A5D6E8 #F5FCFF
+.0111
+..011
+...00
+.....
+.....
+
+Player0R_DL
+#A5D6E8 #F5FCFF #BDD9E4
+11112
+11112
+01112
+.0002
+....0
+
+Player0R_DR
+#BDD9E4 #97C7D9 #3366FF
+00000
+00000
+02211
+0222.
+1....
+
+Player0R_DRR
+#97C7D9 #3366FF
+110..
+111..
+.....
+.....
+.....
+
+Player0D_UULL
+transparent
+
+Player0D_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+Player0D_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player0D_UURR
+#A5D6E8 #BDD9E4 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player0D_ULL
+#A5D6E8 #D3F3FF #3366FF #F5FCFF 
+....0
+..003
+.0110
+.1133
+.2233
+
+
+Player0D_UL
+#D3F3FF #A5D6E8 #F5FCFF #EB212E #9C0F17 
+01101
+13010
+04030
+00040
+20000
+
+Player0D_UR
+#F5FCFF #A5D6E8 #D3F3FF #BDD9E4 #ADD5E4 
+00003
+10333
+23333
+23333
+03444
+
+Player0D_URR
+#BDD9E4 #97C7D9 #ADD5E4 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player0D_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+00023
+.0113
+...13
+...13
+..133
+
+
+Player0D_L
+#F5FCFF #3366FF #D3F3FF 
+00000
+00002
+00001
+00011
+00001
+
+
+Player0D_R
+#D3F3FF #F5FCFF #3366FF #ADD5E4 #BDD9E4 #A5D6E8 #97C7D9 
+03344
+14444
+21433
+25666
+11444
+
+
+Player0D_RR
+#BDD9E4 #ADD5E4 #97C7D9 
+0012.
+0112.
+122..
+202..
+002..
+
+
+Player0D_DLL
+#A5D6E8 #3366FF 
+..011
+..111
+.....
+.....
+.....
+
+
+Player0D_DL
+#F5FCFF #A5D6E8 #3366FF 
+00000
+00000
+11220
+.2220
+....1
+
+
+Player0D_DR
+#F5FCFF #A5D6E8 #BDD9E4 #97C7D9 
+00222
+00222
+00223
+0131.
+1....
+
+
+Player0D_DRR
+#BDD9E4 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player0L_UULL
+transparent
+
+
+Player0L_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+
+Player0L_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player0L_UURR
+#A5D6E8 #BCD9E3 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player0L_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+....0
+..002
+.0112
+.0122
+.0122
+
+
+Player0L_UL
+#F5FCFF 
+00000
+00000
+00000
+00000
+00000
+
+
+Player0L_UR
+#F5FCFF #BCD9E3 
+00001
+00111
+11111
+11111
+11111
+
+
+Player0L_URR
+#BCD9E3 #97C7D9 #ACD4E3 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player0L_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+01233
+.1111
+...13
+...13
+.0133
+
+
+Player0L_L
+#A5D6E8 #F5FCFF #BCD9E3 
+01112
+11112
+11112
+11112
+11112
+
+
+Player0L_R
+#BCD9E3 
+00000
+00000
+00000
+00000
+00000
+
+
+Player0L_RR
+#BCD9E3 #ACD4E3 #97C7D9 
+0012.
+0012.
+002..
+002..
+002..
+
+
+Player0L_DLL
+#3366FF #A5D6E8 #F5FCFF 
+.0112
+....1
+.....
+.....
+.....
+
+
+Player0L_DL
+#F5FCFF #A5D6E8 #BCD9E3 
+00002
+00002
+11002
+..112
+....1
+
+
+Player0L_DR
+#BCD9E3 #A5D6E8 #97C7D9 
+00000
+00000
+00002
+0221.
+1....
+
+
+Player0L_DRR
+#BCD9E3 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player0U_UULL
+#A5D6E8 #F5FCFF 
+.....
+.....
+.....
+....0
+...01
+
+
+Player0U_UUL
+#A5D6E8 #F5FCFF 
+...00
+.0011
+01111
+11111
+11111
+
+
+Player0U_UUR
+#A5D6E8 #F5FCFF #BCD9E3 #97C7D9 
+00...
+110..
+1110.
+11113
+11123
+
+
+Player0U_UURR
+transparent
+
+
+Player0U_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+..022
+..022
+..022
+.0022
+.0122
+
+
+Player0U_UL
+#F5FCFF #BCD9E3 
+00000
+00000
+00000
+00001
+00001
+
+
+Player0U_UR
+#F5FCFF #BCD9E3 
+01111
+11111
+11111
+11111
+11111
+
+
+Player0U_URR
+#97C7D9 #BCD9E3 #ACD4E3 #A5D6E8 
+0....
+100..
+1223.
+1120.
+1120.
+
+
+Player0U_LL
+#A5D6E8 #D3F3FF #F5FCFF 
+.0122
+.0122
+..022
+..022
+..022
+
+
+Player0U_L
+#F5FCFF #BCD9E3 
+00001
+00001
+00001
+00001
+00001
+
+
+Player0U_R
+#BCD9E3 #97C7D9 
+00001
+00000
+00000
+00000
+00000
+
+
+Player0U_RR
+#BCD9E3 #97C7D9 #ACD4E3 #A5D6E8 #3366E3 #3366FF 
+00215
+1131.
+01...
+01...
+0014.
+
+
+Player0U_DLL
+#A5D6E8 #F5FCFF 
+.0111
+..011
+...00
+.....
+.....
+
+
+Player0U_DL
+#F5FCFF #A5D6E8 #BCD9E3 #97C7D9 
+00002
+00002
+10000
+.1110
+....3
+
+
+Player0U_DR
+#BCD9E3 #97C7D9 
+00000
+00000
+00011
+011..
+1....
+
+
+Player0U_DRR
+#BCD9E3 #97C7D9 #3366E3 
+0112.
+1....
+.....
+.....
+.....
+
+Player1R_UULL
+#A5D6E8 #F5FCFF
+.....
+.....
+.....
+....0
+...01
+
+Player1R_UUL
+#A5D6E8 #F5FCFF
+...00
+.0011
+01111
+11111
+11111
+
+Player1R_UUR
+#A5D6E8 #F5FCFF #BDD9E4 #97C7D9
+00...
+110..
+1110.
+11110
+11223
+
+Player1R_UURR
+transparent
+
+Player1R_ULL
+#A5D6E8 #F5FCFF #D3F3FF
+..011
+..011
+..011
+.0011
+.0211
+
+Player1R_UL
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4
+11111
+11110
+11103
+11143
+22244
+
+Player1R_UR
+#A5D6E8 #BDD9E4 #97C7D9 #ADD5E4 #B8212E #930F17
+01231
+12342
+24353
+35333
+33331
+
+Player1R_URR
+#97C7D9 #BDD9E4 #A5D6E8 #3366E4 #3366FF
+0....
+122..
+1222.
+1122.
+1134.
+
+Player1R_LL
+#A5D6E8 #F5FCFF #D3F3FF
+.0211
+.0221
+..002
+..010
+..011
+
+Player1R_L
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4 #3366FF
+11223
+11111
+22115
+00005
+11114
+
+Player1R_R
+#BDD9E4 #ADD5E4 #3366FF #3366E4
+00000
+10000
+20000
+33000
+30000
+
+Player1R_RR
+#BDD9E4 #ADD5E4 #97C7D9 #3366FF #3366E4
+01433
+0224.
+02...
+01...
+002..
+
+Player1R_DLL
+#A5D6E8 #F5FCFF
+.0111
+..011
+...00
+.....
+.....
+
+Player1R_DL
+#A5D6E8 #F5FCFF #BDD9E4
+11112
+11112
+01112
+.0002
+....0
+
+Player1R_DR
+#BDD9E4 #97C7D9 #3366FF
+00000
+00000
+02211
+0222.
+1....
+
+Player1R_DRR
+#97C7D9 #3366FF
+110..
+111..
+.....
+.....
+.....
+
+Player1D_UULL
+transparent
+
+Player1D_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+Player1D_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player1D_UURR
+#A5D6E8 #BDD9E4 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player1D_ULL
+#A5D6E8 #D3F3FF #3366FF #F5FCFF 
+....0
+..003
+.0110
+.1133
+.2233
+
+
+Player1D_UL
+#D3F3FF #A5D6E8 #F5FCFF #EB212E #9C0F17 
+01101
+13010
+04030
+00040
+20000
+
+Player1D_UR
+#F5FCFF #A5D6E8 #D3F3FF #BDD9E4 #ADD5E4 
+00003
+10333
+23333
+23333
+03444
+
+Player1D_URR
+#BDD9E4 #97C7D9 #ADD5E4 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player1D_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+00023
+.0113
+...13
+...13
+..133
+
+
+Player1D_L
+#F5FCFF #3366FF #D3F3FF 
+00000
+00002
+00001
+00011
+00001
+
+
+Player1D_R
+#D3F3FF #F5FCFF #3366FF #ADD5E4 #BDD9E4 #A5D6E8 #97C7D9 
+03344
+14444
+21433
+25666
+11444
+
+
+Player1D_RR
+#BDD9E4 #ADD5E4 #97C7D9 
+0012.
+0112.
+122..
+202..
+002..
+
+
+Player1D_DLL
+#A5D6E8 #3366FF 
+..011
+..111
+.....
+.....
+.....
+
+
+Player1D_DL
+#F5FCFF #A5D6E8 #3366FF 
+00000
+00000
+11220
+.2220
+....1
+
+
+Player1D_DR
+#F5FCFF #A5D6E8 #BDD9E4 #97C7D9 
+00222
+00222
+00223
+0131.
+1....
+
+
+Player1D_DRR
+#BDD9E4 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player1L_UULL
+transparent
+
+
+Player1L_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+
+Player1L_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player1L_UURR
+#A5D6E8 #BCD9E3 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player1L_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+....0
+..002
+.0112
+.0122
+.0122
+
+
+Player1L_UL
+#F5FCFF 
+00000
+00000
+00000
+00000
+00000
+
+
+Player1L_UR
+#F5FCFF #BCD9E3 
+00001
+00111
+11111
+11111
+11111
+
+
+Player1L_URR
+#BCD9E3 #97C7D9 #ACD4E3 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player1L_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+01233
+.1111
+...13
+...13
+.0133
+
+
+Player1L_L
+#A5D6E8 #F5FCFF #BCD9E3 
+01112
+11112
+11112
+11112
+11112
+
+
+Player1L_R
+#BCD9E3 
+00000
+00000
+00000
+00000
+00000
+
+
+Player1L_RR
+#BCD9E3 #ACD4E3 #97C7D9 
+0012.
+0012.
+002..
+002..
+002..
+
+
+Player1L_DLL
+#3366FF #A5D6E8 #F5FCFF 
+.0112
+....1
+.....
+.....
+.....
+
+
+Player1L_DL
+#F5FCFF #A5D6E8 #BCD9E3 
+00002
+00002
+11002
+..112
+....1
+
+
+Player1L_DR
+#BCD9E3 #A5D6E8 #97C7D9 
+00000
+00000
+00002
+0221.
+1....
+
+
+Player1L_DRR
+#BCD9E3 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player1U_UULL
+#A5D6E8 #F5FCFF 
+.....
+.....
+.....
+....0
+...01
+
+
+Player1U_UUL
+#A5D6E8 #F5FCFF 
+...00
+.0011
+01111
+11111
+11111
+
+
+Player1U_UUR
+#A5D6E8 #F5FCFF #BCD9E3 #97C7D9 
+00...
+110..
+1110.
+11113
+11123
+
+
+Player1U_UURR
+transparent
+
+
+Player1U_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+..022
+..022
+..022
+.0022
+.0122
+
+
+Player1U_UL
+#F5FCFF #BCD9E3 
+00000
+00000
+00000
+00001
+00001
+
+
+Player1U_UR
+#F5FCFF #BCD9E3 
+01111
+11111
+11111
+11111
+11111
+
+
+Player1U_URR
+#97C7D9 #BCD9E3 #ACD4E3 #A5D6E8 
+0....
+100..
+1223.
+1120.
+1120.
+
+
+Player1U_LL
+#A5D6E8 #D3F3FF #F5FCFF 
+.0122
+.0122
+..022
+..022
+..022
+
+
+Player1U_L
+#F5FCFF #BCD9E3 
+00001
+00001
+00001
+00001
+00001
+
+
+Player1U_R
+#BCD9E3 #97C7D9 
+00001
+00000
+00000
+00000
+00000
+
+
+Player1U_RR
+#BCD9E3 #97C7D9 #ACD4E3 #A5D6E8 #3366E3 #3366FF 
+00215
+1131.
+01...
+01...
+0014.
+
+
+Player1U_DLL
+#A5D6E8 #F5FCFF 
+.0111
+..011
+...00
+.....
+.....
+
+
+Player1U_DL
+#F5FCFF #A5D6E8 #BCD9E3 #97C7D9 
+00002
+00002
+10000
+.1110
+....3
+
+
+Player1U_DR
+#BCD9E3 #97C7D9 
+00000
+00000
+00011
+011..
+1....
+
+
+Player1U_DRR
+#BCD9E3 #97C7D9 #3366E3 
+0112.
+1....
+.....
+.....
+.....
+
+Player2R_UULL
+#A5D6E8 #F5FCFF
+.....
+.....
+.....
+....0
+...01
+
+Player2R_UUL
+#A5D6E8 #F5FCFF
+...00
+.0011
+01111
+11111
+11111
+
+Player2R_UUR
+#A5D6E8 #F5FCFF #BDD9E4 #97C7D9
+00...
+110..
+1110.
+11110
+11223
+
+Player2R_UURR
+transparent
+
+Player2R_ULL
+#A5D6E8 #F5FCFF #D3F3FF
+..011
+..011
+..011
+.0011
+.0211
+
+Player2R_UL
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4
+11111
+11110
+11103
+11143
+22244
+
+Player2R_UR
+#A5D6E8 #BDD9E4 #97C7D9 #ADD5E4 #B8212E #930F17
+01231
+12342
+24353
+35333
+33331
+
+Player2R_URR
+#97C7D9 #BDD9E4 #A5D6E8 #3366E4 #3366FF
+0....
+122..
+1222.
+1122.
+1134.
+
+Player2R_LL
+#A5D6E8 #F5FCFF #D3F3FF
+.0211
+.0221
+..002
+..010
+..011
+
+Player2R_L
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4 #3366FF
+11223
+11111
+22115
+00005
+11114
+
+Player2R_R
+#BDD9E4 #ADD5E4 #3366FF #3366E4
+00000
+10000
+20000
+33000
+30000
+
+Player2R_RR
+#BDD9E4 #ADD5E4 #97C7D9 #3366FF #3366E4
+01433
+0224.
+02...
+01...
+002..
+
+Player2R_DLL
+#A5D6E8 #F5FCFF
+.0111
+..011
+...00
+.....
+.....
+
+Player2R_DL
+#A5D6E8 #F5FCFF #BDD9E4
+11112
+11112
+01112
+.0002
+....0
+
+Player2R_DR
+#BDD9E4 #97C7D9 #3366FF
+00000
+00000
+02211
+0222.
+1....
+
+Player2R_DRR
+#97C7D9 #3366FF
+110..
+111..
+.....
+.....
+.....
+
+Player2D_UULL
+transparent
+
+Player2D_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+Player2D_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player2D_UURR
+#A5D6E8 #BDD9E4 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player2D_ULL
+#A5D6E8 #D3F3FF #3366FF #F5FCFF 
+....0
+..003
+.0110
+.1133
+.2233
+
+
+Player2D_UL
+#D3F3FF #A5D6E8 #F5FCFF #EB212E #9C0F17 
+01101
+13010
+04030
+00040
+20000
+
+Player2D_UR
+#F5FCFF #A5D6E8 #D3F3FF #BDD9E4 #ADD5E4 
+00003
+10333
+23333
+23333
+03444
+
+Player2D_URR
+#BDD9E4 #97C7D9 #ADD5E4 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player2D_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+00023
+.0113
+...13
+...13
+..133
+
+
+Player2D_L
+#F5FCFF #3366FF #D3F3FF 
+00000
+00002
+00001
+00011
+00001
+
+
+Player2D_R
+#D3F3FF #F5FCFF #3366FF #ADD5E4 #BDD9E4 #A5D6E8 #97C7D9 
+03344
+14444
+21433
+25666
+11444
+
+
+Player2D_RR
+#BDD9E4 #ADD5E4 #97C7D9 
+0012.
+0112.
+122..
+202..
+002..
+
+
+Player2D_DLL
+#A5D6E8 #3366FF 
+..011
+..111
+.....
+.....
+.....
+
+
+Player2D_DL
+#F5FCFF #A5D6E8 #3366FF 
+00000
+00000
+11220
+.2220
+....1
+
+
+Player2D_DR
+#F5FCFF #A5D6E8 #BDD9E4 #97C7D9 
+00222
+00222
+00223
+0131.
+1....
+
+
+Player2D_DRR
+#BDD9E4 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player2L_UULL
+transparent
+
+
+Player2L_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+
+Player2L_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player2L_UURR
+#A5D6E8 #BCD9E3 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player2L_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+....0
+..002
+.0112
+.0122
+.0122
+
+
+Player2L_UL
+#F5FCFF 
+00000
+00000
+00000
+00000
+00000
+
+
+Player2L_UR
+#F5FCFF #BCD9E3 
+00001
+00111
+11111
+11111
+11111
+
+
+Player2L_URR
+#BCD9E3 #97C7D9 #ACD4E3 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player2L_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+01233
+.1111
+...13
+...13
+.0133
+
+
+Player2L_L
+#A5D6E8 #F5FCFF #BCD9E3 
+01112
+11112
+11112
+11112
+11112
+
+
+Player2L_R
+#BCD9E3 
+00000
+00000
+00000
+00000
+00000
+
+
+Player2L_RR
+#BCD9E3 #ACD4E3 #97C7D9 
+0012.
+0012.
+002..
+002..
+002..
+
+
+Player2L_DLL
+#3366FF #A5D6E8 #F5FCFF 
+.0112
+....1
+.....
+.....
+.....
+
+
+Player2L_DL
+#F5FCFF #A5D6E8 #BCD9E3 
+00002
+00002
+11002
+..112
+....1
+
+
+Player2L_DR
+#BCD9E3 #A5D6E8 #97C7D9 
+00000
+00000
+00002
+0221.
+1....
+
+
+Player2L_DRR
+#BCD9E3 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player2U_UULL
+#A5D6E8 #F5FCFF 
+.....
+.....
+.....
+....0
+...01
+
+
+Player2U_UUL
+#A5D6E8 #F5FCFF 
+...00
+.0011
+01111
+11111
+11111
+
+
+Player2U_UUR
+#A5D6E8 #F5FCFF #BCD9E3 #97C7D9 
+00...
+110..
+1110.
+11113
+11123
+
+
+Player2U_UURR
+transparent
+
+
+Player2U_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+..022
+..022
+..022
+.0022
+.0122
+
+
+Player2U_UL
+#F5FCFF #BCD9E3 
+00000
+00000
+00000
+00001
+00001
+
+
+Player2U_UR
+#F5FCFF #BCD9E3 
+01111
+11111
+11111
+11111
+11111
+
+
+Player2U_URR
+#97C7D9 #BCD9E3 #ACD4E3 #A5D6E8 
+0....
+100..
+1223.
+1120.
+1120.
+
+
+Player2U_LL
+#A5D6E8 #D3F3FF #F5FCFF 
+.0122
+.0122
+..022
+..022
+..022
+
+
+Player2U_L
+#F5FCFF #BCD9E3 
+00001
+00001
+00001
+00001
+00001
+
+
+Player2U_R
+#BCD9E3 #97C7D9 
+00001
+00000
+00000
+00000
+00000
+
+
+Player2U_RR
+#BCD9E3 #97C7D9 #ACD4E3 #A5D6E8 #3366E3 #3366FF 
+00215
+1131.
+01...
+01...
+0014.
+
+
+Player2U_DLL
+#A5D6E8 #F5FCFF 
+.0111
+..011
+...00
+.....
+.....
+
+
+Player2U_DL
+#F5FCFF #A5D6E8 #BCD9E3 #97C7D9 
+00002
+00002
+10000
+.1110
+....3
+
+
+Player2U_DR
+#BCD9E3 #97C7D9 
+00000
+00000
+00011
+011..
+1....
+
+
+Player2U_DRR
+#BCD9E3 #97C7D9 #3366E3 
+0112.
+1....
+.....
+.....
+.....
+
+Player3R_UULL
+#A5D6E8 #F5FCFF
+.....
+.....
+.....
+....0
+...01
+
+Player3R_UUL
+#A5D6E8 #F5FCFF
+...00
+.0011
+01111
+11111
+11111
+
+Player3R_UUR
+#A5D6E8 #F5FCFF #BDD9E4 #97C7D9
+00...
+110..
+1110.
+11110
+11223
+
+Player3R_UURR
+transparent
+
+Player3R_ULL
+#A5D6E8 #F5FCFF #D3F3FF
+..011
+..011
+..011
+.0011
+.0211
+
+Player3R_UL
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4
+11111
+11110
+11103
+11143
+22244
+
+Player3R_UR
+#A5D6E8 #BDD9E4 #97C7D9 #ADD5E4 #B8212E #930F17
+01231
+12342
+24353
+35333
+33331
+
+Player3R_URR
+#97C7D9 #BDD9E4 #A5D6E8 #3366E4 #3366FF
+0....
+122..
+1222.
+1122.
+1134.
+
+Player3R_LL
+#A5D6E8 #F5FCFF #D3F3FF
+.0211
+.0221
+..002
+..010
+..011
+
+Player3R_L
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4 #3366FF
+11223
+11111
+22115
+00005
+11114
+
+Player3R_R
+#BDD9E4 #ADD5E4 #3366FF #3366E4
+00000
+10000
+20000
+33000
+30000
+
+Player3R_RR
+#BDD9E4 #ADD5E4 #97C7D9 #3366FF #3366E4
+01433
+0224.
+02...
+01...
+002..
+
+Player3R_DLL
+#A5D6E8 #F5FCFF
+.0111
+..011
+...00
+.....
+.....
+
+Player3R_DL
+#A5D6E8 #F5FCFF #BDD9E4
+11112
+11112
+01112
+.0002
+....0
+
+Player3R_DR
+#BDD9E4 #97C7D9 #3366FF
+00000
+00000
+02211
+0222.
+1....
+
+Player3R_DRR
+#97C7D9 #3366FF
+110..
+111..
+.....
+.....
+.....
+
+Player3D_UULL
+transparent
+
+Player3D_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+Player3D_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player3D_UURR
+#A5D6E8 #BDD9E4 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player3D_ULL
+#A5D6E8 #D3F3FF #3366FF #F5FCFF 
+....0
+..003
+.0110
+.1133
+.2233
+
+
+Player3D_UL
+#D3F3FF #A5D6E8 #F5FCFF #EB212E #9C0F17 
+01101
+13010
+04030
+00040
+20000
+
+Player3D_UR
+#F5FCFF #A5D6E8 #D3F3FF #BDD9E4 #ADD5E4 
+00003
+10333
+23333
+23333
+03444
+
+Player3D_URR
+#BDD9E4 #97C7D9 #ADD5E4 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player3D_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+00023
+.0113
+...13
+...13
+..133
+
+
+Player3D_L
+#F5FCFF #3366FF #D3F3FF 
+00000
+00002
+00001
+00011
+00001
+
+
+Player3D_R
+#D3F3FF #F5FCFF #3366FF #ADD5E4 #BDD9E4 #A5D6E8 #97C7D9 
+03344
+14444
+21433
+25666
+11444
+
+
+Player3D_RR
+#BDD9E4 #ADD5E4 #97C7D9 
+0012.
+0112.
+122..
+202..
+002..
+
+
+Player3D_DLL
+#A5D6E8 #3366FF 
+..011
+..111
+.....
+.....
+.....
+
+
+Player3D_DL
+#F5FCFF #A5D6E8 #3366FF 
+00000
+00000
+11220
+.2220
+....1
+
+
+Player3D_DR
+#F5FCFF #A5D6E8 #BDD9E4 #97C7D9 
+00222
+00222
+00223
+0131.
+1....
+
+
+Player3D_DRR
+#BDD9E4 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player3L_UULL
+transparent
+
+
+Player3L_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+
+Player3L_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player3L_UURR
+#A5D6E8 #BCD9E3 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player3L_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+....0
+..002
+.0112
+.0122
+.0122
+
+
+Player3L_UL
+#F5FCFF 
+00000
+00000
+00000
+00000
+00000
+
+
+Player3L_UR
+#F5FCFF #BCD9E3 
+00001
+00111
+11111
+11111
+11111
+
+
+Player3L_URR
+#BCD9E3 #97C7D9 #ACD4E3 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player3L_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+01233
+.1111
+...13
+...13
+.0133
+
+
+Player3L_L
+#A5D6E8 #F5FCFF #BCD9E3 
+01112
+11112
+11112
+11112
+11112
+
+
+Player3L_R
+#BCD9E3 
+00000
+00000
+00000
+00000
+00000
+
+
+Player3L_RR
+#BCD9E3 #ACD4E3 #97C7D9 
+0012.
+0012.
+002..
+002..
+002..
+
+
+Player3L_DLL
+#3366FF #A5D6E8 #F5FCFF 
+.0112
+....1
+.....
+.....
+.....
+
+
+Player3L_DL
+#F5FCFF #A5D6E8 #BCD9E3 
+00002
+00002
+11002
+..112
+....1
+
+
+Player3L_DR
+#BCD9E3 #A5D6E8 #97C7D9 
+00000
+00000
+00002
+0221.
+1....
+
+
+Player3L_DRR
+#BCD9E3 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player3U_UULL
+#A5D6E8 #F5FCFF 
+.....
+.....
+.....
+....0
+...01
+
+
+Player3U_UUL
+#A5D6E8 #F5FCFF 
+...00
+.0011
+01111
+11111
+11111
+
+
+Player3U_UUR
+#A5D6E8 #F5FCFF #BCD9E3 #97C7D9 
+00...
+110..
+1110.
+11113
+11123
+
+
+Player3U_UURR
+transparent
+
+
+Player3U_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+..022
+..022
+..022
+.0022
+.0122
+
+
+Player3U_UL
+#F5FCFF #BCD9E3 
+00000
+00000
+00000
+00001
+00001
+
+
+Player3U_UR
+#F5FCFF #BCD9E3 
+01111
+11111
+11111
+11111
+11111
+
+
+Player3U_URR
+#97C7D9 #BCD9E3 #ACD4E3 #A5D6E8 
+0....
+100..
+1223.
+1120.
+1120.
+
+
+Player3U_LL
+#A5D6E8 #D3F3FF #F5FCFF 
+.0122
+.0122
+..022
+..022
+..022
+
+
+Player3U_L
+#F5FCFF #BCD9E3 
+00001
+00001
+00001
+00001
+00001
+
+
+Player3U_R
+#BCD9E3 #97C7D9 
+00001
+00000
+00000
+00000
+00000
+
+
+Player3U_RR
+#BCD9E3 #97C7D9 #ACD4E3 #A5D6E8 #3366E3 #3366FF 
+00215
+1131.
+01...
+01...
+0014.
+
+
+Player3U_DLL
+#A5D6E8 #F5FCFF 
+.0111
+..011
+...00
+.....
+.....
+
+
+Player3U_DL
+#F5FCFF #A5D6E8 #BCD9E3 #97C7D9 
+00002
+00002
+10000
+.1110
+....3
+
+
+Player3U_DR
+#BCD9E3 #97C7D9 
+00000
+00000
+00011
+011..
+1....
+
+
+Player3U_DRR
+#BCD9E3 #97C7D9 #3366E3 
+0112.
+1....
+.....
+.....
+.....
+
+Player4R_UULL
+#A5D6E8 #F5FCFF
+.....
+.....
+.....
+....0
+...01
+
+Player4R_UUL
+#A5D6E8 #F5FCFF
+...00
+.0011
+01111
+11111
+11111
+
+Player4R_UUR
+#A5D6E8 #F5FCFF #BDD9E4 #97C7D9
+00...
+110..
+1110.
+11110
+11223
+
+Player4R_UURR
+transparent
+
+Player4R_ULL
+#A5D6E8 #F5FCFF #D3F3FF
+..011
+..011
+..011
+.0011
+.0211
+
+Player4R_UL
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4
+11111
+11110
+11103
+11143
+22244
+
+Player4R_UR
+#A5D6E8 #BDD9E4 #97C7D9 #ADD5E4 #B8212E #930F17
+01231
+12342
+24353
+35333
+33331
+
+Player4R_URR
+#97C7D9 #BDD9E4 #A5D6E8 #3366E4 #3366FF
+0....
+122..
+1222.
+1122.
+1134.
+
+Player4R_LL
+#A5D6E8 #F5FCFF #D3F3FF
+.0211
+.0221
+..002
+..010
+..011
+
+Player4R_L
+#A5D6E8 #F5FCFF #D3F3FF #ADD5E4 #BDD9E4 #3366FF
+11223
+11111
+22115
+00005
+11114
+
+Player4R_R
+#BDD9E4 #ADD5E4 #3366FF #3366E4
+00000
+10000
+20000
+33000
+30000
+
+Player4R_RR
+#BDD9E4 #ADD5E4 #97C7D9 #3366FF #3366E4
+01433
+0224.
+02...
+01...
+002..
+
+Player4R_DLL
+#A5D6E8 #F5FCFF
+.0111
+..011
+...00
+.....
+.....
+
+Player4R_DL
+#A5D6E8 #F5FCFF #BDD9E4
+11112
+11112
+01112
+.0002
+....0
+
+Player4R_DR
+#BDD9E4 #97C7D9 #3366FF
+00000
+00000
+02211
+0222.
+1....
+
+Player4R_DRR
+#97C7D9 #3366FF
+110..
+111..
+.....
+.....
+.....
+
+Player4D_UULL
+transparent
+
+Player4D_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+Player4D_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player4D_UURR
+#A5D6E8 #BDD9E4 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player4D_ULL
+#A5D6E8 #D3F3FF #3366FF #F5FCFF 
+....0
+..003
+.0110
+.1133
+.2233
+
+
+Player4D_UL
+#D3F3FF #A5D6E8 #F5FCFF #EB212E #9C0F17 
+01101
+13010
+04030
+00040
+20000
+
+Player4D_UR
+#F5FCFF #A5D6E8 #D3F3FF #BDD9E4 #ADD5E4 
+00003
+10333
+23333
+23333
+03444
+
+Player4D_URR
+#BDD9E4 #97C7D9 #ADD5E4 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player4D_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+00023
+.0113
+...13
+...13
+..133
+
+
+Player4D_L
+#F5FCFF #3366FF #D3F3FF 
+00000
+00002
+00001
+00011
+00001
+
+
+Player4D_R
+#D3F3FF #F5FCFF #3366FF #ADD5E4 #BDD9E4 #A5D6E8 #97C7D9 
+03344
+14444
+21433
+25666
+11444
+
+
+Player4D_RR
+#BDD9E4 #ADD5E4 #97C7D9 
+0012.
+0112.
+122..
+202..
+002..
+
+
+Player4D_DLL
+#A5D6E8 #3366FF 
+..011
+..111
+.....
+.....
+.....
+
+
+Player4D_DL
+#F5FCFF #A5D6E8 #3366FF 
+00000
+00000
+11220
+.2220
+....1
+
+
+Player4D_DR
+#F5FCFF #A5D6E8 #BDD9E4 #97C7D9 
+00222
+00222
+00223
+0131.
+1....
+
+
+Player4D_DRR
+#BDD9E4 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player4L_UULL
+transparent
+
+
+Player4L_UUL
+#A5D6E8 #F5FCFF 
+...00
+..011
+.0111
+01111
+01111
+
+
+Player4L_UUR
+#A5D6E8 #F5FCFF 
+00...
+1100.
+11110
+11111
+11111
+
+
+Player4L_UURR
+#A5D6E8 #BCD9E3 #97C7D9 
+.....
+.....
+.....
+0....
+12...
+
+
+Player4L_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+....0
+..002
+.0112
+.0122
+.0122
+
+
+Player4L_UL
+#F5FCFF 
+00000
+00000
+00000
+00000
+00000
+
+
+Player4L_UR
+#F5FCFF #BCD9E3 
+00001
+00111
+11111
+11111
+11111
+
+
+Player4L_URR
+#BCD9E3 #97C7D9 #ACD4E3 
+001..
+001..
+001..
+0011.
+0021.
+
+
+Player4L_LL
+#3366FF #A5D6E8 #D3F3FF #F5FCFF 
+01233
+.1111
+...13
+...13
+.0133
+
+
+Player4L_L
+#A5D6E8 #F5FCFF #BCD9E3 
+01112
+11112
+11112
+11112
+11112
+
+
+Player4L_R
+#BCD9E3 
+00000
+00000
+00000
+00000
+00000
+
+
+Player4L_RR
+#BCD9E3 #ACD4E3 #97C7D9 
+0012.
+0012.
+002..
+002..
+002..
+
+
+Player4L_DLL
+#3366FF #A5D6E8 #F5FCFF 
+.0112
+....1
+.....
+.....
+.....
+
+
+Player4L_DL
+#F5FCFF #A5D6E8 #BCD9E3 
+00002
+00002
+11002
+..112
+....1
+
+
+Player4L_DR
+#BCD9E3 #A5D6E8 #97C7D9 
+00000
+00000
+00002
+0221.
+1....
+
+
+Player4L_DRR
+#BCD9E3 #97C7D9 
+0001.
+001..
+11...
+.....
+.....
+
+Player4U_UULL
+#A5D6E8 #F5FCFF 
+.....
+.....
+.....
+....0
+...01
+
+
+Player4U_UUL
+#A5D6E8 #F5FCFF 
+...00
+.0011
+01111
+11111
+11111
+
+
+Player4U_UUR
+#A5D6E8 #F5FCFF #BCD9E3 #97C7D9 
+00...
+110..
+1110.
+11113
+11123
+
+
+Player4U_UURR
+transparent
+
+
+Player4U_ULL
+#A5D6E8 #D3F3FF #F5FCFF 
+..022
+..022
+..022
+.0022
+.0122
+
+
+Player4U_UL
+#F5FCFF #BCD9E3 
+00000
+00000
+00000
+00001
+00001
+
+
+Player4U_UR
+#F5FCFF #BCD9E3 
+01111
+11111
+11111
+11111
+11111
+
+
+Player4U_URR
+#97C7D9 #BCD9E3 #ACD4E3 #A5D6E8 
+0....
+100..
+1223.
+1120.
+1120.
+
+
+Player4U_LL
+#A5D6E8 #D3F3FF #F5FCFF 
+.0122
+.0122
+..022
+..022
+..022
+
+
+Player4U_L
+#F5FCFF #BCD9E3 
+00001
+00001
+00001
+00001
+00001
+
+
+Player4U_R
+#BCD9E3 #97C7D9 
+00001
+00000
+00000
+00000
+00000
+
+
+Player4U_RR
+#BCD9E3 #97C7D9 #ACD4E3 #A5D6E8 #3366E3 #3366FF 
+00215
+1131.
+01...
+01...
+0014.
+
+
+Player4U_DLL
+#A5D6E8 #F5FCFF 
+.0111
+..011
+...00
+.....
+.....
+
+
+Player4U_DL
+#F5FCFF #A5D6E8 #BCD9E3 #97C7D9 
+00002
+00002
+10000
+.1110
+....3
+
+
+Player4U_DR
+#BCD9E3 #97C7D9 
+00000
+00000
+00011
+011..
+1....
+
+
+Player4U_DRR
+#BCD9E3 #97C7D9 #3366E3 
+0112.
+1....
+.....
+.....
+.....
+
+
+DownMarker0
+transparent
+
+UpMarker0
+transparent
+
+LeftMarker0
+transparent
+
+RightMarker0
+transparent
+
+DownMarker1
+transparent
+
+UpMarker1
+transparent
+
+LeftMarker1
+transparent
+
+RightMarker1
+transparent
+
+DownMarker2
+transparent
+
+UpMarker2
+transparent
+
+LeftMarker2
+transparent
+
+RightMarker2
+transparent
+
+DownMarker3
+transparent
+
+UpMarker3
+transparent
+
+LeftMarker3
+transparent
+
+RightMarker3
+transparent
+
+DownMarker4
+transparent
+
+UpMarker4
+transparent
+
+LeftMarker4
+transparent
+
+RightMarker4
+transparent
+
+PlayerStart
+transparent
+
+AtLevel0
+transparent
+
+AtLevel1
+transparent
+
+AtLevel2
+transparent
+
+AtLevel3
+transparent
+
+AtLevel4
+transparent
+
+GameOver
+#66000066
+
+=======
+LEGEND
+=======
+
+. = Background
+* = GrassTile
+P = Player and PlayerStart
+Q = PlayerStart
+1 = Height1
+2 = Height2
+3 = Height3
+4 = Height4
+
+Grass0Up = Grass0ULL or Grass0UL or Grass0UR or Grass0URR
+Grass0Down = Grass0DLL or Grass0DL or Grass0DR or Grass0DRR
+
+Grass1Up = Grass1ULL or Grass1UL or Grass1UR or Grass1URR
+Grass1Down = Grass1DLL or Grass1DL or Grass1DR or Grass1DRR
+
+Grass2Up = Grass2ULL or Grass2UL or Grass2UR or Grass2URR
+Grass2Down = Grass2DLL or Grass2DL or Grass2DR or Grass2DRR
+
+Grass3Up = Grass3ULL or Grass3UL or Grass3UR or Grass3URR
+Grass3Down = Grass3DLL or Grass3DL or Grass3DR or Grass3DRR
+
+Grass4Up = Grass4ULL or Grass4UL or Grass4UR or Grass4URR
+Grass4Down = Grass4DLL or Grass4DL or Grass4DR or Grass4DRR
+
+GroundD = GroundDLL or GroundDL or GroundDR or GroundDRR
+
+Ground0 = Ground0LL or Ground0L or Ground0R or Ground0RR
+
+Ground1 = Ground1LL or Ground1L or Ground1R or Ground1RR
+
+Ground1half = Ground1halfLL or Ground1halfL or Ground1halfR or Ground1halfRR
+
+Ground2 = Ground2LL or Ground2L or Ground2R or Ground2RR
+
+Ground2half = Ground2halfLL or Ground2halfL or Ground2halfR or Ground2halfRR
+
+Ground3 = Ground3LL or Ground3L or Ground3R or Ground3RR
+
+Ground3half = Ground3halfLL or Ground3halfL or Ground3halfR or Ground3halfRR
+
+Ground4 = Ground4LL or Ground4L or Ground4R or Ground4RR
+
+Ground4half = Ground4halfLL or Ground4halfL or Ground4halfR or Ground4halfRR
+
+Ground = GroundD or Ground1 or Ground2 or Ground3 or Ground4
+
+HeightMarker = Height1 or Height2 or Height3 or Height4
+
+Player0UULL = Player0R_UULL or Player0D_UULL or Player0L_UULL or Player0U_UULL
+Player0UUL  = Player0R_UUL  or Player0D_UUL  or Player0L_UUL  or Player0U_UUL
+Player0UUR  = Player0R_UUR  or Player0D_UUR  or Player0L_UUR  or Player0U_UUR
+Player0UURR = Player0R_UURR or Player0D_UURR or Player0L_UURR or Player0U_UURR
+
+Player0ULL = Player0R_ULL or Player0D_ULL or Player0L_ULL or Player0U_ULL
+Player0UL  = Player0R_UL  or Player0D_UL  or Player0L_UL  or Player0U_UL
+Player0UR  = Player0R_UR  or Player0D_UR  or Player0L_UR  or Player0U_UR
+Player0URR = Player0R_URR or Player0D_URR or Player0L_URR or Player0U_URR
+
+Player0LL = Player0R_LL or Player0D_LL or Player0L_LL or Player0U_LL
+Player0L  = Player0R_L  or Player0D_L  or Player0L_L  or Player0U_L
+Player0R  = Player0R_R  or Player0D_R  or Player0L_R  or Player0U_R
+Player0RR = Player0R_RR or Player0D_RR or Player0L_RR or Player0U_RR
+
+Player0DLL = Player0R_DLL or Player0D_DLL or Player0L_DLL or Player0U_DLL
+Player0DL  = Player0R_DL  or Player0D_DL  or Player0L_DL  or Player0U_DL
+Player0DR  = Player0R_DR  or Player0D_DR  or Player0L_DR  or Player0U_DR
+Player0DRR = Player0R_DRR or Player0D_DRR or Player0L_DRR or Player0U_DRR
+
+Player0Top = Player0UULL or Player0UUL or Player0UUR or Player0UURR
+Player0Mid1 = Player0ULL  or Player0UL  or Player0UR  or Player0URR
+Player0Mid2  = Player0LL   or Player0L   or Player0R   or Player0RR
+Player0Bot  = Player0DLL  or Player0DL  or Player0DR  or Player0DRR
+
+Player1UULL = Player1R_UULL or Player1D_UULL or Player1L_UULL or Player1U_UULL
+Player1UUL  = Player1R_UUL  or Player1D_UUL  or Player1L_UUL  or Player1U_UUL
+Player1UUR  = Player1R_UUR  or Player1D_UUR  or Player1L_UUR  or Player1U_UUR
+Player1UURR = Player1R_UURR or Player1D_UURR or Player1L_UURR or Player1U_UURR
+
+Player1ULL = Player1R_ULL or Player1D_ULL or Player1L_ULL or Player1U_ULL
+Player1UL  = Player1R_UL  or Player1D_UL  or Player1L_UL  or Player1U_UL
+Player1UR  = Player1R_UR  or Player1D_UR  or Player1L_UR  or Player1U_UR
+Player1URR = Player1R_URR or Player1D_URR or Player1L_URR or Player1U_URR
+
+Player1LL = Player1R_LL or Player1D_LL or Player1L_LL or Player1U_LL
+Player1L  = Player1R_L  or Player1D_L  or Player1L_L  or Player1U_L
+Player1R  = Player1R_R  or Player1D_R  or Player1L_R  or Player1U_R
+Player1RR = Player1R_RR or Player1D_RR or Player1L_RR or Player1U_RR
+
+Player1DLL = Player1R_DLL or Player1D_DLL or Player1L_DLL or Player1U_DLL
+Player1DL  = Player1R_DL  or Player1D_DL  or Player1L_DL  or Player1U_DL
+Player1DR  = Player1R_DR  or Player1D_DR  or Player1L_DR  or Player1U_DR
+Player1DRR = Player1R_DRR or Player1D_DRR or Player1L_DRR or Player1U_DRR
+
+Player1Top = Player1UULL or Player1UUL or Player1UUR or Player1UURR
+Player1Mid1 = Player1ULL  or Player1UL  or Player1UR  or Player1URR
+Player1Mid2  = Player1LL   or Player1L   or Player1R   or Player1RR
+Player1Bot  = Player1DLL  or Player1DL  or Player1DR  or Player1DRR
+
+Player2UULL = Player2R_UULL or Player2D_UULL or Player2L_UULL or Player2U_UULL
+Player2UUL  = Player2R_UUL  or Player2D_UUL  or Player2L_UUL  or Player2U_UUL
+Player2UUR  = Player2R_UUR  or Player2D_UUR  or Player2L_UUR  or Player2U_UUR
+Player2UURR = Player2R_UURR or Player2D_UURR or Player2L_UURR or Player2U_UURR
+
+Player2ULL = Player2R_ULL or Player2D_ULL or Player2L_ULL or Player2U_ULL
+Player2UL  = Player2R_UL  or Player2D_UL  or Player2L_UL  or Player2U_UL
+Player2UR  = Player2R_UR  or Player2D_UR  or Player2L_UR  or Player2U_UR
+Player2URR = Player2R_URR or Player2D_URR or Player2L_URR or Player2U_URR
+
+Player2LL = Player2R_LL or Player2D_LL or Player2L_LL or Player2U_LL
+Player2L  = Player2R_L  or Player2D_L  or Player2L_L  or Player2U_L
+Player2R  = Player2R_R  or Player2D_R  or Player2L_R  or Player2U_R
+Player2RR = Player2R_RR or Player2D_RR or Player2L_RR or Player2U_RR
+
+Player2DLL = Player2R_DLL or Player2D_DLL or Player2L_DLL or Player2U_DLL
+Player2DL  = Player2R_DL  or Player2D_DL  or Player2L_DL  or Player2U_DL
+Player2DR  = Player2R_DR  or Player2D_DR  or Player2L_DR  or Player2U_DR
+Player2DRR = Player2R_DRR or Player2D_DRR or Player2L_DRR or Player2U_DRR
+
+Player2Top = Player2UULL or Player2UUL or Player2UUR or Player2UURR
+Player2Mid1 = Player2ULL  or Player2UL  or Player2UR  or Player2URR
+Player2Mid2  = Player2LL   or Player2L   or Player2R   or Player2RR
+Player2Bot  = Player2DLL  or Player2DL  or Player2DR  or Player2DRR
+
+Player3UULL = Player3R_UULL or Player3D_UULL or Player3L_UULL or Player3U_UULL
+Player3UUL  = Player3R_UUL  or Player3D_UUL  or Player3L_UUL  or Player3U_UUL
+Player3UUR  = Player3R_UUR  or Player3D_UUR  or Player3L_UUR  or Player3U_UUR
+Player3UURR = Player3R_UURR or Player3D_UURR or Player3L_UURR or Player3U_UURR
+
+Player3ULL = Player3R_ULL or Player3D_ULL or Player3L_ULL or Player3U_ULL
+Player3UL  = Player3R_UL  or Player3D_UL  or Player3L_UL  or Player3U_UL
+Player3UR  = Player3R_UR  or Player3D_UR  or Player3L_UR  or Player3U_UR
+Player3URR = Player3R_URR or Player3D_URR or Player3L_URR or Player3U_URR
+
+Player3LL = Player3R_LL or Player3D_LL or Player3L_LL or Player3U_LL
+Player3L  = Player3R_L  or Player3D_L  or Player3L_L  or Player3U_L
+Player3R  = Player3R_R  or Player3D_R  or Player3L_R  or Player3U_R
+Player3RR = Player3R_RR or Player3D_RR or Player3L_RR or Player3U_RR
+
+Player3DLL = Player3R_DLL or Player3D_DLL or Player3L_DLL or Player3U_DLL
+Player3DL  = Player3R_DL  or Player3D_DL  or Player3L_DL  or Player3U_DL
+Player3DR  = Player3R_DR  or Player3D_DR  or Player3L_DR  or Player3U_DR
+Player3DRR = Player3R_DRR or Player3D_DRR or Player3L_DRR or Player3U_DRR
+
+Player3Top = Player3UULL or Player3UUL or Player3UUR or Player3UURR
+Player3Mid1 = Player3ULL  or Player3UL  or Player3UR  or Player3URR
+Player3Mid2  = Player3LL   or Player3L   or Player3R   or Player3RR
+Player3Bot  = Player3DLL  or Player3DL  or Player3DR  or Player3DRR
+
+Player4UULL = Player4R_UULL or Player4D_UULL or Player4L_UULL or Player4U_UULL
+Player4UUL  = Player4R_UUL  or Player4D_UUL  or Player4L_UUL  or Player4U_UUL
+Player4UUR  = Player4R_UUR  or Player4D_UUR  or Player4L_UUR  or Player4U_UUR
+Player4UURR = Player4R_UURR or Player4D_UURR or Player4L_UURR or Player4U_UURR
+
+Player4ULL = Player4R_ULL or Player4D_ULL or Player4L_ULL or Player4U_ULL
+Player4UL  = Player4R_UL  or Player4D_UL  or Player4L_UL  or Player4U_UL
+Player4UR  = Player4R_UR  or Player4D_UR  or Player4L_UR  or Player4U_UR
+Player4URR = Player4R_URR or Player4D_URR or Player4L_URR or Player4U_URR
+
+Player4LL = Player4R_LL or Player4D_LL or Player4L_LL or Player4U_LL
+Player4L  = Player4R_L  or Player4D_L  or Player4L_L  or Player4U_L
+Player4R  = Player4R_R  or Player4D_R  or Player4L_R  or Player4U_R
+Player4RR = Player4R_RR or Player4D_RR or Player4L_RR or Player4U_RR
+
+Player4DLL = Player4R_DLL or Player4D_DLL or Player4L_DLL or Player4U_DLL
+Player4DL  = Player4R_DL  or Player4D_DL  or Player4L_DL  or Player4U_DL
+Player4DR  = Player4R_DR  or Player4D_DR  or Player4L_DR  or Player4U_DR
+Player4DRR = Player4R_DRR or Player4D_DRR or Player4L_DRR or Player4U_DRR
+
+Player4Top = Player4UULL or Player4UUL or Player4UUR or Player4UURR
+Player4Mid1 = Player4ULL  or Player4UL  or Player4UR  or Player4URR
+Player4Mid2  = Player4LL   or Player4L   or Player4R   or Player4RR
+Player4Bot  = Player4DLL  or Player4DL  or Player4DR  or Player4DRR
+
+
+DirMarkers0 = UpMarker0 or DownMarker0 or LeftMarker0 or RightMarker0
+DirMarkers1 = UpMarker1 or DownMarker1 or LeftMarker1 or RightMarker1
+DirMarkers2 = UpMarker2 or DownMarker2 or LeftMarker2 or RightMarker2
+DirMarkers3 = UpMarker3 or DownMarker3 or LeftMarker3 or RightMarker3
+DirMarkers4 = UpMarker4 or DownMarker4 or LeftMarker4 or RightMarker4
+
+Player0Sprites = Player0Top or Player0Mid1 or Player0Mid2 or Player0Bot
+
+Player1Sprites = Player1Top or Player1Mid1 or Player1Mid2 or Player1Bot
+
+Player2Sprites = Player2Top or Player2Mid1 or Player2Mid2 or Player2Bot
+
+Player3Sprites = Player3Top or Player3Mid1 or Player3Mid2 or Player3Bot
+
+Player4Sprites = Player4Top or Player4Mid1 or Player4Mid2 or Player4Bot
+
+PlayerSprites = Player0Sprites or Player1Sprites or Player2Sprites or Player3Sprites or Player4Sprites
+
+PlayerLayers = Player0 or Player1 or Player2 or Player3 or Player4
+
+Walkable0 = Grass0ULL
+Walkable1 = Grass1ULL or Player0UULL
+Walkable2 = Grass2ULL or Player1UULL
+Walkable3 = Grass3ULL or Player2UULL
+Walkable4 = Grass4ULL or Player3UULL
+
+CurLevel = AtLevel0 or AtLevel1 or AtLevel2 or AtLevel3 or AtLevel4
+
+BlocksMovement0 = Player0 or Ground1LL
+BlocksMovement1 = Player1 or Ground2LL
+BlocksMovement2 = Player2 or Ground3LL
+BlocksMovement3 = Player3 or Ground4LL
+BlocksMovement4 = Player4
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+
+GrassTile
+GroundD
+Ground0
+Grass0Down
+Grass0Up
+
+Player0Bot
+Ground1
+Player0Mid2
+Ground1half
+Player0Mid1
+Grass1Down
+Player0Top
+Grass1Up
+
+Player1Bot
+Ground2
+Player1Mid2
+Ground2half
+Player1Mid1
+Grass2Down
+Player1Top
+Grass2Up
+
+Player2Bot
+Ground3
+Player2Mid2
+Ground3half
+Player2Mid1
+Grass3Down
+Player2Top
+Grass3Up
+
+Player3Bot
+Ground4
+Player3Mid2
+Ground4half
+Player3Mid1
+Grass4Down
+Player3Top
+Grass4Up
+
+Player4Sprites
+
+HeightMarker
+DirMarkers0
+DirMarkers1
+DirMarkers2
+DirMarkers3
+DirMarkers4
+
+Player
+Player0
+Player1
+Player2
+Player3
+Player4
+
+CurLevel
+
+PlayerStart
+
+Temp
+
+GameOver
+
+======
+RULES
+======
+
+[Player no CurLevel] [CurLevel] -> [Player CurLevel] []
+
+[stationary Player] [PlayerSprites] -> [Player] []
+
+[Player0 no Walkable0] [no GameOver] -> [Player0] [GameOver]
+[moving Player] [GameOver] -> cancel
+
+(Falling)
+(Player 1)
+(Layer 1)
+DOWN [Player AtLevel1 Player1 RightMarker1 no Walkable1||] ->[||Player AtLevel0 Player0 RightMarker0]
+DOWN [Player AtLevel1 Player1  LeftMarker1 no Walkable1||] ->[||Player AtLevel0 Player0  LeftMarker0]
+DOWN [Player AtLevel1 Player1    UpMarker1 no Walkable1||] ->[||Player AtLevel0 Player0    UpMarker0]
+DOWN [Player AtLevel1 Player1  DownMarker1 no Walkable1||] ->[||Player AtLevel0 Player0  DownMarker0]
+(Layer 2)
+DOWN [Player AtLevel2 Player2 RightMarker2 no Walkable2||] ->[||Player AtLevel1 Player1 RightMarker1]
+DOWN [Player AtLevel2 Player2  LeftMarker2 no Walkable2||] ->[||Player AtLevel1 Player1  LeftMarker1]
+DOWN [Player AtLevel2 Player2    UpMarker2 no Walkable2||] ->[||Player AtLevel1 Player1    UpMarker1]
+DOWN [Player AtLevel2 Player2  DownMarker2 no Walkable2||] ->[||Player AtLevel1 Player1  DownMarker1]
+(Layer 3)
+DOWN [Player AtLevel3 Player3 RightMarker3 no Walkable3||] ->[||Player AtLevel2 Player2 RightMarker2]
+DOWN [Player AtLevel3 Player3  LeftMarker3 no Walkable3||] ->[||Player AtLevel2 Player2  LeftMarker2]
+DOWN [Player AtLevel3 Player3    UpMarker3 no Walkable3||] ->[||Player AtLevel2 Player2    UpMarker2]
+DOWN [Player AtLevel3 Player3  DownMarker3 no Walkable3||] ->[||Player AtLevel2 Player2  DownMarker2]
+(Layer 4)
+DOWN [Player AtLevel4 Player4 RightMarker4 no Walkable4||] ->[||Player AtLevel3 Player3 RightMarker3]
+DOWN [Player AtLevel4 Player4  LeftMarker4 no Walkable4||] ->[||Player AtLevel3 Player3  LeftMarker3]
+DOWN [Player AtLevel4 Player4    UpMarker4 no Walkable4||] ->[||Player AtLevel3 Player3    UpMarker3]
+DOWN [Player AtLevel4 Player4  DownMarker4 no Walkable4||] ->[||Player AtLevel3 Player3  DownMarker3]
+
+
+(Player 2)
+(Layer 1)
+DOWN [Player1 RightMarker1 no Walkable1 no AtLevel1||] ->[||Player0 RightMarker0]
+DOWN [Player1  LeftMarker1 no Walkable1 no AtLevel1||] ->[||Player0  LeftMarker0]
+DOWN [Player1    UpMarker1 no Walkable1 no AtLevel1||] ->[||Player0    UpMarker0]
+DOWN [Player1  DownMarker1 no Walkable1 no AtLevel1||] ->[||Player0  DownMarker0]
+(Layer 2)
+DOWN [Player2 RightMarker2 no Walkable2 no AtLevel2||] ->[||Player1 RightMarker1]
+DOWN [Player2  LeftMarker2 no Walkable2 no AtLevel2||] ->[||Player1  LeftMarker1]
+DOWN [Player2    UpMarker2 no Walkable2 no AtLevel2||] ->[||Player1    UpMarker1]
+DOWN [Player2  DownMarker2 no Walkable2 no AtLevel2||] ->[||Player1  DownMarker1]
+(Layer 3)
+DOWN [Player3 RightMarker3 no Walkable3 no AtLevel3||] ->[||Player2 RightMarker2]
+DOWN [Player3  LeftMarker3 no Walkable3 no AtLevel3||] ->[||Player2  LeftMarker2]
+DOWN [Player3    UpMarker3 no Walkable3 no AtLevel3||] ->[||Player2    UpMarker2]
+DOWN [Player3  DownMarker3 no Walkable3 no AtLevel3||] ->[||Player2  DownMarker2]
+(Layer 4)
+DOWN [Player4 RightMarker4 no Walkable4 no AtLevel4||] ->[||Player3 RightMarker3]
+DOWN [Player4  LeftMarker4 no Walkable4 no AtLevel4||] ->[||Player3  LeftMarker3]
+DOWN [Player4    UpMarker4 no Walkable4 no AtLevel4||] ->[||Player3    UpMarker3]
+DOWN [Player4  DownMarker4 no Walkable4 no AtLevel4||] ->[||Player3  DownMarker3]
+
+[action Player CurLevel] [Player0 no AtLevel0] -> [] [Player0 Player AtLevel0]
+[action Player CurLevel] [Player1 no AtLevel1] -> [] [Player1 Player AtLevel1]
+[action Player CurLevel] [Player2 no AtLevel2] -> [] [Player2 Player AtLevel2]
+[action Player CurLevel] [Player3 no AtLevel3] -> [] [Player3 Player AtLevel3]
+[action Player CurLevel] [Player4 no AtLevel4] -> [] [Player4 Player AtLevel4]
+
+
+GLOBAL RIGHT[GrassTile no HeightMarker|HeightMarker] -> [GrassTile HeightMarker|]
+
+
+(Active Player Setup)
+RIGHT[GrassTile no PlayerStart||PlayerStart Player] -> [GrassTile PlayerStart Player||]
+
+UP [PlayerStart no HeightMarker Player|] -> [|Player0 Player AtLevel0]
+
+UP [PlayerStart Height1 Player|||] -> [Height1|||Player1 Player AtLevel1]
+
+UP [PlayerStart Height2 Player|||||] -> [Height2|||||Player2 Player AtLevel2]
+
+UP [PlayerStart Height3 Player|||||||] -> [Height3|||||||Player3 Player AtLevel3]
+
+UP [PlayerStart Height4 Player|||||||||] -> [Height4|||||||||Player4 Player AtLevel4]
+
+(Second Player Setup)
+RIGHT[GrassTile no PlayerStart||PlayerStart] -> [GrassTile PlayerStart||]
+
+UP [PlayerStart no HeightMarker|] -> [|Player0]
+
+UP [PlayerStart Height1|||] -> [Height1|||Player1]
+
+UP [PlayerStart Height2|||||] -> [Height2|||||Player2]
+
+UP [PlayerStart Height3|||||||] -> [Height3|||||||Player3]
+
+UP [PlayerStart Height4|||||||||] -> [Height4|||||||||Player4]
+
+(Setup Movement)
+
+[orthogonal Player Player0 AtLevel0] -> [Player orthogonal Player0 AtLevel0]
+[orthogonal Player Player1 AtLevel1] -> [Player orthogonal Player1 AtLevel1]
+[orthogonal Player Player2 AtLevel2] -> [Player orthogonal Player2 AtLevel2]
+[orthogonal Player Player3 AtLevel3] -> [Player orthogonal Player3 AtLevel3]
+[orthogonal Player Player4 AtLevel4] -> [Player orthogonal Player4 AtLevel4]
+
+[Player0 no DirMarkers0] -> [Player0 RightMarker0]
+[Up    Player0 DirMarkers0] -> [Up    Player0 UpMarker0   ]
+[Down  Player0 DirMarkers0] -> [Down  Player0 DownMarker0 ]
+[Left  Player0 DirMarkers0] -> [Left  Player0 LeftMarker0 ]
+[Right Player0 DirMarkers0] -> [Right Player0 RightMarker0]
+
+[Player1 no DirMarkers1] -> [Player1 RightMarker1]
+[Up    Player1 DirMarkers1] -> [Up    Player1 UpMarker1   ]
+[Down  Player1 DirMarkers1] -> [Down  Player1 DownMarker1 ]
+[Left  Player1 DirMarkers1] -> [Left  Player1 LeftMarker1 ]
+[Right Player1 DirMarkers1] -> [Right Player1 RightMarker1]
+
+[Player2 no DirMarkers2] -> [Player2 RightMarker2]
+[Up    Player2 DirMarkers2] -> [Up    Player2 UpMarker2   ]
+[Down  Player2 DirMarkers2] -> [Down  Player2 DownMarker2 ]
+[Left  Player2 DirMarkers2] -> [Left  Player2 LeftMarker2 ]
+[Right Player2 DirMarkers2] -> [Right Player2 RightMarker2]
+
+[Player3 no DirMarkers3] -> [Player3 RightMarker3]
+[Up    Player3 DirMarkers3] -> [Up    Player3 UpMarker3   ]
+[Down  Player3 DirMarkers3] -> [Down  Player3 DownMarker3 ]
+[Left  Player3 DirMarkers3] -> [Left  Player3 LeftMarker3 ]
+[Right Player3 DirMarkers3] -> [Right Player3 RightMarker3]
+
+[Player4 no DirMarkers4] -> [Player4 RightMarker4]
+[Up    Player4 DirMarkers4] -> [Up    Player4 UpMarker4   ]
+[Down  Player4 DirMarkers4] -> [Down  Player4 DownMarker4 ]
+[Left  Player4 DirMarkers4] -> [Left  Player4 LeftMarker4 ]
+[Right Player4 DirMarkers4] -> [Right Player4 RightMarker4]
+
+(Prevent movement when stacked)
+(
+UP [orthogonal Player0||Player1] -> [Player0||Player1]
+UP [orthogonal Player1||Player2] -> [Player1||Player2]
+UP [orthogonal Player2||Player3] -> [Player2||Player3]
+UP [orthogonal Player3||Player4] -> [Player3||Player4])
+
+(Layer 0)
+
+RIGHT [UP Player0 Player DirMarkers0||] -> [||temp DirMarkers0]
+UP [temp DirMarkers0|Walkable0 no BlocksMovement0] -> [|Walkable0 Player0 Player DirMarkers0]
+RIGHT [||temp DirMarkers0] -> [Player0 Player DirMarkers0||]
+
+RIGHT [RIGHT Player0 Player DirMarkers0||] -> [||temp DirMarkers0]
+DOWN [temp DirMarkers0|Walkable0 no BlocksMovement0] -> [|Walkable0 Player0 Player DirMarkers0]
+RIGHT [||temp DirMarkers0] -> [Player0 Player DirMarkers0||]
+
+LEFT [DOWN Player0 Player DirMarkers0||] -> [||temp DirMarkers0]
+DOWN [temp DirMarkers0|Walkable0 no BlocksMovement0] -> [|Walkable0 Player0 Player DirMarkers0]
+LEFT [||temp DirMarkers0] -> [Player0 Player DirMarkers0||]
+
+LEFT [LEFT Player0 Player DirMarkers0||] -> [||temp DirMarkers0]
+UP [temp DirMarkers0|Walkable0 no BlocksMovement0] -> [|Walkable0 Player0 Player DirMarkers0]
+LEFT [||temp DirMarkers0] -> [Player0 Player DirMarkers0||]
+
+(Layer 1)
+
+RIGHT [UP Player1 Player DirMarkers1||] -> [||temp DirMarkers1]
+UP [temp DirMarkers1|no BlocksMovement1] -> [|Player1 Player DirMarkers1]
+RIGHT [||temp DirMarkers1] -> [Player1 Player DirMarkers1||]
+
+RIGHT [RIGHT Player1 Player DirMarkers1||] -> [||temp DirMarkers1]
+DOWN [temp DirMarkers1|no BlocksMovement1] -> [|Player1 Player DirMarkers1]
+RIGHT [||temp DirMarkers1] -> [Player1 Player DirMarkers1||]
+
+LEFT [DOWN Player1 Player DirMarkers1||] -> [||temp DirMarkers1]
+DOWN [temp DirMarkers1|no BlocksMovement1] -> [|Player1 Player DirMarkers1]
+LEFT [||temp DirMarkers1] -> [Player1 Player DirMarkers1||]
+
+LEFT [LEFT Player1 Player DirMarkers1||] -> [||temp DirMarkers1]
+UP [temp DirMarkers1|no BlocksMovement1] -> [|Player1 Player DirMarkers1]
+LEFT [||temp DirMarkers1] -> [Player1 Player DirMarkers1||]
+
+(Layer 2)
+
+RIGHT [UP Player2 Player DirMarkers2||] -> [||temp DirMarkers2]
+UP [temp DirMarkers2|no BlocksMovement2] -> [|Player2 Player DirMarkers2]
+RIGHT [||temp DirMarkers2] -> [Player2 Player DirMarkers2||]
+
+RIGHT [RIGHT Player2 Player DirMarkers2||] -> [||temp DirMarkers2]
+DOWN [temp DirMarkers2|no BlocksMovement2] -> [|Player2 Player DirMarkers2]
+RIGHT [||temp DirMarkers2] -> [Player2 Player DirMarkers2||]
+
+LEFT [DOWN Player2 Player DirMarkers2||] -> [||temp DirMarkers2]
+DOWN [temp DirMarkers2|no BlocksMovement2] -> [|Player2 Player DirMarkers2]
+LEFT [||temp DirMarkers2] -> [Player2 Player DirMarkers2||]
+
+LEFT [LEFT Player2 Player DirMarkers2||] -> [||temp DirMarkers2]
+UP [temp DirMarkers2|no BlocksMovement2] -> [|Player2 Player DirMarkers2]
+LEFT [||temp DirMarkers2] -> [Player2 Player DirMarkers2||]
+
+(Layer 3)
+
+RIGHT [UP Player3 Player DirMarkers3||] -> [||temp DirMarkers3]
+UP [temp DirMarkers3|no BlocksMovement3] -> [|Player3 Player DirMarkers3]
+RIGHT [||temp DirMarkers3] -> [Player3 Player DirMarkers3||]
+
+RIGHT [RIGHT Player3 Player DirMarkers3||] -> [||temp DirMarkers3]
+DOWN [temp DirMarkers3|no BlocksMovement3] -> [|Player3 Player DirMarkers3]
+RIGHT [||temp DirMarkers3] -> [Player3 Player DirMarkers3||]
+
+LEFT [DOWN Player3 Player DirMarkers3||] -> [||temp DirMarkers3]
+DOWN [temp DirMarkers3|no BlocksMovement3] -> [|Player3 Player DirMarkers3]
+LEFT [||temp DirMarkers3] -> [Player3 Player DirMarkers3||]
+
+LEFT [LEFT Player3 Player DirMarkers3||] -> [||temp DirMarkers3]
+UP [temp DirMarkers3|no BlocksMovement3] -> [|Player3 Player DirMarkers3]
+LEFT [||temp DirMarkers3] -> [Player3 Player DirMarkers3||]
+
+(Layer 4)
+
+RIGHT [UP Player4 Player DirMarkers4||] -> [||temp DirMarkers4]
+UP [temp DirMarkers4|no BlocksMovement4] -> [|Player4 Player DirMarkers4]
+RIGHT [||temp DirMarkers4] -> [Player4 Player DirMarkers4||]
+
+RIGHT [RIGHT Player4 Player DirMarkers4||] -> [||temp DirMarkers4]
+DOWN [temp DirMarkers4|no BlocksMovement4] -> [|Player4 Player DirMarkers4]
+RIGHT [||temp DirMarkers4] -> [Player4 Player DirMarkers4||]
+
+LEFT [DOWN Player4 Player DirMarkers4||] -> [||temp DirMarkers4]
+DOWN [temp DirMarkers4|no BlocksMovement4] -> [|Player4 Player DirMarkers4]
+LEFT [||temp DirMarkers4] -> [Player4 Player DirMarkers4||]
+
+LEFT [LEFT Player4 Player DirMarkers4||] -> [||temp DirMarkers4]
+UP [temp DirMarkers4|no BlocksMovement4] -> [|Player4 Player DirMarkers4]
+LEFT [||temp DirMarkers4] -> [Player4 Player DirMarkers4||]
+
+(Build Ground)
+
+GLOBAL UP [GrassTile no HeightMarker|] -> [GrassTile Grass0DLL|Grass0ULL]
+GLOBAL RIGHT [Grass0DLL|no Grass0DL||] -> [Grass0DLL Ground0LL|Grass0DL Ground0L|Grass0DR Ground0R|Grass0DRR Ground0RR]
+GLOBAL RIGHT [Grass0ULL|||] -> [Grass0ULL|Grass0UL|Grass0UR|Grass0URR]
+
+GLOBAL RIGHT [GrassTile HeightMarker|||] -> [GrassTile HeightMarker Ground0LL|HeightMarker Ground0L|HeightMarker Ground0R|HeightMarker Ground0RR]
+
+GLOBAL UP [Ground0LL Height4|||||||||] -> [Height4 Ground0LL|Ground1LL|Ground1halfLL|Ground2LL|Ground2halfLL|Ground3LL|Ground3halfLL|Ground4LL|Ground4halfLL Grass4DLL|Grass4ULL]
+GLOBAL UP [Ground0L  Height4|||||||||] -> [Height4 Ground0L |Ground1L |Ground1halfL |Ground2L |Ground2halfL |Ground3L |Ground3halfL |Ground4L |Ground4halfL  Grass4DL |Grass4UL ]
+GLOBAL UP [Ground0R  Height4|||||||||] -> [Height4 Ground0R |Ground1R |Ground1halfR |Ground2R |Ground2halfR |Ground3R |Ground3halfR |Ground4R |Ground4halfR  Grass4DR |Grass4UR ]
+GLOBAL UP [Ground0RR Height4|||||||||] -> [Height4 Ground0RR|Ground1RR|Ground1halfRR|Ground2RR|Ground2halfRR|Ground3RR|Ground3halfRR|Ground4RR|Ground4halfRR Grass4DRR|Grass4URR]
+
+GLOBAL UP [Ground0LL Height3|||||||] -> [Height3 Ground0LL|Ground1LL|Ground1halfLL|Ground2LL|Ground2halfLL|Ground3LL|Ground3halfLL Grass3DLL|Grass3ULL]
+GLOBAL UP [Ground0L  Height3|||||||] -> [Height3 Ground0L |Ground1L |Ground1halfL |Ground2L |Ground2halfL |Ground3L |Ground3halfL  Grass3DL |Grass3UL ]
+GLOBAL UP [Ground0R  Height3|||||||] -> [Height3 Ground0R |Ground1R |Ground1halfR |Ground2R |Ground2halfR |Ground3R |Ground3halfR  Grass3DR |Grass3UR ]
+GLOBAL UP [Ground0RR Height3|||||||] -> [Height3 Ground0RR|Ground1RR|Ground1halfRR|Ground2RR|Ground2halfRR|Ground3RR|Ground3halfRR Grass3DRR|Grass3URR]
+
+GLOBAL UP [Ground0LL Height2|||||] -> [Height2 Ground0LL|Ground1LL|Ground1halfLL|Ground2LL|Ground2halfLL Grass2DLL|Grass2ULL]
+GLOBAL UP [Ground0L  Height2|||||] -> [Height2 Ground0L |Ground1L |Ground1halfL |Ground2L |Ground2halfL  Grass2DL |Grass2UL ]
+GLOBAL UP [Ground0R  Height2|||||] -> [Height2 Ground0R |Ground1R |Ground1halfR |Ground2R |Ground2halfR  Grass2DR |Grass2UR ]
+GLOBAL UP [Ground0RR Height2|||||] -> [Height2 Ground0RR|Ground1RR|Ground1halfRR|Ground2RR|Ground2halfRR Grass2DRR|Grass2URR]
+
+GLOBAL UP [Ground0LL Height1|||] -> [Height1 Ground0LL|Ground1LL|Ground1halfLL Grass1DLL|Grass1ULL]
+GLOBAL UP [Ground0L  Height1|||] -> [Height1 Ground0L |Ground1L |Ground1halfL  Grass1DL |Grass1UL ]
+GLOBAL UP [Ground0R  Height1|||] -> [Height1 Ground0R |Ground1R |Ground1halfR  Grass1DR |Grass1UR ]
+GLOBAL UP [Ground0RR Height1|||] -> [Height1 Ground0RR|Ground1RR|Ground1halfRR Grass1DRR|Grass1URR]
+GLOBAL DOWN [Ground0|no Ground0]->[Ground0|Ground0]
+
+
+
+(Render)
+
+(Layer 0)
+LATE [Player0 no Player0LL] [Player0Sprites] -> [Player0] []
+LATE [Player0 RightMarker0] -> [Player0 RightMarker0 Player0R_LL]
+LATE DOWN  [||Player0R_LL|  ] -> [Player0R_UULL|Player0R_ULL|Player0R_LL |Player0R_DLL ]
+LATE RIGHT [Player0R_LL  |||] -> [Player0R_LL  |Player0R_L  |Player0R_R  |Player0R_RR  ]
+LATE RIGHT [Player0R_ULL |||] -> [Player0R_ULL |Player0R_UL |Player0R_UR |Player0R_URR ]
+LATE RIGHT [Player0R_UULL|||] -> [Player0R_UULL|Player0R_UUL|Player0R_UUR|Player0R_UURR]
+LATE RIGHT [Player0R_DLL |||] -> [Player0R_DLL |Player0R_DL |Player0R_DR |Player0R_DRR ]
+
+LATE [Player0 DownMarker0] -> [Player0 Player0D_LL DownMarker0]
+LATE DOWN  [||Player0D_LL|  ] -> [Player0D_UULL|Player0D_ULL|Player0D_LL |Player0D_DLL ]
+LATE RIGHT [Player0D_LL  |||] -> [Player0D_LL  |Player0D_L  |Player0D_R  |Player0D_RR  ]
+LATE RIGHT [Player0D_ULL |||] -> [Player0D_ULL |Player0D_UL |Player0D_UR |Player0D_URR ]
+LATE RIGHT [Player0D_UULL|||] -> [Player0D_UULL|Player0D_UUL|Player0D_UUR|Player0D_UURR]
+LATE RIGHT [Player0D_DLL |||] -> [Player0D_DLL |Player0D_DL |Player0D_DR |Player0D_DRR ]
+
+LATE [Player0 LeftMarker0] -> [Player0 Player0L_LL LeftMarker0]
+LATE DOWN  [||Player0L_LL|  ] -> [Player0L_UULL|Player0L_ULL|Player0L_LL |Player0L_DLL ]
+LATE RIGHT [Player0L_LL  |||] -> [Player0L_LL  |Player0L_L  |Player0L_R  |Player0L_RR  ]
+LATE RIGHT [Player0L_ULL |||] -> [Player0L_ULL |Player0L_UL |Player0L_UR |Player0L_URR ]
+LATE RIGHT [Player0L_UULL|||] -> [Player0L_UULL|Player0L_UUL|Player0L_UUR|Player0L_UURR]
+LATE RIGHT [Player0L_DLL |||] -> [Player0L_DLL |Player0L_DL |Player0L_DR |Player0L_DRR ]
+
+LATE [Player0 UpMarker0] -> [Player0 Player0U_LL UpMarker0]
+LATE DOWN  [||Player0U_LL|  ] -> [Player0U_UULL|Player0U_ULL|Player0U_LL |Player0U_DLL ]
+LATE RIGHT [Player0U_LL  |||] -> [Player0U_LL  |Player0U_L  |Player0U_R  |Player0U_RR  ]
+LATE RIGHT [Player0U_ULL |||] -> [Player0U_ULL |Player0U_UL |Player0U_UR |Player0U_URR ]
+LATE RIGHT [Player0U_UULL|||] -> [Player0U_UULL|Player0U_UUL|Player0U_UUR|Player0U_UURR]
+LATE RIGHT [Player0U_DLL |||] -> [Player0U_DLL |Player0U_DL |Player0U_DR |Player0U_DRR ]
+
+(Layer 1)
+LATE [Player1 no Player1LL] [Player1Sprites] -> [Player1] []
+LATE [Player1 RightMarker1] -> [Player1 Player1R_LL RightMarker1]
+LATE DOWN  [||Player1R_LL|  ] -> [Player1R_UULL|Player1R_ULL|Player1R_LL |Player1R_DLL ]
+LATE RIGHT [Player1R_LL  |||] -> [Player1R_LL  |Player1R_L  |Player1R_R  |Player1R_RR  ]
+LATE RIGHT [Player1R_ULL |||] -> [Player1R_ULL |Player1R_UL |Player1R_UR |Player1R_URR ]
+LATE RIGHT [Player1R_UULL|||] -> [Player1R_UULL|Player1R_UUL|Player1R_UUR|Player1R_UURR]
+LATE RIGHT [Player1R_DLL |||] -> [Player1R_DLL |Player1R_DL |Player1R_DR |Player1R_DRR ]
+
+LATE [Player1 DownMarker1] -> [Player1 Player1D_LL DownMarker1]
+LATE DOWN  [||Player1D_LL|  ] -> [Player1D_UULL|Player1D_ULL|Player1D_LL |Player1D_DLL ]
+LATE RIGHT [Player1D_LL  |||] -> [Player1D_LL  |Player1D_L  |Player1D_R  |Player1D_RR  ]
+LATE RIGHT [Player1D_ULL |||] -> [Player1D_ULL |Player1D_UL |Player1D_UR |Player1D_URR ]
+LATE RIGHT [Player1D_UULL|||] -> [Player1D_UULL|Player1D_UUL|Player1D_UUR|Player1D_UURR]
+LATE RIGHT [Player1D_DLL |||] -> [Player1D_DLL |Player1D_DL |Player1D_DR |Player1D_DRR ]
+
+LATE [Player1 LeftMarker1] -> [Player1 Player1L_LL LeftMarker1]
+LATE DOWN  [||Player1L_LL|  ] -> [Player1L_UULL|Player1L_ULL|Player1L_LL |Player1L_DLL ]
+LATE RIGHT [Player1L_LL  |||] -> [Player1L_LL  |Player1L_L  |Player1L_R  |Player1L_RR  ]
+LATE RIGHT [Player1L_ULL |||] -> [Player1L_ULL |Player1L_UL |Player1L_UR |Player1L_URR ]
+LATE RIGHT [Player1L_UULL|||] -> [Player1L_UULL|Player1L_UUL|Player1L_UUR|Player1L_UURR]
+LATE RIGHT [Player1L_DLL |||] -> [Player1L_DLL |Player1L_DL |Player1L_DR |Player1L_DRR ]
+
+LATE [Player1 UpMarker1] -> [Player1 Player1U_LL UpMarker1]
+LATE DOWN  [||Player1U_LL|  ] -> [Player1U_UULL|Player1U_ULL|Player1U_LL |Player1U_DLL ]
+LATE RIGHT [Player1U_LL  |||] -> [Player1U_LL  |Player1U_L  |Player1U_R  |Player1U_RR  ]
+LATE RIGHT [Player1U_ULL |||] -> [Player1U_ULL |Player1U_UL |Player1U_UR |Player1U_URR ]
+LATE RIGHT [Player1U_UULL|||] -> [Player1U_UULL|Player1U_UUL|Player1U_UUR|Player1U_UURR]
+LATE RIGHT [Player1U_DLL |||] -> [Player1U_DLL |Player1U_DL |Player1U_DR |Player1U_DRR ]
+
+(Layer 2)
+
+LATE [Player2 no Player2LL] [Player2Sprites] -> [Player2] []
+LATE [Player2 RightMarker2] -> [Player2 Player2R_LL RightMarker2]
+LATE DOWN  [||Player2R_LL|  ] -> [Player2R_UULL|Player2R_ULL|Player2R_LL |Player2R_DLL ]
+LATE RIGHT [Player2R_LL  |||] -> [Player2R_LL  |Player2R_L  |Player2R_R  |Player2R_RR  ]
+LATE RIGHT [Player2R_ULL |||] -> [Player2R_ULL |Player2R_UL |Player2R_UR |Player2R_URR ]
+LATE RIGHT [Player2R_UULL|||] -> [Player2R_UULL|Player2R_UUL|Player2R_UUR|Player2R_UURR]
+LATE RIGHT [Player2R_DLL |||] -> [Player2R_DLL |Player2R_DL |Player2R_DR |Player2R_DRR ]
+
+LATE [Player2 DownMarker2] -> [Player2 Player2D_LL DownMarker2]
+LATE DOWN  [||Player2D_LL|  ] -> [Player2D_UULL|Player2D_ULL|Player2D_LL |Player2D_DLL ]
+LATE RIGHT [Player2D_LL  |||] -> [Player2D_LL  |Player2D_L  |Player2D_R  |Player2D_RR  ]
+LATE RIGHT [Player2D_ULL |||] -> [Player2D_ULL |Player2D_UL |Player2D_UR |Player2D_URR ]
+LATE RIGHT [Player2D_UULL|||] -> [Player2D_UULL|Player2D_UUL|Player2D_UUR|Player2D_UURR]
+LATE RIGHT [Player2D_DLL |||] -> [Player2D_DLL |Player2D_DL |Player2D_DR |Player2D_DRR ]
+
+LATE [Player2 LeftMarker2] -> [Player2 Player2L_LL LeftMarker2]
+LATE DOWN  [||Player2L_LL|  ] -> [Player2L_UULL|Player2L_ULL|Player2L_LL |Player2L_DLL ]
+LATE RIGHT [Player2L_LL  |||] -> [Player2L_LL  |Player2L_L  |Player2L_R  |Player2L_RR  ]
+LATE RIGHT [Player2L_ULL |||] -> [Player2L_ULL |Player2L_UL |Player2L_UR |Player2L_URR ]
+LATE RIGHT [Player2L_UULL|||] -> [Player2L_UULL|Player2L_UUL|Player2L_UUR|Player2L_UURR]
+LATE RIGHT [Player2L_DLL |||] -> [Player2L_DLL |Player2L_DL |Player2L_DR |Player2L_DRR ]
+
+LATE [Player2 UpMarker2] -> [Player2 Player2U_LL UpMarker2]
+LATE DOWN  [||Player2U_LL|  ] -> [Player2U_UULL|Player2U_ULL|Player2U_LL |Player2U_DLL ]
+LATE RIGHT [Player2U_LL  |||] -> [Player2U_LL  |Player2U_L  |Player2U_R  |Player2U_RR  ]
+LATE RIGHT [Player2U_ULL |||] -> [Player2U_ULL |Player2U_UL |Player2U_UR |Player2U_URR ]
+LATE RIGHT [Player2U_UULL|||] -> [Player2U_UULL|Player2U_UUL|Player2U_UUR|Player2U_UURR]
+LATE RIGHT [Player2U_DLL |||] -> [Player2U_DLL |Player2U_DL |Player2U_DR |Player2U_DRR ]
+
+(Layer 3)
+
+LATE [Player3 no Player3LL] [Player3Sprites] -> [Player3] []
+LATE [Player3 RightMarker3] -> [Player3 Player3R_LL RightMarker3]
+LATE DOWN  [||Player3R_LL|  ] -> [Player3R_UULL|Player3R_ULL|Player3R_LL |Player3R_DLL ]
+LATE RIGHT [Player3R_LL  |||] -> [Player3R_LL  |Player3R_L  |Player3R_R  |Player3R_RR  ]
+LATE RIGHT [Player3R_ULL |||] -> [Player3R_ULL |Player3R_UL |Player3R_UR |Player3R_URR ]
+LATE RIGHT [Player3R_UULL|||] -> [Player3R_UULL|Player3R_UUL|Player3R_UUR|Player3R_UURR]
+LATE RIGHT [Player3R_DLL |||] -> [Player3R_DLL |Player3R_DL |Player3R_DR |Player3R_DRR ]
+
+LATE [Player3 DownMarker3] -> [Player3 Player3D_LL DownMarker3]
+LATE DOWN  [||Player3D_LL|  ] -> [Player3D_UULL|Player3D_ULL|Player3D_LL |Player3D_DLL ]
+LATE RIGHT [Player3D_LL  |||] -> [Player3D_LL  |Player3D_L  |Player3D_R  |Player3D_RR  ]
+LATE RIGHT [Player3D_ULL |||] -> [Player3D_ULL |Player3D_UL |Player3D_UR |Player3D_URR ]
+LATE RIGHT [Player3D_UULL|||] -> [Player3D_UULL|Player3D_UUL|Player3D_UUR|Player3D_UURR]
+LATE RIGHT [Player3D_DLL |||] -> [Player3D_DLL |Player3D_DL |Player3D_DR |Player3D_DRR ]
+
+LATE [Player3 LeftMarker3] -> [Player3 Player3L_LL LeftMarker3]
+LATE DOWN  [||Player3L_LL|  ] -> [Player3L_UULL|Player3L_ULL|Player3L_LL |Player3L_DLL ]
+LATE RIGHT [Player3L_LL  |||] -> [Player3L_LL  |Player3L_L  |Player3L_R  |Player3L_RR  ]
+LATE RIGHT [Player3L_ULL |||] -> [Player3L_ULL |Player3L_UL |Player3L_UR |Player3L_URR ]
+LATE RIGHT [Player3L_UULL|||] -> [Player3L_UULL|Player3L_UUL|Player3L_UUR|Player3L_UURR]
+LATE RIGHT [Player3L_DLL |||] -> [Player3L_DLL |Player3L_DL |Player3L_DR |Player3L_DRR ]
+
+LATE [Player3 UpMarker3] -> [Player3 Player3U_LL UpMarker3]
+LATE DOWN  [||Player3U_LL|  ] -> [Player3U_UULL|Player3U_ULL|Player3U_LL |Player3U_DLL ]
+LATE RIGHT [Player3U_LL  |||] -> [Player3U_LL  |Player3U_L  |Player3U_R  |Player3U_RR  ]
+LATE RIGHT [Player3U_ULL |||] -> [Player3U_ULL |Player3U_UL |Player3U_UR |Player3U_URR ]
+LATE RIGHT [Player3U_UULL|||] -> [Player3U_UULL|Player3U_UUL|Player3U_UUR|Player3U_UURR]
+LATE RIGHT [Player3U_DLL |||] -> [Player3U_DLL |Player3U_DL |Player3U_DR |Player3U_DRR ]
+
+(Layer 4)
+
+LATE [Player4 no Player4LL] [Player4Sprites] -> [Player4] []
+LATE [Player4 RightMarker4] -> [Player4 Player4R_LL RightMarker4]
+LATE DOWN  [||Player4R_LL|  ] -> [Player4R_UULL|Player4R_ULL|Player4R_LL |Player4R_DLL ]
+LATE RIGHT [Player4R_LL  |||] -> [Player4R_LL  |Player4R_L  |Player4R_R  |Player4R_RR  ]
+LATE RIGHT [Player4R_ULL |||] -> [Player4R_ULL |Player4R_UL |Player4R_UR |Player4R_URR ]
+LATE RIGHT [Player4R_UULL|||] -> [Player4R_UULL|Player4R_UUL|Player4R_UUR|Player4R_UURR]
+LATE RIGHT [Player4R_DLL |||] -> [Player4R_DLL |Player4R_DL |Player4R_DR |Player4R_DRR ]
+
+LATE [Player4 DownMarker4] -> [Player4 Player4D_LL DownMarker4]
+LATE DOWN  [||Player4D_LL|  ] -> [Player4D_UULL|Player4D_ULL|Player4D_LL |Player4D_DLL ]
+LATE RIGHT [Player4D_LL  |||] -> [Player4D_LL  |Player4D_L  |Player4D_R  |Player4D_RR  ]
+LATE RIGHT [Player4D_ULL |||] -> [Player4D_ULL |Player4D_UL |Player4D_UR |Player4D_URR ]
+LATE RIGHT [Player4D_UULL|||] -> [Player4D_UULL|Player4D_UUL|Player4D_UUR|Player4D_UURR]
+LATE RIGHT [Player4D_DLL |||] -> [Player4D_DLL |Player4D_DL |Player4D_DR |Player4D_DRR ]
+
+LATE [Player4 LeftMarker4] -> [Player4 Player4L_LL LeftMarker4]
+LATE DOWN  [||Player4L_LL|  ] -> [Player4L_UULL|Player4L_ULL|Player4L_LL |Player4L_DLL ]
+LATE RIGHT [Player4L_LL  |||] -> [Player4L_LL  |Player4L_L  |Player4L_R  |Player4L_RR  ]
+LATE RIGHT [Player4L_ULL |||] -> [Player4L_ULL |Player4L_UL |Player4L_UR |Player4L_URR ]
+LATE RIGHT [Player4L_UULL|||] -> [Player4L_UULL|Player4L_UUL|Player4L_UUR|Player4L_UURR]
+LATE RIGHT [Player4L_DLL |||] -> [Player4L_DLL |Player4L_DL |Player4L_DR |Player4L_DRR ]
+
+LATE [Player4 UpMarker4] -> [Player4 Player4U_LL UpMarker4]
+LATE DOWN  [||Player4U_LL|  ] -> [Player4U_UULL|Player4U_ULL|Player4U_LL |Player4U_DLL ]
+LATE RIGHT [Player4U_LL  |||] -> [Player4U_LL  |Player4U_L  |Player4U_R  |Player4U_RR  ]
+LATE RIGHT [Player4U_ULL |||] -> [Player4U_ULL |Player4U_UL |Player4U_UR |Player4U_URR ]
+LATE RIGHT [Player4U_UULL|||] -> [Player4U_UULL|Player4U_UUL|Player4U_UUR|Player4U_UURR]
+LATE RIGHT [Player4U_DLL |||] -> [Player4U_DLL |Player4U_DL |Player4U_DR |Player4U_DRR ]
+
+LATE [Player0 no Walkable0] -> again
+LATE [Player1 no Walkable1] -> again
+LATE [Player2 no Walkable2] -> again
+LATE [Player3 no Walkable3] -> again
+LATE [Player4 no Walkable4] -> again
+
+==============
+WINCONDITIONS
+==============
+
+
+
+=======
+LEVELS
+=======
+
+message Press x to switch characters
+
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+...........................................................................
+..................*4..................................*4...................
+................*4..*4..............................*4..*4.................
+..............*4..*3..*2..........................*4..*3..*2...............
+............*4..*1..*2..*1......................*4..*1..*2..*1.............
+..........*4..*3..*1..*1..*...................*4..*3..*1..*1..*............
+........*4..*3Q.*2..*1..*...*1..............*4..*3..*2..*1..*...*1.........
+......*4..*3..*2..*1..*...*1..*...........*4..*3..*2..*1..*...*1..*........
+....*4..*3..*2..*1..*1..*...*...*1......*4..*3..*2..*1..*1..*...*...*1.....
+..*4..*3..*2..*1..*...*1..*...*...*1..*1..*3..*2..*1..*...*1..*...*...*1...
+....*4..*3..*2..*...*1..*...*...*1..*1..*1..*3..*2..*...*1..*...*...*1.....
+......*4..*3..*...*...*1..*...*1..........*1..*3..*...*...*1..*...*1.......
+........*4P.*...*...*...*...*1..............*1..*...*...*...*...*1.........
+..........*...*...*...*...*1..................*...*...*...*...*1...........
+............*...*...*...*.......................*...*...*...*..............
+..............*...*...*...........................*...*...*................
+................*...*...............................*...*..................
+..................*...................................*....................
