@@ -294,6 +294,13 @@ function getObjectRefs(state, ident) {
     return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
 }
 
+// get the undefined object(s) referred to
+function getObjectUndefs(state, ident) {
+    if (isAlreadyDeclared(state, ident)) return [ ];
+    const idents = expandObjectRef(state, ident, true);
+    return idents.filter(i => !isAlreadyDeclared(state, i));
+}
+
 // create a property object for an ident with parts, if possible and not already there
 // todo: this fails if an expansion is an aggregate -- see isaac_and_mass
 function createObjectRef(state, ident) {

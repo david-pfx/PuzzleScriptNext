@@ -1,0 +1,1010 @@
+title ColorBan
+author pluf
+
+background_color #0e0e12
+title_color #e6e6ec
+author_color #535373
+text_color #a6a6bf
+keyhint_color #535373
+
+noaction
+
+run_rules_on_level_start
+again_interval 0.1
+
+homepage pluf.itch.io/color-ban
+debug_switch tag,map,obj,layer,prop,noul
+=============
+( Pallette )
+=============
+
+( https://lospec.com/palette-list/gothic-bit )
+( #0e0e12 )
+( #1a1a24 )
+( #333346 )
+( #535373 )
+( #8080a4 )
+( #a6a6bf )
+( #c1c1d2 )
+( #e6e6ec )
+
+( Other colors )
+( #a60e12 Red )
+( #0ea612 Green )
+( #0e0ebf Blue )
+( #0ea6bf Cyan )
+( #a60ebf Magenta )
+( #a6a612 Yellow )
+
+=====
+TAGS
+=====
+
+Color = Red Green Blue Cyan Magenta Yellow Gr_y
+CrateColorPos = Top Front
+AnimState = Idle Falling Fallen
+CheckpointCond = NoCond Colorless
+
+=========
+MAPPINGS
+=========
+
+Color => NextGoalColor
+Gr_y Red Yellow Green Cyan Blue Magenta -> Gr_y Magenta Red Yellow Green Cyan Blue
+
+========
+OBJECTS
+========
+
+Background
+transparent
+
+Player:AnimState
+#1a1a24 #e6e6ec #a6a6bf #535373
+.000.
+.111.
+22222
+.333.
+.3.3.
+.....
+
+Player:Falling
+#1a1a24 #c1c1d2 #8080a4 #535373
+.000.
+.111.
+22222
+.333.
+.3.3.
+rot:up:right
+
+Player:Fallen
+#1a1a24 #8080a4 #535373 #333346
+.000.
+.111.
+22222
+.333.
+.3.3.
+rot:up:down
+translate:down:1
+
+FallingMessage
+#0e0e12 #e6e6ec #535373
+.......00000.......000.000.......
+.......0111000000000100010.......
+.......0101010101110111010.......
+.......0101010101000101000.......
+.......0111011101110101010.......
+.......0000000000000000000.......
+.................................
+.................................
+.................................
+.................................
+00000..000................000....
+02220.002000000.00000000000200000
+00020.022202220.02020222022202220
+00200.002002020.02020202020202020
+02220..02202220.02220202022202220
+00000..00000000.00000000000000000
+translate:down:6 translate:left:14
+
+MultiColorMessagePlace
+transparent
+
+MultiColorMessage
+#0e0e12 #e6e6ec #535373
+.............................................0000000...........000.............................................
+.............................................011101000.00000000010.............................................
+.............................................010101110.01110111010.............................................
+.............................................010101010.01010101000.............................................
+.............................................011101010.01010111010.............................................
+.............................................000000000.00000000000.............................................
+...............................................................................................................
+...............................................................................................................
+...............................................................................................................
+0000000.......................................000000000...000..............000..................000............
+011101000000000000000..000000000000.00000000000100100100000100000.000000000010000000000.00000000010000000000000
+001001110111011101110.0011011101110.01111101010101110001110101110.011101010111011100110.01110111010111011100110
+.01001010101010001010.0101010001010.01010101010100100101010101010.010100100010010001010.01000101010101010000100
+.01001010110010.01100.0111010.01100.01010101110100110101110101100.011001010011010.01110.01110111010111010.0110.
+.00000000000000.0000..0000000.0000..0000000000000000000100000000..000000000000000.00000.00000000000000000.0000.
+...........000000.....................................000..............................000000....000000........
+.00000000.0010010000000.0000000000000000000.000000000.01000000000000000000000..00000000010010000001101000000000
+.01101110.0111011101110.0111001101111101110.011101110.01011101110111011101110..01100110111000011001000011100110
+001001010.0010010101010.0101010101010101010.010101010.01010101010101010101000.001001010010010010011101010100100
+011001110..011010101100.0111011101010101100.010101110.010111010101110110010...01100111001101011000100101100110.
+000000000..00000000000..000100000000000000..000000000.000000000000010000000...000000000000000000.0000000000000.
+........................01110......000000...............000.....01110....0000..................................
+........................00000.....0010010000000.0000000001000000000.000000110..................................
+..................................0111011101110.0111010101011100110.011100100..................................
+..................................0010010101010.0100010101010100100.010101110..................................
+...................................011010101100.010.01110101100110..011100100..................................
+...................................00000000000..000.00000000000000..00000000...............0000000000000000000.
+.0000000.......00000........0000.............00000.........00000...000.........000.........0111011101110111010.
+.0111010000000.0111000000000011000000000000000101000000000.0111000001000000000001000000000.0001010100010001010.
+.0010011101110.0100011101110010011101010111011100011101110.0100001101011101110111001101110.0111010101110011010.
+..010010101010.0100010101010111010101010101010101010101010.0100010101010101010101010101000.0100010101000001000.
+..010010101100.0111011101010010011101110101011101010101110.01110111010110010101110111010...0111011101110111010.
+..00000000000..0000000000000000000000000000000000000000010.00000000000000000000000000000...0000000000000000000.
+.....................................................01110.....................................................
+.....................................................00000.....................................................
+...............................................................................................................
+...............................................................................................................
+.................................00000..000................000................................................
+.................................02220.002000000.00000000000200000............................................
+.................................00020.022202220.02020222022202220............................................
+.................................00200.002002020.02020202020202020............................................
+.................................02220..02202220.02220202022202220............................................
+.................................00000..00000000.00000000000000000............................................
+.................................00000..000...................000.........000..................................
+.................................02220.002000000.00000000000000200000000000200.................................
+.................................02020.022202220.02220222002202220022022202220.................................
+.................................02200.002002020.02000202002000200202020000200.................................
+.................................02020..02202220.020.0220022000220222020..0220.................................
+.................................00000..00000000.000.0000000000000000000..0000.................................
+
+( Oh no! )
+( There are multipe extra colors )
+( so the game no longer satisfies )
+( the rules of )
+( The Confounding Calendar 2023! )
+=== ( Z to undo )
+=== ( R to restart )
+
+Crate:AnimState
+#c1c1d2 #c1c1d2
+00000
+00000
+00000
+00000
+00000
+11111
+11111
+
+Crate:Falling
+#535373 #535373
+copy: Crate:Idle
+translate:down:1
+
+Crate:Fallen
+#333346
+00000
+00000
+00000
+00000
+00000
+
+CrateJoin:Directions:AnimState
+transparent transparent transparent transparent
+.000.
+2...3
+2...3
+2...3
+.111.
+2...3
+.....
+
+CrateJoin:Up:Idle
+#a6a6bf transparent transparent transparent
+copy: CrateJoin:Up:Idle
+
+CrateJoin:Down:Idle
+transparent #a6a6bf transparent transparent
+copy: CrateJoin:Down:Idle
+
+CrateJoin:Left:Idle
+transparent transparent #a6a6bf transparent
+copy: CrateJoin:Left:Idle
+
+CrateJoin:Right:Idle
+transparent transparent transparent #a6a6bf
+copy: CrateJoin:Right:Idle
+
+CrateJoin:Up:Falling
+#a6a6bf transparent transparent transparent
+copy: CrateJoin:Up:Falling
+translate:down:1
+
+CrateJoin:Down:Falling
+transparent #a6a6bf transparent transparent
+copy: CrateJoin:Down:Falling
+translate:down:1
+
+CrateJoin:Left:Falling
+transparent transparent #a6a6bf transparent
+copy: CrateJoin:Left:Falling
+translate:down:1
+
+CrateJoin:Right:Falling
+transparent transparent transparent #a6a6bf
+copy: CrateJoin:Right:Falling
+translate:down:1
+
+CrateJoin:Up:Fallen
+#a6a6bf transparent transparent transparent
+copy: CrateJoin:Up:Fallen
+translate:down:2
+
+CrateJoin:Down:Fallen
+transparent #a6a6bf transparent transparent
+copy: CrateJoin:Down:Fallen
+translate:down:2
+
+CrateJoin:Left:Fallen
+transparent transparent #a6a6bf transparent
+copy: CrateJoin:Left:Fallen
+translate:down:2
+
+CrateJoin:Right:Fallen
+transparent transparent transparent #a6a6bf
+copy: CrateJoin:Right:Fallen
+translate:down:2
+
+CrateColor:CrateColorPos:Color:AnimState
+transparent
+
+CrateColor:Top:Color:AnimState
+#a6a6bf
+.....
+.000.
+.000.
+.000.
+.....
+.....
+.....
+
+CrateColor:Front:Color:AnimState
+#a6a6bf
+.....
+.....
+.....
+.....
+.....
+.000.
+.....
+
+CrateColor:CrateColorPos:Color:Falling
+#a6a6bf
+copy: CrateColor:CrateColorPos:Gr_y:Idle
+translate:down:1
+
+CrateColor:CrateColorPos:Color:Fallen
+#a6a6bf
+copy: CrateColor:CrateColorPos:Gr_y:Idle
+translate:down:2
+
+CrateColor:CrateColorPos:Red:AnimState
+#a60e12
+copy: CrateColor:CrateColorPos:Gr_y:AnimState
+
+CrateColor:CrateColorPos:Green:AnimState
+#0ea612
+copy: CrateColor:CrateColorPos:Gr_y:AnimState
+
+CrateColor:CrateColorPos:Blue:AnimState
+#0e0ebf
+copy: CrateColor:CrateColorPos:Gr_y:AnimState
+
+CrateColor:CrateColorPos:Cyan:AnimState
+#0ea6bf
+copy: CrateColor:CrateColorPos:Gr_y:AnimState
+
+CrateColor:CrateColorPos:Magenta:AnimState
+#a60ebf
+copy: CrateColor:CrateColorPos:Gr_y:AnimState
+
+CrateColor:CrateColorPos:Yellow:AnimState
+#a6a612
+copy: CrateColor:CrateColorPos:Gr_y:AnimState
+
+Wall
+#8080a4 #a6a6bf #535373
+00000
+01110
+01110
+01110
+00000
+22222
+
+WallConnection:Directions
+transparent
+
+WallConnection:Up
+#a6a6bf
+.000.
+.....
+.....
+.....
+.....
+.....
+
+WallConnection:Right
+#a6a6bf
+.....
+....0
+....0
+....0
+.....
+.....
+
+WallConnection:Down
+#a6a6bf
+.....
+.....
+.....
+.....
+.000.
+.....
+
+WallConnection:Left
+#a6a6bf
+.....
+0....
+0....
+0....
+.....
+.....
+
+WallTopRightCorner
+#a6a6bf
+....00
+....00
+......
+......
+......
+......
+......
+
+Hole
+#0e0e12
+
+HoleSide
+#1a1a24
+00000
+00000
+.....
+.....
+.....
+
+CantMove:Directions
+transparent
+
+Stop:Directions
+transparent
+
+Grounded
+transparent
+
+Visible:Color
+#a6a6bf
+0000000
+0.....0
+0.....0
+0.....0
+0.....0
+0.....0
+0000000
+translate:left:1
+translate:down:1
+
+Visible:Red
+transparent #a60e12
+copy: Visible:Gr_y
+
+Visible:Green
+transparent #0ea612
+copy: Visible:Gr_y
+
+Visible:Blue
+transparent #0e0ebf
+copy: Visible:Gr_y
+
+Visible:Cyan
+transparent #0ea6bf
+copy: Visible:Gr_y
+
+Visible:Magenta
+transparent #a60ebf
+copy: Visible:Gr_y
+
+Visible:Yellow
+transparent #a6a612
+copy: Visible:Gr_y
+
+AttributesMark
+transparent
+
+Checkpoint:CheckpointCond
+#e6e6ec
+.....
+.....
+..0..
+.....
+.....
+
+Checkpoint:Colorless
+#535373
+.....
+.....
+..0..
+.....
+.....
+
+Goal:Color
+#c1c1d2 #e6e6ec #0e0e12
+02121
+01212
+02121
+01212
+0
+0
+translate:up:2
+translate:right:2
+
+Goal:Red
+#c1c1d2 #a60e12 #0e0e12
+copy: Goal:Gr_y
+translate:up:2
+translate:right:2
+
+Goal:Green
+#c1c1d2 #0ea612 #0e0e12
+copy: Goal:Gr_y
+translate:up:2
+translate:right:2
+
+Goal:Blue
+#c1c1d2 #0e0ebf #0e0e12
+copy: Goal:Gr_y
+translate:up:2
+translate:right:2
+
+Goal:Cyan
+#c1c1d2 #0ea6bf #0e0e12
+copy: Goal:Gr_y
+translate:up:2
+translate:right:2
+
+Goal:Magenta
+#c1c1d2 #a60ebf #0e0e12
+copy: Goal:Gr_y
+translate:up:2
+translate:right:2
+
+Goal:Yellow
+#c1c1d2 #a6a612 #0e0e12
+copy: Goal:Gr_y
+translate:up:2
+translate:right:2
+
+=======
+LEGEND
+=======
+
+Player = Player:Idle
+Tile = Crate:Fallen
+
+Attribute = CrateColor:CrateColorPos:Color:Idle or CrateJoin:Directions:Idle
+SolidObject = Player:Idle or Crate:Idle
+Movable = Attribute or SolidObject
+
+GoalReached = Goal:Red or Goal:Green or Goal:Blue or Goal:Cyan or Goal:Magenta or Goal:Yellow
+
+
+Gr_yCrate = Crate:Idle and CrateColor:Front:Gr_y:Idle and CrateColor:Top:Gr_y:Idle
+
+. = Tile
+☺ = Tile and Player:Idle
+o = Tile and Gr_yCrate
+
+r = Tile and Gr_yCrate and CrateColor:Top:Red:Fallen
+g = Tile and Gr_yCrate and CrateColor:Top:Green:Fallen
+b = Tile and Gr_yCrate and CrateColor:Top:Blue:Fallen
+c = Tile and Gr_yCrate and CrateColor:Top:Cyan:Fallen
+m = Tile and Gr_yCrate and CrateColor:Top:Magenta:Fallen
+y = Tile and Gr_yCrate and CrateColor:Top:Yellow:Fallen
+
+? = Tile and Crate:Idle and CrateColor:Front:Gr_y:Idle and CrateColor:Top:Red:Idle
+
+▲ = Tile and Crate:Idle and CrateColor:Front:Gr_y:Idle and CrateColor:Top:Gr_y:Idle and CrateJoin:Down:Idle
+▼ = Tile and Crate:Idle and CrateColor:Front:Gr_y:Idle and CrateColor:Top:Gr_y:Idle and CrateJoin:Up:Idle
+◄ = Tile and Crate:Idle and CrateColor:Front:Gr_y:Idle and CrateColor:Top:Gr_y:Idle and CrateJoin:Right:Idle
+► = Tile and Crate:Idle and CrateColor:Front:Gr_y:Idle and CrateColor:Top:Gr_y:Idle and CrateJoin:Left:Idle
+
+╚ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Right:Idle
+╔ = Tile and Gr_yCrate and CrateJoin:Down:Idle and CrateJoin:Right:Idle
+╩ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Left:Idle and CrateJoin:Right:Idle
+╦ = Tile and Gr_yCrate and CrateJoin:Down:Idle and CrateJoin:Left:Idle and CrateJoin:Right:Idle
+╠ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Down:Idle and CrateJoin:Right:Idle
+═ = Tile and Gr_yCrate and CrateJoin:Left:Idle and CrateJoin:Right:Idle
+╬ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Down:Idle and CrateJoin:Left:Idle and CrateJoin:Right:Idle
+╣ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Down:Idle and CrateJoin:Left:Idle
+║ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Down:Idle
+╗ = Tile and Gr_yCrate and CrateJoin:Down:Idle and CrateJoin:Left:Idle
+╝ = Tile and Gr_yCrate and CrateJoin:Up:Idle and CrateJoin:Left:Idle
+
+1 = Tile and Crate:Idle and CrateColor:Front:Red:Idle and CrateColor:Top:Gr_y:Idle
+2 = Tile and Crate:Idle and CrateColor:Front:Green:Idle and CrateColor:Top:Gr_y:Idle
+3 = Tile and Crate:Idle and CrateColor:Front:Blue:Idle and CrateColor:Top:Gr_y:Idle
+4 = Tile and Crate:Idle and CrateColor:Front:Cyan:Idle and CrateColor:Top:Gr_y:Idle
+5 = Tile and Crate:Idle and CrateColor:Front:Magenta:Idle and CrateColor:Top:Gr_y:Idle
+6 = Tile and Crate:Idle and CrateColor:Front:Yellow:Idle and CrateColor:Top:Gr_y:Idle
+
+* = Tile and Checkpoint:NoCond
++ = Tile and Checkpoint:Colorless
+p = Tile and Goal:Gr_y
+
+# = Tile and Wall
+x = Hole
+
+! = Hole and MultiColorMessagePlace
+‼ = Wall and MultiColorMessagePlace
+
+=======
+SOUNDS
+=======
+
+Checkpoint:CheckpointCond destroy 5477908
+Goal:Gr_y destroy 5477908
+Tile create 50626704
+FallingMessage create 50626704
+MultiColorMessage create 35550808
+
+================
+COLLISIONLAYERS
+================
+
+Background
+
+--
+
+Hole
+HoleSide
+
+--
+
+Color -> CrateColor:Front:Color:Fallen
+
+--
+
+Tile Crate:Fallen
+Player:Fallen
+
+Color -> CrateColor:Top:Color:Fallen
+Checkpoint:CheckpointCond
+Directions -> CrateJoin:Directions:Fallen
+
+Player:Falling Crate:Falling
+
+Player:Idle Crate:Idle Wall
+Directions -> WallConnection:Directions
+
+Color CrateColorPos -> CrateColor:CrateColorPos:Color:Idle CrateColor:CrateColorPos:Color:Falling
+Directions -> CrateJoin:Directions:Idle CrateJoin:Directions:Falling
+
+--
+
+WallTopRightCorner
+
+--
+
+Goal:Color
+
+--
+
+Color -> Visible:Color
+
+--
+
+MultiColorMessagePlace
+FallingMessage
+MultiColorMessage
+
+--
+
+Directions -> CantMove:Directions
+Directions -> Stop:Directions
+Grounded
+AttributesMark
+
+======
+RULES
+======
+
+( Prevent animations and player movement on loss )
+[ MultiColorMessage ] -> cancel
+
+===============
+( ANIMATIONS )
+===============
+
+( Falling - Frame 2 )
+[ Crate:Falling Hole ] -> [ Crate:Fallen ]
+CrateColorPos Color [ CrateColor:CrateColorPos:Color:Falling ] -> [ CrateColor:CrateColorPos:Color:Fallen ]
+Directions [ CrateJoin:Directions:Falling ] -> [ CrateJoin:Directions:Fallen ]
+[ Player:Falling ] -> [ Player:Fallen FallingMessage ]
+
+( Update Grounded marks )
+[ Grounded ] -> [ ]
+[ Tile Crate:Idle ] -> [ Tile Crate:Idle Grounded ]
+Directions [ Crate:Idle CrateJoin:>:Idle | Crate:Idle CrateJoin:<:Idle Grounded ] -> [ Crate:Idle CrateJoin:>:Idle Grounded | Crate:Idle CrateJoin:<:Idle Grounded ]
+
+( Falling - Frame 1 )
+[ Crate:Idle Hole no Grounded ] -> [ Crate:Falling Hole ] again
+CrateColorPos Color [ CrateColor:CrateColorPos:Color:Idle Hole no Grounded ] -> [ CrateColor:CrateColorPos:Color:Falling Hole ] again
+Directions [ CrateJoin:Directions:Idle Hole no Grounded ] -> [ CrateJoin:Directions:Falling Hole ] again
+[ Player:Idle Hole ] -> [ Player:Falling Hole ] again
+
+===========
+( UPDATE )
+===========
+
+( For convenience while level-editing )
+( [ WallConnection:Directions ] -> [ ] )
+( [ HoleSide ] -> [ ] )
+( [ no Hole no Tile ] -> [ Hole ] )
+
+( Crates )
+Directions [ CrateJoin:>:Idle | ] -> [ CrateJoin:>:Idle | CrateJoin:<:Idle ]
+
+( Walls )
+Directions [ Wall | Wall ] -> [ Wall WallConnection:> | Wall ]
+right [ WallConnection:Up | WallConnection:Up ] -> [ WallConnection:Up WallTopRightCorner | WallConnection:Up ]
+
+( Holes )
+up [ Hole | no Hole ] -> [ Hole HoleSide | ]
+
+============
+( SOKOBAN )
+============
+
+( Delete old markers )
+[ Stop:Directions no Wall ] -> [ ]
+[ CantMove:Directions ] -> [ ]
+
+( Place Stop and CantMove marks )
+[ Wall ] -> [ Wall Stop:Up Stop:Down Stop:Left Stop:Right ]
+  Directions [ Movable | Stop:> ] -> [ Movable Stop:> CantMove:> | Stop:> ]
++ Directions [ Crate:Idle CrateJoin:>:Idle CantMove:Directions | Crate:Idle CrateJoin:<:Idle ] -> [ Crate:Idle CrateJoin:>:Idle CantMove:Directions | Crate:Idle CrateJoin:<:Idle CantMove:Directions ]
++ Directions [ Crate:Idle CantMove:Directions ] -> [ Crate:Idle CantMove:Directions Stop:Directions ]
+
+( Push, stick )
+  [ > Player:Idle CantMove:> ] -> [ Player:Idle CantMove:> ]
++ [ > Player:Idle | Crate:Idle no CantMove:> ] -> [ > Player:Idle | > Crate:Idle ]
++ [ > Crate:Idle | Crate:Idle no CantMove:> ] -> [ > Crate:Idle | > Crate:Idle ]
++ Directions [ moving Crate:Idle CrateJoin:>:Idle | Crate:Idle CrateJoin:<:Idle ] -> [ moving Crate:Idle CrateJoin:>:Idle | moving Crate:Idle CrateJoin:<:Idle ]
+
+( Move crate attributes when crates do )
+[ > Crate:Idle Attribute ] -> [ > Crate:Idle > Attribute ]
+
+( Move )
+[ AttributesMark ] -> [ ]
+[ > Attribute ] -> [ > Attribute AttributesMark ]
+  [ > Attribute | no AttributesMark ] -> [ | Attribute ]
++ [ no Attribute ] -> [ no AttributesMark ]
+[ > SolidObject | no SolidObject ] -> [ | SolidObject ]
+
+( Update Grounded marks )
+[ Grounded ] -> [ ]
+[ Tile Crate:Idle ] -> [ Tile Crate:Idle Grounded ]
+Directions [ Crate:Idle CrateJoin:>:Idle | Crate:Idle CrateJoin:<:Idle Grounded ] -> [ Crate:Idle CrateJoin:>:Idle Grounded | Crate:Idle CrateJoin:<:Idle Grounded ]
+
+( Fall )
+[ Crate:Idle Hole no Grounded ] -> again
+[ Player:Idle Hole ] -> again
+
+===========
+( COLORS )
+===========
+
+( Delete visibility markers from the previous turn )
+[ Visible:Color ] -> [ ]
+
+( Ignore gr_y )
+[ stationary CrateColor:CrateColorPos:Gr_y:AnimState ] -> [ action CrateColor:CrateColorPos:Gr_y:AnimState ]
+
+( Check the top sides of crates )
+Color [ stationary CrateColor:Top:Color:Idle ] -> [ CrateColor:Top:Color:Idle Visible:Color ]
+Color [ stationary CrateColor:Top:Color:Falling ] -> [ CrateColor:Top:Color:Falling Visible:Color ]
+Color [ stationary CrateColor:Top:Color:Fallen no Crate:Idle ] -> [ CrateColor:Top:Color:Fallen Visible:Color ]
+down Color [ CrateColor:Top:Color:Fallen Player:Idle | Crate:Idle ] -> [ CrateColor:Top:Color:Fallen Player:Idle no Visible:Color | Crate:Idle ]
+
+( Check the front sides of crates )
+down Color [ stationary CrateColor:Front:Color:Idle | no Crate:Idle ] -> [ CrateColor:Front:Color:Idle Visible:Color | ]
+down Color [ stationary CrateColor:Front:Color:Falling | no Crate:Idle no Crate:Falling no Player:Idle no Wall ] -> [ CrateColor:Front:Color:Falling Visible:Color | ]
+down Color [ stationary CrateColor:Front:Color:Fallen | no Crate:Idle no Crate:Falling no Player:Idle no Wall no Tile ] -> [ CrateColor:Front:Color:Fallen Visible:Color | ]
+
+( Check for multiple colors on-screen )
+( There sure is a better way to do this, but one I tried was raising warnings that were breaking the game for some reason )
+( [ Visible:Red     ] [ Visible:Red     no Visible:Red     ] -> [ action Visible:Red     ] [ Visible:Red     ] )
+[ Visible:Green   ] [ Visible:Red     no Visible:Green   ] -> [ action Visible:Green   ] [ Visible:Red     ]
+[ Visible:Blue    ] [ Visible:Red     no Visible:Blue    ] -> [ action Visible:Blue    ] [ Visible:Red     ]
+[ Visible:Cyan    ] [ Visible:Red     no Visible:Cyan    ] -> [ action Visible:Cyan    ] [ Visible:Red     ]
+[ Visible:Magenta ] [ Visible:Red     no Visible:Magenta ] -> [ action Visible:Magenta ] [ Visible:Red     ]
+[ Visible:Yellow  ] [ Visible:Red     no Visible:Yellow  ] -> [ action Visible:Yellow  ] [ Visible:Red     ]
+[ Visible:Red     ] [ Visible:Green   no Visible:Red     ] -> [ action Visible:Red     ] [ Visible:Green   ]
+( [ Visible:Green   ] [ Visible:Green   no Visible:Green   ] -> [ action Visible:Green   ] [ Visible:Green   ] )
+[ Visible:Blue    ] [ Visible:Green   no Visible:Blue    ] -> [ action Visible:Blue    ] [ Visible:Green   ]
+[ Visible:Cyan    ] [ Visible:Green   no Visible:Cyan    ] -> [ action Visible:Cyan    ] [ Visible:Green   ]
+[ Visible:Magenta ] [ Visible:Green   no Visible:Magenta ] -> [ action Visible:Magenta ] [ Visible:Green   ]
+[ Visible:Yellow  ] [ Visible:Green   no Visible:Yellow  ] -> [ action Visible:Yellow  ] [ Visible:Green   ]
+[ Visible:Red     ] [ Visible:Blue    no Visible:Red     ] -> [ action Visible:Red     ] [ Visible:Blue    ]
+[ Visible:Green   ] [ Visible:Blue    no Visible:Green   ] -> [ action Visible:Green   ] [ Visible:Blue    ]
+( [ Visible:Blue    ] [ Visible:Blue    no Visible:Blue    ] -> [ action Visible:Blue    ] [ Visible:Blue    ] )
+[ Visible:Cyan    ] [ Visible:Blue    no Visible:Cyan    ] -> [ action Visible:Cyan    ] [ Visible:Blue    ]
+[ Visible:Magenta ] [ Visible:Blue    no Visible:Magenta ] -> [ action Visible:Magenta ] [ Visible:Blue    ]
+[ Visible:Yellow  ] [ Visible:Blue    no Visible:Yellow  ] -> [ action Visible:Yellow  ] [ Visible:Blue    ]
+[ Visible:Red     ] [ Visible:Cyan    no Visible:Red     ] -> [ action Visible:Red     ] [ Visible:Cyan    ]
+[ Visible:Green   ] [ Visible:Cyan    no Visible:Green   ] -> [ action Visible:Green   ] [ Visible:Cyan    ]
+[ Visible:Blue    ] [ Visible:Cyan    no Visible:Blue    ] -> [ action Visible:Blue    ] [ Visible:Cyan    ]
+( [ Visible:Cyan    ] [ Visible:Cyan    no Visible:Cyan    ] -> [ action Visible:Cyan    ] [ Visible:Cyan    ] )
+[ Visible:Magenta ] [ Visible:Cyan    no Visible:Magenta ] -> [ action Visible:Magenta ] [ Visible:Cyan    ]
+[ Visible:Yellow  ] [ Visible:Cyan    no Visible:Yellow  ] -> [ action Visible:Yellow  ] [ Visible:Cyan    ]
+[ Visible:Red     ] [ Visible:Magenta no Visible:Red     ] -> [ action Visible:Red     ] [ Visible:Magenta ]
+[ Visible:Green   ] [ Visible:Magenta no Visible:Green   ] -> [ action Visible:Green   ] [ Visible:Magenta ]
+[ Visible:Blue    ] [ Visible:Magenta no Visible:Blue    ] -> [ action Visible:Blue    ] [ Visible:Magenta ]
+[ Visible:Cyan    ] [ Visible:Magenta no Visible:Cyan    ] -> [ action Visible:Cyan    ] [ Visible:Magenta ]
+( [ Visible:Magenta ] [ Visible:Magenta no Visible:Magenta ] -> [ action Visible:Magenta ] [ Visible:Magenta ] )
+[ Visible:Yellow  ] [ Visible:Magenta no Visible:Yellow  ] -> [ action Visible:Yellow  ] [ Visible:Magenta ]
+[ Visible:Red     ] [ Visible:Yellow  no Visible:Red     ] -> [ action Visible:Red     ] [ Visible:Yellow  ]
+[ Visible:Green   ] [ Visible:Yellow  no Visible:Green   ] -> [ action Visible:Green   ] [ Visible:Yellow  ]
+[ Visible:Blue    ] [ Visible:Yellow  no Visible:Blue    ] -> [ action Visible:Blue    ] [ Visible:Yellow  ]
+[ Visible:Cyan    ] [ Visible:Yellow  no Visible:Cyan    ] -> [ action Visible:Cyan    ] [ Visible:Yellow  ]
+[ Visible:Magenta ] [ Visible:Yellow  no Visible:Magenta ] -> [ action Visible:Magenta ] [ Visible:Yellow  ]
+( [ Visible:Yellow  ] [ Visible:Yellow  no Visible:Yellow  ] -> [ action Visible:Yellow  ] [ Visible:Yellow  ] )
+
+( Display loss message )
+[ action Visible:Color ] [ MultiColorMessagePlace ] -> [ Visible:Color ] [ MultiColorMessage ]
+
+================
+( CHECKPOINTS )
+================
+
+( Activate a checkpoint )
+[ Player:Idle Checkpoint:CheckpointCond ] -> [ Player:Idle action Checkpoint:CheckpointCond ]
+[ action Checkpoint:Colorless ] [ Visible:Color ] -> [ Checkpoint:Colorless ] [ Visible:Color ]
+[ action Checkpoint:CheckpointCond | Checkpoint:CheckpointCond ] -> [ action Checkpoint:CheckpointCond | action Checkpoint:CheckpointCond ]
+[ action Checkpoint:CheckpointCond ] -> [ ] checkpoint
+
+( Pick up the goal flag )
+[ Player:Idle Goal:Gr_y ] -> [ Player:Idle random GoalReached ] again checkpoint
+
+( Animate the goal flag )
+[ Goal:Gr_y ] -> [ action Goal:Gr_y ]
+Color [ stationary Goal:Color ] -> [ action Goal:NextGoalColor ] again
+[ action Goal:Color ] -> [ Goal:Color ]
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+message This is a game for The Confounding Calendar 2023.
+message This year, there is an interesting condition:
+message The game can use only a grayscale palette + any extra color.
+message But only one.
+message Oh, did you think it was a limitation meant for us, the developers?
+message No, we are pretty sure it is actually intended for you, the players.
+message After all, who would want to limit the creativity of the developers in a game jam :)
+
+( xxxxxx )
+( xo◄═►x )
+( x▲╔╦╗x )
+( x║╠╬╣x )
+( x▼╚╩╝x )
+( xxxxxx )
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxx#########xxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxx#####x#.......#####xxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxx#...xxx....3..*...#xxxx######xxxxxxxxxx
+xxxxxxxxxxxx#***#x#.c..o..###.#xxxx#....#xxxxxxxxxx
+xxxxxxxxxxxx.....x#.c..####x#.#xxxx#....##xxxxxxxxx
+xxxxxxxxxxxx.....x#.o..#xxxxxxxxxxx#...y►##xxxxxxxx
+xxxxxx...xxx.◄═►yx#....#xxx#.g.##xx.......#xxxxxxxx
+xxxxxx.?.xxx..o╔╝x######xxx#.o.*.xx...☺.o.#xxxxxxxx
+xxxxxx...xxx...▼.xxxxxxxxxx#.o.##xx.......#xxxxxxxx
+xxxxxxxxxxxx.....xxxxxxxxxx#...#xxx######.#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxx#####xxxxxxxxx.xxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxx#######x######xxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxx...xxxx#.....#x#....##xxxxxxxxxxxxxxxx
+xxxxxxxxx...g.o.xxxx#.o.#+###..11.#x...▲...xxxxxxxx
+xxxxxxxxx...xx..xxxx#...#.r.x..ooxxx.o.║.p.xxxxxxxx
+xxxxxxxxx+++xxxxxxxx#...######....#x...║...xxxxxxxx
+xxx#######.####‼#xxx#...#xxxx######x#x#║#.#xxxxxxxx
+xxx#...xx.....x.#xxx##m###xxxxxxxxxx#.#║#.#xxxxxxxx
+xxx#.╔►xx.my.##.#xxx#....#####..xxxx#.◄╬►.#xxxxxxxx
+xxx#.▼.xx.yc.#.rxx###.m►.y╗xx◄►..xxx#..║..#xxxxxxxx
+xxx#...xx....#....+.◄═r═g►b.x#..oxxx##c╩y##xxxxxxxx
+xxx###########..xx###.m►.y╝xx....xxx#.....#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxx#....#####..xxxx#.....#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxx######xxxxxxxx###+###.#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx#...##.x#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx#..▲##.x#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx#..5....#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx#..2...x#xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx#.◄►...##xxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx########xxxxxxxxx
+
+( x############xxxxxxxxxxxxxxxxxxxx )
+( x#..........#xxxxxxxxxxxxxxxxxxxx )
+( ##o###xx###.#xxxxxxxxxxxxxxxxxxxx )
+( #....#x.xx#.#xxxxxxxxxxxxxxxxxxxx )
+( #.m►.yxo.x#.xo..+...xxxxxxxxxxxxx )
+( #.ox.║xx.x#g....+...xxxxxxxxxxxxx )
+( #.m►.yx..x#.#...+...xxxxxxxxxxxxx )
+( .....#x.xx#.#xxxxxxxxxxxxxxxxxxxx )
+( ##o###xx###.#xxxxxxxxxxxxxxxxxxxx )
+( x#..........#xxxxxxxxxxxxxxxxxxxx )
+( x############xxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxx!xxxxxxxxxxxxxxxxxx )
+
+( xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx )
+( xx#####xxxxxxxxxxxxxxxxxxxxxxxx )
+( xx#...###xxxxxxxxxxxxxxxxxxxxxx )
+( xx#.o...#xxxxxxxxxxxxxxxxxxxxxx )
+( xx#...#.+xxxxxxxxxxxxxxxxxxxxxx )
+( xx#...###xxxxxxxxxxxxxxxxxxxxxx )
+( xx#...#xxxxxxxxxxxxxxxxxxxxxxxx )
+( xx##m###x!xxxxxxxxxxxxxxxxxxxxx )
+( xx#....#####..xxxxxxxxxxxxxxxxx )
+( ###.m►.y╗xx◄►..xxxxxxxxxxxxxxxx )
+( ☺.◄═c═g►r.x#..oxxxxxxxxxxxxxxxx )
+( ###.m►.y╝xx....xxxxxxxxxxxxxxxx )
+( xx#....#####..xxxxxxxxxxxxxxxxx )
+( xx######xxxxxxxxxxxxxxxxxxxxxxx )
+
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxx#☺#x...xxxxxxxx )
+( xxxxxxxx#.#x+++xxxxxxxx )
+( xxxxxxxx#.#x...xxxxxxxx )
+( xxxxxx###.###.#xxxxxxxx )
+( xxxxxx#...##.x#xxxxxxxx )
+( xxxxxx#..▲##.x#xxxxxxxx )
+( xxxxxx#..5....#xxxxxxxx )
+( xxxxxx#..2...x#xxxxxxxx )
+( xxxxxx#.◄►...##xxxxxxxx )
+( xxxxxx########xxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( !xxxxxxxxxxxxxxxxxxxxxx )
+
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xx#############xxxx )
+( xx#...##.x....####x )
+( ###..▲##.x###▲#.+.x )
+( ☺....5....#..1x.+.x )
+( ###..2...x..#ox.+.x )
+( xx#.◄►...####.####x )
+( xx########xx###xxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxx )
+( !xxxxxxxxxxxxxxxxxx )
+
+
+( A test level )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxx..........#####xx )
+( xxxxxx.....╔►....*.+.xx )
+( !xxxxx..##.║.....*.+.xx )
+( xxxxxx..##.r►....*.+.xx )
+( xxxxxx...╔►.....#####xx )
+( xxxxxx.◄╗║..yy..xxxxxxx )
+( xxxxxx..╚╝......xxxxxxx )
+( xxxxxx.....ro...xxxxxxx )
+( xxxxxx.....x.42.xxxxxxx )
+( xxxxxx╔══╗...oo.xxxxxxx )
+( xxxxxx▼☺▲║......xxxxxxx )
+( xxxxxx◄═╝║..x...xxxxxxx )
+( xxxxxx..◄╝xxx...xxxxxxx )
+( xxxxxx..........xxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+
+( xx############ )
+( xx#..........# )
+( x##o###.####.# )
+( x#....#xxxx#.# )
+( x#.m►.yxo.x#.# )
+( x#.ox.║x#.x#.+ )
+( x#.m►.yx..x#.# )
+( ☺.....#xxxx#.# )
+( x##o###.####.# )
+( xx#..........# )
+( !x############ )
+
+( MultiColorMessage area )
+( ☺rgb....................... )
+( .cmy....................... )
+( ........................... )
+( ............xxxx........... )
+( ............xxxx........... )
+( ....xxxxxxxxxxxxxxxxxxxx... )
+( ....xxxxxxxxxxxxxxxxxxxx... )
+( .........xxxxxxxxx......... )
+( ...xxxxxxxxxxxxxxxxxxxxx... )
+( .............xx............ )
+( ...!......xxxxxxx.......... )
+( ........................... )
+( ........................... )
+( ........................... )
+
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxx#####xxxxxxxx )
+( xxxxxxxxxx#◄╦►###xxxxxx )
+( xxxxxxx+....║......☺xxx )
+( xxxxxxxxxx#r╩c###xxxxxx )
+( !xxxxxx...........xxxxx )
+( xxxxxxx.xx#...###.xxxxx )
+( xxxxxxx.xx#####.x.xxxxx )
+( xxxxxxx...........xxxxx )
+( xxxxxxxxxxx.....xxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+
+
+( A Thanks for playing screen )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( x◄╦►xxxxxxxxxxxxxxxxxxx )
+( xx║▲▲╔╗╔╗▲▲╔►xxxxxxxxxx )
+( xx║╠╣╠╣║║╠╝╚╗xxxxxxxxxx )
+( xx▼▼▼▼▼▼▼▼o◄╝xxxxxxxxxx )
+( xxxxxxxxxxxxxxxxxxxxxxx )
+( xx╔►╔╗╔►xxxxxxxxxxxxxxx )
+( xx╠►╚╝▼xx╔╗▲x╔╗▲▲▲╔╗╔►x )
+( xx▼xxxxxx╠╝║x╠╣╚╣║║║║▲x )
+( xxxxxxxxx▼x╚►▼▼◄╝▼▼▼╚╝x )
+( xxxxxxxxxxxxxxxxxxxxxxx )

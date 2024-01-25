@@ -1177,9 +1177,10 @@ var codeMirrorFn = function() {
             } else if (token = lexer.matchObjectName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
                 const tobjects = getObjectRefs(state, token);
-                if (!tobjects) 
-                    logError(`Found "${token}", which looks like an object but it's not declared anywhere.`, state.lineNumber);
-                else {
+                if (!tobjects) {
+                    const undef = getObjectUndefs(state, token);
+                    logError(`Found "${token}", which looks like an object but ${ undef[0] ? undef[0].toUpperCase() : 'it' } is not declared anywhere.`, state.lineNumber);
+                } else {
                     lexer.pushToken(token, 'NAME');
 
                     let tverb = null;
@@ -1274,9 +1275,10 @@ var codeMirrorFn = function() {
                 let kind = 'ERROR';
                 if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     const tobjects = getObjectRefs(state, token);
-                    if (!tobjects)
-                        logError(`You're talking about "${token.toUpperCase()}" but it's not defined anywhere.`, state.lineNumber);
-                    else if (token == symbols.newname)
+                    if (!tobjects) {
+                        const undef = getObjectUndefs(state, token);
+                        logError(`You're talking about "${token.toUpperCase()}" but ${ undef[0] ? undef[0].toUpperCase() : 'it' } is not defined anywhere.`, state.lineNumber);
+                    } else if (token == symbols.newname)
                         logError(`You can't define object "${token.toUpperCase()}" in terms of itself!`, state.lineNumber);
                     else {
                         if (names.includes(token))
@@ -1376,9 +1378,10 @@ var codeMirrorFn = function() {
                     const trefs = getObjectRefs(state, token);   // do we need this?
                     if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
-                    else if (!trefs)
-                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
-                    else {
+                    else if (!trefs) {
+                        const undef = getObjectUndefs(state, token);
+                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer, ${ undef[0] ? undef[0].toUpperCase() : 'it' } has not been declared.`, state.lineNumber);
+                    } else {
                         if (idents.includes(token))
                             logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
                         else idents.push(token);
