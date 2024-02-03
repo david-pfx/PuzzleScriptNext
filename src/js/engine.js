@@ -177,7 +177,7 @@ function hasSolvedAtLeastOneSection() {
 }
 
 function unloadGame() {
-	state=introstate;
+	state=introState;
 	level = new Level(0, 5, 5, 2, null, null);
 	level.objects = new Int32Array(0);
 	generateTitleScreen();
@@ -666,32 +666,45 @@ function generateLevelSelectScreen() {
 	redraw();
 }
 
-function gotoLevel(sectionIndex) {
-  if (solving) {
-    return;
+// go to level: <0 for level index, >0 for section index
+function gotoLevel(index) {
+	if (solving) return;
+	if (index == -9999) return;  // It's an invalid GOTO
+  
+	  againing = false;
+	  messagetext = "";
+	  statusText = "";
+  
+	  curlevel = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+  
+	  loadLevelFromStateOrTarget();
+  
+	  updateLocalStorage();
+	  resetFlickDat();
+	  canvasResize();	
+	  clearInputHistory();
   }
-
-  if (sectionIndex < 0) {return;} //Invalid index
-
-  //console.log(sectionIndex);
-
-	againing = false;
-	messagetext = "";
-	statusText = "";
-
-	curlevel = state.sections[sectionIndex].firstLevel;
-
-	loadLevelFromStateOrTarget();
-
-	updateLocalStorage();
-	resetFlickDat();
-	canvasResize();	
-	clearInputHistory();
+  
+function gotoLink() {
+  	if (solving) return;
+  	playerPositions.forEach(index => {
+		const level = state.levels[curlevel];
+		const objids = level.getObjects(index);
+		state.links // use the most recent visible link definition
+			.slice(0, level.linksTop)
+			.reverse()
+			.forEach(link => {
+			if (objids.includes(link.object)) {
+				gotoLevel(link.targetNo);
+				return;
+			}
+		});
+  	});  
 }
 
-var introstate = {
-  title: "EMPTY GAME",
-  attribution: "increpare",
+let introState = {
+  	title: "EMPTY GAME",
+  	attribution: "polyomino",
     objectCount: 2,
     metadata:[],
     levels:[],
@@ -700,7 +713,7 @@ var introstate = {
     fgcolor:"#FFFFFF"
 };
 
-var state = introstate;
+var state = introState;
 
 function deepClone(item) {
     if (!item) { return item; } // null, undefined values check
@@ -864,6 +877,7 @@ function drawMessageScreen(message) {
 
 var loadedLevelSeed=0;
 
+// load a level
 function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {	
 	if (randomseed==null) {
 		randomseed = (Math.random() + Date.now()).toString();
@@ -896,7 +910,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 		messageselected = false;
       	canvasResize();
       	clearInputHistory();
-    } else if (leveldat.target) {
+    } else if (leveldat.target != undefined) {  // could be zero
 		if (verbose_logging)
 			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
@@ -908,7 +922,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	level = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //@@todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -960,7 +974,8 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
   	curlevelTarget=target;
     if (leveldat.message===undefined) {
       	if (levelindex=== 0){ 
-			tryPlayStartLevelSound();
+			tryPlayStartGameSound();
+			//tryPlayStartLevelSound();     
 		} else {
 			tryPlayStartLevelSound();     
 		}
@@ -1900,6 +1915,18 @@ Level.prototype.setMovements = function(index, vec) {
 	level.mapCellContents_Movements.ior(vec);
 
 
+}
+
+// return a list of object names at index
+Level.prototype.getObjects = function(index) {	// @@
+	const bitmask = this.getCell(index);
+	const objs = [];
+	for (let bit = 0; bit < 32 * STRIDE_OBJ; ++bit) {
+		if (bitmask.get(bit)) {
+			objs.push(state.idDict[bit])
+		}
+	}
+	return objs;
 }
 
 var ellipsisPattern = ['ellipsis'];
@@ -2879,8 +2906,10 @@ Rule.prototype.queueCommands = function() {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
 			gotoLevel(command[1]);
-		} else if (command[0] == 'status') { // PS>
+		} else if (command[0] == 'status') {
 			statusText = command[1];
+		} else if (command[0] == 'link') {
+			gotoLink();
 		}		
 
 		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {

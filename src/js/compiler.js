@@ -838,12 +838,16 @@ function levelFromString(state,level) {
 function levelsToArray(state) {
 	const levels = [];
     const links = [];
+    //const links = {};
+    //const targets = new Set();
     let section, title, description, gotoFlag;
     
     if (state.levels.at(-1).length == 0)
         state.levels.pop();
 
     let levelNo = 1;
+    // compile each level command
+    // parse: state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
     state.levels.forEach(level => {
         title ||= `Level ${levelNo}`;
 		if (level[0] == 'message') {
@@ -859,7 +863,7 @@ function levelsToArray(state) {
 		} else if (level[0] == 'goto') {
             if (gotoFlag) logWarning('GOTO unreachable due to previous GOTO.', level[2]);
             levels.push( {
-                target: level[1],
+                target: level[1],           // text, will be converted to index later
 				lineNumber: level[2],
 				section: section
 			});
@@ -873,22 +877,34 @@ function levelsToArray(state) {
             description = level[1];     // todo: 
             logWarning(`Option TITLE is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
 		} else if (level[0] == 'link') {
-            links.push({
+            links.push( {             // text, will be converted to index later
                 target: level[1],
 				lineNumber: level[2],
-                object: level[3],
-                level: title,
-            })
+                object: level[3]
+            });
 		} else {
             if (gotoFlag) logWarning('Level unreachable due to previous GOTO.', level[2]);
             level[1] = section; // todo: fix it
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
+            levels.at(-1).linksTop = links.length;
             ++levelNo;
             title = null;
 		}
 	});
+    links.forEach(link => { //@@
+        let index = -9999;
+        if ((index = levels.findIndex(level => link.target == level.section)) != -1)
+            link.targetNo = index;
+        else if ((index = levels.findIndex(level => link.target == level.title)) != -1)
+            link.targetNo = -1-index;
+        else {
+            logError(`Sorry, link target "${link.target.toUpperCase()}" does not seem to be the name of any level.`, link.lineNumber);
+            link.targetNo = -9999;
+        }
+    });
 	state.levels = levels;
+	state.links = links;
 }
 
 function extractSections(state) {
@@ -930,6 +946,7 @@ function convertSectionNamesToIndices(state) {
 	}
 	
 	// GOTO commands in the RULES
+    // todo: GOTO level or section
 	for (var r = 0; r < state.rules.length; r++) {
 		var rule = state.rules[r];
 		for (var c = 0; c < rule.commands.length; c++) {
@@ -941,10 +958,10 @@ function convertSectionNamesToIndices(state) {
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
 				logError('Invalid GOTO command - There is no section named "'+command[1]+'". Either it does not exist, or it has zero levels.', rule.lineNumber);
-				sectionIndex = -1;
+				sectionIndex = -9999;
 			}else if (duplicateSections[sectionName] !== undefined){
 				logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'". Section names must be unique for GOTO to work.', rule.lineNumber);
-				sectionIndex = -1;
+				sectionIndex = -9999;
 			}
 			command[1] = sectionIndex;
 		}

@@ -28,7 +28,7 @@ var errorCount=0;//only counts errors
 //const lastStream = {};
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
 const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
 
@@ -1601,7 +1601,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(message|goto|title|level|section|link)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(goto|level|link|message|section|title)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
 
@@ -1609,10 +1609,15 @@ var codeMirrorFn = function() {
                     if (!(token = lexer.matchObjectName())) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
                     else if (!isAlreadyDeclared(state, token))
-                        logError(`LINK object needs to be already defined.`, state.lineNumber);
-                    else {
-                        symbols.link = token;
-                        lexer.pushToken(token, 'NAME');
+                        logError(`LINK object "${token.toUpperCase()}" not found, it needs to be already defined.`, state.lineNumber);
+                    else {      // @@
+                        const objects = expandSymbol(state, token, false, () => {});
+                        if (!(objects && objects.length == 1))
+                            logError(`LINK object "${token.toUpperCase()}" only works with a simple object or an alias, not something created with AND or OR.`, state.lineNumber);
+                        {
+                            symbols.link = objects[0];
+                            lexer.pushToken(token, 'NAME');
+                        }
                     }
                 }
                 symbols.text = lexer.matchAll();
@@ -1645,7 +1650,7 @@ var codeMirrorFn = function() {
                 state.levels.pop();
                 toplevel = null;
             }
-            const cmds = [ 'goto', 'level', 'message', 'section', 'title', ];
+            const cmds = [ 'goto', 'level', 'link', 'message', 'section', 'title', ];
             if (cmds.includes(symbols.start))
                 state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
             else {

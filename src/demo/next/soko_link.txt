@@ -1,0 +1,191 @@
+title Simple Block Pushing Game with Links
+author David Skinner
+homepage www.puzzlescript.net
+
+// adapted to demo link command
+
+========
+OBJECTS
+========
+
+Background
+lightgreen green
+11111
+01111
+11101
+11111
+10111
+
+Target
+darkblue
+.....
+.000.
+.0.0.
+.000.
+.....
+
+Wall
+brown darkbrown
+00010
+11111
+01000
+11111
+00010
+
+Player
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+Crate
+orange
+00000
+0...0
+0...0
+0...0
+00000
+
+e; red;
+f; brown;
+g; orange;
+h; yellow;
+i; green; 
+j; blue; 
+k; purple; 
+l; pink;  
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+links = e or f or g or h or i or j or k or l
+
+=======
+SOUNDS
+=======
+
+Crate move 36772507
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+Player, Wall, Crate
+links
+
+======
+RULES
+======
+
+[ > Player | Crate ] -> [ > Player | > Crate ] 
+late [ Player links ] -> link
+
+==============
+WINCONDITIONS
+==============
+
+all Target on Crate
+
+=======
+LEVELS
+=======
+
+link e Level 2
+link f Level 3
+link g Level 4
+link h Level 5
+link i Level 6
+link j Level 7
+link k Level 8
+link l Level 9
+
+###############
+#O...........O#
+#..P.e.f.g.h..#
+#.............#
+#....i.j.k.l..#
+#O...........O#
+###############
+
+#######
+#..p..#
+#..*..#
+#..O..#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#p*O..#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#..O..#
+#..*..#
+#..p..#
+#######
+
+#######
+#.....#
+#.....#
+#..O*p#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#..O..#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#..O..#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#..O..#
+#.....#
+#.....#
+#######
+
+####..
+#.O#..
+#..###
+#@P..#
+#..*.#
+#..###
+####..
+
+######
+#....#
+#.#P.#
+#.*@.#
+#.O@.#
+#....#
+######
