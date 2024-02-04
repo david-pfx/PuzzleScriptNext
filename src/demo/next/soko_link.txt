@@ -4,6 +4,8 @@ homepage www.puzzlescript.net
 
 // adapted to demo link command
 
+allow_undo_level
+
 ========
 OBJECTS
 ========
@@ -52,7 +54,7 @@ e; red;
 f; brown;
 g; orange;
 h; yellow;
-i; green; 
+i; darkgreen; 
 j; blue; 
 k; purple; 
 l; pink;  

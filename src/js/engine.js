@@ -156,6 +156,31 @@ var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
 let lineColorOverride = [];		// a sparse array of line numbers and colours to use
 
+// restore saved level, checkpoint, solved sections on startup
+function doSetupTitleScreenLevelContinue(){
+    try {
+        if (storage_has(document.URL)) {
+            if (storage_has(document.URL+'_checkpoint')){
+                var backupStr = storage_get(document.URL+'_checkpoint');
+                curlevelTarget = JSON.parse(backupStr);
+                
+                var arr = [];
+                for(var p in Object.keys(curlevelTarget.dat)) {
+                    arr[p] = curlevelTarget.dat[p];
+                }
+                curlevelTarget.dat = new Int32Array(arr);
+            }
+            curlevel = storage_get(document.URL); 
+			if (localStorage[document.URL+"_sections"]!==undefined) {
+				solvedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
+			}
+		}
+    } catch(ex) {
+    }
+}
+
+doSetupTitleScreenLevelContinue();
+
 function showContinueOptionOnTitleScreen(){
 	if (state.metadata.level_select !== undefined) {
 		return true;
@@ -666,24 +691,24 @@ function generateLevelSelectScreen() {
 	redraw();
 }
 
-// go to level: <0 for level index, >0 for section index
+// go to level: <-1 for level index, >0 for section index, -9999 had compile error
 function gotoLevel(index) {
 	if (solving) return;
 	if (index == -9999) return;  // It's an invalid GOTO
   
-	  againing = false;
-	  messagetext = "";
-	  statusText = "";
-  
-	  curlevel = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
-  
-	  loadLevelFromStateOrTarget();
-  
-	  updateLocalStorage();
-	  resetFlickDat();
-	  canvasResize();	
-	  clearInputHistory();
-  }
+	againing = false;
+	messagetext = "";
+	statusText = "";
+
+	curlevel = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+
+	loadLevelFromStateOrTarget();
+
+	updateLocalStorage();
+	resetFlickDat();
+	canvasResize();	
+	clearInputHistory();
+}
   
 function gotoLink() {
   	if (solving) return;
@@ -834,7 +859,7 @@ function drawMessageScreen(message) {
 
 
 	var offset = 5-((splitMessage.length/2)|0);
-	if (offset<0){
+	if (offset<0) {
 		offset=0;
 	}
 
@@ -865,26 +890,26 @@ function drawMessageScreen(message) {
 		} else {
 			endPos = 12;
 		}
-        }
-  if (quittingMessageScreen) {
-    titleImage[endPos]=emptyLineStr;
-  } else {
-    titleImage[endPos]=xToContinueStr;
-  }
+    }
+  	if (quittingMessageScreen) {
+    	titleImage[endPos]=emptyLineStr;
+  	} else {
+    	titleImage[endPos]=xToContinueStr;
+  	}
   
-  canvasResize();
+  	canvasResize();
 }
 
 var loadedLevelSeed=0;
 
-// load a level
+// workhorse to load and setup a new level
 function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {	
 	if (randomseed==null) {
 		randomseed = (Math.random() + Date.now()).toString();
 	}
 	loadedLevelSeed = randomseed;
 	RandomGen = new RNG(loadedLevelSeed);
-	forceRegenImages=true;
+	forceRegenImages=true;			// forces canvasResize to generate images
 	ignoreNotJustPressedAction=true;
 	titleScreen=false;
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
@@ -900,7 +925,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
     	return;
     }
     if (leveldat.message) {
-      // This "level" is actually a message.
+      	// This "level" is actually a message.
 		if (verbose_logging)
 			consolePrint(`Showing message (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	ignoreNotJustPressedAction=true;
@@ -949,10 +974,11 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	        }
         }
 
-      initSmoothCamera();
-      twiddleMetadataExtras();
+      	initSmoothCamera();
+      	twiddleMetadataExtras();
 
-	    backups=[]
+		if (!state.metadata.allow_undo_level)
+	    	backups = [];
 	    restartTarget=backupLevel();
 		keybuffer=[];
 
@@ -987,15 +1013,15 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
 
 function loadLevelFromState(state,levelindex,randomseed) {  
     var leveldat = state.levels[levelindex];    
-  curlevel=levelindex;
-  curlevelTarget=null;
+  	curlevel=levelindex;
+  	curlevelTarget=null;
     if (leveldat!==undefined && leveldat.message===undefined) {
 		document.dispatchEvent(new CustomEvent("psplusLevelLoaded", {detail: levelindex}));
-      if (levelindex=== 0){ 
-      tryPlayStartLevelSound();
-    } else {
-      tryPlayStartLevelSound();     
-    }
+      	if (levelindex=== 0){ 
+      		tryPlayStartLevelSound();
+    	} else {
+      		tryPlayStartLevelSound();     
+    	}
 	}
 
     loadLevelFromLevelDat(state,leveldat,randomseed);
@@ -1098,18 +1124,13 @@ function tryPlayCloseMessageSound(){
 var backups=[];
 var restartTarget;
 
+// create backup of level data for undo, restart, etc
 function backupLevel() {
-	var ret = {
-		dat : new Int32Array(level.objects),
-		width : level.width,
-		height : level.height,
-		oldflickscreendat: oldflickscreendat.concat([]),
-    cameraPositionTarget: Object.assign({}, cameraPositionTarget)
-	};
+	const ret = level4Serialization();
 	if (state.metadata.runtime_metadata_twiddling !== undefined) {
-      var metadata = deepClone(state.metadata)
-      delete metadata.custom_font;
-      ret.metadata = metadata;
+      	var metadata = deepClone(state.metadata)
+      	delete metadata.custom_font;
+      	ret.metadata = metadata;
     }
 	return ret;
 }
@@ -1120,7 +1141,8 @@ function level4Serialization() {
 		width : level.width,
 		height : level.height,
 		oldflickscreendat: oldflickscreendat.concat([]),
-    cameraPositionTarget: Object.assign({}, cameraPositionTarget)
+    	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
+		level: curlevel,
 	};
 	return ret;
 }
@@ -1408,21 +1430,26 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 		//console.log("Wiped movedEntities (level)")
 	}
 
+	const switchLevel = lev.level != curlevel;
+	if (switchLevel) {
+		curlevel = lev.level;
+		level = state.levels[curlevel];
+	}
+
 	if (diffing){
 		applyDiff(lev, level.objects);
 	} else {	
 		level.objects = new Int32Array(lev.dat);
 	}
 
-	if (level.width !== lev.width || level.height !== lev.height) {
+	if (switchLevel || level.width !== lev.width || level.height !== lev.height) {
+		console.log(`Restore level: from ${level.width}x${level.height} to ${lev.width}x${lev.height}`)
 		level.width = lev.width;
 		level.height = lev.height;
 		level.n_tiles = lev.width * lev.height;
 		RebuildLevelArrays();
 		//regenerate all other stride-related stuff
-	}
-	else 
-	{
+	} else {
 	// layercount doesn't change
 
 		for (var i=0;i<level.n_tiles;i++) {
@@ -1442,11 +1469,11 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 	}
 
     if (lev.cameraPositionTarget) {
-      cameraPositionTarget = Object.assign({}, lev.cameraPositionTarget);
+      	cameraPositionTarget = Object.assign({}, lev.cameraPositionTarget);
 
-      if (snapCamera) {
-        cameraPosition = Object.assign({}, cameraPositionTarget)
-      }
+      	if (snapCamera) {
+        	cameraPosition = Object.assign({}, cameraPositionTarget)
+      	}
     }
     
     if (state.metadata.runtime_metadata_twiddling !== undefined) {
@@ -1455,8 +1482,8 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 			consolePrint("RUNTIME METADATA TWIDDLING: Reloaded level state that did not have saved metadata. "+
 			"Likely this state was recovered from a CHECKPOINT. Using the default metadata instead.", true);
 		}
-	 state.metadata = deepClone(lev.metadata);
-     twiddleMetadataExtras(resetAutoTick);
+	 	state.metadata = deepClone(lev.metadata);
+     	twiddleMetadataExtras(resetAutoTick);
     }
 
     againing=false;
@@ -1535,8 +1562,8 @@ function consolidateDiff(before,after){
 	}
 }
 
-function addUndoState(state){
-	backups.push(state);
+function addUndoState(bak){
+	backups.push(bak);
 	if(backups.length>2 && !backups[backups.length-1].hasOwnProperty("diff")){
 		backups[backups.length-3]=consolidateDiff(backups[backups.length-3],backups[backups.length-2]);
 	}
@@ -3838,7 +3865,7 @@ function nextLevel() {
 		curlevel=state.levels.length-1;
 	}
   
-  ignoreNotJustPressedAction=true;
+  	ignoreNotJustPressedAction=true;
 	if (titleScreen && titleMode <= 1) {
 		if(isContinueOptionSelected()) {
 			// continue
