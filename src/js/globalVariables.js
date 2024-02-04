@@ -43,5 +43,5 @@ var messageselected=false;
 
 var textImages = {};
 var initLevel = {};
-var level = initLevel;
+var curLevel = initLevel;
 

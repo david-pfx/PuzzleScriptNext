@@ -325,7 +325,7 @@ function redraw() {
 
     if (textMode)
         redrawTextMode();
-    else redrawCellGrid();
+    else redrawCellGrid(curLevel);
 }
 
 // option to draw custom font text in cells could be a prelude setting if desired
@@ -376,8 +376,8 @@ function redrawTextMode() {
 }
    
 // redraw the cell grid including all modes and animations
-function redrawCellGrid() {
-    var curlevel = level;
+function redrawCellGrid(curlevel) {
+    //var curlevel = level;
     if (diffToVisualize!==null){
         curlevel = new Level(-1,diffToVisualize.width,diffToVisualize.height,diffToVisualize.layerCount,diffToVisualize.objects);
         curlevel.movements = diffToVisualize.movements;
@@ -440,9 +440,9 @@ function redrawCellGrid() {
                 //console.log(coord + " "+ cameraPosition[coord])
                 cameraOffset[coord] = cameraPosition[coord] % 1;
             })
-            const mini = Math.max(Math.min(Math.floor(cameraPosition.x) - Math.floor(screenwidth / 2), level.width - screenwidth), 0);
-            const minj = Math.max(Math.min(Math.floor(cameraPosition.y) - Math.floor(screenheight / 2), level.height - screenheight), 0);
-            minMaxIJ = [mini, minj, Math.min(mini + screenwidth, level.width), Math.min(minj + screenheight, level.height)];
+            const mini = Math.max(Math.min(Math.floor(cameraPosition.x) - Math.floor(screenwidth / 2), curlevel.width - screenwidth), 0);
+            const minj = Math.max(Math.min(Math.floor(cameraPosition.y) - Math.floor(screenheight / 2), curlevel.height - screenheight), 0);
+            minMaxIJ = [mini, minj, Math.min(mini + screenwidth, curlevel.width), Math.min(minj + screenheight, curlevel.height)];
             oldflickscreendat = minMaxIJ;
         } else if (oldflickscreendat.length>0) {
             minMaxIJ = oldflickscreendat;
@@ -780,8 +780,8 @@ function drawSmoothScreenDebug(ctx) {
     var playerPositions = getPlayerPositions();
     if (playerPositions.length > 0) {
         var playerPosition = {
-            x: (playerPositions[0]/(level.height))|0,
-            y: (playerPositions[0]%level.height)|0
+            x: (playerPositions[0]/(curLevel.height))|0,
+            y: (playerPositions[0]%curLevel.height)|0
         };
 
         var playerOffsetX = playerPosition.x - cameraPosition.x;
@@ -900,7 +900,7 @@ function drawEditorIcons(mini,minj) {
         }
     } else if (mousePos.x >= 0 && mousePos.x < screenwidth && mousePos.y >= 0 && mousePos.y < screenheight) {
         // prepare tooltip: content of a level's cell
-        const posMask = level.getCellInto((mousePos.y + minj) + (mousePos.x + mini) * level.height, _o12); //???
+        const posMask = curLevel.getCellInto((mousePos.y + minj) + (mousePos.x + mini) * curLevel.height, _o12); //???
         tooltip_objects = state.idDict.filter( (x,k) => (posMask.get(k) != 0) )
         // prepare tooltip: object names
         tooltip_string = tooltip_objects ? tooltip_objects.join(', ') : '';
@@ -949,8 +949,8 @@ function canvasResize() {
     canvas.width = canvas.parentNode.clientWidth;
     canvas.height = canvas.parentNode.clientHeight;
 
-    screenwidth=level.width;        // board size, used to calculate cell size
-    screenheight=level.height;
+    screenwidth=curLevel.width;        // board size, used to calculate cell size
+    screenheight=curLevel.height;
     if (!state) throw 'oops!';
 
     flickscreen=state.metadata.flickscreen!==undefined;

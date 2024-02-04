@@ -57,92 +57,92 @@ function adjustLevel(level, widthdelta, heightdelta) {
 }
 
 function addLeftColumn() {
-	var oldlevel = adjustLevel(level, 1, 0);
-	for (var x=1; x<level.width; ++x) {
-		for (var y=0; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index - level.height))
+	var oldlevel = adjustLevel(curLevel, 1, 0);
+	for (var x=1; x<curLevel.width; ++x) {
+		for (var y=0; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index - curLevel.height))
 		}
 	}
 }
 
 function addRightColumn() {
-	var oldlevel = adjustLevel(level, 1, 0);
-	for (var x=0; x<level.width-1; ++x) {
-		for (var y=0; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index))
+	var oldlevel = adjustLevel(curLevel, 1, 0);
+	for (var x=0; x<curLevel.width-1; ++x) {
+		for (var y=0; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index))
 		}
 	}
 }
 
 function addTopRow() {
-	var oldlevel = adjustLevel(level, 0, 1);
-	for (var x=0; x<level.width; ++x) {
-		for (var y=1; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index - x - 1))
+	var oldlevel = adjustLevel(curLevel, 0, 1);
+	for (var x=0; x<curLevel.width; ++x) {
+		for (var y=1; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index - x - 1))
 		}
 	}
 }
 
 function addBottomRow() {
-	var oldlevel = adjustLevel(level, 0, 1);
-	for (var x=0; x<level.width; ++x) {
-		for (var y=0; y<level.height - 1; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index - x));
+	var oldlevel = adjustLevel(curLevel, 0, 1);
+	for (var x=0; x<curLevel.width; ++x) {
+		for (var y=0; y<curLevel.height - 1; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index - x));
 		}
 	}
 }
 
 function removeLeftColumn() {
-	if (level.width<=1) {
+	if (curLevel.width<=1) {
 		return;
 	}
-	var oldlevel = adjustLevel(level, -1, 0);
-	for (var x=0; x<level.width; ++x) {
-		for (var y=0; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index + level.height))
+	var oldlevel = adjustLevel(curLevel, -1, 0);
+	for (var x=0; x<curLevel.width; ++x) {
+		for (var y=0; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index + curLevel.height))
 		}
 	}
 }
 
 function removeRightColumn(){
-	if (level.width<=1) {
+	if (curLevel.width<=1) {
 		return;
 	}
-	var oldlevel = adjustLevel(level, -1, 0);
-	for (var x=0; x<level.width; ++x) {
-		for (var y=0; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index))
+	var oldlevel = adjustLevel(curLevel, -1, 0);
+	for (var x=0; x<curLevel.width; ++x) {
+		for (var y=0; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index))
 		}
 	}
 }
 
 function removeTopRow(){
-	if (level.height<=1) {
+	if (curLevel.height<=1) {
 		return;
 	}
-	var oldlevel = adjustLevel(level, 0, -1);
-	for (var x=0; x<level.width; ++x) {
-		for (var y=0; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index + x + 1))
+	var oldlevel = adjustLevel(curLevel, 0, -1);
+	for (var x=0; x<curLevel.width; ++x) {
+		for (var y=0; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index + x + 1))
 		}
 	}
 }
 function removeBottomRow(){
-	if (level.height<=1) {
+	if (curLevel.height<=1) {
 		return;
 	}
-	var oldlevel = adjustLevel(level, 0, -1);
-	for (var x=0; x<level.width; ++x) {
-		for (var y=0; y<level.height; ++y) {
-			var index = x*level.height + y;
-			level.setCell(index, oldlevel.getCell(index + x))
+	var oldlevel = adjustLevel(curLevel, 0, -1);
+	for (var x=0; x<curLevel.width; ++x) {
+		for (var y=0; y<curLevel.height; ++y) {
+			var index = x*curLevel.height + y;
+			curLevel.setCell(index, oldlevel.getCell(index + x))
 		}
 	}
 }
@@ -213,17 +213,17 @@ function printLevel() {
 	var tag = 'selectable'+selectableint;
 	var output="Printing level contents:<br><br><span id=\""+tag+"\" onclick=\"selectText('"+tag+"',event)\"><br>";
 	cache_console_messages = false;
-	for (var j=0;j<level.height;j++) {
-		for (var i=0;i<level.width;i++) {
-			var cellIndex = j+i*level.height;
-			var cellMask = level.getCell(cellIndex);
+	for (var j=0;j<curLevel.height;j++) {
+		for (var i=0;i<curLevel.width;i++) {
+			var cellIndex = j+i*curLevel.height;
+			var cellMask = curLevel.getCell(cellIndex);
 			var glyph = matchGlyph(cellMask,glyphMasks);
 			if (glyph in htmlEntityMap) {
 				glyph = htmlEntityMap[glyph]; 
 			}
 			output = output+glyph;
 		}
-		if (j<level.height-1){
+		if (j<curLevel.height-1){
 			output=output+"<br>";
 		}
 	}
@@ -261,8 +261,8 @@ function levelEditorClick(event,click) {
 			glyphmask.ibitset(state.backgroundid);
 		}
 
-		var coordIndex = mouseCoordY + mouseCoordX*level.height;
-		var getcell = level.getCell(coordIndex);
+		var coordIndex = mouseCoordY + mouseCoordX*curLevel.height;
+		var getcell = curLevel.getCell(coordIndex);
 		if (getcell.equals(glyphmask)) {
 			return;
 		} else {
@@ -270,7 +270,7 @@ function levelEditorClick(event,click) {
 				anyEditsSinceMouseDown=true;				
         		backups.push(backupLevel());
 			}
-			level.setCell(coordIndex, glyphmask);
+			curLevel.setCell(coordIndex, glyphmask);
 			redraw();
 		}
 	} else {
@@ -298,10 +298,10 @@ function levelEditorRightClick(event,click) {
 			redraw();
 		}
 	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
-		var coordIndex = mouseCoordY + mouseCoordX*level.height;
+		var coordIndex = mouseCoordY + mouseCoordX*curLevel.height;
 		var glyphmask = new BitVec(STRIDE_OBJ);
 		glyphmask.ibitset(state.backgroundid);
-		level.setCell(coordIndex, glyphmask);
+		curLevel.setCell(coordIndex, glyphmask);
 		redraw();
 	}
 	else {
@@ -398,7 +398,7 @@ function getTilesTraversingPoints(x1, y1, x2, y2) {
 		var over = false;
 		
 		for (var j=yTrimmer; j != cellY2+ySign; j += ySign) {
-			if (j >= level.height || j < 0 || i >= level.width || i < 0) {
+			if (j >= curLevel.height || j < 0 || i >= curLevel.width || i < 0) {
 				error = "Mouse input loop failed; it:" + i + " " + j + " cell1:" + cellX1 + " " + cellY1 + " cell2:" + cellX2 + " " + cellY2;
 				console.log(error);
 				throw error;
@@ -423,15 +423,15 @@ function getTilesTraversingPoints(x1, y1, x2, y2) {
 	var otherTileListY = [cellY1];
 	
 	while(cellX1 !== cellX2 || cellY1 !== cellY2) {
-		if (cellY1 >= level.height || cellY1 < 0 || cellX1 >= level.width || cellX1 < 0) {
+		if (cellY1 >= curLevel.height || cellY1 < 0 || cellX1 >= curLevel.width || cellX1 < 0) {
 			error = "Mouse input loop failed; cell1:" + cellX1 + " " + cellY1 + " cell2:" + cellX2 + " " + cellY2;
 			console.log(error);
 			throw error;
 		}
 		
 		hitObstacle = function () {
-			var coordIndex = screenOffsetY+cellY1 + (screenOffsetX+cellX1)*level.height;
-			var tile = level.getCell(coordIndex);
+			var coordIndex = screenOffsetY+cellY1 + (screenOffsetX+cellX1)*curLevel.height;
+			var tile = curLevel.getCell(coordIndex);
 			if (state.obstacleMask.anyBitsInCommon(tile)) {
 				return true;
 			} else {
@@ -610,7 +610,7 @@ function mouseAction(event,click,id) {
 			
 			for (var i=0; i<tileListX.length; i++) {
 				
-				var coordIndex = screenOffsetY+tileListY[i] + (screenOffsetX+tileListX[i])*level.height;
+				var coordIndex = screenOffsetY+tileListY[i] + (screenOffsetX+tileListX[i])*curLevel.height;
 				if (lastCoord===coordIndex) {
 					continue;
 				}
@@ -625,7 +625,7 @@ function mouseAction(event,click,id) {
 				}
 			}
 		} else if (mouseCoordX>=0 && mouseCoordY>=0 && mouseCoordX<screenwidth && mouseCoordY<screenheight) {
-			var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*level.height;
+			var coordIndex = screenOffsetY+mouseCoordY + (screenOffsetX+mouseCoordX)*curLevel.height;
 			if (againing) {
 				//consolePrint("no mouse, againing",false);
 			} else {
@@ -642,9 +642,9 @@ function mouseInput(id, coordIndex) {
 		// drop an object at this location
 		try {
 			var bak = backupLevel();
-			var cell = level.getCell(coordIndex);
+			var cell = curLevel.getCell(coordIndex);
 			cell.ibitset(id);
-			level.setCell(coordIndex, cell);
+			curLevel.setCell(coordIndex, cell);
 			var inputdir = 5;
 			if (processInput(inputdir,false,false,bak)) {
 				redraw();
