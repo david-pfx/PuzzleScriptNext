@@ -1,5 +1,5 @@
 var unitTesting=false;
-var curlevel=0;
+let curLevelNo = 0;
 var solvedSections = [];
 var curlevelTarget=null;
 var hasUsedCheckpoint=false;

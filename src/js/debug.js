@@ -90,7 +90,7 @@ function clearInputHistory() {
 	if (canDump===true) {
 		inputHistory=[];
 		soundHistory=[];
-		recordingStartsFromLevel = curlevel;
+		recordingStartsFromLevel = curLevelNo;
 	}
 }
 

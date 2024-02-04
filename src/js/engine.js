@@ -170,7 +170,7 @@ function doSetupTitleScreenLevelContinue(){
                 }
                 curlevelTarget.dat = new Int32Array(arr);
             }
-            curlevel = storage_get(document.URL); 
+            curLevelNo = storage_get(document.URL); 
 			if (localStorage[document.URL+"_sections"]!==undefined) {
 				solvedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
 			}
@@ -190,7 +190,7 @@ function showContinueOptionOnTitleScreen(){
 }
 
 function hasStartedTheGame() {
-	return (curlevel>0||curlevelTarget!==null)&&(curlevel in state.levels);
+	return (curLevelNo>0||curlevelTarget!==null)&&(curLevelNo in state.levels);
 }
 
 function hasSolvedAtLeastOneSection() {
@@ -460,7 +460,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 	const lines = [
 		"",
 		"-< GAME PAUSED >-",
-		state.levels[curlevel].title,
+		state.levels[curLevelNo].title,
 		"",
 		"resume game",
 		!state.metadata.norestart ? "replay level from the start" : null,
@@ -530,7 +530,7 @@ function gotoLevelSelectScreen() {
 
 	if (titleSelection == false) {
 		for(var i = 0; i < state.sections.length; i++) {
-			if(state.sections[i].firstLevel > curlevel) {
+			if(state.sections[i].firstLevel > curLevelNo) {
 				titleSelection = Math.max(0,i-1);
 				break;
 			}
@@ -700,7 +700,7 @@ function gotoLevel(index) {
 	messagetext = "";
 	statusText = "";
 
-	curlevel = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+	curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
 
 	loadLevelFromStateOrTarget();
 
@@ -713,7 +713,7 @@ function gotoLevel(index) {
 function gotoLink() {
   	if (solving) return;
   	playerPositions.forEach(index => {
-		const level = state.levels[curlevel];
+		const level = state.levels[curLevelNo];
 		const objids = level.getObjects(index);
 		state.links // use the most recent visible link definition
 			.slice(0, level.linksTop)
@@ -940,7 +940,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
       	//tryPlayGotoSound();
-      	setSectionSolved(state.levels[Number(curlevel)].section)
+      	setSectionSolved(state.levels[Number(curLevelNo)].section)
       	gotoLevel(leveldat.target);
     } else {
       	titleMode=0;
@@ -996,7 +996,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
     var leveldat = target;    
-  	curlevel=levelindex;
+  	curLevelNo=levelindex;
   	curlevelTarget=target;
     if (leveldat.message===undefined) {
       	if (levelindex=== 0){ 
@@ -1013,7 +1013,7 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
 
 function loadLevelFromState(state,levelindex,randomseed) {  
     var leveldat = state.levels[levelindex];    
-  	curlevel=levelindex;
+  	curLevelNo=levelindex;
   	curlevelTarget=null;
     if (leveldat!==undefined && leveldat.message===undefined) {
 		document.dispatchEvent(new CustomEvent("psplusLevelLoaded", {detail: levelindex}));
@@ -1142,7 +1142,7 @@ function level4Serialization() {
 		height : level.height,
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
-		level: curlevel,
+		level: curLevelNo,
 	};
 	return ret;
 }
@@ -1248,7 +1248,7 @@ function setGameState(_state, command, randomseed) {
 					continue;
 				}
 				var targetLevel = i;
-				curlevel=targetLevel;
+				curLevelNo=targetLevel;
 				curlevelTarget=null;
 			    winning=false;
 			    timer=0;
@@ -1268,7 +1268,7 @@ function setGameState(_state, command, randomseed) {
 		case "loadLevel":
 		{
 			var targetLevel = command[1];
-			curlevel=targetLevel;
+			curLevelNo=targetLevel;
 			curlevelTarget=null;
 		    winning=false;
 		    timer=0;
@@ -1289,7 +1289,7 @@ function setGameState(_state, command, randomseed) {
 			for (var i=state.levels.length-1;i>=0;i--) {
 				var level= state.levels[i];
 				if(level.lineNumber<=targetLine+1) {
-					curlevel=i;
+					curLevelNo=i;
 					curlevelTarget=null;
 				    winning=false;
 				    timer=0;
@@ -1430,10 +1430,10 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 		//console.log("Wiped movedEntities (level)")
 	}
 
-	const switchLevel = lev.level != curlevel;
+	const switchLevel = lev.level && lev.level != curLevelNo;
 	if (switchLevel) {
-		curlevel = lev.level;
-		level = state.levels[curlevel];
+		curLevelNo = lev.level;
+		level = state.levels[curLevelNo];
 	}
 
 	if (diffing){
@@ -1587,7 +1587,7 @@ function DoRestart(force) {
 
 	restoreLevel(restartTarget, true);
 	tryPlayRestartSound();
-	document.dispatchEvent(new CustomEvent("psplusLevelRestarted", {detail: curlevel}));
+	document.dispatchEvent(new CustomEvent("psplusLevelRestarted", {detail: curLevelNo}));
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
@@ -3679,7 +3679,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
 				storage_set(document.URL+'_checkpoint',backupStr);
-				storage_set(document.URL,curlevel);				
+				storage_set(document.URL,curLevelNo);				
 			}	 
 
 		    if (level.commandQueue.indexOf('again')>=0 && modified) {
@@ -3861,8 +3861,8 @@ function nextLevel() {
     againing=false;
 	messagetext="";
 	statusText = "";
-	if (state && state.levels && (curlevel>state.levels.length) ){
-		curlevel=state.levels.length-1;
+	if (state && state.levels && (curLevelNo>state.levels.length) ){
+		curLevelNo=state.levels.length-1;
 	}
   
   	ignoreNotJustPressedAction=true;
@@ -3872,7 +3872,7 @@ function nextLevel() {
 			loadLevelFromStateOrTarget();
 		} else if(isNewGameOptionSelected()) {
 			// new game
-			curlevel=0;
+			curLevelNo=0;
 			curlevelTarget=null;
 
 			if (state.metadata.level_select === undefined) {
@@ -3894,15 +3894,15 @@ function nextLevel() {
 			hasUsedCheckpoint=false;
 		}
 
-		if (curlevel<(state.levels.length-1)) {
+		if (curLevelNo<(state.levels.length-1)) {
 			var skip = false;
-			var curSection = state.levels[Number(curlevel)].section;
-			var nextSection = state.levels[Number(curlevel)+1].section;
+			var curSection = state.levels[Number(curLevelNo)].section;
+			var nextSection = state.levels[Number(curLevelNo)+1].section;
 			if(nextSection != curSection) {
-				setSectionSolved(state.levels[Number(curlevel)].section);
+				setSectionSolved(state.levels[Number(curLevelNo)].section);
 				
 				if(solvedSections.length == state.sections.length && state.winSection != undefined) {
-					curlevel = state.winSection.firstLevel - 1; // it's gonna be increased to match few lines below
+					curLevelNo = state.winSection.firstLevel - 1; // it's gonna be increased to match few lines below
 				} else if (nextSection == "__WIN__") {
 					gotoLevelSelectScreen();
 					skip = true;
@@ -3910,7 +3910,7 @@ function nextLevel() {
 			}
 
 			if(!skip) {
-				curlevel++;
+				curLevelNo++;
 				curlevelTarget=null;
 				textMode=false;
 				titleScreen=false;
@@ -3928,7 +3928,7 @@ function nextLevel() {
           } catch(ex){
           }
 					
-					curlevel=0;
+					curLevelNo=0;
 					curlevelTarget=null;
 					goToTitleScreen();
 				} else {
@@ -3937,8 +3937,8 @@ function nextLevel() {
 				
 				tryPlayEndGameSound();	
 			} else {
-				if(state.levels[Number(curlevel)].section != null) {
-					setSectionSolved(state.levels[Number(curlevel)].section);
+				if(state.levels[Number(curLevelNo)].section != null) {
+					setSectionSolved(state.levels[Number(curLevelNo)].section);
 				}
 				gotoLevelSelectScreen();
 			}
@@ -3953,9 +3953,9 @@ function nextLevel() {
 
 function loadLevelFromStateOrTarget() {
 	if (curlevelTarget!==null){			
-		loadLevelFromStateTarget(state,curlevel,curlevelTarget);
+		loadLevelFromStateTarget(state,curLevelNo,curlevelTarget);
 	} else {
-		loadLevelFromState(state,curlevel);
+		loadLevelFromState(state,curLevelNo);
 	}
 }
 
@@ -3988,7 +3988,7 @@ function resetFlickDat() {
 function updateLocalStorage() {
 	try {
 		
-		storage_set(document.URL,curlevel);
+		storage_set(document.URL,curLevelNo);
 		if (curlevelTarget!==null){
 			restartTarget=level4Serialization();
 			var backupStr = JSON.stringify(restartTarget);
@@ -4023,7 +4023,7 @@ function setSectionSolved(section) {
 }
 
 function clearLocalStorage() {
-	curlevel = 0;
+	curLevelNo = 0;
 	curlevelTarget = null;
 	solvedSections = [];
 

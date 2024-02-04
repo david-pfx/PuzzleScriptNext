@@ -583,7 +583,7 @@ function mouseAction(event,click,id) {
 				quittingTitleScreen = true;
 				redraw();
 			}
-		} else if (messageselected===false && (state.levels[curlevel].message || messagetext != "")) {
+		} else if (messageselected===false && (state.levels[curLevelNo].message || messagetext != "")) {
 			messageselected=true;
 			timer=0;
 			quittingMessageScreen=true;
@@ -1517,13 +1517,13 @@ function update() {
     if (quittingMessageScreen) {
         if (timer/1000>0.15) {
             quittingMessageScreen=false;
-            if (state.levels[curlevel].message) {
+            if (state.levels[curLevelNo].message) {
             	nextLevel();
             } else {
             	messagetext="";
             	textMode=false;
 				titleScreen=false;
-				titleMode=(curlevel>0||curlevelTarget!==null)?1:0;
+				titleMode=(curLevelNo>0||curlevelTarget!==null)?1:0;
 				titleSelected=false;
 				ignoreNotJustPressedAction=true;
 				titleSelection=0;

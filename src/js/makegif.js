@@ -6,7 +6,7 @@ function makeGIF() {
 
 	var randomseed = RandomGen.seed;
 	levelEditorOpened=false;
-	var targetlevel=curlevel;
+	var targetlevel=curLevelNo;
 	var gifcanvas = document.createElement('canvas');
 	gifcanvas.width=screenwidth*cellwidth;
 	gifcanvas.height=screenheight*cellheight;
@@ -29,7 +29,7 @@ function makeGIF() {
 	encoder.setDelay(200);
 	encoder.start();
 
-	compile(["loadLevel",curlevel],levelString,randomseed);
+	compile(["loadLevel",curLevelNo],levelString,randomseed);
 	canvasResize();
 	redraw();
 
