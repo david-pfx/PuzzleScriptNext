@@ -945,12 +945,13 @@ var textcellheight = 0;
 let statusLineHeight = 0;
 
 // recalculate screen layout and then call redraw
-function canvasResize() {
+function canvasResize(level) {
+    level ||= curLevel;
     canvas.width = canvas.parentNode.clientWidth;
     canvas.height = canvas.parentNode.clientHeight;
 
-    screenwidth=curLevel.width;        // board size, used to calculate cell size
-    screenheight=curLevel.height;
+    screenwidth = level.width;        // board size, used to calculate cell size
+    screenheight = level.height;
     if (!state) throw 'oops!';
 
     flickscreen=state.metadata.flickscreen!==undefined;
