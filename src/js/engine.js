@@ -155,6 +155,7 @@ var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
 let lineColorOverride = [];		// a sparse array of line numbers and colours to use
+let linkStack = [];				// where a link goto came from
 
 // restore saved level, checkpoint, solved sections on startup
 function doSetupTitleScreenLevelContinue(){
@@ -720,6 +721,11 @@ function gotoLink() {
 			.reverse()
 			.forEach(link => {
 			if (objids.includes(link.object)) {
+				const linkEntry = { 
+					backup: backupLevel(), 		// will restore to this
+					backupTop: backups.length 	// will prune to this
+				};
+				linkStack.push(linkEntry);		//@@
 				gotoLevel(link.targetNo);
 				return;
 			}
@@ -727,8 +733,21 @@ function gotoLink() {
   	});  
 }
 
+function returnLink() {
+	const linkEntry = linkStack.pop();
+	const level = state.levels[linkEntry.backup.levelNo];
+	backups = backups.slice(0, linkEntry.backupTop);
+	if (verbose_logging)
+		consolePrint(`Returning to level ${linkEntry.backup.levelNo} (${htmlJump(level.lineNumber)})`, true, level.lineNumber);
+	restoreLevel(linkEntry.backup);
+	updateLocalStorage();
+	resetFlickDat();
+	canvasResize();	
+	clearInputHistory();
+}
+
 let introState = {
-  	title: "EMPTY GAME",
+  	title: "Empty Game",
   	attribution: "polyomino",
     objectCount: 2,
     metadata:[],
@@ -1142,7 +1161,7 @@ function level4Serialization() {
 		height : curLevel.height,
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
-		level: curLevelNo,
+		levelNo: curLevelNo,
 	};
 	return ret;
 }
@@ -1151,6 +1170,7 @@ function level4Serialization() {
 // major function to set up game state on start of run
 function setGameState(_state, command, randomseed) {
   oldflickscreendat=[];
+  linkStack=[];
   timer=0;
   autotick=0;
   winning=false;
@@ -1430,10 +1450,10 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 		//console.log("Wiped movedEntities (level)")
 	}
 
-	const switchLevel = lev.level && lev.level != curLevelNo;
+	const switchLevel = lev.levelNo >= 0 && lev.levelNo != curLevelNo;
 	if (switchLevel) {
-		curLevelNo = lev.level;
-		curLevel = state.levels[curLevelNo];
+		curLevelNo = lev.levelNo;
+		curLevel = state.levels[curLevelNo].clone();
 	}
 
 	if (diffing){
@@ -1622,14 +1642,15 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
   if ((!levelEditorOpened)&&('noundo' in state.metadata && force!==true)) {
     return;
   }
-  if (verbose_logging) {
-    consolePrint("--- undoing ---",true);
-  }
 
   if (ignoreDuplicates){
     while (backupDiffers()==false){
       backups.pop();
     }
+  }
+
+  if (verbose_logging) {
+    consolePrint(backups.length > 0 ? "--- undoing ---" : "Nothing to undo.",true);
   }
 
   if (backups.length>0) {
@@ -3843,18 +3864,25 @@ function checkWin(dontDoWin) {
 }
 
 function DoWin() {
-  if (winning) {
-    return;
-  }
-  againing=false;
-  tryPlayEndLevelSound();
-  if (unitTesting) {
-    nextLevel();
-    return;
-  }
+	if (winning) {
+		return;
+	}
+	againing = false;
+	tryPlayEndLevelSound();
 
-  winning=true;
-  timer=0;
+	if (linkStack.length > 0) { 		//@@@ got here by link so go back there
+		returnLink();
+		processInput(-1, true);			// allow trigger on rules with no movement
+		return;
+	}
+
+	if (unitTesting) {
+		nextLevel();
+		return;
+	}
+
+	winning = true;
+	timer = 0;
 }
 
 function nextLevel() {
@@ -3867,6 +3895,8 @@ function nextLevel() {
   
   	ignoreNotJustPressedAction=true;
 	if (titleScreen && titleMode <= 1) {
+		linkStack = [];
+		backups = [];
 		if(isContinueOptionSelected()) {
 			// continue
 			loadLevelFromStateOrTarget();

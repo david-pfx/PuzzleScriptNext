@@ -883,7 +883,8 @@ function levelsToArray(state) {
                 object: level[3]
             });
 		} else {
-            if (gotoFlag) logWarning('Level unreachable due to previous GOTO.', level[2]);
+            if (gotoFlag && links.length == 0) 
+                logWarning('Level unreachable due to previous GOTO.', level[0]);
             level[1] = section; // todo: fix it
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
@@ -2886,7 +2887,7 @@ function twiddleMetaData(state, update = false) {
         }
         var result = parseInt(s);
         if (isNaN(result)){
-            logWarning(`Wasn't able to make sense of "${s}" as an dimension.`,lineNumber);
+            logWarning(`Wasn't able to make sense of "${s}" as a dimension.`,lineNumber);
         }
         if (result<=0){
             logWarning(`The dimension given to me (you gave "${s}") is baad - it should be greater than 0.`,lineNumber);

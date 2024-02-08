@@ -1,10 +1,11 @@
 title Simple Block Pushing Game with Links
-author David Skinner
-homepage www.puzzlescript.net
+author Polyomino Games
+homepage www.polyomino.com
 
 // adapted to demo link command
 
 allow_undo_level
+verbose_logging
 
 ========
 OBJECTS
@@ -58,6 +59,7 @@ i; darkgreen;
 j; blue; 
 k; purple; 
 l; pink;  
+t; transparent
 
 =======
 LEGEND
@@ -82,22 +84,30 @@ COLLISIONLAYERS
 ================
 
 Background
+links
 Target
 Player, Wall, Crate
-links
+t
 
 ======
 RULES
 ======
 
+[ Player links ] -> [ Player ]      // must have been a win
+[ t ] -> [ t crate ]
+[ links ][ crate ] -> [ links ][ ]
+[ crate ][ t ] -> [ crate ][ ]
+
 [ > Player | Crate ] -> [ > Player | > Crate ] 
+
 late [ Player links ] -> link
 
 ==============
 WINCONDITIONS
 ==============
 
-all Target on Crate
+all Crate on Target
+no links
 
 =======
 LEVELS
@@ -112,13 +122,27 @@ link j Level 7
 link k Level 8
 link l Level 9
 
+(.p.e..
+...tO.
+......)
+
+(#########
+#O....tO#
+#.......#
+#..P.h..#
+#......#
+#O.....O#
+#########)
+
 ###############
 #O...........O#
 #..P.e.f.g.h..#
 #.............#
 #....i.j.k.l..#
-#O...........O#
+#O.........t.O#
 ###############
+
+goto youwin
 
 #######
 #..p..#
@@ -153,41 +177,31 @@ link l Level 9
 #######
 
 #######
+#..p..#
+#..*..#
 #.....#
 #.....#
-#..O..#
 #.....#
 #.....#
-#######
-
-#######
-#.....#
-#.....#
-#..O..#
-#.....#
+#..o..#
 #.....#
 #######
 
-#######
-#.....#
-#.....#
-#..O..#
-#.....#
-#.....#
-#######
+#####
+#p*O#
+#####
 
-####..
-#.O#..
-#..###
-#@P..#
-#..*.#
-#..###
-####..
+############
+#.p........#
+#..........#
+#....*.....#
+#..........#
+#........o.#
+############
 
-######
-#....#
-#.#P.#
-#.*@.#
-#.O@.#
-#....#
-######
+##########################
+#.p*...................o.#
+##########################
+
+section youwin
+message You win!!!
