@@ -28,7 +28,7 @@ var errorCount=0;//only counts errors
 //const lastStream = {};
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
 const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
 
@@ -185,7 +185,7 @@ if (typeof Object.assign != 'function') {
 var codeMirrorFn = function() {
     'use strict';
 
-    const sectionNames = ['tags', 'mappings', 'objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'levels'];
+    const sectionNames = ['objects', 'legend', 'sounds', 'collisionlayers', 'rules', 'winconditions', 'tags', 'mappings', 'levels'];
     const reg_equalsrow = /[\=]+/;
     const reg_soundevents = /^(sfx\d+|undo|restart|titlescreen|startgame|cancel|endgame|startlevel|endlevel|showmessage|closemessage|pausescreen)\b/i;
 
@@ -199,7 +199,7 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const prelude_keywords = ['auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
@@ -755,6 +755,7 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        else delete state.mappings[state.objects_candname];
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -765,7 +766,7 @@ var codeMirrorFn = function() {
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
-                    logError(`The name "${token}" needs to be defined by ${fromIdent}.`, state.lineNumber);
+                    logError(`The name "${token}" needs to be defined by ${mapping.fromKey}.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
                     lexer.pushToken(token, 'NAME');
@@ -1176,9 +1177,10 @@ var codeMirrorFn = function() {
             } else if (token = lexer.matchObjectName(!state.case_sensitive)) {
                 // player move [ up... ] 142315...
                 const tobjects = getObjectRefs(state, token);
-                if (!tobjects) 
-                    logError(`Found "${token}", which looks like an object but it's not declared anywhere.`, state.lineNumber);
-                else {
+                if (!tobjects) {
+                    const undef = getObjectUndefs(state, token);
+                    logError(`Found "${token}", which looks like an object but ${ undef[0] ? undef[0].toUpperCase() : 'it' } is not declared anywhere.`, state.lineNumber);
+                } else {
                     lexer.pushToken(token, 'NAME');
 
                     let tverb = null;
@@ -1273,9 +1275,10 @@ var codeMirrorFn = function() {
                 let kind = 'ERROR';
                 if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     const tobjects = getObjectRefs(state, token);
-                    if (!tobjects)
-                        logError(`You're talking about "${token.toUpperCase()}" but it's not defined anywhere.`, state.lineNumber);
-                    else if (token == symbols.newname)
+                    if (!tobjects) {
+                        const undef = getObjectUndefs(state, token);
+                        logError(`You're talking about "${token.toUpperCase()}" but ${ undef[0] ? undef[0].toUpperCase() : 'it' } is not defined anywhere.`, state.lineNumber);
+                    } else if (token == symbols.newname)
                         logError(`You can't define object "${token.toUpperCase()}" in terms of itself!`, state.lineNumber);
                     else {
                         if (names.includes(token))
@@ -1375,9 +1378,10 @@ var codeMirrorFn = function() {
                     const trefs = getObjectRefs(state, token);   // do we need this?
                     if (token == 'background' && idents.length != 0)
                         logError("Background must be in a layer by itself.",state.lineNumber);
-                    else if (!trefs)
-                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer; it has not been declared.`, state.lineNumber);
-                    else {
+                    else if (!trefs) {
+                        const undef = getObjectUndefs(state, token);
+                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer, ${ undef[0] ? undef[0].toUpperCase() : 'it' } has not been declared.`, state.lineNumber);
+                    } else {
                         if (idents.includes(token))
                             logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
                         else idents.push(token);
@@ -1597,7 +1601,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(message|goto|title|level|section|link)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(goto|level|link|message|section|title)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
 
@@ -1605,10 +1609,15 @@ var codeMirrorFn = function() {
                     if (!(token = lexer.matchObjectName())) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
                     else if (!isAlreadyDeclared(state, token))
-                        logError(`LINK object needs to be already defined.`, state.lineNumber);
-                    else {
-                        symbols.link = token;
-                        lexer.pushToken(token, 'NAME');
+                        logError(`LINK object "${token.toUpperCase()}" not found, it needs to be already defined.`, state.lineNumber);
+                    else {      // @@
+                        const objects = expandSymbol(state, token, false, () => {});
+                        if (!(objects && objects.length == 1))
+                            logError(`LINK object "${token.toUpperCase()}" only works with a simple object or an alias, not something created with AND or OR.`, state.lineNumber);
+                        {
+                            symbols.link = objects[0];
+                            lexer.pushToken(token, 'NAME');
+                        }
                     }
                 }
                 symbols.text = lexer.matchAll();
@@ -1641,7 +1650,7 @@ var codeMirrorFn = function() {
                 state.levels.pop();
                 toplevel = null;
             }
-            const cmds = [ 'goto', 'level', 'message', 'section', 'title', ];
+            const cmds = [ 'goto', 'level', 'link', 'message', 'section', 'title', ];
             if (cmds.includes(symbols.start))
                 state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
             else {

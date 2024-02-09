@@ -1,0 +1,207 @@
+title Simple Block Pushing Game with Links
+author Polyomino Games
+homepage www.polyomino.com
+
+// adapted to demo link command
+
+allow_undo_level
+verbose_logging
+
+========
+OBJECTS
+========
+
+Background
+lightgreen green
+11111
+01111
+11101
+11111
+10111
+
+Target
+darkblue
+.....
+.000.
+.0.0.
+.000.
+.....
+
+Wall
+brown darkbrown
+00010
+11111
+01000
+11111
+00010
+
+Player
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+Crate
+orange
+00000
+0...0
+0...0
+0...0
+00000
+
+e; red;
+f; brown;
+g; orange;
+h; yellow;
+i; darkgreen; 
+j; blue; 
+k; purple; 
+l; pink;  
+t; transparent
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+links = e or f or g or h or i or j or k or l
+
+=======
+SOUNDS
+=======
+
+Crate move 36772507
+
+================
+COLLISIONLAYERS
+================
+
+Background
+links
+Target
+Player, Wall, Crate
+t
+
+======
+RULES
+======
+
+[ Player links ] -> [ Player ]      // must have been a win
+[ t ] -> [ t crate ]
+[ links ][ crate ] -> [ links ][ ]
+[ crate ][ t ] -> [ crate ][ ]
+
+[ > Player | Crate ] -> [ > Player | > Crate ] 
+
+late [ Player links ] -> link
+
+==============
+WINCONDITIONS
+==============
+
+all Crate on Target
+no links
+
+=======
+LEVELS
+=======
+
+link e Level 2
+link f Level 3
+link g Level 4
+link h Level 5
+link i Level 6
+link j Level 7
+link k Level 8
+link l Level 9
+
+(.p.e..
+...tO.
+......)
+
+(#########
+#O....tO#
+#.......#
+#..P.h..#
+#......#
+#O.....O#
+#########)
+
+###############
+#O...........O#
+#..P.e.f.g.h..#
+#.............#
+#....i.j.k.l..#
+#O.........t.O#
+###############
+
+goto youwin
+
+#######
+#..p..#
+#..*..#
+#..O..#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#p*O..#
+#.....#
+#.....#
+#######
+
+#######
+#.....#
+#.....#
+#..O..#
+#..*..#
+#..p..#
+#######
+
+#######
+#.....#
+#.....#
+#..O*p#
+#.....#
+#.....#
+#######
+
+#######
+#..p..#
+#..*..#
+#.....#
+#.....#
+#.....#
+#.....#
+#..o..#
+#.....#
+#######
+
+#####
+#p*O#
+#####
+
+############
+#.p........#
+#..........#
+#....*.....#
+#..........#
+#........o.#
+############
+
+##########################
+#.p*...................o.#
+##########################
+
+section youwin
+message You win!!!

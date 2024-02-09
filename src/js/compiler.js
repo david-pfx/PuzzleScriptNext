@@ -46,6 +46,12 @@ function isMappedTo(state, key, target) {
     return Object.hasOwn(state.mappings, key) && state.mappings[key].fromKey == target;
 }
 
+// is there a mapping fomr => key?
+function canMapValue(state, key, from) {
+    const map = state.mappings[key];
+    return map && map.fromKey == from;
+}
+
 function getMappedValue(state, key, value) {
     const map = state.mappings[key];
     const index = map.fromValues.indexOf(value);
@@ -286,6 +292,13 @@ function getObjectRefs(state, ident) {
     if (isAlreadyDeclared(state, ident)) return [ ident ];
     const idents = expandObjectRef(state, ident, true);
     return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
+}
+
+// get the undefined object(s) referred to
+function getObjectUndefs(state, ident) {
+    if (isAlreadyDeclared(state, ident)) return [ ];
+    const idents = expandObjectRef(state, ident, true);
+    return idents.filter(i => !isAlreadyDeclared(state, i));
 }
 
 // create a property object for an ident with parts, if possible and not already there
@@ -825,12 +838,16 @@ function levelFromString(state,level) {
 function levelsToArray(state) {
 	const levels = [];
     const links = [];
+    //const links = {};
+    //const targets = new Set();
     let section, title, description, gotoFlag;
     
     if (state.levels.at(-1).length == 0)
         state.levels.pop();
 
     let levelNo = 1;
+    // compile each level command
+    // parse: state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
     state.levels.forEach(level => {
         title ||= `Level ${levelNo}`;
 		if (level[0] == 'message') {
@@ -846,7 +863,7 @@ function levelsToArray(state) {
 		} else if (level[0] == 'goto') {
             if (gotoFlag) logWarning('GOTO unreachable due to previous GOTO.', level[2]);
             levels.push( {
-                target: level[1],
+                target: level[1],           // text, will be converted to index later
 				lineNumber: level[2],
 				section: section
 			});
@@ -860,22 +877,35 @@ function levelsToArray(state) {
             description = level[1];     // todo: 
             logWarning(`Option TITLE is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
 		} else if (level[0] == 'link') {
-            links.push({
+            links.push( {             // text, will be converted to index later
                 target: level[1],
 				lineNumber: level[2],
-                object: level[3],
-                level: title,
-            })
+                object: level[3]
+            });
 		} else {
-            if (gotoFlag) logWarning('Level unreachable due to previous GOTO.', level[2]);
+            if (gotoFlag && links.length == 0) 
+                logWarning('Level unreachable due to previous GOTO.', level[0]);
             level[1] = section; // todo: fix it
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
+            levels.at(-1).linksTop = links.length;
             ++levelNo;
             title = null;
 		}
 	});
+    links.forEach(link => { //@@
+        let index = -9999;
+        if ((index = levels.findIndex(level => link.target == level.section)) != -1)
+            link.targetNo = index;
+        else if ((index = levels.findIndex(level => link.target == level.title)) != -1)
+            link.targetNo = -1-index;
+        else {
+            logError(`Sorry, link target "${link.target.toUpperCase()}" does not seem to be the name of any level.`, link.lineNumber);
+            link.targetNo = -9999;
+        }
+    });
 	state.levels = levels;
+	state.links = links;
 }
 
 function extractSections(state) {
@@ -917,6 +947,7 @@ function convertSectionNamesToIndices(state) {
 	}
 	
 	// GOTO commands in the RULES
+    // todo: GOTO level or section
 	for (var r = 0; r < state.rules.length; r++) {
 		var rule = state.rules[r];
 		for (var c = 0; c < rule.commands.length; c++) {
@@ -927,11 +958,12 @@ function convertSectionNamesToIndices(state) {
 			var sectionName = command[1].toLowerCase();
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
-				logError('Invalid GOTO command - There is no section named "'+command[1]+'". Either it does not exist, or it has zero levels.', rule.lineNumber);
-				sectionIndex = -1;
+				logError(`Invalid GOTO command - there is no section named "${command[1]}". Either it does not exist, or it has zero levels.`, rule.lineNumber);
+				//logError('Invalid GOTO command - There is no section named "'+command[1]+'". Either it does not exist, or it has zero levels.', rule.lineNumber);
+				sectionIndex = -9999;
 			}else if (duplicateSections[sectionName] !== undefined){
-				logError('Invalid GOTO command - There are multiple sections named "'+command[1]+'". Section names must be unique for GOTO to work.', rule.lineNumber);
-				sectionIndex = -1;
+				logError(`Invalid GOTO command - there are multiple sections named "${command[1]}". Section names must be unique for GOTO to work.`, rule.lineNumber);
+				sectionIndex = -9999;
 			}
 			command[1] = sectionIndex;
 		}
@@ -944,10 +976,10 @@ function convertSectionNamesToIndices(state) {
 		var targetName = level.target.toLowerCase();
 		var targetIndex = sectionMap[targetName];
 		if (targetIndex === undefined){
-			logError('Invalid GOTO command - there is no section named "'+command[1]+'".', level.lineNumber);
+			logError(`Invalid GOTO command - there is no section named "${command[1]}".`, level.lineNumber);
 			targetIndex = 0;
 		}else if (duplicateSections[targetName] !== undefined){
-			logError('Invalid GOTO command - there are multiple sections named "'+command[1]+'".', level.lineNumber);
+			logError(`Invalid GOTO command - there are multiple sections named "${command[1]}".`, level.lineNumber);
 			targetIndex = 0;
 		}
 		level.target = targetIndex;
@@ -973,7 +1005,7 @@ function fixUpGosubs(state) { // PS>
                 if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
                     const subroutine = state.subroutines.find(s => s.label == cmd[1].toLowerCase());
                     if (!subroutine) 
-                        logError(`Invalid GOSUB command - there is no subroutine named ${cmd[1]}.`, rule.lineNumber);
+                        logError(`Invalid GOSUB command - there is no subroutine named "${cmd[1]}".`, rule.lineNumber);
                     else cmd[1] = subroutine.groupNumber;   // replace name by linenumber
                 }
             }
@@ -1223,7 +1255,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (state.names.includes(token) || (token.match(reg_objectname) && token.includes(':'))) {  // PS>
+            } else if (isAlreadyDeclared(state, token) || createObjectRef(state, token)) { // @@
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -1420,11 +1452,15 @@ function expandRuleWithPrefixes(state, rule) {
 // function to be used during deep clone rule
 // note: will fail badly if map and tag are not a match, so check beforehand!
 function replaceObjectPrefix(state, objid, prefixes, exp) {
+    // in each could be any prefix and we need to find which one
+    const fnGetTag = p => prefixes.includes(p) && exp[prefixes.indexOf(p)];
+    const fnGetMap = p => {
+        const pref = prefixes.find(x => canMapValue(state, p, x));
+        return pref && getMappedValue(state, p, exp[prefixes.indexOf(pref)]);
+    };
+
     return objid.split(':')
-        .map(p => prefixes.includes(p) ? exp[prefixes.indexOf(p)]
-            //: Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(p)])
-            : Object.hasOwn(state.mappings, p) ? getMappedValue(state, p, exp[prefixes.indexOf(state.mappings[p].fromKey)])
-            : p)
+        .map(p => fnGetTag(p) || fnGetMap(p) || p)
         .join(':');
 }
 
@@ -2852,7 +2888,7 @@ function twiddleMetaData(state, update = false) {
         }
         var result = parseInt(s);
         if (isNaN(result)){
-            logWarning(`Wasn't able to make sense of "${s}" as an dimension.`,lineNumber);
+            logWarning(`Wasn't able to make sense of "${s}" as a dimension.`,lineNumber);
         }
         if (result<=0){
             logWarning(`The dimension given to me (you gave "${s}") is baad - it should be greater than 0.`,lineNumber);

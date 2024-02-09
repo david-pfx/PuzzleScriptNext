@@ -1,5 +1,5 @@
 var unitTesting=false;
-var curlevel=0;
+let curLevelNo = 0;
 var solvedSections = [];
 var curlevelTarget=null;
 var hasUsedCheckpoint=false;
@@ -7,32 +7,6 @@ var levelEditorOpened=false;
 var muted=0;
 var runrulesonlevelstart_phase=false;
 var ignoreNotJustPressedAction=true;
-
-function doSetupTitleScreenLevelContinue(){
-    try {
-        if (storage_has(document.URL)) {
-            if (storage_has(document.URL+'_checkpoint')){
-                var backupStr = storage_get(document.URL+'_checkpoint');
-                curlevelTarget = JSON.parse(backupStr);
-                
-                var arr = [];
-                for(var p in Object.keys(curlevelTarget.dat)) {
-                    arr[p] = curlevelTarget.dat[p];
-                }
-                curlevelTarget.dat = new Int32Array(arr);
-
-            }
-            curlevel = storage_get(document.URL); 
-    		    if (localStorage[document.URL+"_sections"]!==undefined) {
-                    solvedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
-                }
-    		}
-    } catch(ex) {
-    }
-}
-
-doSetupTitleScreenLevelContinue();
-
 
 var verbose_logging=false;
 var throttle_movement=false;
@@ -69,5 +43,5 @@ var messageselected=false;
 
 var textImages = {};
 var initLevel = {};
-var level = initLevel;
+var curLevel = initLevel;
 

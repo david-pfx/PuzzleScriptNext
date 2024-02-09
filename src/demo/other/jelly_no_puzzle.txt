@@ -1,0 +1,1968 @@
+title jelly no puzzle  by qrostar    remade in puzzlescript
+author jack kutilek
+homepage qrostar.skr.jp/en/jelly
+
+run_rules_on_level_start
+(verbose_logging)
+norepeat_action
+again_interval 0.03
+mouse_left
+mouse_right
+
+
+========
+OBJECTS
+========
+
+Background 
+lightblue  
+
+
+Wall 
+#885599 #774499
+00110
+01100
+11000
+10001
+00011
+
+Walll
+white
+0....
+0....
+0....
+0....
+0....
+
+wallr
+white
+....0
+....0
+....0
+....0
+....0
+
+wallu
+white
+00000
+.....
+.....
+.....
+.....
+
+walld
+white
+.....
+.....
+.....
+.....
+00000
+
+wallul
+white
+0....
+.....
+.....
+.....
+.....
+
+wallur
+white
+....0
+.....
+.....
+.....
+.....
+
+walldl
+white
+.....
+.....
+.....
+.....
+0....
+
+walldr
+white
+.....
+.....
+.....
+.....
+....0
+
+wallfixeroutlined
+white
+.....
+.....
+00000
+0...0
+0...0
+
+wallfixeroutlineu
+white
+0...0
+0...0
+00000
+.....
+.....
+
+wallfixeroutliner
+white
+..000
+..0..
+..0..
+..0..
+..000
+
+wallfixeroutlinel
+white
+000..
+..0..
+..0..
+..0..
+000..
+
+Cursor
+transparent
+00.00
+0...0
+.....
+0...0
+00.00
+
+CursorVisual
+gray
+00.00
+0...0
+.....
+0...0
+00.00
+
+activecursor
+#88ff44
+00.00
+0...0
+.....
+0...0
+00.00
+
+counter
+transparent
+.....
+.....
+..0..
+.....
+.....
+
+conup
+transparent
+
+condown
+transparent
+
+conleft
+transparent
+
+conright
+transparent
+
+conblueblock
+blue
+
+BlueBlockl
+Blue
+0...0
+0....
+0....
+0....
+0...0
+
+BlueBlockr
+Blue
+0...0
+....0
+....0
+....0
+0...0
+
+BlueBlockd
+Blue
+0...0
+.....
+.....
+.....
+00000
+
+BlueBlocku
+Blue
+00000
+.....
+.....
+.....
+0...0
+
+BlueBlock_none
+Blue #0033ff
+01110
+11111
+11111
+11111
+01110
+
+
+conredblock
+red
+
+RedBlockl
+Red
+0...0
+0....
+0....
+0....
+0...0
+
+RedBlockr
+Red
+0...0
+....0
+....0
+....0
+0...0
+
+REdBlockd
+Red
+0...0
+.....
+.....
+.....
+00000
+
+redBlocku
+red
+00000
+.....
+.....
+.....
+0...0
+
+redBlock_none
+red #881111
+01110
+11111
+11111
+11111
+01110
+
+
+congreenblock
+green
+
+GreenBlockl
+Green
+0...0
+0....
+0....
+0....
+0...0
+
+GreenBlockr
+Green
+0...0
+....0
+....0
+....0
+0...0
+
+GreenBlockd
+Green
+0...0
+.....
+.....
+.....
+00000
+
+GreenBlocku
+green
+00000
+.....
+.....
+.....
+0...0
+
+greenBlock_none
+green #337700
+01110
+11111
+11111
+11111
+01110
+
+conyellowblock
+yellow
+
+yellowBlockl
+yellow
+0...0
+0....
+0....
+0....
+0...0
+
+yellowBlockr
+yellow
+0...0
+....0
+....0
+....0
+0...0
+
+yellowBlockd
+yellow
+0...0
+.....
+.....
+.....
+00000
+
+yellowBlocku
+yellow
+00000
+.....
+.....
+.....
+0...0
+
+yellowBlock_none
+yellow #cccc55
+01110
+11111
+11111
+11111
+01110
+
+conblackblock1
+black
+
+conblackblock2
+darkgray
+
+conblackblock3
+gray
+
+conblackblock4
+lightgray
+
+blackBlockl
+#333333
+0...0
+0....
+0....
+0....
+0...0
+
+blackBlockr
+#333333
+0...0
+....0
+....0
+....0
+0...0
+
+blackBlockd
+#333333
+0...0
+.....
+.....
+.....
+00000
+
+blackBlocku
+#333333
+00000
+.....
+.....
+.....
+0...0
+
+blackblock_none
+#333333 black
+01110
+11111
+11111
+11111
+01110
+
+
+lefttransfer
+transparent
+
+righttransfer
+transparent
+
+uptransfer
+transparent
+
+downtransfer
+transparent
+
+
+confixeru
+white
+..0..
+.000.
+..0..
+.....
+.....
+
+confixerd
+white
+.....
+.....
+..0..
+.000.
+..0..
+
+confixerl
+white
+.....
+.0...
+000..
+.0...
+.....
+
+confixerr
+white
+.....
+...0.
+..000
+...0.
+.....
+
+redpusheru
+red
+00000
+.....
+.....
+.....
+.....
+
+redpusherl
+red
+0....
+0....
+0....
+0....
+0....
+
+redpusherr
+red
+....0
+....0
+....0
+....0
+....0
+
+newredblock
+red
+00000
+0...0
+0...0
+0...0
+00000
+
+
+greenpusheru
+green
+00000
+.....
+.....
+.....
+.....
+
+greenpusherl
+green
+0....
+0....
+0....
+0....
+0....
+
+greenpusherr
+green
+....0
+....0
+....0
+....0
+....0
+
+newgreenblock
+green
+00000
+0...0
+0...0
+0...0
+00000
+
+
+bluepusheru
+blue
+00000
+.....
+.....
+.....
+.....
+
+bluepusherl
+blue
+0....
+0....
+0....
+0....
+0....
+
+bluepusherr
+blue
+....0
+....0
+....0
+....0
+....0
+
+newblueblock
+blue
+00000
+0...0
+0...0
+0...0
+00000
+
+yellowpusherl
+yellow
+0....
+0....
+0....
+0....
+0....
+
+yellowpusherr
+yellow
+....0
+....0
+....0
+....0
+....0
+
+yellowpusheru
+yellow
+00000
+.....
+.....
+.....
+.....
+
+newyellowblock
+yellow
+00000
+0...0
+0...0
+0...0
+00000
+
+
+redfixeru
+red white
+.010.
+.000.
+.....
+.....
+.....
+
+redfixerd
+red white
+.....
+.....
+.....
+.000.
+.010.
+
+redfixerl
+red white
+.....
+00...
+10...
+00...
+.....
+
+redfixerr
+red white
+.....
+...00
+...01
+...00
+.....
+
+bluefixeru
+blue white
+.010.
+.000.
+.....
+.....
+.....
+
+bluefixerd
+blue white
+.....
+.....
+.....
+.000.
+.010.
+
+bluefixerl
+blue white
+.....
+00...
+10...
+00...
+.....
+
+bluefixerr
+blue white
+.....
+...00
+...01
+...00
+.....
+
+
+greenfixerd
+green white
+.....
+.....
+.....
+.000.
+.010.
+
+greenfixeru
+green white
+.010.
+.000.
+.....
+.....
+.....
+
+greenfixerl
+green white
+.....
+00...
+10...
+00...
+.....
+
+greenfixerr
+green white
+.....
+...00
+...01
+...00
+.....
+
+yellowfixeru
+yellow white
+.010.
+.000.
+.....
+.....
+.....
+
+yellowfixerd
+yellow white
+.....
+.....
+.....
+.000.
+.010.
+
+yellowfixerr
+yellow white
+.....
+...00
+...01
+...00
+.....
+
+yellowfixerl
+yellow white
+.....
+00...
+10...
+00...
+.....
+
+cursorStageToken
+transparent
+..000
+.0...
+.0...
+.0...
+..000
+
+
+pusherLStageToken
+transparent
+
+pusherRStageToken
+transparent
+
+pusherUStageToken
+transparent
+
+pusherLBackStageToken
+transparent
+
+pusherRBackStageToken
+transparent
+
+
+gravityStageToken
+transparent
+.000.
+0....
+0..00
+0...0
+.000.
+
+transferingStageToken
+transparent
+00000
+..0..
+..0..
+..0..
+..0..
+
+endStageToken
+transparent
+
+stageHelper
+transparent
+
+cancelledMove
+transparent
+
+pusherToken
+transparent
+
+pusherNotRun
+transparent
+
+pusherBackNotRun
+transparent
+
+lmb
+transparent
+
+rmb
+transparent
+
+=======
+LEGEND
+=======
+
+floor = Background
+
+Player = Cursor or activecursor
+
+conblock = conblueblock or conredblock or congreenblock or conyellowblock or conblackblock1 or conblackblock2 or conblackblock3 or conblackblock4
+
+blueblock = blueblock_none or BlueBlockl or BlueBlockr or BlueBlockd or BlueBlocku
+blueblockwall = blueblockl or blueblockr or blueblockd or blueblocku
+blueblock_blocker = redblock_none or greenblock_none or yellowblock_none or blackblock_none or wall
+
+redblock = redblock_none or redBlockl or redBlockr or redBlockd or redBlocku
+redblockwall = redblockl or redblockr or redblockd or redblocku
+redblock_blocker = blueblock_none or greenblock_none or yellowblock_none or blackblock_none or wall
+
+greenblockwall = greenblockl or greenblockr or greenblockd or greenblocku
+greenblock = greenblock_none or greenblockwall
+greenblock_blocker = blueblock_none or redblock_none or yellowblock_none or blackblock_none or wall
+
+yellowblockwall = yellowblockl or yellowblockr or yellowblockd or yellowblocku
+yellowblock = yellowblock_none or yellowblockwall
+yellowblock_blocker = blueblock_none or redblock_none or greenblock_none or blackblock_none or wall
+
+blackblockwall = blackblockl or blackblockr or blackblockd or blackblocku
+blackblock = blackblock_none or blackblockwall
+blackblock_blocker = blueblock_none or redblock_none or greenblock_none or yellowBlock_none or wall
+
+blockl = blueblockl or redblockl or greenblockl or yellowblockl or blackblockl or conleft
+blockr = blueblockr or redblockr or greenblockr or yellowblockr or blackblockr or conright
+blocku = blueblocku or redblocku or greenblocku or yellowblocku or blackblocku or conup
+blockd = blueblockd or redblockd or greenblockd or yellowblockd or blackblockd or condown
+blockbase = blueblock_none or redblock_none or greenblock_none or yellowblock_none or blackblock_none
+blockwall = blockl or blockr or blocku or blockd
+block = BlueBlock or redblock or greenblock or yellowblock or blackblock
+
+obstacle = block or wall
+fixeru = redfixeru or bluefixeru or yellowfixeru or greenfixeru
+fixerl = redfixerl or yellowfixerl or bluefixerl or greenfixerl
+fixerr = yellowfixerr or bluefixerr or redfixerr or greenfixerr
+fixerd = greenfixerd or redfixerd or yellowfixerd or bluefixerd
+fixer = fixeru or fixerl or fixerd or fixerr
+
+transfer = lefttransfer or righttransfer or downtransfer or uptransfer
+
+anycursor = cursor or activecursor
+
+pusherl = redpusherl or greenpusherl or bluepusherl or yellowpusherl
+pusherr = redpusherr or bluepusherr or greenpusherr or yellowpusherr
+pusheru = redpusheru or greenpusheru or bluepusheru or yellowpusheru
+redpusher = redpusherl or redpusheru or redpusherr
+bluepusher = bluepusherl or bluepusheru or bluepusherr
+greenpusher = greenpusherl or greenpusheru or greenpusherr
+yellowpusher = yellowpusherr or yellowpusheru or yellowpusherl
+pusher = pusheru or pusherl or pusherr
+newblock = newredblock or newgreenblock or newblueblock or newyellowblock
+
+pusherBackStageToken = pusherLBackStageToken or pusherRBackStageToken
+pusherForwardStageToken = pusherLStageToken or pusherRStageToken or pusherUStageToken
+pusherStageToken = pusherForwardStageToken or pusherBackStageToken
+transferStageToken = pusherStageToken or transferingStageToken
+stageToken = cursorStageToken or pusherStageToken or gravityStageToken or transferingStageToken or endStageToken
+
+anymouse = lmb or rmb
+
+. = Background
+# = Wall
++ = wall and confixeru and confixerd and confixerl and confixerr
+1 = wall and confixerd
+, = wall and confixeru
+! = wall and confixerr
+& = wall and confixerl
+~ = wall and redpusheru and counter
+' = wall and redpusheru and counter and redfixeru
+2 = wall and redpusherr and counter
+3 = wall and redpusherl and redfixerl and counter
+` = wall and greenpusherl and counter
+4 = wall and greenpusheru and counter
+- = wall and greenpusherr and counter
+5 = wall and bluepusheru and counter
+6 = wall and greenpusheru and greenfixeru and counter
+7 = wall and bluepusheru and bluefixeru and counter
+8 = wall and bluepusherl and counter
+9 = wall and bluepusherr and counter
+0 = wall and bluepusherr and counter and bluefixerr
+_ = wall and yellowpusherr and counter
+$ = wall and yellowpusherl and counter
+} = wall and yellowpusheru and counter
+b = conblueblock and counter
+r = conredblock and counter
+g = congreenblock and counter
+y = conyellowblock and counter
+c = conblueblock
+t = conredblock
+h = congreenblock
+u = conyellowblock
+q = conblackblock1
+w = conblackblock2
+a = conblackblock3
+s = conblackblock4
+e = conblackblock1 and confixerl
+d = conblackblock1 and confixerr
+z = conblackblock1 and confixeru
+x = conblackblock1 and confixerd
+k = conblackblock1 and confixerl and confixerr
+l = conblackblock1 and confixeru and confixerd
+\ = conblackblock1 and confixerl and confixerd
+" = conblackblock1 and confixerr and confixerd
+@ = conblackblock1 and confixerl and confixeru
+f = conblackblock2 and confixerl
+n = conblackblock2 and confixerr
+m = conblackblock2 and confixeru
+j = conblackblock2 and confixerd
+; = conblackblock2 and confixerl and confixerr
+i = conblackblock1 and redpusheru and counter
+% = conblackblock1 and redpusheru and counter and redfixeru
+p = conblackblock1 and greenpusherl and greenfixerl and counter
+{ = conblackblock1 and greenpusherr and greenfixerr and counter
+? = conblackblock1 and yellowpusherr and yellowfixerr and counter
+O = cursor and cursorStageToken
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Wall, blockbase
+wallu
+walld
+walll
+wallr
+wallur
+walldr
+wallul
+walldl
+wallfixeroutlined
+wallfixeroutlineu
+wallfixeroutliner
+wallfixeroutlinel
+
+conblock
+blockl
+blockr
+blocku
+blockd
+
+pusher
+newblock
+
+confixeru
+confixerd
+confixerl
+confixerr
+fixerl
+fixeru
+fixerd
+fixerr
+
+
+counter
+transfer
+cursor, activecursor
+CursorVisual
+stageToken
+stageHelper
+cancelledMove
+pusherToken
+pusherNotRun
+pusherBackNotRun
+
+lmb
+rmb
+
+======
+RULES     
+======     
+
+
+(some cursor bookkeeping)
+
+[anymouse][CursorVisual]->[anymouse][]
+[anymouse][activecursor]->[anymouse][cursor]
+
+[moving player][Cursor no CursorVisual] -> [moving player][cursor CursorVisual]
+late [cursor no CursorVisual][CursorVisual]->[cursor CursorVisual][]
+
+[action cursor blockbase][CursorVisual] -> [activecursor blockbase][]
+[action activecursor blockbase] -> [cursor CursorVisual blockbase]
+
+[up activecursor] -> cancel
+
+
+[pusher]->[pusher pusherNotRun]
+
+[anycursor]->[anycursor pusherToken]
+
+startloop
+
+
+[pusherUStageToken][pusherToken][pusheru pusherNotRun] -> [pusherUStageToken][][up pusheru]
+([pusherStageToken][pusherd] -> [pusherStageToken][down pusherd])
+[pusherLStageToken][pusherToken][pusherl pusherNotRun] -> [pusherLStageToken][][left pusherl]
+[pusherRStageToken][pusherToken][pusherr pusherNotRun] -> [pusherRStageToken][][right pusherr]
+
+[pusherLBackStageToken][pusherToken][pusherl pusherBackNotRun] -> [pusherLBackStageToken][][right pusherl]
+[pusherRBackStageToken][pusherToken][pusherr pusherBackNotRun] -> [pusherRBackStageToken][][left pusherr]
+
+[anycursor pusherToken] -> [anycursor]
+
+(initialize and spread movements)
+ [cursorStageToken][> activecursor stationary blueblock_none] -> [cursorStageToken][> activecursor > blueblock_none]
++ [cursorStageToken][lmb stationary blueblock_none] -> [cursorStageToken][lmb left blueblock_none]
++ [cursorStageToken][rmb stationary blueblock_none] -> [cursorStageToken][rmb right blueblock_none]
++ [pusherStageToken][stationary blueblock_none | < bluepusher] -> [pusherStageToken][< blueblock_none | < bluepusher]
++ down [gravityStageToken][stationary blueblock_none | no obstacle] -> [gravityStageToken][ down blueblock_none | no obstacle]
++ down [gravityStageToken][stationary blueblock_none | down obstacle] -> [gravityStageToken][ down blueblock_none | down obstacle]
++  left [moving blueblock_none no blueblockl|blueblock_none no blueblockr] -> [moving blueblock_none | moving blueblock_none] 
++  left [ blueblock_none no blueblockl| moving blueblock_none no blueblockr] -> [moving blueblock_none | moving blueblock_none]
++  up [moving blueblock_none no blueblocku | blueblock_none no blueblockd] -> [moving blueblock_none | moving blueblock_none] 
++  up [ blueblock_none no blueblocku| moving blueblock_none no blueblockd] -> [moving blueblock_none | moving blueblock_none] 
++ [> block | stationary blueblock_none ] -> [> block | > blueblock_none]
+
++[cursorStageToken][> activecursor stationary redblock_none] -> [cursorStageToken][> activecursor > redblock_none]
++[cursorStageToken][lmb stationary redblock_none] -> [cursorStageToken][lmb left redblock_none]
++[cursorStageToken][rmb stationary redblock_none] -> [cursorStageToken][rmb right redblock_none]
++ [pusherStageToken][stationary redblock_none | < redpusher] -> [pusherStageToken][< redblock_none | < redpusher]
++ down [gravityStageToken][stationary redblock_none | no obstacle] -> [gravityStageToken][ down redblock_none | no obstacle]
++ down [gravityStageToken][stationary redblock_none | down obstacle] -> [gravityStageToken][ down redblock_none | down obstacle]
++  left [moving redblock_none no redblockl|redblock_none no redblockr] -> [moving redblock_none | moving redblock_none] 
++  left [ redblock_none no redblockl| moving redblock_none no redblockr] -> [moving redblock_none | moving redblock_none]
++  up [moving redblock_none no redblocku | redblock_none no redblockd] -> [moving redblock_none | moving redblock_none] 
++  up [ redblock_none no redblocku| moving redblock_none no redblockd] -> [moving redblock_none | moving redblock_none] 
++ [> block | stationary redblock_none ] -> [> block | > redblock_none]
+
++[cursorStageToken][> activecursor stationary greenblock_none] -> [cursorStageToken][> activecursor > greenblock_none]
++[cursorStageToken][lmb stationary greenblock_none] -> [cursorStageToken][lmb left greenblock_none]
++[cursorStageToken][rmb stationary greenblock_none] -> [cursorStageToken][rmb right greenblock_none]
++ [pusherStageToken][stationary greenblock_none | < greenpusher] -> [pusherStageToken][< greenblock_none | < greenpusher]
++ down [gravityStageToken][stationary greenblock_none | no obstacle] -> [gravityStageToken][ down greenblock_none | no obstacle]
++ down [gravityStageToken][stationary greenblock_none | down obstacle] -> [gravityStageToken][ down greenblock_none | down obstacle]
++  left [moving greenblock_none no greenblockl|greenblock_none no greenblockr] -> [moving greenblock_none | moving greenblock_none] 
++  left [ greenblock_none no greenblockl| moving greenblock_none no greenblockr] -> [moving greenblock_none | moving greenblock_none]
++  up [moving greenblock_none no greenblocku | greenblock_none no greenblockd] -> [moving greenblock_none | moving greenblock_none] 
++  up [ greenblock_none no greenblocku| moving greenblock_none no greenblockd] -> [moving greenblock_none | moving greenblock_none] 
++ [> block | stationary greenblock_none ] -> [> block | > greenblock_none]
+
++[cursorStageToken][> activecursor stationary yellowblock_none] -> [cursorStageToken][> activecursor > yellowblock_none]
++[cursorStageToken][lmb stationary yellowblock_none] -> [cursorStageToken][lmb left yellowblock_none]
++[cursorStageToken][rmb stationary yellowblock_none] -> [cursorStageToken][rmb right yellowblock_none]
++ [pusherStageToken][stationary yellowblock_none | < yellowpusher] -> [pusherStageToken][< yellowblock_none | < yellowpusher]
++ down [gravityStageToken][stationary yellowblock_none | no obstacle] -> [gravityStageToken][ down yellowblock_none | no obstacle]
++ down [gravityStageToken][stationary yellowblock_none | down obstacle] -> [gravityStageToken][ down yellowblock_none | down obstacle]
++  left [moving yellowblock_none no yellowblockl|stationary yellowblock_none no yellowblockr] -> [moving yellowblock_none | moving yellowblock_none] 
++  left [ stationary yellowblock_none no yellowblockl| moving yellowblock_none no yellowblockr] -> [moving yellowblock_none | moving yellowblock_none]
++  up [moving yellowblock_none no yellowblocku | stationary yellowblock_none no yellowblockd] -> [moving yellowblock_none | moving yellowblock_none] 
++  up [stationary yellowblock_none no yellowblocku| moving yellowblock_none no yellowblockd] -> [moving yellowblock_none | moving yellowblock_none] 
++ [> block | stationary yellowblock_none ] -> [> block | > yellowblock_none]
+
++[cursorStageToken][> activecursor stationary blackblock_none] -> [cursorStageToken][> activecursor > blackblock_none]
++[cursorStageToken][lmb stationary blackblock_none] -> [cursorStageToken][lmb left blackblock_none]
++[cursorStageToken][rmb stationary blackblock_none] -> [cursorStageToken][rmb right blackblock_none]
++[pusherBackStageToken][stationary blackblock_none < bluepusher | stationary BlueBlock_none] -> [pusherBackStageToken][< blackblock_none < bluepusher | stationary BlueBlock_none]
++[pusherBackStageToken][stationary blackblock_none < redpusher | stationary redBlock_none] -> [pusherBackStageToken][< blackblock_none < redpusher | stationary redBlock_none]
++[pusherBackStageToken][stationary blackblock_none < yellowpusher | stationary yellowBlock_none] -> [pusherBackStageToken][< blackblock_none < yellowpusher | stationary yellowBlock_none]
++[pusherBackStageToken][stationary blackblock_none < greenpusher | stationary greenBlock_none] -> [pusherBackStageToken][< blackblock_none < greenpusher | stationary greenBlock_none]
++ down [gravityStageToken][stationary blackblock_none | no obstacle] -> [gravityStageToken][ down blackblock_none | no obstacle]
++ down [gravityStageToken][stationary blackblock_none | down obstacle] -> [gravityStageToken][ down blackblock_none | down obstacle]
++  left [moving blackblock_none no blackblockl|blackblock_none no blackblockr] -> [moving blackblock_none | moving blackblock_none] 
++  left [ blackblock_none no blackblockl| moving blackblock_none no blackblockr] -> [moving blackblock_none | moving blackblock_none]
++  up [moving blackblock_none no blackblocku | blackblock_none no blackblockd] -> [moving blackblock_none | moving blackblock_none] 
++  up [ blackblock_none no blackblocku| moving blackblock_none no blackblockd] -> [moving blackblock_none | moving blackblock_none] 
++ [> block | stationary blackblock_none ] -> [> block | > blackblock_none]
+
+(transfer movements across fixers)
++[> blackblock_none fixer no pusher] -> [> blackblock_none > fixer]
++ left [blockbase | fixerr no pusher moving blackblock_none] -> [ moving blockbase | moving fixerr moving blackblock_none]
++ left [moving blockbase | fixerr blackblock_none no pusher] -> [ moving blockbase | moving fixerr moving blackblock_none]
++ right [blockbase |  fixerl no pusher moving blackblock_none] -> [ moving blockbase | moving fixerl moving blackblock_none]
++ right [moving blockbase | fixerl no pusher blackblock_none] -> [ moving blockbase | moving fixerl moving blackblock_none]
++ up [blockbase |  fixerd no pusher moving blackblock_none] -> [ moving blockbase | moving fixerd moving blackblock_none]
++ up [moving blockbase | fixerd no pusher blackblock_none] -> [ moving blockbase | moving fixerd moving blackblock_none]
++ down [blockbase |  fixeru no pusher moving blackblock_none] -> [ moving blockbase | moving fixeru moving blackblock_none]
++ down [moving blockbase | fixeru no pusher blackblock_none] -> [ moving blockbase | moving fixeru moving blackblock_none]
+
+
+
+(cancel any invalid movements)
+
+
+[> blockbase | wall ] -> [blockbase cancelledMove | wall]
+
++down [moving blockbase | stationary fixeru no pusher] -> [stationary blockbase cancelledMove | fixeru]
++right [moving blockbase | stationary fixerl no pusher] -> [stationary blockbase cancelledMove | fixerl]
++up [moving blockbase | stationary fixerd no pusher] -> [stationary blockbase cancelledMove | fixerd]
++left [moving blockbase | stationary fixerr no pusher] -> [stationary blockbase cancelledMove | fixerr]
+
++vertical [ > blueblock_none | left blueblock_blocker] -> [stationary cancelledMove BlueBlock_none | left blueblock_blocker]
++vertical [ > blueblock_none | right blueblock_blocker] -> [stationary cancelledMove BlueBlock_none | right blueblock_blocker]
++vertical [ > blueblock_none | stationary blueblock_blocker] -> [stationary cancelledMove BlueBlock_none | stationary blueblock_blocker]
+
++vertical [ > redblock_none | left redblock_blocker] -> [stationary cancelledMove redBlock_none | left redblock_blocker]
++vertical [ > redblock_none | right redblock_blocker] -> [stationary cancelledMove redBlock_none | right redblock_blocker]
++vertical [ > redblock_none | stationary redblock_blocker] -> [stationary cancelledMove redBlock_none | stationary redblock_blocker]
+
++vertical [ > greenblock_none | left greenblock_blocker] -> [stationary cancelledMove greenBlock_none | left greenblock_blocker]
++vertical [ > greenblock_none | right greenblock_blocker] -> [stationary cancelledMove greenBlock_none | right greenblock_blocker]
++vertical [ > greenblock_none | stationary greenblock_blocker] -> [stationary cancelledMove greenBlock_none | stationary greenblock_blocker]
+
++vertical [ > yellowblock_none | left yellowblock_blocker] -> [stationary cancelledMove yellowBlock_none | left yellowblock_blocker]
++vertical [ > yellowblock_none | right yellowblock_blocker] -> [stationary cancelledMove yellowBlock_none | right yellowblock_blocker]
++vertical [ > yellowblock_none | stationary yellowblock_blocker] -> [stationary cancelledMove yellowBlock_none | stationary yellowblock_blocker]
+
++vertical [ > blackblock_none | left blackblock_blocker] -> [stationary cancelledMove blackBlock_none | left blackblock_blocker]
++down [ > blackblock_none | left blackblock_none blackblocku] -> [stationary cancelledMove blackBlock_none | left blackblock_none blackBlocku]
++up [ > blackblock_none | left blackblock_none blackblockd] -> [stationary cancelledMove blackBlock_none | left blackblock_none blackBlockd]
++vertical [ > blackblock_none | right blackblock_blocker] -> [stationary cancelledMove blackBlock_none | right blackblock_blocker]
++down [ > blackblock_none | right blackblock_none blackblocku] -> [stationary cancelledMove blackBlock_none | right blackblock_none blackBlocku]
++up [ > blackblock_none | right blackblock_none blackblockd] -> [stationary cancelledMove blackBlock_none | right blackblock_none blackBlockd]
++vertical [ > blackblock_none | stationary blackblock_blocker] -> [stationary cancelledMove blackBlock_none | stationary blackblock_blocker]
++down [ > blackblock_none | stationary blackblock_none blackblocku] -> [stationary cancelledMove blackBlock_none | stationary blackblock_none blackBlocku]
++up [ > blackblock_none | stationary blackblock_none blackblockd] -> [stationary cancelledMove blackBlock_none | stationary blackblock_none blackBlockd]
+
+
+
+(propogate the cancellation)
+
+
+(can't move if moving into a stationary block)
+ [> blockbase | stationary blockbase] -> [stationary blockbase cancelledMove | stationary blockbase]
+ 
+ (can't move if moving away from a cancelled block in pusher stage)
++ [pusherStageToken][< blockbase | stationary blockbase cancelledMove]->[pusherStageToken][stationary blockbase cancelledMove | stationary blockbase cancelledMove]
+
+(can't move if connected to a stationary block)
++  left [moving blueblock_none no blueblockl|stationary blueblock_none no blueblockr] -> [stationary cancelledMove blueblock_none | stationary blueblock_none] 
++  left [stationary  blueblock_none no blueblockl| moving blueblock_none no blueblockr] -> [stationary blueblock_none | stationary cancelledMove blueblock_none ]
++  up [moving blueblock_none no blueblocku | stationary blueblock_none no blueblockd] -> [stationary cancelledMove blueblock_none | stationary blueblock_none] 
++  up [stationary blueblock_none no blueblocku| moving blueblock_none no blueblockd] -> [stationary blueblock_none | stationary cancelledMove blueblock_none ] 
+
++  left [moving redblock_none no redblockl|stationary redblock_none no redblockr] -> [stationary cancelledMove redblock_none | stationary redblock_none] 
++  left [stationary  redblock_none no redblockl| moving redblock_none no redblockr] -> [stationary redblock_none | stationary cancelledMove redblock_none ]
++  up [moving redblock_none no redblocku | stationary redblock_none no redblockd] -> [stationary cancelledMove redblock_none | stationary redblock_none] 
++  up [stationary redblock_none no redblocku| moving redblock_none no redblockd] -> [stationary redblock_none | stationary cancelledMove redblock_none ] 
+
++  left [moving greenblock_none no greenblockl|stationary greenblock_none no greenblockr] -> [stationary cancelledMove greenblock_none | stationary greenblock_none] 
++  left [stationary  greenblock_none no greenblockl| moving greenblock_none no greenblockr] -> [stationary greenblock_none | stationary cancelledMove greenblock_none ]
++  up [moving greenblock_none no greenblocku | stationary greenblock_none no greenblockd] -> [stationary cancelledMove greenblock_none | stationary greenblock_none] 
++  up [stationary greenblock_none no greenblocku| moving greenblock_none no greenblockd] -> [stationary greenblock_none | stationary cancelledMove greenblock_none ] 
+
++  left [moving yellowblock_none no yellowblockl|stationary yellowblock_none no yellowblockr] -> [stationary cancelledMove yellowblock_none | stationary yellowblock_none] 
++  left [stationary  yellowblock_none no yellowblockl| moving yellowblock_none no yellowblockr] -> [stationary yellowblock_none | stationary cancelledMove yellowblock_none ]
++  up [moving yellowblock_none no yellowblocku | stationary yellowblock_none no yellowblockd] -> [stationary cancelledMove yellowblock_none | stationary yellowblock_none] 
++  up [stationary yellowblock_none no yellowblocku| moving yellowblock_none no yellowblockd] -> [stationary yellowblock_none | stationary cancelledMove yellowblock_none ]
+
++  left [moving blackblock_none no blackblockl|stationary blackblock_none no blackblockr] -> [stationary cancelledMove blackblock_none | stationary blackblock_none] 
++  left [stationary  blackblock_none no blackblockl| moving blackblock_none no blackblockr] -> [stationary blackblock_none | stationary cancelledMove blackblock_none ]
++  up [moving blackblock_none no blackblocku | stationary blackblock_none no blackblockd] -> [stationary cancelledMove blackblock_none | stationary blackblock_none] 
++  up [stationary blackblock_none no blackblocku| moving blackblock_none no blackblockd] -> [stationary blackblock_none | stationary cancelledMove blackblock_none ]
+  
+(transfer movement cancels across fixers)
++[ stationary blackblock_none moving fixer] -> [stationary blackblock_none stationary fixer]
++ left [stationary blockbase | fixerr no pusher moving blackblock_none] -> [ stationary blockbase | stationary fixerr stationary cancelledMove blackblock_none ]
++ left [moving blockbase | fixerr no pusher stationary blackblock_none] -> [ stationary cancelledMove blockbase | stationary fixerr stationary blackblock_none]
++ right [stationary blockbase |  fixerl no pusher moving blackblock_none] -> [ stationary blockbase | stationary fixerl stationary cancelledMove blackblock_none ]
++ right [moving blockbase | fixerl no pusher stationary blackblock_none] -> [ stationary cancelledMove blockbase | stationary fixerl stationary blackblock_none]
++ up [stationary blockbase |  fixerd no pusher moving blackblock_none] -> [ stationary blockbase | stationary fixerd stationary cancelledMove blackblock_none ]
++ up [moving blockbase | fixerd no pusher stationary blackblock_none] -> [ stationary cancelledMove blockbase | stationary fixerd stationary blackblock_none]
++ down [stationary blockbase |  fixeru no pusher moving blackblock_none] -> [ stationary blockbase | stationary fixeru stationary cancelledMove blackblock_none ]
++ down [moving blockbase | fixeru no pusher stationary blackblock_none] -> [ stationary cancelledMove blockbase | stationary fixeru stationary blackblock_none]
+
+
+(allocate the new block and clean up the pusher, if we were able to move)
+[pusherStageToken][< redblock_none | < redpusher] -> [pusherStageToken][< redblock_none newredblock | redpusher ]
+[pusherStageToken][< blueblock_none | < bluepusher] -> [pusherStageToken][< blueblock_none newblueblock | bluepusher ]
+[pusherStageToken][< greenblock_none | < greenpusher] -> [pusherStageToken][< greenblock_none newgreenblock | greenpusher ]
+[pusherStageToken][< yellowblock_none | < yellowpusher] -> [pusherStageToken][< yellowblock_none newyellowblock | yellowpusher ]
+
+[pusherBackStageToken][< blackblock_none < redpusher] -> [pusherBackStageToken][< blackblock_none newredblock < redpusher ]
+[pusherBackStageToken][< blackblock_none < bluepusher] -> [pusherBackStageToken][< blackblock_none newblueblock < bluepusher ]
+[pusherBackStageToken][< blackblock_none < greenpusher] -> [pusherBackStageToken][< blackblock_none newgreenblock < greenpusher ]
+[pusherBackStageToken][< blackblock_none < yellowpusher] -> [pusherBackStageToken][< blackblock_none newyellowblock < yellowpusher ]
+
+(remove cancelledMove tokens)
+[cancelledMove] -> []
+
+(remove temp pusher movements, we don't want to move pushers like this...)
+[pusherForwardStageToken][moving pusher] -> [pusherForwardStageToken][stationary pusher pusherBackNotRun]
+[pusherBackStageToken][moving pusher] -> [pusherBackStageToken][stationary pusher]
+
+(dont move cursor if block isn't moving anymore)
+[moving activecursor stationary blockbase] -> cancel
+[anymouse stationary blockbase] -> cancel
+
+(but it should also follow a block that is moving)
+[stationary activecursor moving blockbase] -> [moving activecursor moving blockbase]
+
+(move block attachements with the blocks)
+[> block counter] -> [> block > counter]
+[> blueblock_none blueblockwall ] -> [> blueblock_none > blueblockwall]
+[> RedBlock_none redblockwall ] -> [> redblock_none > redblockwall]
+[> greenBlock_none greenblockwall ] -> [> greenblock_none > greenblockwall]
+[> yellowBlock_none yellowblockwall ] -> [> yellowblock_none > yellowblockwall]
+[> blackblock_none blackblockwall ] -> [> blackblock_none > blackblockwall]
+[> blackblock_none pusher counter] -> [> blackblock_none > pusher > counter] (we can move pushers like this, though)
+[> blackblock_none fixer] -> [> blackblock_none > fixer ] (we can move fixers like this, too)
+
+
+ [pusherRBackStageToken][moving blockbase] -> [endStageToken][moving blockbase] again
+ [pusherRBackStageToken][anycursor no pusherToken][pusherr pusherBackNotRun] -> [pusherRBackStageToken][anycursor pusherToken][pusherr pusherBackNotRun]
+ [pusherRBackStageToken][anycursor no pusherToken] -> [endStageToken]  [anycursor] again 
+ 
+ [pusherLBackStageToken][moving blockbase] -> [endStageToken][moving blockbase] again
+ [pusherLBackStageToken][anycursor no pusherToken][pusherl pusherBackNotRun] -> [pusherLBackStageToken][anycursor pusherToken][pusherl pusherBackNotRun]
+ [pusherLBackStageToken ][anycursor no pusherToken] -> [pusherRBackStageToken] [anycursor]
+
+
+ [pusherUStageToken][moving blockbase] -> [endStageToken][moving blockbase] again
+ [pusherUStageToken][anycursor no pusherToken][pusheru pusherNotRun] -> [pusherUStageToken][anycursor pusherToken][pusheru pusherNotRun]
+ [pusherUStageToken ][anycursor no pusherToken] -> [pusherLBackStageToken][anycursor]
+
+ [pusherRStageToken][moving blockbase] -> [endStageToken][moving blockbase] again
+ [pusherRStageToken][anycursor no pusherToken][pusherr pusherNotRun] -> [pusherRStageToken][anycursor pusherToken][pusherr pusherNotRun]
+ [pusherRStageToken][anycursor no pusherToken] -> [pusherUStageToken]  [anycursor]
+
+ [pusherLStageToken][moving blockbase] -> [endStageToken][moving blockbase] again
+ [pusherLStageToken][anycursor no pusherToken][pusherl pusherNotRun] -> [pusherLStageToken][anycursor pusherToken][pusherl pusherNotRun]
+ [pusherLStageToken ][anycursor no pusherToken] -> [pusherRStageToken] [anycursor]
+ 
+
+ [gravityStageToken][moving blockbase] -> [endStageToken][moving blockbase] again
+ [gravityStageToken] -> [transferingStageToken] 
+ 
+ 
+(add transfers)
+ left [transferStageToken ][ blueblockl no transfer |  blueblockr ] -> [transferStageToken ][ blueblockl lefttransfer | blueblockr righttransfer]
+ up  [transferStageToken ][ blueblocku no transfer|  blueblockd ] -> [transferStageToken ][ blueblocku uptransfer| blueblockd downtransfer]
+
+ left [transferStageToken ][redblockl no transfer | redblockr ] -> [transferStageToken ][redblockl lefttransfer | redblockr righttransfer]
+ up  [transferStageToken ][redblocku no transfer| redblockd ] -> [transferStageToken ][redblocku uptransfer| redblockd downtransfer]
+
+ left [transferStageToken ][greenblockl no transfer| greenblockr ] -> [transferStageToken ][ greenblockl lefttransfer | greenblockr righttransfer]
+ up  [transferStageToken ][greenblocku no transfer| greenblockd ] -> [transferStageToken ][ greenblocku uptransfer| greenblockd downtransfer]
+
+ left [transferStageToken ][yellowblockl no transfer | yellowblockr ] -> [transferStageToken ][ yellowblockl lefttransfer | yellowblockr righttransfer]
+ up  [transferStageToken ][yellowblocku no transfer | yellowblockd ] -> [transferStageToken ][ yellowblocku uptransfer| yellowblockd downtransfer]
+ 
+ [transferingStageToken][blockbase transfer] -> [endStageToken][blockbase transfer] again
+ [transferingStageToken] -> [pusherLStageToken]
+
+ [cursorStageToken ][moving blockbase]-> [endStageToken ][moving blockbase] again
+ [cursorStageToken ]-> [gravityStageToken]
+
+endloop
+ 
+
+( THE LATE ZONE )
+
+ 
+late [activecursor no blockbase] -> cancel
+
+
+late [pushernotrun] ->[]
+
+(push out blocks from hiding)
+
+late right [redblock_none | newredblock | redpusher counter] -> [redblock_none righttransfer | lefttransfer conredblock counter | ]
+late left [redblock_none | newredblock | redpusher counter] -> [redblock_none lefttransfer | righttransfer conredblock counter | ]
+late down [redblock_none | newredblock | redpusher counter] -> [redblock_none downtransfer | uptransfer conredblock counter | ]
+
+late right [blueblock_none | newblueblock | bluepusher counter] -> [blueblock_none righttransfer | lefttransfer conblueblock counter | ]
+late left [blueblock_none | newblueblock | bluepusher counter] -> [blueblock_none lefttransfer | righttransfer conblueblock counter | ]
+late down [blueblock_none | newblueblock | bluepusher counter] -> [blueblock_none downtransfer | uptransfer conblueblock counter | ]
+
+late right [greenblock_none | newgreenblock | greenpusher counter] -> [greenblock_none righttransfer | lefttransfer congreenblock counter | ]
+late left [greenblock_none | newgreenblock | greenpusher counter] -> [greenblock_none lefttransfer | righttransfer congreenblock counter | ]
+late down [greenblock_none | newgreenblock | greenpusher counter] -> [greenblock_none downtransfer | uptransfer congreenblock counter | ]
+
+late right [yellowblock_none | newyellowblock | yellowpusher counter] -> [yellowblock_none righttransfer | lefttransfer conyellowblock counter | ]
+late left [yellowblock_none | newyellowblock | yellowpusher counter] -> [yellowblock_none lefttransfer | righttransfer conyellowblock counter | ]
+late down [yellowblock_none | newyellowblock | yellowpusher counter] -> [yellowblock_none downtransfer | uptransfer conyellowblock counter | ]
+
+
+(construct specific blocks from generic constructors in the level)
+
+late [conblock] -> [conblock conup condown conleft conright]
+
+late left [conblueblock conleft | conblueblock conright] -> [conblueblock | conblueblock]
+late up [conblueblock conup | conblueblock condown] -> [conblueblock | conblueblock]
+late left [congreenblock conleft | congreenblock conright] -> [congreenblock | congreenblock]
+late up [congreenblock conup | congreenblock condown] -> [congreenblock | congreenblock]
+late left [conredblock conleft | conredblock conright] -> [conredblock | conredblock]
+late up [conredblock conup | conredblock condown] -> [conredblock | conredblock]
+late left [conyellowblock conleft | conyellowblock conright] -> [conyellowblock | conyellowblock]
+late up [conyellowblock conup | conyellowblock condown] -> [conyellowblock | conyellowblock]
+
+late left [conblackblock1 conleft | conblackblock1 conright] -> [conblackblock1 | conblackblock1]
+late up [conblackblock1 conup | conblackblock1 condown] -> [conblackblock1 | conblackblock1]
+late left [conblackblock2 conleft | conblackblock2 conright] -> [conblackblock2 | conblackblock2]
+late up [conblackblock2 conup | conblackblock2 condown] -> [conblackblock2 | conblackblock2]
+late left [conblackblock3 conleft | conblackblock3 conright] -> [conblackblock3 | conblackblock3]
+late up [conblackblock3 conup | conblackblock3 condown] -> [conblackblock3 | conblackblock3]
+
+late [conblueblock conup] -> [conblueblock blueblocku]
+late [conblueblock condown] -> [conblueblock blueblockd]
+late [conblueblock conleft] -> [conblueblock blueblockl]
+late [conblueblock conright] -> [conblueblock blueblockr]
+late [conblueblock] -> [blueblock_none]
+
+late [conredblock conup] -> [conredblock redblocku]
+late [conredblock condown] -> [conredblock redblockd]
+late [conredblock conleft] -> [conredblock redblockl]
+late [conredblock conright] -> [conredblock redblockr]
+late [conredblock] -> [redblock_none]
+
+late [congreenblock conup] -> [congreenblock greenblocku]
+late [congreenblock condown] -> [congreenblock greenblockd]
+late [congreenblock conleft] -> [congreenblock greenblockl]
+late [congreenblock conright] -> [congreenblock greenblockr]
+late [congreenblock] -> [greenblock_none]
+
+late [conyellowblock conup] -> [conyellowblock yellowblocku]
+late [conyellowblock condown] -> [conyellowblock yellowblockd]
+late [conyellowblock conleft] -> [conyellowblock yellowblockl]
+late [conyellowblock conright] -> [conyellowblock yellowblockr]
+late [conyellowblock] -> [yellowblock_none]
+
+
+late [conblackblock1 conup] -> [conblackblock1 blackblocku]
+late [conblackblock1 condown] -> [conblackblock1 blackblockd]
+late [conblackblock1 conleft] -> [conblackblock1 blackblockl]
+late [conblackblock1 conright] -> [conblackblock1 blackblockr]
+late [conblackblock1] -> [blackblock_none]
+
+late [conblackblock2 conup] -> [conblackblock2 blackblocku]
+late [conblackblock2 condown] -> [conblackblock2 blackblockd]
+late [conblackblock2 conleft] -> [conblackblock2 blackblockl]
+late [conblackblock2 conright] -> [conblackblock2 blackblockr]
+late [conblackblock2] -> [blackblock_none]
+
+late [conblackblock3 conup] -> [conblackblock3 blackblocku]
+late [conblackblock3 condown] -> [conblackblock3 blackblockd]
+late [conblackblock3 conleft] -> [conblackblock3 blackblockl]
+late [conblackblock3 conright] -> [conblackblock3 blackblockr]
+late [conblackblock3] -> [blackblock_none]
+
+
+late down [redblock_none | confixeru] -> [redblock_none | redfixeru]
+late down [blueblock_none | confixeru] -> [blueblock_none | bluefixeru ]
+late down [yellowblock_none | confixeru] -> [yellowblock_none | yellowfixeru ]
+late down [greenblock_none | confixeru] -> [greenblock_none | greenfixeru ]
+
+late right [yellowblock_none | confixerl] -> [yellowblock_none | yellowfixerl ]
+late right [redblock_none | confixerl] -> [redblock_none | redfixerl ]
+late right [blueblock_none | confixerl] -> [blueblock_none | bluefixerl ]
+late right [greenblock_none | confixerl] -> [greenblock_none | greenfixerl ]
+
+late up [blueblock_none | confixerd] -> [blueblock_none | bluefixerd ]
+late up [redblock_none | confixerd] -> [redblock_none | redfixerd ]
+late up [yellowblock_none | confixerd] -> [yellowblock_none | yellowfixerd ]
+late up [greenblock_none | confixerd] -> [greenblock_none | greenfixerd ]
+
+late left [blueblock_none | confixerr] -> [blueblock_none | bluefixerr ]
+late left [redblock_none | confixerr] -> [redblock_none | redfixerr ]
+late left [yellowblock_none | confixerr] -> [yellowblock_none | yellowfixerr ]
+late left [greenblock_none | confixerr] -> [greenblock_none | greenfixerr ]
+
+late [confixerl] -> []
+late [confixerr] -> []
+late [confixeru] -> []
+late [confixerd] -> []
+
+late right [wall no wallr | no wall] -> [wall wallr | ]
+late left [wall no walll | no wall] -> [wall walll | ]
+late up [wall no wallu | no wall] -> [wall wallu | ]
+late down [wall no walld | no wall] -> [wall walld | ]
+
+late right [wall wallu | wall no wallu] -> [wall wallu | wall wallul]
+late right [wall no wallu | wall wallu] -> [wall wallur | wall wallu]
+late right [wall walld | wall no walld] -> [wall walld | wall walldl]
+late right [wall no walld | wall walld] -> [wall walldr | wall walld]
+
+late  [wall fixerr no wallfixeroutliner] -> [wall fixerr wallfixeroutliner]
+late  [wall fixerl no wallfixeroutlinel] -> [wall fixerl wallfixeroutlinel]
+late  [wall fixeru no wallfixeroutlineu] -> [wall fixeru wallfixeroutlineu]
+late  [wall fixerd no wallfixeroutlined] -> [wall fixerd wallfixeroutlined]
+
+
+
+(---------------------)
+(     count transfer  )
+(---------------------)
+
+late [pusher counter] -> [pusher stageHelper]
+
+(merge blocks that are next to each other)
+
+
+(merge transfers)
+late left [ lefttransfer blueblockl | righttransfer blueblockr ] -> [ | ]
+late up  [ uptransfer blueblocku | downtransfer blueblockd ] -> [ | ]
+
+late left [lefttransfer redblockl | righttransfer redblockr ] -> [  | ]
+late up  [uptransfer redblocku | downtransfer redblockd ] -> [ | ]
+
+late left [lefttransfer greenblockl | righttransfer greenblockr ] -> [  | ]
+late up  [uptransfer greenblocku | downtransfer greenblockd ] -> [ | ]
+
+late left [lefttransfer yellowblockl | righttransfer yellowblockr ] -> [ | ]
+late up  [uptransfer yellowblocku | downtransfer yellowblockd ] -> [ | ]
+
+(clear counters across transfers)
+
+late left [ lefttransfer no counter | righttransfer counter ] -> [  |  ]
+late up [ uptransfer no counter | downtransfer counter ] -> [  |  ]
+late left [ lefttransfer counter | righttransfer no counter ] -> [  |  ]
+late up [ uptransfer counter | downtransfer no counter ] -> [  |  ]
+
+(propagate counter clears)
+
+startloop
+late left [blueblock_none counter no blueblockl |  blueblock_none no counter no blueblockr] -> [ blueblock_none |  blueblock_none] 
+late   left [  blueblock_none no counter no blueblockl| counter blueblock_none no blueblockr] -> [ blueblock_none |  blueblock_none]
+late   up [blueblock_none counter no blueblocku |  blueblock_none no counter no blueblockd] -> [ blueblock_none |  blueblock_none] 
+late   up [  blueblock_none no counter no blueblocku| counter blueblock_none no blueblockd] -> [ blueblock_none |  blueblock_none]
+
+late  left [redblock_none counter no redblockl |  redblock_none no counter no redblockr] -> [ redblock_none |  redblock_none] 
+late  left [  redblock_none no counter no redblockl| counter redblock_none no redblockr] -> [ redblock_none |  redblock_none]
+late  up [redblock_none counter no redblocku |  redblock_none no counter no redblockd] -> [ redblock_none |  redblock_none] 
+late  up [  redblock_none no counter no redblocku| counter redblock_none no redblockd] -> [ redblock_none | redblock_none]
+
+late  left [greenblock_none counter no greenblockl |  greenblock_none no counter no greenblockr] -> [ greenblock_none |  greenblock_none] 
+late  left [  greenblock_none no counter no greenblockl| counter greenblock_none no greenblockr] -> [greenblock_none |  greenblock_none]
+late  up [greenblock_none counter no greenblocku |  greenblock_none no counter no greenblockd] -> [ greenblock_none |  greenblock_none] 
+late  up [  greenblock_none no counter no greenblocku| counter greenblock_none no greenblockd] -> [greenblock_none |  greenblock_none]
+
+late  left [yellowblock_none counter no yellowblockl |  yellowblock_none no counter no yellowblockr] -> [ yellowblock_none |  yellowblock_none] 
+late  left [  yellowblock_none no counter no yellowblockl| counter yellowblock_none no yellowblockr] -> [yellowblock_none |  yellowblock_none]
+late  up [yellowblock_none counter no yellowblocku |  yellowblock_none no counter no yellowblockd] -> [ yellowblock_none |  yellowblock_none] 
+late  up [  yellowblock_none no counter no yellowblocku| counter yellowblock_none no yellowblockd] -> [yellowblock_none |  yellowblock_none]
+endloop
+
+late [pusher stageHelper] -> [pusher counter]
+
+(clean up transfers if there are any still out there (there shouldn't be))
+
+late [transfer] -> []
+
+
+late [stageToken] -> [cursorStageToken]
+
+late [rmb]->[]
+late [lmb]->[]
+
+
+==============
+WINCONDITIONS
+==============
+
+
+no counter
+
+
+=======     
+LEVELS
+=======
+
+message There are colorful jellies on each level. Right clicking on a jelly moves it to the right. Left clicking on a jelly moves it to the left.
+message WASD / arrow keys may also be used to move a cursor. Use X / Space to select jellies and move them left or right.
+message Jellies of the same color merge into one if they touch.
+message The goal is to merge all the jellies of each color.
+message Let's give it a try! (It might be much harder than it looks...)
+
+( 1 )
+##############
+#............#
+#............#
+#....o.......#
+#.......t....#
+#......##....#
+#..h.....r.b.#
+##c###g.######
+##############
+
+( 2 )
+##############
+#............#
+#............#
+#.......o....#
+#............#
+#.....y...u..#
+#...r.r...t..#
+#####.#.#.####
+##############
+
+( 3 )
+##############
+#............#
+#......o.....#
+#............#
+#...cu..#.y..#
+###.###t###..#
+#......b.....#
+###.###r######
+##############
+
+message - Review -
+message Jellies that have once merged together cannot be separated again.
+message There is no way to raise jellies.
+message Jellies being moved push adjacent jellies.
+
+( 4 )
+##############
+#............#
+#.......t....#
+#....o..c....#
+#.......#....#
+#.b.r........#
+#.b.r......b.#
+###.#......###
+#####.########
+##############
+
+( 5 )
+##############
+#............#
+#............#
+#th..gg.o....#
+###.####.##..#
+#rg..........#
+#####..##...##
+######.##..###
+##############
+
+( 6 )
+##############
+#######.....##
+#######.h....#
+#.......##.o.#
+#.t...c......#
+#.#.###.#.g..#
+#.........#.b#
+#.......r.####
+##..##########
+##############
+
+message Fixed jellies cannot be moved.
+
+( 7 )
+##############
+#...........##
+#..o.......r.#
+#..........#.#
+#.....b...b..#
+#.....#..rr..#
+#.........#..#
+#.t..c#.#.#..#
+##+..+#.#.####
+##############
+
+( 8 )
+############
+###.#..#.###
+##..g..r..##
+#...1..1...#
+#...t..h...#
+#g........r#
+##g...o..r##
+###......###
+############
+
+message Black blocks can also be moved.
+
+( 9 )
+##############
+#............#
+#............#
+#.......o....#
+#..........ry#
+#....#.....###
+#u........qq##
+##..t#..#.####
+####+#########
+
+( 10 )
+##############
+#...gr.......#
+#...qq.q.....#
+#.o..#.#.#####
+#............#
+#..#..#......#
+#........#..t#
+##...#.....h,#
+##.........,##
+##############
+
+( 11 )
+##############
+#......yedy.y#
+#.......###.##
+#...........y#
+#qq....o....##
+###..........#
+#.......y....#
+#...#.###...u#
+#.#.######.#+#
+##############
+
+( 12 )
+##############
+##r.rr..rr.t##
+###..#..#..#+#
+#b..........c#
+##....o.....##
+#............#
+#............#
+#...######...#
+##############
+
+( 13 )
+######
+#.yr.#
+#.rb.#
+#oyt.#
+#.cu.#
+######
+
+( 14 )
+##############
+#########...r#
+#########...g#
+#########...g#
+#wwqq.......g#
+#wwqq...o...g#
+#qqww......###
+#qqww......###
+##t.#.h###.###
+##+###+#######
+
+( 15 )
+##############
+#t.r.r......r#
+#h.#.#...o..g#
+#c..........b#
+#+###.....####
+######...#####
+######...#####
+######...#####
+#####+ggg+####
+######...#####
+
+( 16 )
+##############
+##...wwwaqwwr#
+##...wqaaqww##
+##...qqqaqq###
+#1.....#######
+#t.....#######
+##..o..#######
+##.....#######
+##.....#######
+##############
+
+( 17 )
+##############
+####qqq###gb.#
+####q.....bg.#
+####q....qq###
+####qqq#######
+#.www..###1###
+####.....#h1##
+####.o.g...c##
+####...#....##
+##############
+
+( 18 )
+##############
+#............#
+#bqw.........#
+#bqyy..o..u..#
+#bqwq.....uqc#
+#####.y...##+#
+#####.yy..####
+#####.yyy.####
+#####.yyyy####
+##############
+
+( 19 )
+##############
+#hf....gkg####
+#.dg....q.####
+#jwj....j.####
+#g.g...ggg...#
+###.....###..#
+###..o..###..#
+###.....##...#
+###.........##
+##############
+
+( 20 )
+#############
+#tttt..rhh###
+##c....####1#
+###.......#b#
+#.....o.....#
+#...........#
+#.....#.....#
+###.........#
+##.......#..#
+#############
+
+message From this level, there will be a new rule.
+message Part of the floor is colored red. 
+message A new jelly will emerge if a jelly of the same color touches it.
+message The new jelly will merge with the old jelly.
+message See for yourself what happens... 
+
+( 21 )
+##############
+#......#.....#
+#......#.....#
+#......+.....#
+#......h.....#
+#........gb..#
+####...o.##..#
+###t.c.....r.#
+####.##~######
+##############
+
+( 22 )
+##############
+#............#
+#............#
+#............#
+#......o.....#
+#............#
+#....h..bgt..#
+#.#.##..###.##
+#c#..........#
+######~#######
+
+( 23 )
+##############
+#............#
+#............#
+#....g.......#
+#....b.......#
+#....#.o..r..#
+#........##..#
+#.c..........#
+####.t.#~#.#h#
+##############
+
+message - Review -
+message When a jelly emerges, it raises jellies on it.
+message One type of emergine jellies can be moved.
+message The other type remains fixed. (You can tell by looking at them!)
+message The new jellies also need to be merged together to clear the level.
+
+(24)
+#############
+#h...c.....##
+#t...g.....##
+#u...b.y...y#
+#,...#.#...##
+####....o..##
+####.......##
+####4#.##'###
+######g######
+######,######
+
+message Emerging jellies don't react if there is not enough space to emerge.
+
+( 25 )
+##############
+########..1..#
+########..t..#
+########.....#
+#####.....r..#
+##qqq.o..qqq.#
+#.qqq....qqq.#
+#.h........#.#
+####4##4##4###
+
+( 26 )
+###########
+#........##
+#..r.....##
+#qqqqqiqq##
+#.....r...#
+#qqiqqqqq.#
+#..r.o....#
+#qqqqqiqq##
+#.....t..##
+###~#######
+
+( 27 )
+####1#1#1####
+####h#u#t####
+#b##.....####
+#ygq..o..r..#
+####.....##.#
+####qqqqq##.#
+####qqqqq.#.#
+###.qqqqdc#.#
+###...b.....#
+#####5#5#####
+
+( 28 )
+############
+###.#..#.###
+##.gb..gb.##
+#..#1..1#..#
+#...c..h...#
+#..........#
+##...o....##
+###g....b###
+####7##6####
+
+( 29 )
+##########
+##.uutt.##
+##.uutt.##
+#..cchh..#
+#.occhh..#
+#..ggbb..#
+#..ggbb..#
+##.rryy.##
+##.rryy.##
+##########
+
+( 30 )
+#1###########
+#t....#######
+###........8#
+####.......8#
+####.......8#
+####...o...8#
+####.......8#
+#rrr.......8#
+##r........c#
+#####555555##
+
+( 31 )
+###############
+##b.######.c###
+##9..r..r..8###
+##...####...###
+##.########.###
+#.g...##...h.##
+##q{...o..pq###
+##qq......qq###
+#####r..t######
+#####+##+######
+
+( 32)
+##############
+#h...u...#rkb#
+#l...l....y;g#
+#c...tqq....##
+##...###...###
+#....o......##
+#.......##..##
+##..........##
+###........###
+##############
+
+( 33 )
+#############
+##qqww....###
+#rqaaw....###
+##waaq.o..###
+##wwqq....#1#
+######....#t#
+#2..........#
+###.........#
+##.....#..#.#
+#############
+
+( 34 )
+##############
+#c......rent##
+##......zqwm.8
+##...o..jwqx##
+0.......rfdr##
+#.......######
+##.....h######
+##.....#######
+##.....#######
+####4#########
+
+( 35 )
+##############
+#rbbbbb....xq#
+#yb........be#
+#yb........zq#
+#yb..o..uuu1##
+###.....dcet##
+###.....qzq.##
+###......#####
+###...########
+##############
+
+( 36 )
+############
+#...brgrch.#
+#.##qqqqqq##
+#.##quqqtq##
+#...qqqqww.#
+#.o.qqwwww.#
+#...wwwwww.#
+#...wwwwww.#
+#...wwwwww.#
+###~########
+
+( 37 )
+##############
+#rr..rrr..rru#
+###....#...###
+_...........h#
+-..rrr....ttt+
+##..q........#
+###.q....o...#
+##..q........#
+###.q.......##
+##############
+
+( 38 )
+#111##########
+#hhh##ybt.o..#
+#...##buc....#
+#ggg#######..#
+#zzz##.......#
+##q###.......#
+##......##.###
+##.......#####
+##~##.########
+##############
+
+( 39 )
+##############
+#####....#####
+####..qqqq####
+#####....#####
+##t#......#h##
+##c...o....b##
+#ur........gy#
+###4......~###
+#####.##.#####
+##############
+
+( 40 )
+##############
+#......r.r.r.#
+##qu1###.#.#.#
+##qqt..#.#.r.#
+##ry.y.#.#.#.#
+##qq.#.#.#.r.#
+##qq..o....#.#
+##q..........#
+###}.....#..##
+##############
+
+( 38 bonus )
+##############
+#b..bb..bb..b#
+#r..rr..rr..r#
+##.bbb..bbb.##
+#...qq..qq...#
+#...!b..r&...#
+#............#
+##....11.o..##
+###...tc...###
+##############
+
+( 39 bonus )
+##########
+###tttt###
+#aqwwqqwa#
+#aaqqwwaa#
+#.wwwqqq.#
+#.q....w.#
+#.w.o..q.#
+#.q.rr.w.#
+#.q.rr.w.#
+##########
+
+( 40 bonus )
+##############
+#rgrgr....####
+#grgrg..o.####
+#rgrgr....####
+#####!c...bbb#
+######....####
+######....####
+######....####
+######h..t####
+######,##,####

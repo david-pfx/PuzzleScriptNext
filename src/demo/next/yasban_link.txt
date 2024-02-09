@@ -1,0 +1,216 @@
+title Yet Another High-Res Animated Sokoban
+author Polyomino Games
+homepage www.puzzlang.org
+
+puzzlescript next v1.0
+
+// an old favourite updated for PuzzleScriptNext, showing:
+// - C++ style comments
+// - hi-res sprites of different sizes
+// - object animation
+
+color_palette amiga
+background_color Blue
+animate_interval 0.3
+sprite_size 11
+
+========
+OBJECTS
+========
+
+Player P; Yellow Green Red Black
+...........
+....222....
+...03030...
+....000....
+.011111110.
+.011111110.
+...11111...
+...22.22...
+...22.22...
+..333.333..
+...........
+
+
+Target T; DarkRed
+0.........0
+.0.......0.
+....000....
+...0.0.0...
+..0..0..0..
+..0000000..
+..0..0..0..
+...0.0.0...
+....000....
+.0.......0.
+0.........0
+
+Wall W; Orange DarkBrown
+00100000000
+00100000000
+11111111111
+00000100000
+00000100000
+00000100000
+11111111111
+00000001000
+00000001000
+00000001000
+11111111111
+
+Crate C; Yellow DarkBrown
+...........
+..0000000..
+.001111100.
+.010111010.
+.011010110.
+.011101110.
+.011010110.
+.010111010.
+.001111100.
+..0000000..
+...........
+
+Background .; LightGrey
+Void -; Blue
+Temp; transparent
+
+e; red;
+f; brown;
+g; orange;
+h; yellow;
+i; green; 
+j; blue; 
+k; purple; 
+l; pink;  
+
+=======
+LEGEND
+=======
+
+@ = Crate and Target
+# = Player and Target
+links = e or f or g or h or i or j or k or l
+=======
+SOUNDS
+=======
+
+player move afx:slide
+player cantmove 48306102 afx:slide
+crate move 76861108 afx:slide
+crate action afx:zoom
+
+================
+COLLISIONLAYERS
+================
+
+Background
+--
+Void
+Target
+Wall, Crate, Player
+Temp
+links
+
+======
+RULES
+======
+
+[ > Player | Crate ] -> [  >  Player | > Crate  ]
+[ > Crate | Target no Crate ] -> [ | action Crate Target ]
+
+==============
+WINCONDITIONS
+==============
+
+All Target on Crate
+
+=======
+LEVELS
+=======
+
+link e Level 2
+link f Level 3
+link g Level 4
+link h Level 5
+link i Level 6
+link j Level 7
+link k Level 8
+link l Level 9
+
+WWWWWWWWWWWWWWW
+Wt...........tW
+W..P.e.f.g.h..W
+W.............W
+W....i.j.k.l..W
+Wt...........tW
+WWWWWWWWWWWWWWW
+
+-WWWWW
+-W...W
+WW...W
+W.C@WW
+W.P.TW
+WWWWWW
+
+--WWWWW
+WWW...W
+W.C...W
+WTPCTWW
+WWWWWW-
+
+--WWW---
+WWW#WWWW
+W..CC..W
+W...T..W
+WWWWWWWW
+
+--WWW---
+--WTW---
+--W.WWWW
+WWWC.CTW
+WT.CPWWW
+WWWWCW--
+---WTW--
+---WWW--
+
+WWWWWWWWWWW
+W.TTTWTTT.W
+W...CPC...W
+W.CCWWWCC.W
+W...W-W...W
+WWWWW-WWWWW
+
+--WWWWW-
+WWW...W-
+WTPC..W-
+WWW.CTW-
+WTWWC.W-
+W.W.T.WW
+WC.@CCTW
+W...T..W
+WWWWWWWW
+
+--WWWWW-
+-W....W-
+W.T.@.W-
+W.T.C..W
+W.W@@W.W
+W..@P@.W
+-W.CC.W-
+-W....W-
+--WWWW--
+
+----WWWWW----------
+----W...W----------
+----WC..W----------
+--WWW..CWW---------
+--W..C.C.W---------
+WWW.W.WW.W---WWWWWW
+W...W.WW.WWWWW..TTW
+W.C..C..........TTW
+WWWWW.WWW.WPWW..TTW
+----W.....WWWWWWWWW
+----WWWWWWW--------
+
+

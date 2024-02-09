@@ -39,9 +39,9 @@ async function solve() {
 	}
 	var act2str = "uldrx";
 	var exploredStates = {};
-	exploredStates[level.objects] = true;
+	exploredStates[curLevel.objects] = true;
 	var queue = new FastPriorityQueue(byScoreAndLength);
-	queue.add([0, level.objects.slice(0), ""]);
+	queue.add([0, curLevel.objects.slice(0), ""]);
 	consolePrint("searching...");
 	var solvingProgress = document.getElementById("solvingProgress");
 	var cancelLink = document.getElementById("cancelClickLink");
@@ -77,7 +77,7 @@ async function solve() {
 		shuffleALittle(actions);
 		for(var i = 0, len = actions.length; i < len; i++) {
 			for(var k = 0, len2 = parentState.length; k < len2; k++) {
-				level.objects[k] = parentState[k];
+				curLevel.objects[k] = parentState[k];
 			}
 			var changedSomething = processInput(actions[i]);
 			while(againing) {
@@ -85,7 +85,7 @@ async function solve() {
 			}
 			
 			if(changedSomething) {
-				if(level.objects in exploredStates) {
+				if(curLevel.objects in exploredStates) {
 					continue;
 				}
 				var nms = ms + act2str[actions[i]];
@@ -111,7 +111,7 @@ async function solve() {
 						//Reload starting state
 						DoRestart();
 
-						addToDebugTimeline(level, 0);
+						addToDebugTimeline(curLevel, 0);
 
 						for(var i = 0; i != nms.length; i++) {
 
@@ -135,7 +135,7 @@ async function solve() {
 							}
 							verbose_logging = true;
 
-							var turn_id = addToDebugTimeline(level, i+2);
+							var turn_id = addToDebugTimeline(curLevel, i+2);
 
 							var txt = "Turn "+(i+1)+", input "+char;
 							if (again_turns >= 1) {
@@ -161,9 +161,9 @@ async function solve() {
 					cancelLink.hidden = true;
 					return;
 				}
-				exploredStates[level.objects] = true;
+				exploredStates[curLevel.objects] = true;
 				size++;
-				queue.add([getScore(), level.objects.slice(0), nms]);
+				queue.add([getScore(), curLevel.objects.slice(0), nms]);
 				discovered++;
 			}
 		}
@@ -200,14 +200,14 @@ function shuffleALittle(array) {
 }
 
 function distance(index1, index2) {
-	return Math.abs(Math.floor(index1 / level.height) - Math.floor(index2 / level.height)) + Math.abs( (index1 % level.height) - (index2 % level.height) );
+	return Math.abs(Math.floor(index1 / curLevel.height) - Math.floor(index2 / curLevel.height)) + Math.abs( (index1 % curLevel.height) - (index2 % curLevel.height) );
 }
 
 function precalcDistances() {
 	distanceTable = [];
-	for(var i = 0; i < level.n_tiles; i++) {
+	for(var i = 0; i < curLevel.n_tiles; i++) {
 		ds = [];
-		for(var j = 0; j < level.n_tiles; j++) {
+		for(var j = 0; j < curLevel.n_tiles; j++) {
 			ds.push(distance(i, j));
 		}
 		distanceTable.push(ds);
@@ -216,7 +216,7 @@ function precalcDistances() {
 
 function getScore() {
 	var score = 0.0;
-	var maxDistance = level.width + level.height;
+	var maxDistance = curLevel.width + curLevel.height;
 	if(state.winconditions.length > 0)  {
 		for(var wcIndex=0;wcIndex<state.winconditions.length;wcIndex++) {
 			var wincondition = state.winconditions[wcIndex];
@@ -224,19 +224,19 @@ function getScore() {
 			var filter2 = wincondition[2];
 			if(wincondition[0] == -1) {
 				// "no" conditions
-				for(var i = 0; i < level.n_tiles; i++) {
-					var cell = level.getCellInto(i,_o10);
+				for(var i = 0; i < curLevel.n_tiles; i++) {
+					var cell = curLevel.getCellInto(i,_o10);
 					if( ( !filter1.bitsClearInArray(cell.data) ) && ( !filter2.bitsClearInArray(cell.data) ) ) {
 						score += 1.0; // penalization for each case
 					}
 				}
 			} else {
 				// "some" or "all" conditions
-				for(var i = 0; i < level.n_tiles; i++) {
-					if(!filter1.bitsClearInArray(level.getCellInto(i, _o10).data)) {
+				for(var i = 0; i < curLevel.n_tiles; i++) {
+					if(!filter1.bitsClearInArray(curLevel.getCellInto(i, _o10).data)) {
 						var minDistance = maxDistance;
-						for (var j = 0; j < level.n_tiles; j++) {
-							if(!filter2.bitsClearInArray(level.getCellInto(j, _o10).data)) {
+						for (var j = 0; j < curLevel.n_tiles; j++) {
+							if(!filter2.bitsClearInArray(curLevel.getCellInto(j, _o10).data)) {
 								var dist = distanceTable[i][j];
 								if(dist < minDistance) {
 									minDistance = dist;

@@ -16,9 +16,9 @@ function convertLevelToString() {
 	var out = '';
 	var seenCells = {};
 	var i = 0;
-	for (var y = 0; y < level.height; y++) {
-		for (var x = 0; x < level.width; x++) {
-			var bitmask = level.getCell(x + y * level.width);
+	for (var y = 0; y < curLevel.height; y++) {
+		for (var x = 0; x < curLevel.width; x++) {
+			var bitmask = curLevel.getCell(x + y * curLevel.width);
 			var objs = [];
 			for (var bit = 0; bit < 32 * STRIDE_OBJ; ++bit) {
 				if (bitmask.get(bit)) {
@@ -90,7 +90,7 @@ function clearInputHistory() {
 	if (canDump===true) {
 		inputHistory=[];
 		soundHistory=[];
-		recordingStartsFromLevel = curlevel;
+		recordingStartsFromLevel = curLevelNo;
 	}
 }
 

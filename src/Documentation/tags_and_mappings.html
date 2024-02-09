@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>Tags and Mappings - PuzzleScript Next Documentation</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+              <li><a href="../editor.html">Make A Game</a></li>
+              
+              <li class="active"><a href="documentation.html">Documentation</a></li>
+          </ul>          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
+            <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+<p>
+<ol class="breadcrumb">
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Tags and Mappings</li>
+</ol>
+<p>
+
+  <h1>Tags and Mappings</h1>
+
+<p>Tags are names that expand into a set of values when defining objects and applying rules.
+  Mappings are a conversion from one set of tag values to another.
+  Together they allow the creation of "families" of related objects and shorter code to work with them.</p>
+
+  <h2>Declaring tags</h2>
+
+  <p> You declare them in a TAGS section. So something like:</p>
+  <pre><code>TAGS
+Activity = Active Inactive
+</code></pre>
+  <p>will declare a tag set named Activity with two possible values Active and Inactive.</p>
+  
+  <p>You can reuse tags and tag sets in the declaration of other tag sets, so:</p>
+  <pre><code>Polarity = Positive Negative
+Charge = Polarity Neutral
+</code></pre>
+  is equivalent to:
+  
+  <pre><code>Polarity = Positive Negative
+Charge = Positive Negative Neutral
+</code></pre>
+  <p>The directions tag set is predefined. 
+    It provides the tags up, right, down, left as you would expect, but also has horizontal and vertical as sub-sets.</p>
+
+  <h2>Tags in object names</h2>
+  
+  <p>You use tags in objects names. 
+    So we can have Player:Neutral, Player:Negative, Player:Positive as objects. 
+    Internally, that's EXACTLY the same as writing PlayerNeutral, PlayerNegative, PlayerPositive without the : and without declaring the tags. 
+    The main benefit is that you can use tags as rule parameters and in mappings, as we will see below. 
+    But it is also useful as you can now declare directly Player:Charge to declare the three types of players at the same time. 
+    And Player:Charge gets automatically declared as a property too, i.e., it's as if it automatically added this for you in the LEGEND section:
+    </p>
+  <pre><code>Player:Charge = Player:Positive or Player:Negative or Player:Neutral</code></pre>
+  Remember that directions is a predefined tag set, so if you want to have an object that has an associated direction, just write something like this:
+  
+  <pre><code>Rocket:directions
+red
+</code></pre>
+  <p>Instead of:</p>
+  
+  <pre><code>Rocket:up
+red
+Rocket:right
+red
+...</code></pre>
+
+  <p>If you add a sprite in this declaration, all four variants of the rocket will use that sprite, 
+    but we will see soon the amazing technique of transforming that base sprite in different ways for each object 
+    (for instance, rotating the sprite so that the rocket points in the right direction).</p>
+  
+<p>  There are a few subtleties. 
+  First, Player:Charge declares all three types of players but marks them as implicitly declared, so that you can redeclare them explicitly after that. 
+  The goal is that you can provide a default palette and sprite for Player:Charge, then change the palette and sprite for a specific player object. 
+  You can also do the opposite: declare first an object like Player:up then use the builtin directions tag set to declare Player:directions. 
+  In an implicit declaration like that, the objects that have already been declared explicitly will not be redeclared. 
+  It is useful if you want to create the sprites for some direction of the player by copying and rotating the sprite for Player:up.</p>  
+
+  <h2>Tags and collision layers</h2>
+  
+  <p>If you use something like Player:Charge in a collision layer, it will do as if Player:Charge was defined as the following property:</p>
+  
+  <pre><code>Player:Charge = Player:Positive or Player:Negative or Player:Neutral.
+</code></pre>
+  
+<p>And it will thus put all three types of players in the same collision layer. 
+  But sometimes you want things to go in different layers, and you can use another kind of parameter expansion for that. 
+  If you write:</p>
+  
+  <pre><code>Charge -> Player:Charge Crate:Charge</code></pre>
+
+  <p>It will generate three collisions layers (one for each value of Charge), so that it's equivalent to:</p>
+  
+  <pre><code>Player:Positive Crate:Positive
+Player:Negative Crate:Negative
+Player:Neutral  Crate:Neutral
+</code></pre>
+
+  
+  <h2>Declaring mappings</h2>
+  
+  <p>You declare mappings in a MAPPINGS section with a syntax like this.</p>
+  
+  <pre><code>Polarity => OpposedPolarity
+Positive Negative -> Negative Positive
+</code></pre>
+  <p>Here, we declare a mapping named OpposedPolarity that maps the tags in the Polarity tag set to their opposites. 
+    The second line gives the mapping value by value.</p>
+  
+  <p>Note that mappings can map tags to tag sets, and this is a very useful advanced technique. 
+    For instance, the predefined mappings <b>perpendicular</b> could be defined manually like that:</p>
+  
+  <pre><code>directions => parallel
+up down right left -> vertical vertical horizontal horizontal
+  
+directions => perpendicular
+up down right left -> horizontal horizontal vertical vertical
+</code></pre>
+
+<h2>Using mappings</h2>
+  
+  <p>You use mappings in rules (and a few other places) like this.</p>
+  
+  <pre><code>Polarity [Crate:Polarity] -> [Crate:OpposedPolarity]</code></pre>
+
+  <p>Here, Polarity is used as a (tag set) rule parameter. 
+    It means that the rule will be expanded for each value in the tag set. 
+    So if you have a rule like this:</p>
+  
+  <pre><code>Polarity [ Crate:Polarity | Crate:Polarity ] -> [ < Crate:Polarity | > Crate:Polarity ]</code></pre>
+
+  <p>It will be expanded into the two rules:</p>
+  
+  <pre><code>[ Crate:Positive | Crate:Positive ] -> [ < Crate:Positive | > Crate:Positive ]
++ [ Crate:Negative | Crate:Negative ] -> [ < Crate:Negative | > Crate:Negative ]
+</code></pre>
+  
+  <p>The expansion of rules with rule parameters writes a new rule for every value of the parameter and replaces all occurrences of the parameter name in the rule by its value. 
+    Mappings build on top of this expansion mechanism: the name of a mapping can be used instead of the name of the parameter, and it will be replaced by the value associated to the parameter's value in the mapping. 
+    So the rule:</p>
+  
+  <pre><code>Polarity [Crate:Polarity] -> [Crate:OpposedPolarity]</code></pre>
+  gets expanded as:
+  
+  <pre><code>[Crate:Positive] -> [Crate:Negative]
++ [Crate:Negative] -> [Crate:Positive]
+</code></pre>
+
+  <p>Because the mapping OpposedPolarity is defined as:</p>
+  
+  <pre><code>Polarity => OpposedPolarity
+Positive Negative -> Negative Positive
+</code></pre>
+
+  <h2>Mappings of rule direction</h2>
+  
+  <p>Remember that the rule direction is an expansion parameter like others, and that the relative directions <b>> < v ^ perpendicular parallel orthogonal</b> are predefined mappings for directions.
+    So you can do things like:</p>
+  
+  <pre><code>(the player faces the direction of the key pressed)
+[ > Player:directions ] -> [ > Player:> ]
+
+(players can push wheelchairs only when they face one, standing behind it)
+[ > Player:> | WheelChair:> ] -> [ > Player:> | > WheelChair:> ]
+</code></pre>
+
+<h2>Sprite transforms</h2>
+
+<p>Tags and mappings let you allow create "families" of objects.
+  You can define the sprite of an object as a copy of another, applying transforms to the sprite as you copy it, 
+  and generate names for those objects using tags and mappings.</p>
+
+<p>So for instance, a Lava sprite could be defined like this:</p>
+
+<pre><code>Lava:Anim5
+Red Orange #CF4020
+copy: Lava:PrevAnim5 shift:left
+</code></pre>
+
+Where Anim5 is the tag defined as:
+<pre><code>TAGS
+Anim5 = Step1 Step2 Step3 Step4 Step5
+</code></pre>
+
+<p>And there is a mapping giving the step n-1 from the step n:</p>
+<pre><code>MAPPINGS
+Anim5 => PrevAnim5
+Step1 Step2 Step3 Step4 Step5 -> Step5 Step1 Step2 Step3 Step4
+</code></pre>
+
+<p>The last step of the animation is defined with a sprite (Lava:Step5), and then the other steps are defined by shifting left the previous one. 
+  That's what the transform line does. 
+  It works because the objects are created in the order of the definition of the tags.</p>
+
+<p>You can use</p>
+<ul>
+  <li><b>translate:up:7</b> to translate the sprite in a given direction</li>
+  <li><b>shift:down:3</b> to cycle the pixels of the sprite in a given direction</li>
+  <li><b>flip:right</b> (or <b>- |</b>) for horizontal (or vertical) mirrors</li>
+  <li><b>rot:up:right</b> to rotate the sprite so that <b>up</b> becomes <b>right</b> after rotation (a 90° clockwise rotation).</li>  
+</ul>
+  
+<p>You can write multiple transforms and replace parts of the name and transform directions by tags or mappings, 
+  and they will be applied in the order you list them.</p>
+<p>
+  Transforms can also be given after a sprite matrix specification, not only after a <b>copy:</b> instruction. 
+  This is typically used to avoid providing the N bottom lines of the sprite, using a <b>translate:</b> transform instead. </p>
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
