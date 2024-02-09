@@ -578,7 +578,8 @@ function mouseAction(event,click,id) {
 					}
 				}
 			} else if (titleMode == 3) { // pause screen select
-				generatePauseScreen(-1, 0, hoverSelection);
+				generatePauseScreen(-1, 0, mouseCoordY);
+				//generatePauseScreen(-1, 0, hoverSelection);
 				timer=0;
 				quittingTitleScreen = true;
 				redraw();
@@ -1484,7 +1485,7 @@ function checkKey(e,justPressed) {
     }
 }
 
-
+// called on every clock tick
 function update() {
     var draw = false;
 
