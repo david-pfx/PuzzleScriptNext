@@ -3,7 +3,7 @@
 PuzzleScript Next is your next version of PuzzleScript, 100% upwardly compatible and with all the latest features needed by more advanced developers.
 [The stable release is here](https://puzzlescriptnext.polyomino.com/) and the [latest version for testing is here](https://david-pfx.github.io/PuzzleScriptNext/src/index.html).
 
-The [full merged documentation is here](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation)
+The [full merged documentation is here](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation).
 
 PuzzleScript Next is a combination of the work of many authors:
 * the original fantastic [Puzzlescript by Increpare](https://github.com/increpare/PuzzleScript)
@@ -21,7 +21,7 @@ It includes new features in support of level branching, and a test program showi
 * The rules command `LINK` activates a link if the player is on a linked object.
 * The prelude option `allow_undo_level` allows a player to go back where a link came from.
 * Winning a level reached by a level triggers a return to where the link came from instead of winning the game.
-* The test program is [`soko_link`].(https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/soko_link).
+* The test program is [`soko_link`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/soko_link).
 
 Also:
 * There is a new documentation page explaining [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html)
