@@ -32,7 +32,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">Puzzlescript Next</a>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">PuzzleScript Next</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -42,7 +42,7 @@
           </ul>          
           <ul class="nav navbar-nav navbar-right">
             <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
-            <li><a href="https://groups.google.com/g/puzzlescript">Forum</a></li>
+            <li><a href="https://groups.google.com/g/PuzzleScript">Forum</a></li>
             <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
             <li><a href="about.html">About</a></li>
           </ul>
@@ -63,12 +63,13 @@
 
 
 <h2>A General Guide</h2>
-
+<p>The documentation here refers to PuzzleScript, and for the most part it applies to the original PuzzleScript, PuzzleScript Plus and PuzzleScript Next.
+</p>
   <p>Make sure you are familiar with the buttons at the top of the editor. 
-    Documentation provides a lot of information on how to make puzzlescript games.
+    Documentation provides a lot of information on how to make PuzzleScript games.
   </p>
-  <p>Learn the intricacies of puzzlescript by exploring on your own and by analyzing the work of other people. 
-    The examples, loaded from the top of the editor, are great reference and training wheels but it is encouraged to check out more public puzzlescript games and to “hack” them to explore the code.
+  <p>Learn the intricacies of PuzzleScript by exploring on your own and by analyzing the work of other people. 
+    The examples, loaded from the top of the editor, are great reference and training wheels but it is encouraged to check out more public PuzzleScript games and to “hack” them to explore the code.
     Most but not all games have a 'hack' link. </p>
   <p>Don’t just look at it - you can edit, rebuild and introduce new objects at will. 
     Partially breaking the game can expose what parts are responsible for what features and can help you understand the code of a cool game.</p>
@@ -93,12 +94,12 @@
   Rebuild generally works if you haven’t modified your collision layers (and by extension, haven’t added or removed any objects from the game). </p>
 <p>If your game seems buggy, it’s recommended to try Running instead of Rebuilding but otherwise Rebuilding may be faster and it does not reset your progress in a level. 
   Ctrl+Left click (⌘+Left click on Mac) on a level rebuilds the game and loads the level clicked on; this resets the state just as well as running does.</p>
-<p>Many of Puzzlescript’s errors and messages are interactive and have links to rules that caused the error.</p>
+<p>Many PuzzleScript errors and messages are interactive and have links to rules that caused the error.</p>
 
 <h3>Notes on Saving</h3>
 
 <p>SAVE will store your current project in the drop-down list labeled LOAD. 
-  Note that this list only stores a limited number of project states (currently 50 in PuzzleScript Next <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16">), and that continuing to save new projects will overwrite old entries. 
+  Note that this list only stores a limited number of project states (currently 50 <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16">), and that continuing to save new projects will overwrite old entries. 
   Unless you’ve saved the project text somewhere, they will be lost. 
   It’s recommended to either</p>
   <li>copy your project text and save it into a text file,</li>
@@ -176,7 +177,7 @@
   <li>Temporary objects can and should be used for many other things, especially if they are more complicated.</li>
   <li>Always clean up temporary objects.</li>
   <li>If you have multiple objects that are each separately applicable to the presence or absence of the marker, it will prove buggy. 
-    Marking objects instead of tiles is more complicated and puzzlescript is overall not fit for the purpose of tagging and having properties for objects. 
+    Marking objects instead of tiles is more complicated and PuzzleScript is overall not fit for the purpose of tagging and having properties for objects. 
     In practice, this is rare and most games can do with marking tiles.</li>
 </ul>
 <p>Invisible objects or objects that immediately get cleared can be hard to debug. 
@@ -204,7 +205,7 @@
   which means that it will execute if even just one space in between is not a Wall. 
   We want the opposite - your sight is blocked if even one wall is in the way. 
   There are two ways to solve this: either by inverting a clause or by using a very minimal ray tracing method.</p>
-<p>Puzzlescript ray tracing is simple and generally the more useful method when dealing with sight and light, 
+<p>PuzzleScript ray tracing is simple and generally the more useful method when dealing with sight and light, 
   especially if the tiles the player can see should be presented to the player (for example, highlighted).</p>
 <p>Let’s first set up a few things; the objects:</p>
 <pre><code>SeenV
@@ -287,15 +288,9 @@ For example, here’s some code to make objects that move against the border imm
 
 <p>Background may be replaced with a normal temp object.</p>
 
-<h3>Multiblocks or Extended Rigid Bodies</h3>
+<h2>Making levels</h2>
+<h3>Editing in code</h3>
 
-<p>In case you want to have objects span multiple tiles and not break up when interacted with (“multiblocks”), there exist a few solutions. 
-  Firstly, as per the documentation, it is rather simple to do if you have a single actor (usually Player) and all the multiblocks are unique. 
-  The latter solutions using “rigid” can prove faulty but can still be used well if you understand how “rigid” works very well.
-  </p>
-
-  <h2>Making levels</h2>
-  <h3>Editing in code</h3>
 <p>Levels in the level section consist of a rectangular grid of single characters that stand for objects or groups of objects, with blank lines in between.
   These single character aliases for objects can be used in rules and can be defined either:</p>
 <li>in the object section right next to object names: <code>player p</code>, or </li>
@@ -313,29 +308,31 @@ For example, here’s some code to make objects that move against the border imm
 
 <h3>What characters can I use?</h3>
 
-<p>PuzzleScript Next has a <code>case_sensitive prelude</code> <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"> prelude option  that recognizes a and A as different symbols, 
-  but will also do the same for object names themselves.
-  Even without case sensitivity, you will likely not run out of usable characters any time soon. 
-  Unlike object names, many single characters are accepted besides the usual letters, numbers and underlines, like - or *. 
+<p>Unlike object names, many single characters are accepted besides the usual letters, numbers and underlines, like - or *. 
   In fact just about any Unicode character can be used, and there are thousands of those, including symbols and even emojis!</p>
 <pre><code>😀 = player</code></pre>
 
 <p>The lowercase letter v is used like a downwards arrow by the engine. 
-  It and other special characters used in rules will work just fine but it’s not recommended to use them for clarity’s sake (a warning will be shown when this is violated, you don’t have to remember them).
+  It and other special characters used in rules will work just fine but it’s not recommended to use them for clarity’s sake. If you do, a warning will be shown when this is violated, so you don’t have to remember them.
   </p>
-
 <p>This can be especially useful for providing clarity when working with objects that have a direction  (←↕↗), 
   are connected together like pipes or snakes (┴┐─), have alternative variants (AÀÃÄ) or have a certain color (🔴🔵). </p>
+
+  <p>Useful websites for Unicode characters:
+<li><a href="https://en.wikipedia.org/wiki/Unicode_block">List of all blocks</a> including Box Drawing, Block Elements, Arrows.</li>
+<li><a href="https://symbl.cc/en/unicode/table/">List of Unicode Symbols</a>, use the search bar to find symbols by name.</li>
+<li>Google Docs Insert > Special characters menu shows similar characters to what you draw with just the mouse – that can then be copied elsewhere.</li>
+</p>
+<p>Sharing PuzzleScript code in a text file works even with these special symbols, when the encoding is set to UTF-8 (Unicode). </p>
+
+<p>There is a <code>case_sensitive prelude</code> <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"> prelude option that recognizes a and A as different symbols, but will also do the same for object names themselves.
+Even without case sensitivity, you will likely not run out of usable characters any time soon. </p>
+  
 <p>PuzzleScript uses the default browser monospace font. 
   On Windows this will usually be Courier New, coming with over 2700 characters. 
   When using a custom font in the editor, some symbols may be missing and need to be displayed in another font, breaking the alignment of letters to a grid a monospace code font usually provides.
   </p>
-<p>Useful websites for Unicode characters:</p>
-<li><a href="https://en.wikipedia.org/wiki/Unicode_block">List of all blocks</a> including Box Drawing, Block Elements, Arrows.</li>
-<li><a href="https://symbl.cc/en/unicode/table/">List of Unicode Symbols</a>, use the search bar to find symbols by name.</li>
-<li>Google Docs Insert > Special characters menu shows similar characters to what you draw with just the mouse – that can then be copied elsewhere.</li>
 
-<p>Sharing PuzzleScript code in a text file works even with these special symbols, when the encoding is set to UTF-8 (Unicode). </p>
 
   <h3>Using the Level Editor</h3>
 
@@ -363,7 +360,8 @@ making for an easier level making experience.
   If that effect is unwanted, a checkpoint could be set after the rules generate details:
   </p>
   <pre><code>[Init] -> [] checkpoint</code></pre>
-
+  
+  <p><i>This document was adapted from an original authored by @ThatScar and others.</i></p>
     </div><!-- /.container -->
 
 
