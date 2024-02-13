@@ -93,7 +93,7 @@ t
 RULES
 ======
 
-[ Player links ] -> [ Player ]      // must have been a win
+[ Player links ] -> [ Player ] checkpoint     // must have been a win
 [ t ] -> [ t crate ]
 [ links ][ crate ] -> [ links ][ ]
 [ crate ][ t ] -> [ crate ][ ]
@@ -113,14 +113,29 @@ no links
 LEVELS
 =======
 
-link e Level 2
-link f Level 3
-link g Level 4
-link h Level 5
-link i Level 6
-link j Level 7
-link k Level 8
-link l Level 9
+link e Level 3
+link f Level 4
+link g Level 5
+link h Level 6
+
+###############
+#O...........O#
+#..P.e.f.g.h..#
+#O.........t.O#
+###############
+
+message OK, doing well, half way there
+
+link e Part 2d
+link f Part 2c
+link g Part 2b
+link h Part 2a
+
+###############
+#O...........O#
+#..P.h.g.f.e..#
+#O.........t.O#
+###############
 
 (.p.e..
 ...tO.
@@ -130,17 +145,17 @@ link l Level 9
 #O....tO#
 #.......#
 #..P.h..#
-#......#
+#.......#
 #O.....O#
 #########)
 
-###############
+(###############
 #O...........O#
 #..P.e.f.g.h..#
 #.............#
 #....i.j.k.l..#
 #O.........t.O#
-###############
+###############)
 
 goto youwin
 
@@ -176,6 +191,8 @@ goto youwin
 #.....#
 #######
 
+Level Part 2a
+
 #######
 #..p..#
 #..*..#
@@ -187,9 +204,13 @@ goto youwin
 #.....#
 #######
 
+Level Part 2b
+
 #####
 #p*O#
 #####
+
+Level Part 2c
 
 ############
 #.p........#
@@ -198,6 +219,8 @@ goto youwin
 #..........#
 #........o.#
 ############
+
+Level Part 2d
 
 ##########################
 #.p*...................o.#
