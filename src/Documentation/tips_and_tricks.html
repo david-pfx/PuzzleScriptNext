@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/x-icon" href="ico/favicon.ico" />
+
+    <title>Tips and Tricks - PuzzleScript Next Documentation</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html"><img src="../images/mascot_colorful.png">PuzzleScript Next</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+              <li><a href="../editor.html">Make A Game</a></li>
+              
+              <li class="active"><a href="documentation.html">Documentation</a></li>
+          </ul>          
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="https://discord.gg/3uumegUV7y">Discord</a></li>            
+            <li><a href="https://groups.google.com/g/PuzzleScript">Forum</a></li>
+            <li><a href="https://github.com/david-pfx/PuzzleScriptNext">GitHub</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+<p>
+<ol class="breadcrumb">
+  <li><a href="documentation.html">Documentation</a></li>
+  <li class="active">Tips and Tricks</li>
+</ol>
+<p>
+
+  <h1>Tips and Tricks</h1>
+
+
+<h2>A General Guide</h2>
+<p>The documentation here refers to PuzzleScript, and for the most part it applies to the original PuzzleScript, PuzzleScript Plus and PuzzleScript Next.
+</p>
+  <p>Make sure you are familiar with the buttons at the top of the editor. 
+    Documentation provides a lot of information on how to make PuzzleScript games.
+  </p>
+  <p>Learn the intricacies of PuzzleScript by exploring on your own and by analyzing the work of other people. 
+    The examples, loaded from the top of the editor, are great reference and training wheels but it is encouraged to check out more public PuzzleScript games and to “hack” them to explore the code.
+    Most but not all games have a 'hack' link. </p>
+  <p>Don’t just look at it - you can edit, rebuild and introduce new objects at will. 
+    Partially breaking the game can expose what parts are responsible for what features and can help you understand the code of a cool game.</p>
+
+<h3>Code styling</h3>
+
+<p>The style of code can greatly help you and other people analyze and edit it, just like in any document.</p>
+<p>Empty lines and rows of equal signs (===) can help separate significant game parts. Make pauses.</p>
+<p>Comments, enclosed in parentheses (), can not only comment the code but also act as anchors for sections that you often want to scroll to. 
+  It is recommended to keep comments brief but the objects/aliases verbose and fully defined themselves, so they are meaningful without the need for comments.   </p>
+<p>Code can be “commented out” to disable objects / rules / levels / anything by adding parentheses around it.
+  Use this temporarily while developing, remove the ones you don't need to avoid clutter. </p>
+<p>Another good way to use comments is to briefly and succinctly explain what the code in a section does. 
+  This is good for when you have complicated or potentially confusing code and you know that you will likely have to modify that code later. 
+  Write the code for your future self to read, as it will save time that otherwise might be spent trying to figure it out.
+  </p>
+
+<h3>Interface Essentials</h3>
+
+<p>RUN fully unloads, loads and compiles the game.</p>
+<p>REBUILD only injects the code but leaves the state untouched. 
+  Rebuild generally works if you haven’t modified your collision layers (and by extension, haven’t added or removed any objects from the game). </p>
+<p>If your game seems buggy, it’s recommended to try Running instead of Rebuilding but otherwise Rebuilding may be faster and it does not reset your progress in a level. 
+  Ctrl+Left click (⌘+Left click on Mac) on a level rebuilds the game and loads the level clicked on; this resets the state just as well as running does.</p>
+<p>Many PuzzleScript errors and messages are interactive and have links to rules that caused the error.</p>
+
+<h3>Notes on Saving</h3>
+
+<p>SAVE will store your current project in the drop-down list labeled LOAD. 
+  Note that this list only stores a limited number of project states (currently 50 <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16">), and that continuing to save new projects will overwrite old entries. 
+  Unless you’ve saved the project text somewhere, they will be lost. 
+  It’s recommended to either</p>
+  <li>copy your project text and save it into a text file,</li>
+  <li>ditto, and then use version control such as Git, or</li>
+  <li>use the SHARE feature to save a copy of the project as a gist file in your GitHub account.</li>
+
+<h2>Rules</h2>
+<h3>Developing the Mechanics of a Game</h3>
+
+<p>Two objects on the same layer cannot end up in the same tile. 
+  Don’t put objects into the same layer just because you feel like it, having a new layer for almost everything can help avoid problems that are hard to track down. 
+  Combinations with <code>or</code> have multiple objects in them and should only be thoughtfully included into collision layers.</p>
+<p>The game cycle goes like this: 
+  <li>The player presses a direction key</li>
+  <li>all Player objects are set to move that way and a new turn starts</li>
+  <li>non-late rules execute
+  <li>the engine handles movement - this is the movement phase</li>
+  <li>late rules execute</li>
+  <li>rule commands are executed</li>
+  <li>if needed, the engine shows a message or loads a new level</li>
+  <li>and finally, the level is presented to the player and it all begins again. </li>
+</p>
+  <p>All late rules execute after all non-late rules. You can mix the two in code and this can be easier to read 
+    but having all late rules follow non-late rules in code will likely prove less confusing when fixing bugs.
+    Enabling <code>verbose_logging</code> in the prelude will show you which rules executed in order, which didn’t, and some more info. 
+    Clicking on line numbers will then take your cursor to them.</p>
+
+  <h3>Layers and Collision</h3>
+
+<p>From documentation:
+  <i>The main purpose of layers is in resolving movements: two objects on the same layer cannot coexist in a single cell. 
+    The order of layers also determines in what order things are drawn.
+    The Background layer is a special layer. [...]</i>
+  </p>
+<p>Normally, two objects can coincide in the same space. 
+  For example, a Throne and a Player can both exist on the same tile. 
+  <code>[ Throne Player ]</code> will check for this coincidence while <code>[ Throne no Player ]</code> will check for an empty throne and <code>[ Throne ]</code> will detect both cases (which is all of them). 
+  If the Player is further down the layers than Throne, it will look like they’re on the Throne (otherwise, they will hide under the Throne!)
+  <p>When two objects are in the same layer, the engine will make sure only one of them is present on a tile at once - for example, Player and Wall. 
+    If a Player moves into a Wall (whether by user input or by rules that force them to), the engine’s movement phase will only move that Player if the Wall is also leaving that tile (for example, if it can be pushed), otherwise, the Player won’t move. 
+    If a rule makes the Player appear on a tile with a Wall in it, the Player will replace the Wall, deleting it, regardless of whether the rule even mentioned Walls. 
+    If you want to make sure this doesn’t happen, you may specify no Wall.</p>
+  </p>
+    <pre><code>random [ action Player ][ no Wall no Player ] -> [ ][ Player ]
+(when X is pressed, teleport Player to a random spot that’s not a wall - this way, no walls will be deleted)
+</code></pre>
+
+<p>Notes:</p>
+<ul>
+<li>The above example will still delete Crates and other objects on the same layer. 
+  To avoid errors and mistakes, you can create a single alias in the legend like this: <code>Obstacle = Player or Wall or Crate</code> and then always refer to it instead of listing each object, both in the layer and in rules (like <code>no Obstacle</code>).</li>  
+<li>There is no limit on the number of layers and each object can have its own.</li>
+<li>All movement and collisions happen at the same time, regardless of which rules made things move.</li>
+  However, if you do need to have objects move in a certain order, it is possible to manually code movement with rules, with the rules defining the correct order. 
+  Be careful, though, as this technique easily causes bugs if you do not carefully plan out the implementation.
+<li>Internally, object identifiers are generated based on layers. 
+  If you modify the layers, the Rebuild option will not only ignore collisions but it will also mess up the current level state so make sure to re-run the whole level after any modification in the layers or legend items used in layers (like “Obstacle”).
+</li>  
+</ul>
+  <h3>Inverting a Clause: Temporary and/or Invisible Objects</h3>
+
+  <p>Example problem: If player is not next to a gem, they vanish.</p>
+  <p>Checking for a player next to a gem is easy: <code>[ Player | Gem ]</code></p>
+  <p>However, checking for the opposite might deceive you: [ Player | no Gem ] will match any player that has a space next to them not occupied by a Gem. 
+    In fact, the only way it will not match anything is if every Player is completely surrounded by Gems. 
+    But we don’t want 4 Gems to surround the Player, we just need one for them not to vanish. 
+    Here’s how to actually do it:</p>
+    <pre><code>[ Player | Gem ] -> [ Player Temp | Gem ]
+[ Player no Temp ] -> [ ] (vanish)
+[ Temp ] -> [ ]
+</code></pre>
+<p>Using a temporary object (can be defined as invisible or as visible), we can record and capture some pattern or phenomena and then check for its absence.</p>
+<p>Notes:</p>
+<ul>
+  <li>Temporary objects can and should be used for many other things, especially if they are more complicated.</li>
+  <li>Always clean up temporary objects.</li>
+  <li>If you have multiple objects that are each separately applicable to the presence or absence of the marker, it will prove buggy. 
+    Marking objects instead of tiles is more complicated and PuzzleScript is overall not fit for the purpose of tagging and having properties for objects. 
+    In practice, this is rare and most games can do with marking tiles.</li>
+</ul>
+<p>Invisible objects or objects that immediately get cleared can be hard to debug. 
+  To make debugging easier, there are multiple ways to show where rules matched to the screen during development. 
+  The main development trick in showing an object is putting it at the bottom of the layers (gets drawn last) and resetting it just before use instead of right after. 
+  This can be done to the Temp object itself (by moving the “clearing” rule from the last to the first) or by creating a yet another object that is very clearly visible 
+  but only mimics the positions of the Temp object: 
+  <pre><code>[ Exclamation ] -> [ ] | [ Temp ] -> [ Temp Exclamation ]</code></pre>
+  <p>which is more useful if you are reusing the Temp object multiple times (not recommended). 
+  The extra Exclamation object can be completely removed from the game code (after debugging is done and clear visibility is no longer needed) without any changes to Temp or other parts of the game.
+  These markers mark tiles, not objects! They will not automatically move with objects. </p>
+
+<h3>“Sight” and Obstruction using Simple Raytracing</h3>
+
+<p>Useful for applications like detecting if there’s a wall between an object and a target. 
+  Examples include laser beams and instant gravity (as opposed to animated gravity).
+  You may encounter a rule like this in a game:</p>
+<pre><code>[ Player | ... | Gem ] -> [ Player | ... | ]</code></pre>
+
+<p>It checks for a Gem on the same row or column as a Player - this is often used as an analogy of the Player seeing the Gem (or vice versa if the Gems have eyes, perhaps). 
+  However, there are usually many objects in your game you don’t want to see through and the naive approach will not work.</p>
+<pre><code>[ Player | ... | no Wall | ... | Gem ] -> [ Player | ... | | ... | ]</code></pre>
+
+<p>The engine does support two ellipses like this, but it still doesn't work because it will search for any tile in between that matches no Wall, 
+  which means that it will execute if even just one space in between is not a Wall. 
+  We want the opposite - your sight is blocked if even one wall is in the way. 
+  There are two ways to solve this: either by inverting a clause or by using a very minimal ray tracing method.</p>
+<p>PuzzleScript ray tracing is simple and generally the more useful method when dealing with sight and light, 
+  especially if the tiles the player can see should be presented to the player (for example, highlighted).</p>
+<p>Let’s first set up a few things; the objects:</p>
+<pre><code>SeenV
+transparent
+SeenH
+transparent
+</code></pre>
+
+<p>The aliases:</p>
+<pre><code>Seen = SeenV or SeenH
+Obstruction = Wall or Crate (you can add more objects here that are obstructions)
+</code></pre>
+
+  <p>Don’t forget to include the Seen objects in separate new collision layers. 
+  The rules:</p>
+<pre><code>late [
+Seen ] -> [ ]
+late [ Player ] -> [ Player SeenH SeenV ]
+late vertical   [ SeenV | no Obstruction ] -> [ SeenV | SeenV ]
+late horizontal [ SeenH | no Obstruction ] -> [ SeenH | SeenH ]
+</code></pre>
+
+<p>You should be able to use Seen in any “late” rule following this section (for example, the player loses when seen or hit by a laser) or 
+  in the normal (non-late) rules of the next turn (for example, checking if the player can move from the new position).
+  </p>
+  Notes:
+  <ul><li>It’s helpful to configure <code>run_rules_on_level_start</code> when using this since non-late rules can only use Seen on a later turn.</li>
+<ul>The whole section can be non-late instead for a different behaviour. Experiment!</ul>  
+<li>The <code>no Obstruction</code> check can be performed in the originating tile instead of the target tile (if you wish to mark walls as seen, for example).
+  Make sure the player is not an obstruction.</li>
+<li>There are many other ways to do the ray tracing but the main idea is that you use a helper object and copy it, extending outwards, until it hits something.</li>
+</ul>
+
+<h3>Counting objects; Checking for global absence; doing something up to N times</h3>
+
+<p>Example problem: when there are less than 3 gems in a level, remove all walls.</p>
+<p>Example solution: The trick is to limit the amount of times a rule runs.</p>
+
+<pre><code>random [ Gem no Counted ] -> [ Gem Counted ]
+random [ Gem no Counted ] -> [ Gem Counted ]
+
+[ Wall ] -> [ Wall ToBeDeleted ]
+[ Gem no Counted ][ ToBeDeleted ] -> [ Gem ][ ] (invert vanishing)
+[ ToBeDeleted ] -> [ no Wall ] (remove walls AND clear marker)
+
+[ Counted ] -> [ ]
+</code></pre>
+
+<p>Counted is a temporary object that marks gems, at most one gem in each line.
+  <code>[Gem no Counted]</code> means there are at least 3 gems and we want the opposite in the example. Invert the clause.
+  </p>
+<p>Always clean up temporary objects.</p>
+
+<p>To check for global absence of an object, <code>no counter</code> is required, just use Gem in place of <code>Gem no Counted</code>.</p>
+<p><code>random</code> can generally be used to do something up to N times, where N is the lines of the same rule you repeat. 
+  If there are more than N, it will be random and unpredictable. 
+  But beware that the rules will still be applied as much as they can, even if there are less than N instances. 
+  To check for exactly N amount of something, do both “at least N” and “at most N” checks.</p>
+<p>Note: you might want to add <code>late</code> before every rule. 
+  Try it and see the difference.</p>
+
+<h3>Background as a Temporary Object</h3>
+
+<p>Want to optimize your code so you don’t have any more temp objects than you absolutely need? Use Background as a temp object. </p>
+<p>Non-late rules can move Background, and may depend on whether Background is moving in a particular direction, which effectively gives you five different temps: left Background, up Background, right Background, down Background, and action Background. 
+  (Any objects can move action-wise, so just making objects action can serve as an even more compact temp.) Removing Background from a space is doable, and you can check whether a tile has no Background, so that’s a sixth temp. 
+  Just make sure to fill in all spaces without Background at the end of the turn with: 
+  </p>
+  <pre><code>late [no Background] -> [Background]</code></pre>
+<p>In late rules, the only Background-related temp is the lack of Background, since nothing can move during late rules.</p>
+
+<h3>Checking Movement Against the Border</h3>
+
+<code>[> Thing|]</code> does not match anything if Thing is moving against the border of the level, because the border doesn’t count as an actual game space. 
+This means movement against the border is checkable, and padding levels with a fake border for your rules to work correctly is not necessary.
+For example, here’s some code to make objects that move against the border immediately vanish:
+<pre><code>[> Thing|] -> [> Background > Thing|]
+[> Thing stationary Background] -> [Background]
+</code></pre>
+
+<p>Background may be replaced with a normal temp object.</p>
+
+<h2>Making levels</h2>
+<h3>Editing in code</h3>
+
+<p>Levels in the level section consist of a rectangular grid of single characters that stand for objects or groups of objects, with blank lines in between.
+  These single character aliases for objects can be used in rules and can be defined either:</p>
+<li>in the object section right next to object names: <code>player p</code>, or </li>
+<li>in the legend section: <code>p = player</code></li>
+<p>Like any alias defined in the legend, a symbol can also stand for a combination of objects on different collision layers: </p>
+<pre><code>a = crate and target</code></pre>
+
+<p>However, groups of objects using <code>or</code> <code>codeb = crate1 or crate2</code> cannot be used in the levels section.</p>
+<p>The background object will be behind every object or group of objects automatically and never needs to be included when defining symbols. 
+  The top-left-most background tile (scanning the first column from top to bottom, then the second column, etc.) will be placed behind all objects without an explicit background. 
+  Keep in mind that custom, varying backgrounds can complicate the legend section and levels, requiring many additional and combinations.</p>
+
+<p>When editing levels in code, use text editor features like multiple cursors.</p>
+<p>Run the game starting from any level by Ctrl+Left-clicking on it in the editor.</p>
+
+<h3>What characters can I use?</h3>
+
+<p>Unlike object names, many single characters are accepted besides the usual letters, numbers and underlines, like - or *. 
+  In fact just about any Unicode character can be used, and there are thousands of those, including symbols and even emojis!</p>
+<pre><code>😀 = player</code></pre>
+
+<p>The lowercase letter v is used like a downwards arrow by the engine. 
+  It and other special characters used in rules will work just fine but it’s not recommended to use them for clarity’s sake. If you do, a warning will be shown when this is violated, so you don’t have to remember them.
+  </p>
+<p>This can be especially useful for providing clarity when working with objects that have a direction  (←↕↗), 
+  are connected together like pipes or snakes (┴┐─), have alternative variants (AÀÃÄ) or have a certain color (🔴🔵). </p>
+
+  <p>Useful websites for Unicode characters:
+<li><a href="https://en.wikipedia.org/wiki/Unicode_block">List of all blocks</a> including Box Drawing, Block Elements, Arrows.</li>
+<li><a href="https://symbl.cc/en/unicode/table/">List of Unicode Symbols</a>, use the search bar to find symbols by name.</li>
+<li>Google Docs Insert > Special characters menu shows similar characters to what you draw with just the mouse – that can then be copied elsewhere.</li>
+</p>
+<p>Sharing PuzzleScript code in a text file works even with these special symbols, when the encoding is set to UTF-8 (Unicode). </p>
+
+<p>There is a <code>case_sensitive prelude</code> <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"> prelude option that recognizes a and A as different symbols, but will also do the same for object names themselves.
+Even without case sensitivity, you will likely not run out of usable characters any time soon. </p>
+  
+<p>PuzzleScript uses the default browser monospace font. 
+  On Windows this will usually be Courier New, coming with over 2700 characters. 
+  When using a custom font in the editor, some symbols may be missing and need to be displayed in another font, breaking the alignment of letters to a grid a monospace code font usually provides.
+  </p>
+
+
+  <h3>Using the Level Editor</h3>
+
+<p>An interactive Level Editor can be toggled via its button in the top toolbar or by pressing E when the game is focused. </p>
+<p>The tile palette at the top is generated using all the defined symbols available in the whole game, starting with numbers, symbols and then letters.</p>
+<p>When exiting the editor or clicking on the S next to the tiles the engine will attempt to express the level in code that can be selected with a 
+  single left click and copied into the code. 
+  It might not be able to do so fully because an object or a combination of objects on a tile don’t have a single symbol assigned, 
+  in which case it will try to match it as best as possible or will just leave a background tile instead if it isn’t possible.</p>
+
+<h3>Generating parts of the levels within rules</h3>
+
+<p>For adding aesthetic detail to levels, it is recommended to limit the number of symbols and fill in details using rules instead, 
+making for an easier level making experience. 
+</p>
+  <li><code>run_rules_on_level_start</code> must be set for most tricks to work. 
+  That way, remaining objects can be added to the level before any player movement.</li>
+  <li>Often, these rules also only need to run once before the first turn of each level. 
+    An object that is required in all the rules, then disappears is a very common solution.</li>
+<pre><code>[Init] [wall] -> [Init] [wall random bricks]
+[Init] -> [ ]
+</code></pre>
+
+<p>Combined with randomness, the detail will generate differently on every restart in the same level. 
+  If that effect is unwanted, a checkpoint could be set after the rules generate details:
+  </p>
+  <pre><code>[Init] -> [] checkpoint</code></pre>
+  
+  <p><i>This document was adapted from an original authored by @ThatScar and others.</i></p>
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

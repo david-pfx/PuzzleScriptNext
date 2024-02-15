@@ -486,7 +486,7 @@ var x2 = 5;
 var y2 = 5;
 
 function mouseAction(event,click,id) {
-	
+	if (debugSwitch.includes('input')) console.log('mouseAction', click, id);
 	if (textMode) {
 		if (!click) {
 			if (quittingTitleScreen) {return;}
@@ -1168,6 +1168,7 @@ function pollGamepads() {
 
 let debugTimestamp
 function checkKey(e,justPressed) {
+    if (debugSwitch.includes('input') && justPressed) console.log('checkKey', e, justPressed);
     if (debugSwitch.includes('key')) {
 		const ele = document.getElementById('debug');
 		ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;

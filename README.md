@@ -24,9 +24,7 @@ It includes new features in support of level branching, and a test program showi
 * The test program is [`soko_link`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/soko_link).
 
 Also:
-* There is a new documentation page explaining [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html)
-
-src/editor.html?demo=next/soko_link
+* There is a new documentation page explaining [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
 
 Bug fixes include:
 * Debug visualisation now works correctly from one level to another.

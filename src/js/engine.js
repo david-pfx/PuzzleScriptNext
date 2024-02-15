@@ -183,25 +183,23 @@ function doSetupTitleScreenLevelContinue(){
 doSetupTitleScreenLevelContinue();
 
 function showContinueOptionOnTitleScreen(){
-	if (state.metadata.level_select !== undefined) {
-		return true;
-	} else {
-		return hasStartedTheGame();
-	}
+	return hasStartedTheGame() && !hasFinishedTheGame();
 }
 
 function hasStartedTheGame() {
 	return (curLevelNo>0||curlevelTarget!==null)&&(curLevelNo in state.levels);
 }
 
-function hasSolvedAtLeastOneSection() {
-	if (state.metadata.level_select !== undefined) {
-		return solvedSections.length >= 1;
-	} else {
-		return false;
-	}
+function hasFinishedTheGame() {
+	return state.metadata.level_select && solvedSections.length == state.sections.length
+		|| curLevelNo >= state.levels.length - 1; 
 }
 
+function hasSolvedAtLeastOneSection() {
+	return state.metadata.level_select && solvedSections.length > 0;
+}
+
+// call this before a new compile
 function unloadGame() {
 	state=introState;
 	curLevel = new Level(0, 5, 5, 2, null, null);
@@ -244,8 +242,7 @@ function isLevelSelectOptionSelected() {
 	return titleAvailableOptions[titleSelection] == MENUITEM_LEVELSELECT;
 }
 
-function generateTitleScreen()
-{
+function generateTitleScreen() {
   	tryLoadCustomFont();
 
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
@@ -260,10 +257,7 @@ function generateTitleScreen()
 		return;
 	}
 
-	var title = "PuzzleScript Game";
-	if (state.metadata.title!==undefined) {
-		title=state.metadata.title;
-	}
+	const title = state.metadata.title || "PuzzleScript Next Game";
 
 	lineColorOverride = [];
 	if (titleMode===0) {
@@ -279,7 +273,7 @@ function generateTitleScreen()
 
 		titleAvailableOptions = [];
 
-		if (playedGameBefore) {
+		if (playedGameBefore && !hasFinishedTheGame()) {
 			titleAvailableOptions.push(MENUITEM_CONTINUE);
 		} else {
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
@@ -297,7 +291,6 @@ function generateTitleScreen()
 			titleAvailableOptions.push(MENUITEM_NEWGAME);
 		}
 
-		lineColorOverride = [];
 		titleImage = deepClone(titletemplate_empty);
 
 		titleSelectOptions = titleAvailableOptions.length;
@@ -694,6 +687,7 @@ function generateLevelSelectScreen() {
 
 // go to level: <-1 for level index, >0 for section index, -9999 had compile error
 function gotoLevel(index) {
+	if (debugSwitch.includes('load')) console.log(`gotoLevel(${index})`);
 	if (solving) return;
 	if (index == -9999) return;  // It's an invalid GOTO
   
@@ -712,14 +706,14 @@ function gotoLevel(index) {
 }
   
 function gotoLink() {
+	if (debugSwitch.includes('load')) console.log('gotoLink()', `stack:`, linkStack);
   	if (solving) return;
-  	playerPositions.forEach(index => {
+	for (const position of playerPositions) {
 		const level = state.levels[curLevelNo];
-		const objids = level.getObjects(index);
-		state.links // use the most recent visible link definition
-			.slice(0, level.linksTop)
-			.reverse()
-			.forEach(link => {
+		const objids = level.getObjects(position);
+		for (const link of state.links // use the most recent visible link definition
+				.slice(0, level.linksTop)
+				.reverse()) {
 			if (objids.includes(link.object)) {
 				const linkEntry = { 
 					backup: backupLevel(), 		// will restore to this
@@ -729,11 +723,12 @@ function gotoLink() {
 				gotoLevel(link.targetNo);
 				return;
 			}
-		});
-  	});  
+		}
+  	}  
 }
 
 function returnLink() {
+	if (debugSwitch.includes('load')) console.log('returnLink()', `stack:`, linkStack);
 	const linkEntry = linkStack.pop();
 	const level = state.levels[linkEntry.backup.levelNo];
 	backups = backups.slice(0, linkEntry.backupTop);
@@ -923,6 +918,7 @@ var loadedLevelSeed=0;
 
 // workhorse to load and setup a new level
 function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {	
+	if (debugSwitch.includes('load')) console.log(`loadLevelFromLevelDat()`, leveldat);
 	if (randomseed==null) {
 		randomseed = (Math.random() + Date.now()).toString();
 	}
@@ -956,7 +952,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	clearInputHistory();
     } else if (leveldat.target != undefined) {  // could be zero
 		if (verbose_logging)
-			consolePrint(`GOTO ${leveldat.target} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
+			consolePrint(`GOTO (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
       	//tryPlayGotoSound();
       	setSectionSolved(state.levels[Number(curLevelNo)].section)
@@ -998,7 +994,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 
 		if (!state.metadata.allow_undo_level)
 	    	backups = [];
-	    restartTarget=backupLevel();
+		restartTarget=backupLevel();
 		keybuffer=[];
 
 	    if ('run_rules_on_level_start' in state.metadata) {
@@ -1014,6 +1010,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 }
 
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
+	if (debugSwitch.includes('load')) console.log(`loadLevelFromStateTarget(${levelindex},${target})`);
     var leveldat = target;    
   	curLevelNo=levelindex;
   	curlevelTarget=target;
@@ -1027,13 +1024,15 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
     }
     loadLevelFromLevelDat(state,state.levels[levelindex],randomseed);
     restoreLevel(target, true);
+	curlevelTarget = null;
     restartTarget=target;
 }
 
 function loadLevelFromState(state,levelindex,randomseed) {  
-    var leveldat = state.levels[levelindex];    
-  	curLevelNo=levelindex;
-  	curlevelTarget=null;
+	if (debugSwitch.includes('load')) console.log(`loadLevelFromState(${levelindex})`);
+	var leveldat = state.levels[levelindex];    
+	curLevelNo=levelindex;
+	curlevelTarget=null;
     if (leveldat!==undefined && leveldat.message===undefined) {
 		document.dispatchEvent(new CustomEvent("psplusLevelLoaded", {detail: levelindex}));
       	if (levelindex=== 0){ 
@@ -1169,31 +1168,32 @@ function level4Serialization() {
 
 // major function to set up game state on start of run
 function setGameState(_state, command, randomseed) {
-  oldflickscreendat=[];
-  linkStack=[];
-  timer=0;
-  autotick=0;
-  winning=false;
-  againing=false;
-    messageselected=false;
-    STRIDE_MOV=_state.STRIDE_MOV;
-    STRIDE_OBJ=_state.STRIDE_OBJ;
-    
-    sfxCreateMask=new BitVec(STRIDE_OBJ);		// doc: mask for objects that were created
-    sfxDestroyMask=new BitVec(STRIDE_OBJ);		// doc: mask for objects that were destroyed
+	if (debugSwitch.includes('load')) console.log(`setGameState(${command})`);  //@@todo:
+	oldflickscreendat = [];
+	linkStack = [];
+	timer = 0;
+	autotick = 0;
+	winning = false;
+	againing = false;
+	messageselected = false;
+	STRIDE_MOV = _state.STRIDE_MOV;
+	STRIDE_OBJ = _state.STRIDE_OBJ;
 
-  if (command===undefined) {
-    command=["restart"];
-  }
-  if ((state.levels.length===0 || _state.levels.length===0) && command.length>0 && command[0]==="rebuild")  {
-    command=["restart"];
-  }
-  if (randomseed===undefined) {
-    randomseed=null;
-  }
-  RandomGen = new RNG(randomseed);
+	sfxCreateMask = new BitVec(STRIDE_OBJ);		// doc: mask for objects that were created
+	sfxDestroyMask = new BitVec(STRIDE_OBJ);		// doc: mask for objects that were destroyed
 
-  state = _state;
+	if (command === undefined) {
+		command = ["restart"];
+	}
+	if ((state.levels.length === 0 || _state.levels.length === 0) && command.length > 0 && command[0] === "rebuild") {
+		command = ["restart"];
+	}
+	if (randomseed === undefined) {
+		randomseed = null;
+	}
+	RandomGen = new RNG(randomseed);
+
+	state = _state;
 
     if (command[0]!=="rebuild"){
       backups=[];
@@ -1441,6 +1441,7 @@ function unconsolidateDiff(before,after) {
 }
 
 function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) {
+	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev);
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
@@ -1463,7 +1464,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 	}
 
 	if (switchLevel || curLevel.width !== lev.width || curLevel.height !== lev.height) {
-		console.log(`Restore level: from ${curLevel.width}x${curLevel.height} to ${lev.width}x${lev.height}`)
+		if (debugSwitch.includes('load')) console.log(`Restore level: from ${curLevel.width}x${curLevel.height} to ${lev.width}x${lev.height}`)
 		curLevel.width = lev.width;
 		curLevel.height = lev.height;
 		curLevel.n_tiles = lev.width * lev.height;
@@ -3886,7 +3887,8 @@ function DoWin() {
 }
 
 function nextLevel() {
-    againing=false;
+	if (debugSwitch.includes('load')) console.log(`nextLevel()`, `curLevelNo=${curLevelNo}`);
+	againing=false;
 	messagetext="";
 	statusText = "";
 	if (state && state.levels && (curLevelNo>state.levels.length) ){
@@ -3949,25 +3951,25 @@ function nextLevel() {
 				loadLevelFromStateOrTarget();
 			}
 		} else {
-			if(solvedSections.length == state.sections.length) {
-				if(state.metadata["level_select"] === undefined) {
+			if (solvedSections.length == state.sections.length) {
+				if (state.metadata["level_select"] === undefined) {
 					// solved all
-          try{
-            storage_remove(document.URL);
-            storage_remove(document.URL+'_checkpoint');				
-          } catch(ex){
-          }
-					
-					curLevelNo=0;
-					curlevelTarget=null;
+					try {
+						storage_remove(document.URL);
+						storage_remove(document.URL + '_checkpoint');
+					} catch (ex) {
+					}
+
+					curLevelNo = 0;
+					curlevelTarget = null;
 					goToTitleScreen();
 				} else {
-					gotoLevelSelectScreen();
+					goToTitleScreen();
 				}
-				
-				tryPlayEndGameSound();	
+
+				tryPlayEndGameSound();
 			} else {
-				if(state.levels[Number(curLevelNo)].section != null) {
+				if (state.levels[Number(curLevelNo)].section != null) {
 					setSectionSolved(state.levels[Number(curLevelNo)].section);
 				}
 				gotoLevelSelectScreen();
@@ -3990,6 +3992,7 @@ function loadLevelFromStateOrTarget() {
 }
 
 function goToTitleScreen(){
+	if (debugSwitch.includes('load')) console.log(`gotoTitleScreen()`);
     againing=false;
 	messagetext="";
 	statusText = "";
@@ -4016,6 +4019,8 @@ function resetFlickDat() {
 }
 
 function updateLocalStorage() {
+	if (linkStack.length > 0)
+		return;
 	try {
 		
 		storage_set(document.URL,curLevelNo);
