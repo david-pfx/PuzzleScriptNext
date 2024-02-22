@@ -10,7 +10,7 @@ homepage www.polyomino.com
 auto_level_titles
 continue_is_level_select
 debug
-level_select
+//level_select
 level_select_lock
 mouse_clicks
 //noaction
@@ -79,8 +79,8 @@ custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 //custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 debug_switch various random strings obj
 //homepage
-text_controls This is a text control...
-text_message_continue Please continue at your leisure...
+text_controls This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...
+text_message_continue Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...
 //title
 
 ========

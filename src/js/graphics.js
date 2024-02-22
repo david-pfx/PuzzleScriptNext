@@ -338,8 +338,8 @@ function redrawTextMode() {
     
     if(state.metadata.custom_font === undefined || !loadedCustomFont) { 
         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
-        for (var i = 0; i < titleWidth; i++) {
-            for (var j = 0; j < titleHeight; j++) {
+        for (var i = 0; i < TITLE_WIDTH; i++) {
+            for (var j = 0; j < TITLE_HEIGHT; j++) {
                 ctx.fillStyle = lineColor(j);
                 var ch = titleImage[j].charAt(i);
                 if (ch in font) {
@@ -361,13 +361,13 @@ function redrawTextMode() {
             }
         }
     } else if (textModeLine) {
-        for(let j = 0; j < titleHeight; j++) {
+        for(let j = 0; j < TITLE_HEIGHT; j++) {
             drawTextWithFont(ctx, titleImage[j], lineColor(j), 
-                xoffset + (titleWidth/2+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
+                xoffset + (TITLE_WIDTH/2+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
         }
     } else {
-        for (var i = 0; i < titleWidth; i++) {
-            for(let j = 0; j < titleHeight; j++) {
+        for (var i = 0; i < TITLE_WIDTH; i++) {
+            for(let j = 0; j < TITLE_HEIGHT; j++) {
                 drawTextWithFont(ctx, titleImage[j].slice(i, i+1), lineColor(j), 
                     xoffset + (i+0.5) * cellwidth, yoffset + (j+0.5) * cellheight, cellheight);
             }
@@ -958,8 +958,8 @@ function canvasResize(level) {
     zoomscreen=state.metadata.zoomscreen!==undefined;
     smoothscreen=state.metadata.smoothscreen!==undefined;
     if (textMode) {
-        screenwidth = titleWidth;
-        screenheight = titleHeight;
+        screenwidth = TITLE_WIDTH;
+        screenheight = TITLE_HEIGHT;
     } else if (flickscreen) {
         screenwidth=state.metadata.flickscreen[0];
         screenheight=state.metadata.flickscreen[1];
@@ -972,7 +972,7 @@ function canvasResize(level) {
     }
 
     // If we need a status line, this will reduce the cell height to allow room
-    statusLineHeight = state.metadata.status_line ? canvas.height / titleHeight : 0;
+    statusLineHeight = state.metadata.status_line ? canvas.height / TITLE_HEIGHT : 0;
     if (levelEditorOpened) {
         // glyph display is level width + 1
         editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));

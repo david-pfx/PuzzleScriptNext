@@ -488,6 +488,7 @@ var y2 = 5;
 function mouseAction(event,click,id) {
 	if (debugSwitch.includes('input')) console.log('mouseAction', click, id);
 	if (textMode) {
+		// we only handle click actions -- not sure why this is here, but gets called by mouseMove()
 		if (!click) {
 			if (quittingTitleScreen) {return;}
 
@@ -508,33 +509,14 @@ function mouseAction(event,click,id) {
 				return;
 			}
 
-			if (titleMode===0) { //Title no save data
+			if (titleMode == 0) { //Title no save data
+				generateTitleScreen(-1, 0, true);
 				titleButtonSelected();
-			} else if (titleMode===1) {//Title with save data
-				if (mouseCoordY===5 && titleSelectOptions >= 1) {
-					titleSelection=0;
+			} else if (titleMode == 1) {//Title with save data
+				generateTitleScreen(-1, 0, hoverSelection);
+				if (titleSelection)
 					titleButtonSelected();
-				} else if (mouseCoordY===6 && titleSelectOptions >= 3) {
-					titleSelection=1;
-					titleButtonSelected();
-				}
-				else if (mouseCoordY===7 && titleSelectOptions >= 2) {
-					if (titleSelectOptions === 2) {
-						titleSelection = 1;
-					} else {
-						titleSelection = 2;
-					}
-					titleButtonSelected();
-				} 
-				else if (mouseCoordY===8 && titleSelectOptions >= 4) {
-					titleSelection=3;
-					titleButtonSelected();
-				}
 			} else if (titleMode===2) { //Level select
-				if (quittingTitleScreen || titleSelected) {
-					return;
-				}
-				//console.log(mouseCoordY);
 				if (mouseCoordY===0) {
 					titleSelection = 0;
 				
@@ -939,7 +921,7 @@ function mouseMove(event) {
 		mouseAction(event,false,null);
 		if (prevHoverSelection != hoverSelection) {
 			if (titleMode == 1) {
-				generateTitleScreen();
+				generateTitleScreen(hoverSelection);
 				redraw();
 			} else if (titleMode == 2) {
 				generateLevelSelectScreen();
@@ -960,19 +942,16 @@ function mouseMove(event) {
 	}
 
 	event.handled=true;
-    //window.console.log("showcoord ("+ canvas.width+","+canvas.height+") ("+x+","+y+")");
 }
 
 mouseInCanvas = false;
 
 function onMouseIn() {
 	mouseInCanvas = true;
-	//console.log("Cursor moved into canvas")
 }
 
 function onMouseOut() {
 	mouseInCanvas = false;
-	//console.log("Cursor moved out of canvas")
 }
 
 document.addEventListener('touchstart', onTouchDown, {passive: false});
@@ -1004,7 +983,6 @@ function onMouseWheel(event) {
 
 	if (!mouseInCanvas || event.ctrlKey) {return;}
 
-	//console.log("Scroll "+event.deltaY);
 	normalizedDelta = Math.sign(event.deltaY);
 
 	if (titleScreen && titleMode == 2 && (IsMouseGameInputEnabled())) {
@@ -1023,7 +1001,6 @@ function onMouseWheel(event) {
 function levelSelectScroll(direction) {
 	levelSelectScrollPos = clamp(levelSelectScrollPos + direction, 0, Math.max(state.sections.length - amountOfLevelsOnScreen, 0));
 	titleSelection = clamp(titleSelection + direction, 0, state.sections.length - 1);
-	//console.log(levelSelectScrollPos + " " + titleSelection);
 	generateLevelSelectScreen();
 }
 
@@ -1040,12 +1017,11 @@ function prevent(e) {
 }
 
 function titleButtonSelected() {
-	if (titleSelected===false) {
+	if (!titleSelected) {
 		tryPlayStartGameSound();
 		titleSelected=true;
 		timer=0;
 		quittingTitleScreen=true;
-		generateTitleScreen();
 		canvasResize();
 
 		document.dispatchEvent(new Event("psplusGameStarted"));
@@ -1420,7 +1396,7 @@ function checkKey(e,justPressed) {
 							quittingTitleScreen=true;
 							
 							if(titleMode == 1) {
-								generateTitleScreen();
+								generateTitleScreen(-1, 0, levelSelectScrollPos);
 								document.dispatchEvent(new Event("psplusGameStarted"));
 							} else if(titleMode == 2) {
 								generateLevelSelectScreen();
@@ -1432,21 +1408,8 @@ function checkKey(e,justPressed) {
 						if (quittingTitleScreen || titleSelected) {
 							return;
 						}
-						
-						if (inputdir===0){
-							titleSelection--;    					
-						} else {
-							titleSelection++;    					    					
-						}
-
-						if(titleSelection >= titleSelectOptions) {
-							titleSelection -= titleSelectOptions;
-						} else if (titleSelection < 0) {
-							titleSelection += titleSelectOptions;
-						}
-						
 						if(titleMode == 1) {
-							generateTitleScreen();
+							generateTitleScreen(-1, inputdir == 0 ? -1 : 1);
 						} else if(titleMode == 2) {
 							generateLevelSelectScreen();
 						} else if (titleMode == 3) {
