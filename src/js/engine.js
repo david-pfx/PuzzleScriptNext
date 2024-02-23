@@ -31,12 +31,12 @@ function getMessageScreen(text) {
 
 function getStartScreen(texts) {
 	const lines = [
-		"", "", "", "", "", "", 
+		"", "", "", "", "", "", "",
 		...texts,
 	];
 	return {
 		lines: lines, 
-		options: fillRange(6, lines.length),
+		options: fillRange(7, lines.length),
 	};
 }
 
@@ -213,48 +213,30 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) { //@@
 		lineColorOverride[12] = state.metadata.keyhint_color;
 	}
 
-	var width = TITLE_WIDTH;
-	var titlelines=wordwrap(title,width);
+	const titleSplit = wordwrap(title, TITLE_WIDTH);
 	const maxl = state.metadata.author ? 3 : 5;
-	if (titlelines.length > maxl) {
-		titlelines.splice(maxl);
-		logWarning("Game title is too long to fit on screen, truncating to three lines.", state.metadata_lines.title, true);
+	if (titleSplit.length > maxl) {
+		titleSplit.splice(maxl);
+		logWarning(`Game title is too long to fit on screen, truncating to ${maxl} lines.`, state.metadata_lines.title, true);
 	}
-
-	for (var i=0;i<titlelines.length;i++) {
-		var titleline=titlelines[i];
-		var titleLength=titleline.length;
-		var lmargin = ((width-titleLength)/2)|0;
-		var rmargin = width-titleLength-lmargin;
-		var row = titleImage[1+i];
-		titleImage[1+i]=row.slice(0,lmargin)+titleline+row.slice(lmargin+titleline.length);
+	titleSplit.forEach((line,x) => {
+		titleImage[1 + x] = centerText(line.trim(), TITLE_WIDTH);
 		if (state.metadata.title_color)
-			lineColorOverride[i + 1] = state.metadata.title_color;
+			lineColorOverride[1 + x] = state.metadata.title_color;
+	});
 
-	}
-
-	if (state.metadata.author!==undefined) {
-		var attribution="by "+state.metadata.author;
-		var attributionsplit = wordwrap(attribution,titleImage[0].length);
-		if (attributionsplit[0].length<titleImage[0].length){
-			attributionsplit[0]=" "+attributionsplit[0];
+	if (state.metadata.author) {
+		const split = wordwrap("by " + state.metadata.author, TITLE_WIDTH);
+		if (split.length > 3){
+			split.splice(3);
+			logWarning("Author list too long to fit on screen, truncating to 3 lines.",state.metadata_lines.author, true);
 		}
-		if (attributionsplit.length>3){
-			attributionsplit.splice(3);
-			logWarning("Author list too long to fit on screen, truncating to three lines.",state.metadata_lines.author,true);
-		}
-		for (var i=0;i<attributionsplit.length;i++) {
-			var line = attributionsplit[i]+" ";
-			if (line.length>width){
-				line=line.slice(0,width);
-			}
-			var row = titleImage[3+i];
-			titleImage[3+i]=row.slice(0,width-line.length)+line;
+		split.forEach((line, x) => { 
+			titleImage[4 + x]=line.trim().padStart(TITLE_WIDTH);
 			if (state.metadata.author_color)
-				lineColorOverride[3 + i] = state.metadata.author_color;
-		}
+				lineColorOverride[4 + x] = state.metadata.author_color;
+		});
 	}
-
 }
 
 function goToPauseScreen() {

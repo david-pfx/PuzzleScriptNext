@@ -1,5 +1,5 @@
-title test min prelude
-author polyomino
+title test min prelude with a rather long title to trigger some text wrapping text wrapping text wrapping text wrapping text wrapping
+author polyomino with a rather long author to trigger some text wrapping text wrapping text wrapping text wrapping text wrapping
 homepage www.polyomino.com
 
 // minimal program with prelude tests
