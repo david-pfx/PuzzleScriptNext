@@ -157,6 +157,7 @@ function isLevelSelectOptionSelected() {
 }
 
 function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
+	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen()`, hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
   	tryLoadCustomFont();
 
@@ -273,6 +274,7 @@ function goToPauseScreen() {
 
 let selectOption;
 function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
+	if (debugSwitch.includes('menu')) console.log(`generatePauseScreen()`, hoverLine, scrollIncrement, selectLine);
 	const screen = getPauseScreen(state);
 
 	if (levelSelectScrollPos == 0)
@@ -373,8 +375,7 @@ function gotoLevelSelectScreen() {
 }
 
 function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { //@@
-	//console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
-	amountOfLevelsOnScreen = 9;
+	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
 
 	var unlockedUntil = -1;
@@ -396,6 +397,8 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { //@
 			unlockedUntil += 1;
 		}
 	}
+
+	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
 	if (levelHighlightLine == 0)
 		levelHighlightLine = 3;
 	else if (levelHighlightLine > 3 && scrollIncrement < 0)
@@ -3865,5 +3868,5 @@ function updateCameraPositionTarget() {
 
 
 function IsMouseGameInputEnabled() {
-	return "mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata;
+	return state.metadata.mouse_left || state.metadata.mouse_up || state.metadata.mouse_drag || state.metadata.mouse_clicks;
 }

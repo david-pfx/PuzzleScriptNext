@@ -907,7 +907,8 @@ function mouseMove(event) {
 	event.handled=true;
 }
 
-mouseInCanvas = false;
+// bug: if game starts with mouse already in canvas, it will not get set true
+let mouseInCanvas = false;
 
 function onMouseIn() {
 	mouseInCanvas = true;
