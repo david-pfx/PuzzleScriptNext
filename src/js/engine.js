@@ -31,12 +31,12 @@ function getMessageScreen(text) {
 
 function getStartScreen(texts) {
 	const lines = [
-		"", "", "", "", "", "", "",
+		"", "", "", "", "", "",
 		...texts,
 	];
 	return {
 		lines: lines, 
-		options: fillRange(7, lines.length),
+		options: fillRange(6, lines.length),
 	};
 }
 
@@ -58,6 +58,20 @@ function getPauseScreen(state) {
 	};
 }
 
+function getLevelSelectScreen(inserts) {
+	const lines = [
+		"[ ESC: Back ]                ",
+		"Level Select",
+		""
+	];
+	const options = [ ];
+	inserts.forEach(ins => {
+		options.push(lines.length);
+		lines.push(ins);
+	});
+	return { lines: lines, options: options };
+}
+
 const MENUITEM_CONTINUE = 'Continue';
 const MENUITEM_LEVELSELECT = 'Level Select';
 const MENUITEM_NEWGAME = 'New Game';
@@ -71,8 +85,6 @@ var textMode=true;
 var titleScreen=true;
 var titleMode=0;//1 means title screen with options, 2 means level select, 3 means pause screen
 var titleSelection=0;
-var titleSelectOptions=2;
-var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
 let lineColorOverride = [];		// a sparse array of line numbers and colours to use
@@ -127,13 +139,13 @@ function unloadGame() {
 	curLevel.objects = new Int32Array(0);
 	generateTitleScreen();
 	canvasResize();
-	redraw();
+	//redraw();
 	titleMode = 0;
 	titleSelected=true;
 }
 
 function isContinueOptionSelected() {
-	return titleSelection == MENUITEM_CONTINUE;
+	return !state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE;
 }
 
 function isNewGameOptionSelected() {
@@ -144,7 +156,7 @@ function isLevelSelectOptionSelected() {
 	return state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE || titleSelection == MENUITEM_LEVELSELECT;
 }
 
-function generateTitleScreen(hoverLine, scrollIncrement, selectLine) { //@@
+function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 	lineColorOverride = [];
   	tryLoadCustomFont();
 
@@ -159,8 +171,6 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) { //@@
 		titleImage = fillAndHighlight(getIntroScreen("This game is sitelocked!"));
 		return;
 	}
-
-	const title = state.metadata.title || "PuzzleScript Next Game";
 
 	if (titleMode===0) {
 		const screen = getStartScreen([ MENUITEM_STARTGAME ]);
@@ -213,11 +223,14 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) { //@@
 		lineColorOverride[12] = state.metadata.keyhint_color;
 	}
 
+	const title = state.metadata.title || "PuzzleScript Next Game";
+
 	const titleSplit = wordwrap(title, TITLE_WIDTH);
-	const maxl = state.metadata.author ? 3 : 5;
+	const maxl = state.metadata.author ? 2 : 4;
 	if (titleSplit.length > maxl) {
 		titleSplit.splice(maxl);
-		logWarning(`Game title is too long to fit on screen, truncating to ${maxl} lines.`, state.metadata_lines.title, true);
+		if (!hoverLine)
+			logWarning(`Game title is too long to fit on screen, truncating to ${maxl} lines.`, state.metadata_lines.title, true);
 	}
 	titleSplit.forEach((line,x) => {
 		titleImage[1 + x] = centerText(line.trim(), TITLE_WIDTH);
@@ -227,16 +240,18 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) { //@@
 
 	if (state.metadata.author) {
 		const split = wordwrap("by " + state.metadata.author, TITLE_WIDTH);
-		if (split.length > 3){
-			split.splice(3);
-			logWarning("Author list too long to fit on screen, truncating to 3 lines.",state.metadata_lines.author, true);
+		if (split.length > 2){
+			split.splice(2);
+			if (!hoverLine)
+				logWarning("Author list too long to fit on screen, truncating to 2 lines.",state.metadata_lines.author, true);
 		}
 		split.forEach((line, x) => { 
-			titleImage[4 + x]=line.trim().padStart(TITLE_WIDTH);
+			titleImage[3 + x]=line.trim().padStart(TITLE_WIDTH);
 			if (state.metadata.author_color)
-				lineColorOverride[4 + x] = state.metadata.author_color;
+				lineColorOverride[3 + x] = state.metadata.author_color;
 		});
 	}
+	redraw();
 }
 
 function goToPauseScreen() {
@@ -254,7 +269,6 @@ function goToPauseScreen() {
 	statusText = "";
 
 	generatePauseScreen();
-	redraw();
 }
 
 let selectOption;
@@ -268,6 +282,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 
 	titleImage = fillAndHighlight(screen, levelSelectScrollPos, hoverLine, selectLine);
 	selectOption = selectLine - screen.options[0];
+	redraw();
 }
 
 function selectPauseScreen(lineNo) { //@@
@@ -285,11 +300,11 @@ function selectPauseScreen(lineNo) { //@@
 		} : null,
 		state.metadata.level_select ? () => {
 			gotoLevelSelectScreen();
-			redraw();
+			//redraw();
 		} : null,
 		() => {
 			goToTitleScreen();
-			redraw();
+			//redraw();
 		}
 	].filter(l => l != null);
 
@@ -321,14 +336,16 @@ function fillAndHighlight(image, highlight, hover, select) {
 	return padToSize(ll, TITLE_WIDTH, TITLE_HEIGHT);
 }
 
-var levelSelectScrollPos = 0;
+let levelSelectScrollPos = 0;
+let levelHighlightLine = 0;
 
 function gotoLevelSelectScreen() {
-	if(state.metadata["level_select"] === undefined){
+	if(!state.metadata.level_select) {
 		goToTitleScreen();
 		return;
 	}
 	levelSelectScrollPos = 0;
+	levelHighlightLine = 0;
 	titleSelected = false;
 	timer = 0;
 	quittingTitleScreen = false;
@@ -347,76 +364,23 @@ function gotoLevelSelectScreen() {
 				break;
 			}
 		}
-  }
+  	}
   
-  state.metadata = deepClone(state.default_metadata);
-  twiddleMetadataExtras();
+  	state.metadata = deepClone(state.default_metadata);
+  	twiddleMetadataExtras();
 
 	generateLevelSelectScreen();
-	redraw();
 }
 
-function generateLevelSelectScreen() {
-	/*
-	"...........select level...........",
-	"..................................",
-	"[?].#.Testy section maxxx long.#.O",
-	".................................|",
-	"[ ]...Unselected section.........|",
-	".................................|",
-	"[ ]...Another section............|",
-	".................................|",
-	"[ ]...Another section............|",
-	".................................|",
-	"[ ]...Another section............|",
-	".................................|",
-	"[ ]...Another section............|"
-  */
-
-	titleImage = [
-		" [ ESC: Back ]                    ",
-		"           Level Select           "
-	];
-
-	if (hoverSelection == 0) {
-		titleImage[0] =	"[  ESC: Back  ]                   ";
-	}
-
+function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { //@@
+	//console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	amountOfLevelsOnScreen = 9;
 	lineColorOverride = [];
-	titleSelectOptions = state.sections.length;
-
-	if(titleSelection < levelSelectScrollPos) { //Up
-		levelSelectScrollPos = titleSelection;
-	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) { //Down
-		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
-	}
-
-	var posOnScreen = titleSelection - levelSelectScrollPos;
-	if (posOnScreen == 0) {
-		levelSelectScrollPos = Math.max(0, levelSelectScrollPos - 1);
-		//console.log("On first position");
-	}
-
-	if (posOnScreen == amountOfLevelsOnScreen-1) {
-		levelSelectScrollPos = Math.min(state.sections.length-amountOfLevelsOnScreen, levelSelectScrollPos + 1);
-		//console.log("On last position");
-	}
-
-	if (levelSelectScrollPos != 0) {
-		if (hoverSelection == 2) {
-			titleImage.push("                        [  PREV  ]");
-		} else {
-			titleImage.push("                         [ PREV ] ");
-		}
-	} else {
-		titleImage.push("                                  ");
-	}
 
 	var unlockedUntil = -1;
-	if(state.metadata["level_select_lock"] !== undefined) {
+	if (state.metadata.level_select_lock) {
 		// find last solved section:
-		var unsolvedSections = 0;
+		let unsolvedSections = 0;
 		for(var i = 0; i < state.sections.length; i++) {
 			if(solvedSections.indexOf(state.sections[i].name) >= 0) {
 				unlockedUntil = i;
@@ -424,82 +388,51 @@ function generateLevelSelectScreen() {
 				unsolvedSections++;
 			}
 		}
-
 		if(state.metadata.level_select_unlocked_ahead !== undefined) {
 			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
 		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
 			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
-		}
-		else {
+		} else {
 			unlockedUntil += 1;
 		}
-
-		//console.log("total: " + state.sections.length + "unsolved: " + unsolvedSections + " until:" + unlockedUntil)
 	}
-	//console.log(unlockedUntil);
+	if (levelHighlightLine == 0)
+		levelHighlightLine = 3;
+	else if (levelHighlightLine > 3 && scrollIncrement < 0)
+		levelHighlightLine--;
+	else if (levelHighlightLine < 3 + amountOfLevelsOnScreen - 1 && scrollIncrement > 0)
+		levelHighlightLine++;
+	else if (levelSelectScrollPos > 0 && (selectLine == 2 || scrollIncrement < 0))
+		levelSelectScrollPos--;
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
+		levelSelectScrollPos++;
 
-	for(var i = levelSelectScrollPos; i < levelSelectScrollPos + amountOfLevelsOnScreen; i++) {
-		if(i < 0 || i >= state.sections.length) {
-			break;
+	const solved_symbol = state.metadata.level_select_solve_symbol || "?";
+
+	titleSelection = selectLine == 0 ? 0 : null;
+	const lines = state.sections.map((section,i) => {
+		const solved = (solvedSections.indexOf(section.name) >= 0);
+		//const selected = (i == titleSelection);
+		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
+		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
+		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
+			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
+				titleSelection = i;
+			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24, "#");
 		}
+		return (solved ? solved_symbol : " ") + " " + name.padEnd(24);
+	});
 
-		var section = state.sections[i];
-		var solved = (solvedSections.indexOf(section.name) >= 0);
-		var selected = (i == titleSelection);
-		var locked = (unlockedUntil >= 0 && i > unlockedUntil);
+	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
+	const screen = getLevelSelectScreen(showLines);
+	console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
-		var name = section.name.substring(0, 24);
-		
-		if(locked) {
-			if(selected && titleSelected) {
-				titleSelected = false;
-				quittingTitleScreen = false;
-			}
-
-			var l = name.length;
-			name = "";
-			for(var j = 0; j < l; j++) {
-				name += "*";
-			}
-		}
-		
-		var solved_symbol = "?";
-		if(state.metadata.level_select_solve_symbol !== undefined) {
-			solved_symbol = state.metadata.level_select_solve_symbol;
-		}
-		var line = (solved ? solved_symbol : " ") + " ";
-
-		var hover_symbol = " ";
-		if (selected) {hover_symbol = "#"}
-		if (IsMouseGameInputEnabled() && hoverSelection - 3 + levelSelectScrollPos == i) {hover_symbol = ">"}
-		
-		line += hover_symbol + " " + name;
-		for(var j = name.length; j < 25; j++) {
-			if(selected && titleSelected && j != name.length) {
-				line += "#";
-			} else {
-				line += " ";
-			}
-		}
-		line += (selected ? "#" : " ") + "  ";
-
-		titleImage.push(line);
-	}
-
-	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen && titleSelectOptions - amountOfLevelsOnScreen > 0) {
-		if (hoverSelection == 12) {
-			titleImage.push("                        [  NEXT  ]")
-		} else {
-			titleImage.push("                         [ NEXT ] ")
-		}
-	} else {
-		titleImage.push("                                  ");
-	}
-
-	for(var i = titleImage.length; i < TITLE_HEIGHT; i++) {
-		titleImage.push("                                  ");
-	}
-
+	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
+	if (levelSelectScrollPos > 0)
+		titleImage[2] = (hoverLine == 2 ? "[  PREV  ]" : "[ PREV ] ").padStart(TITLE_WIDTH);
+	if (levelSelectScrollPos + amountOfLevelsOnScreen < lines.length)
+		titleImage[12] = (hoverLine == 12 ? "[  NEXT  ]" : "[ NEXT ] ").padStart(TITLE_WIDTH);
 	redraw();
 }
 
@@ -537,7 +470,7 @@ function gotoLink() {
 					backup: backupLevel(), 		// will restore to this
 					backupTop: backups.length 	// will prune to this
 				};
-				linkStack.push(linkEntry);		//@@
+				linkStack.push(linkEntry);
 				gotoLevel(link.targetNo);
 				return;
 			}
@@ -731,7 +664,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //@@todo:
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -849,7 +782,6 @@ function tryLoadCustomFont() {
 		document.fonts.add(loaded_face);
 		loadedCustomFont = true;
 		canvasResize();
-		redraw();
 	}).catch(function(error) {alert("Unable to load font!");});
 }
 
@@ -937,7 +869,7 @@ function level4Serialization() {
 
 // major function to set up game state on start of run
 function setGameState(_state, command, randomseed) {
-	if (debugSwitch.includes('load')) console.log(`setGameState(${command})`);  //@@todo:
+	if (debugSwitch.includes('load')) console.log(`setGameState(${command})`);  //todo:
 	oldflickscreendat = [];
 	linkStack = [];
 	timer = 0;
@@ -1736,7 +1668,7 @@ Level.prototype.setMovements = function(index, vec) {
 }
 
 // return a list of object names at index
-Level.prototype.getObjects = function(index) {	// @@
+Level.prototype.getObjects = function(index) {
 	const bitmask = this.getCell(index);
 	const objs = [];
 	for (let bit = 0; bit < 32 * STRIDE_OBJ; ++bit) {
@@ -3640,7 +3572,7 @@ function DoWin() {
 	againing = false;
 	tryPlayEndLevelSound();
 
-	if (linkStack.length > 0) { 		//@@@ got here by link so go back there
+	if (linkStack.length > 0) { 		// got here by link so go back there
 		returnLink();
 		processInput(-1, true);			// allow trigger on rules with no movement
 		return;
@@ -3686,6 +3618,7 @@ function nextLevel() {
 			titleSelection = 0;
 			gotoLevelSelectScreen();
 		} else {
+			throw "next level";
 			// settings
 			// TODO
 		}

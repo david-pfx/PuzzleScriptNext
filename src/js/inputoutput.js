@@ -517,47 +517,13 @@ function mouseAction(event,click,id) {
 				if (titleSelection)
 					titleButtonSelected();
 			} else if (titleMode===2) { //Level select
-				if (mouseCoordY===0) {
-					titleSelection = 0;
-				
+				generateLevelSelectScreen(-1, 0, mouseCoordY);
+				if (titleSelection == 0)
 					goToTitleScreen();
-
-					tryPlayTitleSound();
-					canvasResize();
-				} else if (mouseCoordY===2) {
-					if (levelSelectScrollPos != 0) {
-						levelSelectScroll(-3)
-					}
-				} else if (mouseCoordY===12) {
-					if (titleSelectOptions - amountOfLevelsOnScreen > levelSelectScrollPos) {
-						levelSelectScroll(3)
-					}
-				} else {
-					var clickedLevel = -1;
-					switch (mouseCoordY) {
-						case 3: clickedLevel = 0; break;
-						case 4: clickedLevel = 1; break;
-						case 5: clickedLevel = 2; break;
-						case 6: clickedLevel = 3; break;
-						case 7: clickedLevel = 4; break;
-						case 8: clickedLevel = 5; break;
-						case 9: clickedLevel = 6; break;
-						case 10: clickedLevel = 7; break;
-						case 11: clickedLevel = 8; break;
-					}
-					if (clickedLevel != -1) {
-						clickedLevel += levelSelectScrollPos;
-						if (clickedLevel < titleSelectOptions) {
-							//console.log("Clicked level "+clickedLevel);
-							titleSelection = clickedLevel;
-
-							titleSelected=true;
-							timer=0;
-							quittingTitleScreen=true;
-							
-							generateLevelSelectScreen();
-						}
-					}
+				else if (titleSelection) {
+					titleSelected=true;
+					timer=0;
+					quittingTitleScreen=true;
 				}
 			} else if (titleMode == 3) { // pause screen select
 				generatePauseScreen(-1, 0, mouseCoordY);
@@ -922,13 +888,10 @@ function mouseMove(event) {
 		if (prevHoverSelection != hoverSelection) {
 			if (titleMode == 1) {
 				generateTitleScreen(hoverSelection);
-				redraw();
 			} else if (titleMode == 2) {
-				generateLevelSelectScreen();
-				redraw();
+				generateLevelSelectScreen(hoverSelection);
 			} else if (titleMode == 3) {
 				generatePauseScreen(hoverSelection);
-				redraw();
 			}
 		}
 	} else if (dragging && "mouse_drag" in state.metadata) {
@@ -1374,6 +1337,7 @@ function checkKey(e,justPressed) {
 			if (quittingTitleScreen===false){
 				if (titleMode===0) {
 					if (inputdir===4&&justPressed) {
+						generateTitleScreen(-1, 0, true);
 						titleButtonSelected();
 						clearInputHistory();
 					}
@@ -1385,7 +1349,6 @@ function checkKey(e,justPressed) {
 						redraw();
 					} else if (inputdir == 0 || inputdir == 2) {
 						generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
-						redraw();
 					}
 				} else {
 					if (inputdir==4&&justPressed) {
@@ -1399,9 +1362,8 @@ function checkKey(e,justPressed) {
 								generateTitleScreen(-1, 0, levelSelectScrollPos);
 								document.dispatchEvent(new Event("psplusGameStarted"));
 							} else if(titleMode == 2) {
-								generateLevelSelectScreen();
+								generateLevelSelectScreen(-1, 0, levelHighlightLine);
 							}
-							redraw();
 						}
 					}
 					else if (inputdir===0||inputdir===2) {
@@ -1411,11 +1373,10 @@ function checkKey(e,justPressed) {
 						if(titleMode == 1) {
 							generateTitleScreen(-1, inputdir == 0 ? -1 : 1);
 						} else if(titleMode == 2) {
-							generateLevelSelectScreen();
+							generateLevelSelectScreen(-1, inputdir == 0 ? -1 : 1);
 						} else if (titleMode == 3) {
 							generatePauseScreen(-1, inputdir == 0 ? -1 : 1);
 						}
-						redraw();
 					}
 				}
 			}
@@ -1434,6 +1395,7 @@ function checkKey(e,justPressed) {
     			}
     		}
     	}
+		return prevent(e);
     } else {
 	    if (!againing && inputdir>=0) {
             if (inputdir===4 && ('noaction' in state.metadata)) {

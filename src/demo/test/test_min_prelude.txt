@@ -10,11 +10,11 @@ homepage www.polyomino.com
 auto_level_titles
 continue_is_level_select
 debug
-//level_select
+level_select
 level_select_lock
 mouse_clicks
 //noaction
-nokeyboard,
+nokeyboard
 norepeat_action
 norestart
 noundo
