@@ -22,7 +22,7 @@ The menus now more distinctively identify this is PuzzleScript Next, and some mi
 Also some new documentation:
 * [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
 * [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
-* [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching.html).
+* [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
 
 Bug fixes include:
 * Debug visualisation now works correctly from one level to another.
