@@ -1,5 +1,5 @@
-title test min prelude
-author polyomino
+title test min prelude with a rather long title to trigger some text wrapping text wrapping text wrapping text wrapping text wrapping
+author polyomino with a rather long author to trigger some text wrapping text wrapping text wrapping text wrapping text wrapping
 homepage www.polyomino.com
 
 // minimal program with prelude tests
@@ -14,7 +14,7 @@ level_select
 level_select_lock
 mouse_clicks
 //noaction
-nokeyboard,
+nokeyboard
 norepeat_action
 norestart
 noundo
@@ -79,8 +79,8 @@ custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 //custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 debug_switch various random strings obj
 //homepage
-text_controls This is a text control...
-text_message_continue Please continue at your leisure...
+text_controls This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...
+text_message_continue Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...
 //title
 
 ========

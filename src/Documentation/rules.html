@@ -262,10 +262,15 @@ late [ Shadow ] -> [ ]</code></pre>
       <dd>Immediately switches to a different level. 
 		This does not count as a win and cannot be undone by the player. 
 		Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
-      <pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
+      <pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
+		<span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
 late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 
-      <dt>message You're dead. Press Undo or Restart to try again.</dt>
+	<dt>link <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+	<dd>Activates a link from this level to another when the player is on a linking object.
+		See <a href="levels.html#branching">this page</a> for more information.</dd>
+
+	  <dt>message You're dead. Press Undo or Restart to try again.</dt>
       <dd>Gives the player a message.  
 		Reads everything to its right, so it has to be the rightmost argument.</dd>
 
@@ -275,7 +280,7 @@ late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 
 	  <dt>prelude flags (zoomscreen, intervals, etc.) <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
       <dd>If <b>runtime_metadata_twiddling</b> is enabled, there are some prelude flags you can invoke as a command to change them at runtime. 
-		<a href="runtime_metadata_twiddling.html">More info here.</a></dd>
+		<a href="runtime_metadata_twiddling.html">More info here</a>.</dd>
 
 	  <dt>quit <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
 	  <dd>If you add <b>quit</b> after a rule, it'll behave as if the player pressed Escape: meaning it will quit out of the level. 

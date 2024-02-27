@@ -121,13 +121,18 @@ MESSAGE Thank you for playing the game.</code></pre>
     Longer messages are automatically wrapped, and can use up to 3 lines.</dd>
 
   <dt>section Tutorial levels <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
-  <dd>The name of the section will appear in the level select screen, and may be the target of a <b>goto</b>.</dd>
+  <dd>The name of the section will appear in the level select screen, and may be the target of a <b>goto</b> or <b>link</b>.</dd>
 
   <dt>level Crossing the Bridge <img src="../images/pspatt.png" title="Pattern:Script" height="16"></dt>
   <dd>Sets the name of the level. 
     If you don't, it will be named "Level N", where N is the number of the level. 
     This name will appear in the pause menu and in the "continue from" option of the title screen. 
     It should be short (maximum 16 characters) and make sense for the player. </dd>
+
+  <dt>link someobject Level 5 <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+  <dd>Creates a link from this level to Level 5, which can be activated by the <b>link</b> rule command when the player is on someobject.
+    The name can be the default (Level 5) or a name set by either the <b>level</b> or the <b>section</b> command.
+  </dd>
 
   <dt>Levels</dt>
   <dd>The level itself comes after any other commands and ends with a blank line.
@@ -148,7 +153,7 @@ O = Target
 </dd>
 </dl>
 
-<h4>Level Select Example <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></h4>
+<h3>Level Select Example <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></h3>
 
 <p>If you want to use the <b>level_select</b> feature or the <b>goto</b> commands, you need to divide your game into named sections.</p>
 <p>You can use a <b>goto</b> command to redirect the player to any named section after the preceding level was won.</p>
@@ -188,11 +193,69 @@ SECTION The End
 
 MESSAGE Congratulations!</code></pre>
 
-<h3>What stuff is hard to do?</h3>
-<p>Branching. 
-There is no support for it in terms of this level structure. 
-If you want a continuous open world you can set <b>zoomscreen</b> or <b>flickscreen</b> in the prelude.
-If you can think of an elegant way to implement level branching in the engine, do let me know.</p>
+<h3><span id="branching"></span>Level Branching<img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
+
+<p>If you want a continuous open world you can set <b>zoomscreen</b> or <b>flickscreen</b> in the prelude.
+But if you want real level branching, read on.</p>
+
+<p>The level command <b>LINK</b> provides a link from one level to another, triggered by a specified object.
+Links are created anywhere in the levels section, and apply to all subsequent levels.
+So yes, you can reuse your objects to link to different places in different levels.</p>
+
+<p>The rules command <b>LINK</b> activates a link if the player is on a linked object.
+The game switches to the new level, but remembers where it came from.
+Winning a level reached by a link returns the player to where the link came from instead of winning the game.
+The player will be on the linking location, so a rule can delete the linking object and consider that sub-level won.
+  
+<p>The prelude option <b>allow_undo_level</b> allows a player to go back to just before where a link came from.
+If you are using links, you will most likely want to set this option.</p>
+
+<p>The demo/test program is <a href="../editor.html?demo=next/soko_link">soko_link</a>.</p>
+
+<pre><code>RULES
+[ Player links ] -> [ Player ] checkpoint     // must have been a win
+[ t ] -> [ t crate ]
+[ links ][ crate ] -> [ links ][ ]
+[ crate ][ t ] -> [ crate ][ ]
+
+[ > Player | Crate ] -> [ > Player | > Crate ] 
+
+late [ Player links ] -> link
+
+WINCONDITIONS
+all Crate on Target
+no links
+
+LEVELS
+link e Level 3
+link f Level 4
+link g Level 5
+link h Level 6
+
+###############
+#O...........O#
+#..P.e.f.g.h..#
+#O.........t.O#
+###############
+
+message OK, doing well, half way there
+
+link e Part 2d
+link f Part 2c
+link g Part 2b
+link h Part 2a
+
+###############
+#O...........O#
+#..P.h.g.f.e..#
+#O.........t.O#
+###############
+
+</code></pre>
+
+
+
+
 
     </div><!-- /.container -->
 

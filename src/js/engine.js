@@ -2,156 +2,89 @@ var onLevelRestarted = new Event("levelRestarted");
 
 var RandomGen = new RNG();
 
-var intro_template = [
-  "..................................",
-  "..................................",
-  "..................................",
-  "........Puzzle Script Next........",
-  "..............v 1.7a..............",
-  "..................................",
-  "..................................",
-  "..................................",
-  ".........insert cartridge.........",
-  "................................. ",
-  "................................  ",
-  "...............................   ",
-  "..............................    "
-];
+function getIntroScreen(text) {
+	return {
+		lines: [
+			"", 
+			"==================", 
+			"", 
+			"Puzzle Script Next",
+			"Version 3.0b",
+			"", 
+			"==================", 
+			"", 
+			text
+		], 
+		options: []
+	};
+}
 
-var sitelock_template = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"........Puzzle Script Next........",
-	"..............v 1.7a..............",
-	"..................................",
-	"..................................",
-	"..................................",
-	".....This game is sitelocked!.....",
-	"................................. ",
-	"................................  ",
-	"...............................   ",
-	"..............................    "
-  ];
+function getMessageScreen(text) {
+	return {
+		lines: [
+			"", "", "", "", "", "", "", "", "", "", 
+			text
+		], 
+		options: [ 10 ]
+	};
+}
 
-var messagecontainer_template = [
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..................................",
-  "..........X to continue...........",
-  "..................................",
-  ".................................."
-];
+function getStartScreen(texts) {
+	const lines = [
+		"", "", "", "", "", "",
+		...texts,
+	];
+	return {
+		lines: lines, 
+		options: fillRange(6, lines.length),
+	};
+}
 
-var messagecontainer_template_mouse = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"........Click to continue.........",
-	"..................................",
-	".................................."
-];
+function getPauseScreen(state) {
+	const lines = [
+		"",
+		"-< GAME PAUSED >-",
+		state.levels[curLevelNo].title,
+		"",
+		"resume game",
+		!state.metadata.norestart ? "replay level from the start" : null,
+		state.metadata.level_select ? "go to level select screen" : null,
+		"exit to title screen",
+	].filter(l => l != null);
 
-var titletemplate_firstgo = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..........#.start game.#..........",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	".................................."];
+	return {
+		lines: lines,
+		options: fillRange(4, lines.length),
+	};
+}
 
-var titletemplate_firstgo_selected = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"###########.start game.###########",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	".................................."];
-	
-var titletemplate_empty = [
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	"..................................",
-	".................................."];
+function getLevelSelectScreen(inserts) {
+	const lines = [
+		"[ ESC: Back ]                ",
+		"Level Select",
+		""
+	];
+	const options = [ ];
+	inserts.forEach(ins => {
+		options.push(lines.length);
+		lines.push(ins);
+	});
+	return { lines: lines, options: options };
+}
 
-var title_options = [[
-	".............continue.............",
-	"...........#.continue.#...........",
-	"############.continue.############",
-	"...........>.continue.<...........",
-], [
-	"...........level select...........",
-	".........#.level select.#.........",
-	"##########.level select.##########",
-	".........>.level select.<..........",
-], [
-	".............settings.............",
-	"...........#.settings.#...........",
-	"############.settings.############",
-	"...........>.settings.<...........",
-], [
-	".............new game.............",
-	"...........#.new game.#...........",
-	"############.new game.############",
-	"...........>.new game.<...........",
-],];
+const MENUITEM_CONTINUE = 'Continue';
+const MENUITEM_LEVELSELECT = 'Level Select';
+const MENUITEM_NEWGAME = 'New Game';
+const MENUITEM_STARTGAME = 'Start Game';
 
-var MENUITEM_CONTINUE = 0;
-var MENUITEM_LEVELSELECT = 1;
-var MENUITEM_SETTINGS = 2;
-var MENUITEM_NEWGAME = 3;
-
-var MENUITEMVERSION_IDLE = 0;
-var MENUITEMVERSION_HIGHLIGHTED = 1;
-var MENUITEMVERSION_SELECTED = 2;
-var MENUITEMVERSION_HOVERED = 3;
+const TITLE_WIDTH = 34;
+const TITLE_HEIGHT = 13;
 
 var titleImage=[];
-var titleWidth=titletemplate_empty[0].length;
-var titleHeight=titletemplate_empty.length;
 var textMode=true;
 var titleScreen=true;
 var titleMode=0;//1 means title screen with options, 2 means level select, 3 means pause screen
 var titleSelection=0;
-var titleSelectOptions=2;
-var titleAvailableOptions = [];
 var titleSelected=false;
 var hoverSelection=-1; //When mouse controls are enabled, over which row the mouse is hovering. -1 when disabled.
 let lineColorOverride = [];		// a sparse array of line numbers and colours to use
@@ -206,167 +139,83 @@ function unloadGame() {
 	curLevel.objects = new Int32Array(0);
 	generateTitleScreen();
 	canvasResize();
-	redraw();
+	//redraw();
+	titleMode = 0;
 	titleSelected=true;
 }
 
 function isContinueOptionSelected() {
-	if(state.metadata["continue_is_level_select"] !== undefined) {
-		return false;
-	}
-
-	return titleAvailableOptions[titleSelection] == MENUITEM_CONTINUE;
+	return !state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE;
 }
 
 function isNewGameOptionSelected() {
-	if (titleMode == 0 || titleSelectOptions == 1 || titleAvailableOptions.length == 0) {
-		//If there's only one option, assume it's the new game button
-		return true;	
-	}
-
-	return titleAvailableOptions[titleSelection] == MENUITEM_NEWGAME;
+	return titleSelection == MENUITEM_NEWGAME || titleSelection == MENUITEM_STARTGAME;
 }
 
 function isLevelSelectOptionSelected() {
-	if(state.metadata["level_select"] === undefined) {
-		return false;
-	}
-	
-	if(state.metadata["continue_is_level_select"] !== undefined) {
-		//Act as if the "continue" button is the "level select" button
-		if (titleAvailableOptions[titleSelection] == MENUITEM_CONTINUE) {
-			return true;
-		}
-	}
-
-	return titleAvailableOptions[titleSelection] == MENUITEM_LEVELSELECT;
+	return state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE || titleSelection == MENUITEM_LEVELSELECT;
 }
 
-function generateTitleScreen() {
+function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
+	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen()`, hoverLine, scrollIncrement, selectLine);
+	lineColorOverride = [];
   	tryLoadCustomFont();
 
 	titleMode=showContinueOptionOnTitleScreen()?1:0;
 
 	if (state.levels.length===0) {
-		titleImage=intro_template;
+		titleImage = fillAndHighlight(getIntroScreen("Please select a game"));
 		return;
   	}
 
     if (isSitelocked()) {
-		titleImage = sitelock_template;
+		titleImage = fillAndHighlight(getIntroScreen("This game is sitelocked!"));
 		return;
 	}
 
-	const title = state.metadata.title || "PuzzleScript Next Game";
-
-	lineColorOverride = [];
 	if (titleMode===0) {
-        titleSelectOptions = 1;
-		if (titleSelected) {
-			titleImage = deepClone(titletemplate_firstgo_selected);		
-		} else {
-			titleImage = deepClone(titletemplate_firstgo);					
-		}
+		const screen = getStartScreen([ MENUITEM_STARTGAME ]);
+		titleImage = selectLine ? fillAndHighlight(screen, -1, -1, screen.options[0]) : fillAndHighlight(screen, screen.options[0]);
+		titleSelection = selectLine ? MENUITEM_STARTGAME : null;
 	} else {
-
-		var playedGameBefore = hasStartedTheGame() || hasSolvedAtLeastOneSection()
-
-		titleAvailableOptions = [];
-
+		const playedGameBefore = hasStartedTheGame() || hasSolvedAtLeastOneSection()
+		const options = [];
+		options.push(playedGameBefore && !hasFinishedTheGame() ? MENUITEM_CONTINUE : MENUITEM_NEWGAME);
+		if(state.metadata.level_select && (!state.metadata.continue_is_level_select || !playedGameBefore))
+			options.push(MENUITEM_LEVELSELECT);
 		if (playedGameBefore && !hasFinishedTheGame()) {
-			titleAvailableOptions.push(MENUITEM_CONTINUE);
-		} else {
-			titleAvailableOptions.push(MENUITEM_NEWGAME);
+			options.push(MENUITEM_NEWGAME);
 		}
 
-		if(state.metadata["level_select"] !== undefined && (state.metadata["continue_is_level_select"] === undefined || !playedGameBefore)) {			
-			titleAvailableOptions.push(MENUITEM_LEVELSELECT);
-		}
+		const screen = getStartScreen(options);
+		if (levelSelectScrollPos == 0)
+			levelSelectScrollPos = screen.options[0];
+		else if (scrollIncrement && screen.options.includes(levelSelectScrollPos + scrollIncrement))
+			levelSelectScrollPos += scrollIncrement;
 
-		/*if(state.metadata["settings"] !== undefined) {
-			titleAvailableOptions.push(2);
-		}*/
-
-		if (playedGameBefore) {
-			titleAvailableOptions.push(MENUITEM_NEWGAME);
-		}
-
-		titleImage = deepClone(titletemplate_empty);
-
-		titleSelectOptions = titleAvailableOptions.length;
-
-		//Convert array to menu
-		for(var i = 0; i < titleSelectOptions; i++) {
-			var version = MENUITEMVERSION_IDLE;
-			
-			//If there are two items, add a gap of spacing between them
-			var j = 0;
-			if(titleSelectOptions == 2 && i == 1) {
-				j = 1;
-			}
-			var lineInTitle = 5 + i + j;
-
-			if(titleSelection == i) {
-				if(titleSelected) {
-					version = MENUITEMVERSION_SELECTED;
-				} else {
-					version = MENUITEMVERSION_HIGHLIGHTED;
-				}
-			}
-
-			if (IsMouseGameInputEnabled() && hoverSelection == lineInTitle && !titleSelected && hoverSelection >= 0) {
-				version = MENUITEMVERSION_HOVERED;
-			}
-
-			titleImage[lineInTitle] = deepClone(title_options[titleAvailableOptions[i]][version]);
-		}
+		titleImage = fillAndHighlight(screen, levelSelectScrollPos, hoverLine, selectLine);
+		const select = selectLine || hoverLine;
+		titleSelection = screen.options.includes(select) ? options[screen.options.indexOf(select)] : false;  // todo: ???
 	}
 
 	if (state.metadata.text_controls) {
-		for (var i=0;i<titleImage.length;i++)
-		{
-			titleImage[i]=titleImage[i].replace(/\./g, ' ');
-		}
-
-		var customText = state.metadata.text_controls;
-		var wrappedText = wordwrap(customText, 35, true);
-		if (wrappedText[0]) {titleImage[10] = wrappedText[0]}
-		if (wrappedText[1]) {titleImage[11] = wrappedText[1]}
-		if (wrappedText[2]) {titleImage[12] = wrappedText[2]}
+		const text = wordwrap(state.metadata.text_controls, TITLE_WIDTH, true);
+		text.slice(0, 3).forEach((t,x) => {
+			titleImage[10 + x] = t;
+		})
 	} else {
-		var noAction = 'noaction' in state.metadata;	
-		var noUndo = 'noundo' in state.metadata;
-		var noRestart = 'norestart' in state.metadata;
-
-		titleImage[10] = ".arrow keys to move...............";
-
-		if (noAction) {
-			titleImage[11]=".X to select......................";
-		} else {
-			titleImage[11]=" X to action......................"
-		}
-
-		if (noUndo && noRestart) {
-			titleImage[12]="..................................";
-		} else if (noUndo) {
-			titleImage[12]=".R to restart.....................";
-		} else if (noRestart) {
-			titleImage[12]=".Z to undo........................";
-		} else {
-			titleImage[12]=".Z to undo, R to restart..........";
-		}
+		titleImage[10] = "arrow keys to move";
+		titleImage[11] = state.metadata.noaction ?" X to select" : " X to action"
+		titleImage[12] = state.metadata.noundo && state.metadata.norestart ? ""
+			: state.metadata.norestart ? " R to restart"
+			: state.metadata.noundo ? " Z to undo"
+			: " Z to undo, R to restart";
 
 		if (IsMouseGameInputEnabled()) {
-			if (state.metadata.mouse_drag !== undefined || state.metadata.mouse_rdrag !== undefined) {
-				titleImage[10]=".Click, Tap, or Drag to interact..";
-			} else {
-				titleImage[10]=".Click or Tap to interact.........";
-			}
-			titleImage[11]=".Z or Middle Mouse Button to undo.";
-			titleImage[12]=".R to restart.....................";
-		}
-		for (var i=0;i<titleImage.length;i++) {
-			titleImage[i]=titleImage[i].replace(/\./g, ' ');
+			titleImage[10] = state.metadata.mouse_drag || state.metadata.mouse_rdrag ? " Click, Tap, or Drag to interact"
+				: " Click or Tap to interact";
+			titleImage[11] = " Z or Middle Mouse Button to undo";
+			titleImage[12] = " R to restart";
 		}
 	}
 	if (state.metadata.keyhint_color) {
@@ -375,59 +224,35 @@ function generateTitleScreen() {
 		lineColorOverride[12] = state.metadata.keyhint_color;
 	}
 
-	var width = titleImage[0].length;
-	var titlelines=wordwrap(title,titleImage[0].length);
-	const maxl = state.metadata.author ? 3 : 5;
-	if (titlelines.length > maxl) {
-		titlelines.splice(maxl);
-		logWarning("Game title is too long to fit on screen, truncating to three lines.", state.metadata_lines.title, true);
-	}
+	const title = state.metadata.title || "PuzzleScript Next Game";
 
-	for (var i=0;i<titlelines.length;i++) {
-		var titleline=titlelines[i];
-		var titleLength=titleline.length;
-		var lmargin = ((width-titleLength)/2)|0;
-		var rmargin = width-titleLength-lmargin;
-		var row = titleImage[1+i];
-		titleImage[1+i]=row.slice(0,lmargin)+titleline+row.slice(lmargin+titleline.length);
+	const titleSplit = wordwrap(title, TITLE_WIDTH);
+	const maxl = state.metadata.author ? 2 : 4;
+	if (titleSplit.length > maxl) {
+		titleSplit.splice(maxl);
+		if (!hoverLine)
+			logWarning(`Game title is too long to fit on screen, truncating to ${maxl} lines.`, state.metadata_lines.title, true);
+	}
+	titleSplit.forEach((line,x) => {
+		titleImage[1 + x] = centerText(line.trim(), TITLE_WIDTH);
 		if (state.metadata.title_color)
-			lineColorOverride[i + 1] = state.metadata.title_color;
+			lineColorOverride[1 + x] = state.metadata.title_color;
+	});
 
-	}
-
-	if (state.metadata.author!==undefined) {
-		var attribution="by "+state.metadata.author;
-		var attributionsplit = wordwrap(attribution,titleImage[0].length);
-		if (attributionsplit[0].length<titleImage[0].length){
-			attributionsplit[0]=" "+attributionsplit[0];
+	if (state.metadata.author) {
+		const split = wordwrap("by " + state.metadata.author, TITLE_WIDTH);
+		if (split.length > 2){
+			split.splice(2);
+			if (!hoverLine)
+				logWarning("Author list too long to fit on screen, truncating to 2 lines.",state.metadata_lines.author, true);
 		}
-		if (attributionsplit.length>3){
-			attributionsplit.splice(3);
-			logWarning("Author list too long to fit on screen, truncating to three lines.",state.metadata_lines.author,true);
-		}
-		for (var i=0;i<attributionsplit.length;i++) {
-			var line = attributionsplit[i]+" ";
-			if (line.length>width){
-				line=line.slice(0,width);
-			}
-			var row = titleImage[3+i];
-			titleImage[3+i]=row.slice(0,width-line.length)+line;
+		split.forEach((line, x) => { 
+			titleImage[3 + x]=line.trim().padStart(TITLE_WIDTH);
 			if (state.metadata.author_color)
-				lineColorOverride[3 + i] = state.metadata.author_color;
-		}
+				lineColorOverride[3 + x] = state.metadata.author_color;
+		});
 	}
-
-}
-// add pause screen
-function centerText(text, len, fill = " ") {
-	return (fill.repeat((len - text.length) / 2) + text).padEnd(len, fill);
-}
-
-function padToSize(textLines, width, height) {
-	const lines = textLines.map(l => l.padEnd(width));
-	while (lines.length < height) 
-		lines.push("");
-	return lines;
+	redraw();
 }
 
 function goToPauseScreen() {
@@ -445,39 +270,24 @@ function goToPauseScreen() {
 	statusText = "";
 
 	generatePauseScreen();
-	redraw();
 }
 
 let selectOption;
 function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
-	//console.log('pause screen', hoverLine, scrollIncrement);
-	const lines = [
-		"",
-		"-< GAME PAUSED >-",
-		state.levels[curLevelNo].title,
-		"",
-		"resume game",
-		!state.metadata.norestart ? "replay level from the start" : null,
-		state.metadata.level_select ? "go to level select screen" : null,
-		"exit to title screen",
-	].filter(l => l != null);
-	const options = [ 4, lines.length ];
+	if (debugSwitch.includes('menu')) console.log(`generatePauseScreen()`, hoverLine, scrollIncrement, selectLine);
+	const screen = getPauseScreen(state);
 
-	if (scrollIncrement && levelSelectScrollPos + scrollIncrement >= options[0] && levelSelectScrollPos + scrollIncrement < options[1]) 
+	if (levelSelectScrollPos == 0)
+		levelSelectScrollPos = screen.options[0];
+	else if (scrollIncrement && screen.options.includes(levelSelectScrollPos + scrollIncrement))
 		levelSelectScrollPos += scrollIncrement;
-	else if (levelSelectScrollPos == 0)
-		levelSelectScrollPos = options[0];
 
-	titleImage = padToSize(lines.map((l,x) => 
-		(x == selectLine) ? centerText(`# ${l} #`, 35, "#") :
-		(x == hoverLine && hoverLine >= options[0] && hoverLine < options[1]) ? centerText(`> ${l} <`, 35) : 
-		(x == levelSelectScrollPos) ? centerText(`# ${l} #`, 35) :
-		centerText(l, 35)), 35, 13);
-	selectOption = selectLine - options[0];
+	titleImage = fillAndHighlight(screen, levelSelectScrollPos, hoverLine, selectLine);
+	selectOption = selectLine - screen.options[0];
+	redraw();
 }
 
-function selectPauseScreen(lineNo) {
-	//console.log('pause select',  selectOption);
+function selectPauseScreen(lineNo) { //@@
 	const options = [
 		() => {
 			textMode = false;
@@ -492,25 +302,52 @@ function selectPauseScreen(lineNo) {
 		} : null,
 		state.metadata.level_select ? () => {
 			gotoLevelSelectScreen();
-			redraw();
+			//redraw();
 		} : null,
 		() => {
 			goToTitleScreen();
-			redraw();
+			//redraw();
 		}
 	].filter(l => l != null);
 
 	options[selectOption]();
 }
 
-var levelSelectScrollPos = 0;
+function centerText(text, len, fill = " ") {
+	return text.length >= len ? text.slice(0, len)
+		: (fill.repeat(~~((len - text.length) / 2)) + text).padEnd(len, fill);
+}
+
+function padToSize(textLines, width, height) {
+	const lines = textLines.map(l => l.padEnd(width));
+	while (lines.length < height) 
+		lines.push("");
+	return lines;
+}
+
+function fillRange(start, finish) {
+	return Array(finish - start).fill().map((item, index) => start + index);
+};
+
+function fillAndHighlight(image, highlight, hover, select) {
+	const ll = image.lines.map((l,x) => 
+		x == select && image.options.includes(x) ? centerText(`# ${l} #`, TITLE_WIDTH, "#") :
+		x == hover && image.options.includes(x) ? centerText(`> ${l} <`, TITLE_WIDTH) : 
+		x == highlight && image.options.includes(x) ? centerText(`# ${l} #`, TITLE_WIDTH) :
+		centerText(l, TITLE_WIDTH));
+	return padToSize(ll, TITLE_WIDTH, TITLE_HEIGHT);
+}
+
+let levelSelectScrollPos = 0;
+let levelHighlightLine = 0;
 
 function gotoLevelSelectScreen() {
-	if(state.metadata["level_select"] === undefined){
+	if(!state.metadata.level_select) {
 		goToTitleScreen();
 		return;
 	}
 	levelSelectScrollPos = 0;
+	levelHighlightLine = 0;
 	titleSelected = false;
 	timer = 0;
 	quittingTitleScreen = false;
@@ -529,76 +366,22 @@ function gotoLevelSelectScreen() {
 				break;
 			}
 		}
-  }
+  	}
   
-  state.metadata = deepClone(state.default_metadata);
-  twiddleMetadataExtras();
+  	state.metadata = deepClone(state.default_metadata);
+  	twiddleMetadataExtras();
 
 	generateLevelSelectScreen();
-	redraw();
 }
 
-function generateLevelSelectScreen() {
-	/*
-	"...........select level...........",
-	"..................................",
-	"[?].#.Testy section maxxx long.#.O",
-	".................................|",
-	"[ ]...Unselected section.........|",
-	".................................|",
-	"[ ]...Another section............|",
-	".................................|",
-	"[ ]...Another section............|",
-	".................................|",
-	"[ ]...Another section............|",
-	".................................|",
-	"[ ]...Another section............|"
-  */
-
-	titleImage = [
-		" [ ESC: Back ]                    ",
-		"           Level Select           "
-	];
-
-	if (hoverSelection == 0) {
-		titleImage[0] =	"[  ESC: Back  ]                   ";
-	}
-
-	amountOfLevelsOnScreen = 9;
+function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { //@@
+	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
-	titleSelectOptions = state.sections.length;
-
-	if(titleSelection < levelSelectScrollPos) { //Up
-		levelSelectScrollPos = titleSelection;
-	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) { //Down
-		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
-	}
-
-	var posOnScreen = titleSelection - levelSelectScrollPos;
-	if (posOnScreen == 0) {
-		levelSelectScrollPos = Math.max(0, levelSelectScrollPos - 1);
-		//console.log("On first position");
-	}
-
-	if (posOnScreen == amountOfLevelsOnScreen-1) {
-		levelSelectScrollPos = Math.min(state.sections.length-amountOfLevelsOnScreen, levelSelectScrollPos + 1);
-		//console.log("On last position");
-	}
-
-	if (levelSelectScrollPos != 0) {
-		if (hoverSelection == 2) {
-			titleImage.push("                        [  PREV  ]");
-		} else {
-			titleImage.push("                         [ PREV ] ");
-		}
-	} else {
-		titleImage.push("                                  ");
-	}
 
 	var unlockedUntil = -1;
-	if(state.metadata["level_select_lock"] !== undefined) {
+	if (state.metadata.level_select_lock) {
 		// find last solved section:
-		var unsolvedSections = 0;
+		let unsolvedSections = 0;
 		for(var i = 0; i < state.sections.length; i++) {
 			if(solvedSections.indexOf(state.sections[i].name) >= 0) {
 				unlockedUntil = i;
@@ -606,82 +389,53 @@ function generateLevelSelectScreen() {
 				unsolvedSections++;
 			}
 		}
-
 		if(state.metadata.level_select_unlocked_ahead !== undefined) {
 			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
 		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
 			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
-		}
-		else {
+		} else {
 			unlockedUntil += 1;
 		}
-
-		//console.log("total: " + state.sections.length + "unsolved: " + unsolvedSections + " until:" + unlockedUntil)
-	}
-	//console.log(unlockedUntil);
-
-	for(var i = levelSelectScrollPos; i < levelSelectScrollPos + amountOfLevelsOnScreen; i++) {
-		if(i < 0 || i >= state.sections.length) {
-			break;
-		}
-
-		var section = state.sections[i];
-		var solved = (solvedSections.indexOf(section.name) >= 0);
-		var selected = (i == titleSelection);
-		var locked = (unlockedUntil >= 0 && i > unlockedUntil);
-
-		var name = section.name.substring(0, 24);
-		
-		if(locked) {
-			if(selected && titleSelected) {
-				titleSelected = false;
-				quittingTitleScreen = false;
-			}
-
-			var l = name.length;
-			name = "";
-			for(var j = 0; j < l; j++) {
-				name += "*";
-			}
-		}
-		
-		var solved_symbol = "?";
-		if(state.metadata.level_select_solve_symbol !== undefined) {
-			solved_symbol = state.metadata.level_select_solve_symbol;
-		}
-		var line = (solved ? solved_symbol : " ") + " ";
-
-		var hover_symbol = " ";
-		if (selected) {hover_symbol = "#"}
-		if (IsMouseGameInputEnabled() && hoverSelection - 3 + levelSelectScrollPos == i) {hover_symbol = ">"}
-		
-		line += hover_symbol + " " + name;
-		for(var j = name.length; j < 25; j++) {
-			if(selected && titleSelected && j != name.length) {
-				line += "#";
-			} else {
-				line += " ";
-			}
-		}
-		line += (selected ? "#" : " ") + "  ";
-
-		titleImage.push(line);
 	}
 
-	if (levelSelectScrollPos != titleSelectOptions - amountOfLevelsOnScreen && titleSelectOptions - amountOfLevelsOnScreen > 0) {
-		if (hoverSelection == 12) {
-			titleImage.push("                        [  NEXT  ]")
-		} else {
-			titleImage.push("                         [ NEXT ] ")
+	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	if (levelHighlightLine == 0)
+		levelHighlightLine = 3;
+	else if (levelHighlightLine > 3 && scrollIncrement < 0)
+		levelHighlightLine--;
+	else if (levelHighlightLine < 3 + amountOfLevelsOnScreen - 1 && scrollIncrement > 0)
+		levelHighlightLine++;
+	else if (levelSelectScrollPos > 0 && (selectLine == 2 || scrollIncrement < 0))
+		levelSelectScrollPos--;
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
+		levelSelectScrollPos++;
+
+	const solved_symbol = state.metadata.level_select_solve_symbol || "?";
+
+	titleSelection = selectLine == 0 ? 0 : null;
+	const lines = state.sections.map((section,i) => {
+		const solved = (solvedSections.indexOf(section.name) >= 0);
+		//const selected = (i == titleSelection);
+		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
+		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
+		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
+			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
+				titleSelection = i;
+			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24, "#");
 		}
-	} else {
-		titleImage.push("                                  ");
-	}
+		return (solved ? solved_symbol : " ") + " " + name.padEnd(24);
+	});
 
-	for(var i = titleImage.length; i < 13; i++) {
-		titleImage.push("                                  ");
-	}
+	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
+	const screen = getLevelSelectScreen(showLines);
+	console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
+	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
+	if (levelSelectScrollPos > 0)
+		titleImage[2] = (hoverLine == 2 ? "[  PREV  ]" : "[ PREV ] ").padStart(TITLE_WIDTH);
+	if (levelSelectScrollPos + amountOfLevelsOnScreen < lines.length)
+		titleImage[12] = (hoverLine == 12 ? "[  NEXT  ]" : "[ NEXT ] ").padStart(TITLE_WIDTH);
 	redraw();
 }
 
@@ -719,7 +473,7 @@ function gotoLink() {
 					backup: backupLevel(), 		// will restore to this
 					backupTop: backups.length 	// will prune to this
 				};
-				linkStack.push(linkEntry);		//@@
+				linkStack.push(linkEntry);
 				gotoLevel(link.targetNo);
 				return;
 			}
@@ -810,9 +564,7 @@ function wordwrap( str, width, handleNewlines = false ) {
     width = width || 75;
     var cut = true;
  
-	if (!str) { return str; }
-	
-	//console.log("Before: "+str)
+	if (!str) return [ str ];
  
 	var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
 
@@ -834,83 +586,36 @@ function wordwrap( str, width, handleNewlines = false ) {
 }
 
 var splitMessage=[];
-
 function drawMessageScreen(message) {
+	lineColorOverride = [];
 	tryLoadCustomFont();
-
 	titleMode=0;
 	textMode=true;
-	lineColorOverride = [];
-	if ("text_message_continue" in state.metadata) {
-		titleImage = deepClone(messagecontainer_template);
 
-		for (var i=0;i<titleImage.length;i++) {
-			titleImage[i]=titleImage[i].replace(/\./g, ' ');
-		}
+	const screen = getMessageScreen(
+		quittingMessageScreen ? "" 
+		: state.metadata.text_message_continue ? state.metadata.text_message_continue
+		: IsMouseGameInputEnabled() ? "Click to continue" : "X to continue");
 
-		titleImage[10] = state.metadata.text_message_continue;
-		if (state.metadata.keyhint_color)
-			lineColorOverride[10] = state.metadata.keyhint_color;
-	} else {
-		if (IsMouseGameInputEnabled())
-			titleImage = deepClone(messagecontainer_template_mouse);
-		else
-			titleImage = deepClone(messagecontainer_template);
+	titleImage = fillAndHighlight(screen);
+	if (state.metadata.keyhint_color)
+		lineColorOverride[screen.options[0]] = state.metadata.keyhint_color;
 
-		for (var i=0;i<titleImage.length;i++) {
-			titleImage[i]=titleImage[i].replace(/\./g, ' ');
-		}
-	}
+	const splitMessage = wordwrap(message, TITLE_WIDTH, true);
 
-	var emptyLineStr = titleImage[9];
-	var xToContinueStr = titleImage[10];
+	const lines = splitMessage.map(m => {
+		return state.metadata.message_text_align == 'left' ? m.padEnd(TITLE_WIDTH)
+		: state.metadata.message_text_align == 'right' ? m.padStart(TITLE_WIDTH)
+		: centerText(m, TITLE_WIDTH);
+	})
 
-	titleImage[10]=emptyLineStr;
+	lines.length = Math.min(lines.length, 12);
+	const offset = 5 - ~~(lines.length / 2);
 
-	var width = titleImage[0].length;
-
-	splitMessage = wordwrap(message,titleImage[0].length, true);
-
-
-	var offset = 5-((splitMessage.length/2)|0);
-	if (offset<0) {
-		offset=0;
-	}
-
-	var count = Math.min(splitMessage.length,12);
-	for (var i=0;i<count;i++) {
-		if (!splitMessage[i]) {continue;}
-		var m = splitMessage[i].trimRight();
-		var row = offset+i;	
-		var messageLength=m.length;
-		var lmargin = ((width-messageLength)/2)|0;
-		if (state.metadata.message_text_align) {
-			var align = state.metadata.message_text_align.toLowerCase();
-			if (align == "left") {
-				lmargin = 0;
-			} else if (align == "right") {
-				lmargin = (width-messageLength);
-			}
-		}
-		//var rmargin = width-messageLength-lmargin;
-		var rowtext = titleImage[row];
-		titleImage[row]=rowtext.slice(0,lmargin)+m+rowtext.slice(lmargin+m.length);		
-	}
-
-	var endPos = 10;
-	if (count>=10) {
-		if (count<12){
-			endPos = count + 1;
-		} else {
-			endPos = 12;
-		}
-    }
-  	if (quittingMessageScreen) {
-    	titleImage[endPos]=emptyLineStr;
-  	} else {
-    	titleImage[endPos]=xToContinueStr;
-  	}
-  
+	lines.forEach((line,x) => {
+		titleImage[x + offset] = line;
+	})
+ 
   	canvasResize();
 }
 
@@ -962,7 +667,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //@@todo:
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -1080,7 +785,6 @@ function tryLoadCustomFont() {
 		document.fonts.add(loaded_face);
 		loadedCustomFont = true;
 		canvasResize();
-		redraw();
 	}).catch(function(error) {alert("Unable to load font!");});
 }
 
@@ -1168,7 +872,7 @@ function level4Serialization() {
 
 // major function to set up game state on start of run
 function setGameState(_state, command, randomseed) {
-	if (debugSwitch.includes('load')) console.log(`setGameState(${command})`);  //@@todo:
+	if (debugSwitch.includes('load')) console.log(`setGameState(${command})`);  //todo:
 	oldflickscreendat = [];
 	linkStack = [];
 	timer = 0;
@@ -1967,7 +1671,7 @@ Level.prototype.setMovements = function(index, vec) {
 }
 
 // return a list of object names at index
-Level.prototype.getObjects = function(index) {	// @@
+Level.prototype.getObjects = function(index) {
 	const bitmask = this.getCell(index);
 	const objs = [];
 	for (let bit = 0; bit < 32 * STRIDE_OBJ; ++bit) {
@@ -3871,7 +3575,7 @@ function DoWin() {
 	againing = false;
 	tryPlayEndLevelSound();
 
-	if (linkStack.length > 0) { 		//@@@ got here by link so go back there
+	if (linkStack.length > 0) { 		// got here by link so go back there
 		returnLink();
 		processInput(-1, true);			// allow trigger on rules with no movement
 		return;
@@ -3917,6 +3621,7 @@ function nextLevel() {
 			titleSelection = 0;
 			gotoLevelSelectScreen();
 		} else {
+			throw "next level";
 			// settings
 			// TODO
 		}
@@ -4008,7 +3713,8 @@ function goToTitleScreen(){
   	if (canvas!==null){//otherwise triggers error in cat bastard test
 		regenSpriteImages();
 	}
-
+	
+	levelSelectScrollPos = 0;
 	generateTitleScreen();
 }
 
@@ -4162,5 +3868,5 @@ function updateCameraPositionTarget() {
 
 
 function IsMouseGameInputEnabled() {
-	return "mouse_left" in state.metadata || "mouse_drag" in state.metadata || "mouse_up" in state.metadata;
+	return state.metadata.mouse_left || state.metadata.mouse_up || state.metadata.mouse_drag || state.metadata.mouse_clicks;
 }

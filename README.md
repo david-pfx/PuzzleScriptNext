@@ -15,19 +15,14 @@ PuzzleScript Next is a combination of the work of many authors:
 
 ## New Features and Fixes
 
-The latest version is Release v-24b15. 
+The latest version is Release v-24b27. 
 It includes new features in support of level branching, and a test program showing how it can be used.
-This is an update of the previous release, fixing some bugs.
+The menus now more distinctively identify this is PuzzleScript Next, and some minor bugs in the menus have been corrected.
 
-* The level command `LINK` provides a link from one level to another, triggered by a specified object.
-* The rules command `LINK` activates a link if the player is on a linked object.
-* The prelude option `allow_undo_level` allows a player to go back to just before where a link came from.
-* Winning a level reached by a link returns the player to where the link came from instead of winning the game.
-* The demo/test program is [`soko_link`](https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/soko_link).
-
-Also:
-* New documentation page [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
-* New documentation page [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
+Also some new documentation:
+* [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
+* [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
+* [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching.html).
 
 Bug fixes include:
 * Debug visualisation now works correctly from one level to another.
