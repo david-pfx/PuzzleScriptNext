@@ -262,13 +262,21 @@ late [ Shadow ] -> [ ]</code></pre>
       <dd>Immediately switches to a different level. 
 		This does not count as a win and cannot be undone by the player. 
 		Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
-      <pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
-		<span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
+      	<pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
+			<span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
 late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 
-	<dt>link <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
-	<dd>Activates a link from this level to another when the player is on a linking object.
+	  <dt>link <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+	  <dd>Activates a link from this level to another when the player is on a linking object.
 		See <a href="levels.html#branching">this page</a> for more information.</dd>
+
+	  <dt>log The Player is next to a Crate <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+	  <dd>Sends a logging message with a clickable line number to the console.
+		Reads everything to its right, so it has to be the rightmost argument.
+		<pre><code>[ > Player | Crate ] -> [ > Player | > Crate ] 
+late [ Player | Crate ] -> log The Player is next to a Crate
+late [ Player | Wall ] -> log The Player is next to a Wall</code></pre>
+	  </dd>
 
 	  <dt>message You're dead. Press Undo or Restart to try again.</dt>
       <dd>Gives the player a message.  
