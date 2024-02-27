@@ -9,7 +9,7 @@ function getIntroScreen(text) {
 			"==================", 
 			"", 
 			"Puzzle Script Next",
-			"v 9900",
+			"Version 3.0b",
 			"", 
 			"==================", 
 			"", 

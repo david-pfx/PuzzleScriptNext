@@ -1156,7 +1156,7 @@ function checkKey(e,justPressed) {
         }
         case 13://enter
         case 32://space
-        case 67://c
+        //case 67://c
         case 88://x
         {
 			if (justPressed && ignoreNotJustPressedAction){
