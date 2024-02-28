@@ -253,16 +253,34 @@ late [ Shadow ] -> [ ]</code></pre>
       <dd>Saves the game state.  
 		Now, whenever the person presses <b>R</b> to restart, or you do the RESTART command, they'll spawn here instead.</dd>
 
-	  <dt>gosub Check for Dead Player <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
+	  <dt>gosub Check Win <img src="../images/psnext.png" title="PuzzleScript Next" height="16"></dt>
 	  <dd>Begins executing rules in the named subroutine.
 		Execution continues until the end of the subroutine, and then returns to the next rule after this one.
 	  </dd>
+	  <pre><code><a href="../editor.html?demo=next/bridges" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span>
+		</a>// mainline for game
+[ player ] -> gosub player move
+[ player ] -> gosub show lit
+[ player ] -> gosub check win
 
+subroutine player move
+// rules for moving player
+
+subroutine show lit
+// rules for updating the board
+
+subroutine check win
+[ player ] -> [ player won ]
+[ cell no lit ][ player won ] -> [ cell ][ player ]
+[ won ] -> sfx1
+[ won ] -> status You win! Press R to play again, or Esc to select level.
+</code></pre>
+		
  	  <dt>goto <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
       <dd>Immediately switches to a different level. 
 		This does not count as a win and cannot be undone by the player. 
 		Everything to the right of the Goto command is interpreted as a <a href="levels.html#section-and-goto">section name</a>.
-      	<pre><code><a href="../editor.html?demo=plus_gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
+      	<pre><code><a href="../editor.html?demo=plus/gotolevel" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" >
 			<span class="glyphicon glyphicon-cog"> Edit</span></a>late [ Player One ] -> GOTO Section 1
 late [ Player Hub ] -> GOTO Hub</code></pre></dd>
 
