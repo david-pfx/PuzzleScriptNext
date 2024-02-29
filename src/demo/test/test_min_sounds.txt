@@ -42,10 +42,14 @@ r move 89294300:0.1
 r cantmove 56601502:5.5
 y destroy 45101706
 y create 55101706
-m lclick 11111106
-m rclick 36701906
-sfx1 64217903 
-
+//m lclick 11111106
+//m rclick 36701906
+sfx1 36701906
+sfx2 36701906:1
+sfx3 36701906:2
+sfx4 36701906:4
+sfx5 36701906:10
+sfx6 36701906:20
 ================
 COLLISIONLAYERS
 ================
@@ -61,7 +65,12 @@ RULES
 [ > p | rgb ] -> [ > p | > rgb ]
 [ > p | k ] -> [ p | y ]
 [ > p | y ] -> [ p | k ]
-
+[ lclick k ] -> sfx1
+[ lclick y ] -> sfx2
+[ lclick m ] -> sfx3
+[ lclick r ] -> sfx4
+[ lclick g ] -> sfx5
+[ lclick b ] -> sfx6
 ==============
 WINCONDITIONS
 ==============
