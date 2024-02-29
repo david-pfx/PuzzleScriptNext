@@ -22,19 +22,19 @@ For more information see:
 
 const MAX_ERRORS_FOR_REAL=100;
 
-var compiling = false;
-var errorStrings = [];//also stores warning strings
-var errorCount=0;//only counts errors
-//const lastStream = {};
+let compiling = false;
+let errorStrings = [];      //also stores warning strings
+let errorCount = 0;         //only counts errors
+let caseSensitive = false;
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
 const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
-const commandargs_table = ['message', 'goto', 'status', 'gosub'];
+const commandargs_table = ['message', 'goto', 'status', 'gosub', 'log'];
 const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
 const soundverbs_directional = ['move', 'cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
@@ -63,6 +63,10 @@ function htmlColor(color, text) {
 
 function htmlClass(clss, text) {
 	return `<span class="${clss}">${text}</span>`;
+}
+
+function errorCase(ident) {
+    return caseSensitive ? ident : ident.toUpperCase();
 }
 
 function logErrorCacheable(str, lineNumber,urgent) {
@@ -254,7 +258,7 @@ var codeMirrorFn = function() {
                 return sym.slice(1).flatMap(s => expandSymbol(state, s, true));
             }
         }
-        logError(`Cannot expand symbol ${name}`, state.lineNumber);
+        logError(`Cannot expand symbol "${errorCase(name)}"`, state.lineNumber);
         return [name];
     }
 
@@ -507,9 +511,9 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^[a-z_]+/i, true)) {
                 if (state.metadata_lines[ident]) {
                     var otherline = state.metadata_lines[token];
-                    logWarning(`You've already defined a "${token.toUpperCase()}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
+                    logWarning(`You've already defined a "${errorCase(token)}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
                 } else if (prelude_not_implemented.includes(token)) {
-                    logWarning(`Option ${token.toUpperCase()} is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
+                    logWarning(`Option ${errorCase(token)} is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
                 } else if (prelude_param_text.includes(token)) {
                     ident = token;
                     lexer.pushToken(token, 'METADATA');
@@ -522,7 +526,7 @@ var codeMirrorFn = function() {
 
                     while (!lexer.matchEol()) {
                         if (token = lexer.match(/^\S+/, true)) {
-                            kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + token.toUpperCase()
+                            kind = (token in colorPalettes.arnecolors) ? 'COLOR COLOR-' + errorCase(token)
                                 : (token === "transparent") ? 'COLOR FADECOLOR'
                                 : token.match(/^#[0-9a-fA-F]+$/) ? 'MULTICOLOR' + token
                                 : 'METADATATEXT';
@@ -530,14 +534,14 @@ var codeMirrorFn = function() {
                             args.push(token);
                         } else break;
                     }
-                } else logWarning(`Prelude option "${token.toUpperCase()}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
+                } else logWarning(`Prelude option "${errorCase(token)}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
             } 
             if (ident) {
                 if (lexer.matchEol()) 
                     return checkArguments(ident, args);
                 else {
                     token = lexer.matchNotComment();
-                    logError(`Unrecognised stuff in the prelude: "${token}".`, state.lineNumber);
+                    logError(`Unrecognised stuff in the prelude: "${errorCase(token)}".`, state.lineNumber);
                 }
             } else {
                 lexer.pushToken(token, 'ERROR');
@@ -551,21 +555,21 @@ var codeMirrorFn = function() {
             let value
             if (prelude_keywords.includes(ident)) {
                 if (args.length > 1)
-                    logError(`Prelude option ${ident.toUpperCase()} doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
+                    logError(`Prelude option "${errorCase(ident)}" doesn't take any parameters, but you went and gave it "${args.join()}".`, state.lineNumber);
                 else value = [ident, true];
             } else if (prelude_param_number.includes(ident)) {
                 if (args.length != 1 || parseFloat(args[0]) == NaN)
-                    logError(`Prelude option ${ident.toUpperCase()} requires one numeric argument.`, state.lineNumber);
+                    logError(`Prelude option "${errorCase(ident)}" requires one numeric argument.`, state.lineNumber);
                 else value = [ident, parseFloat(args[0])];
             } else if (prelude_param_single.includes(ident) || prelude_param_text.includes(ident)) {
                 if (!(args.length == 1 || ident.startsWith('mouse')))
-                    logError(`Prelude option ${ident.toUpperCase()} requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
+                    logError(`Prelude option "${errorCase(ident)}" requires exactly one argument, but you gave it ${args.length}.`, state.lineNumber);
                 else if (ident.includes('_color') && !isColor(args[0]))
-                    logError(`Prelude option ${ident} in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
+                    logError(`Prelude option "${errorCase(ident)}" in incorrect format - found ${args[0]}, but I expect a color name (like 'pink') or hex-formatted color (like '#1412FA'). A default will be used.`, state.lineNumber);
                 else value = [ident, args[0]];
             } else if (prelude_param_multi.includes(ident)) {
                 if (args.length < 1)
-                    logError(`Prelude option ${ident.toUpperCase()} has no arguments, but it needs at least one.`, state.lineNumber);
+                    logError(`Prelude option "${errorCase(ident)}" has no arguments, but it needs at least one.`, state.lineNumber);
                 else value = [ident, args.join(' ')];
             } else throw 'args';
             return value;
@@ -575,8 +579,9 @@ var codeMirrorFn = function() {
             const ident = value[0];
             if (ident == 'case_sensitive') {
                 state.case_sensitive = true;
+                caseSensitive = true;
                 if (Object.keys(state.metadata).some(k => prelude_param_text.includes(k)))
-                logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
+                    logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
             } else if (ident == 'debug_switch') {
                 debugSwitch = value[1];
             } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
@@ -586,13 +591,13 @@ var codeMirrorFn = function() {
             } else if (ident == 'sprite_size') {
                 const args = value[1].split('x').map(a => parseInt(a));
                 if (!(args.length == 1 || args.length == 2))
-                    logError(`MetaData ${value[0].toUpperCase()} requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
+                    logError(`MetaData "${errorCase(ident)}" requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
                 else state.sprite_size = args[0];
             } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
             } else if (ident == 'game_uri') {
-                logWarning(`Setting "${ident}" is an experimental Pattern:Script feature. Do not use.`,state.lineNumber);
+                logWarning(`Setting "${errorCase(ident)}" is an experimental Pattern:Script feature. Do not use.`,state.lineNumber);
                 return;
             }
             state.metadata.push(...value);
@@ -618,15 +623,15 @@ var codeMirrorFn = function() {
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.id = token;
                 if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
-                    logError(`You cannot define a tag called "${token.toUpperCase()}" because the name is already in use.`, state.lineNumber);
+                    logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else if (hasParts(token)) {
-                    logError(`You cannot use "${token.toUpperCase()}" to define a tag because it contains colons (":").`, state.lineNumber);
+                    logError(`You cannot use "${errorCase(token)}" to define a tag because it contains colons (":").`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else lexer.pushToken(token, 'NAME');
             } else {
                 token = lexer.matchNotComment();
-                logError(`Expected a name for a new tag, but found "${token}".`, state.lineNumber);
+                logError(`Expected a name for a new tag, but found "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -636,7 +641,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
                 token = lexer.matchNotComment();
-                logError(`Expected an equals sign "=" after the tag name but got "${token}".`, state.lineNumber);
+                logError(`Expected an equals sign "=" after the tag name but got "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -650,7 +655,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                 } else {
                     token = lexer.matchNotComment();
-                    logError(`Expected a name for a new tag member, but found "${token}".`, state.lineNumber);
+                    logError(`Expected a name for a new tag member, but found "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
                 }
@@ -694,14 +699,14 @@ var codeMirrorFn = function() {
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.lhs = token;
                 if (!(isDeclaredAs(state, token) == 'tag')) {       // todo: propobj
-                    logError(`Expected a TAG name but "${token.toUpperCase()}" is not one.`, state.lineNumber);
+                    logError(`Expected a TAG name but "${errorCase(token)}" is not one.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
                     lexer.pushToken(token, 'NAME');
                 }
             } else {
                 token = lexer.matchNotComment();
-                logError(`Expected a TAG name, but found "${token}" instead.`, state.lineNumber);
+                logError(`Expected a TAG name, but found "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -711,7 +716,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
                 token = lexer.matchNotComment();
-                logError(`Expected an arrow sign "=>" but got "${token}" instead.`, state.lineNumber);
+                logError(`Expected an arrow sign "=>" but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -720,14 +725,14 @@ var codeMirrorFn = function() {
             if (token = lexer.matchName(!state.case_sensitive)) {
                 symbols.rhs = token;
                 if (isAlreadyDeclared(state, token)) {
-                    logError(`You cannot define a mapping called "${token.toUpperCase()}" because the name is already in use.`, state.lineNumber);
+                    logError(`You cannot define a mapping called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
                     lexer.pushToken(token, 'NAME');
                 }
             } else {
                 token = lexer.matchNotComment();
-                logError(`Expected a name for a mapping, but got "${token}" instead.`, state.lineNumber);
+                logError(`Expected a name for a mapping, but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -766,7 +771,7 @@ var codeMirrorFn = function() {
             symbols.lhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
-                    logError(`The name "${token}" needs to be defined by ${mapping.fromKey}.`, state.lineNumber);
+                    logError(`The name "${errorCase(token)}" needs to be defined by "${errorCase(mapping.fromKey)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
                     lexer.pushToken(token, 'NAME');
@@ -779,7 +784,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
                 token = lexer.matchNotComment();
-                logError(`Expected an arrow sign "->" but got "${token}" instead.`, state.lineNumber);
+                logError(`Expected an arrow sign "->" but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -788,7 +793,7 @@ var codeMirrorFn = function() {
             symbols.rhs = [];
             while (token = lexer.matchName(!state.case_sensitive)) {
                 if (!token) {      // what do we not allow?
-                    logError(`The name "${token}" is ???.`, state.lineNumber);
+                    logError(`The name "${errorCase(token)}" is a very bad thing.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
                     lexer.pushToken(token, 'NAME');
@@ -798,7 +803,7 @@ var codeMirrorFn = function() {
 
             if (!lexer.matchEol()) {
                 token = lexer.matchNotComment();
-                logError(`Unrecognised stuff in a mapping: "${token}".`, state.lineNumber);
+                logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -845,14 +850,14 @@ var codeMirrorFn = function() {
                 } else if ((token = lexer.matchObjectName(!state.case_sensitive) 
                     || (symbols.candname && lexer.matchObjectGlyph(!state.case_sensitive)))) {
                     if (state.legend_synonyms.some(s => s[0] == token)) {
-                        logError(`Name "${token.toUpperCase()}" already in use.`, state.lineNumber);
+                        logError(`Name "${errorCase(token)}" already in use.`, state.lineNumber);
 
                     } else if (state.objects[token] && !state.objects[token].canRedef) {
-                        logError(`Object "${token.toUpperCase()}" defined multiple times.`, state.lineNumber);
+                        logError(`Object "${errorCase(token)}" defined multiple times.`, state.lineNumber);
 
                     } else {
                         if (keyword_array.includes(token)) 
-                            logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
+                            logWarning(`You named an object "${errorCase(token)}", but this is a keyword. Don't do that!`, state.lineNumber);
                         kind = 'NAME';  
                         if (!symbols.candname) symbols.candname = token;
                         else aliases.push(token);
@@ -861,7 +866,7 @@ var codeMirrorFn = function() {
                     if (lexer.matchEolSemi()) break;
 
                 } else if (token = lexer.matchToken()) {
-                    logError(`Invalid object name in OBJECT section: "${token}".`, state.lineNumber);
+                    logError(`Invalid object name in OBJECT section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     lexer.matchNotComment();
                     break;
@@ -914,9 +919,9 @@ var codeMirrorFn = function() {
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
-                    } else logWarning(`Invalid color in object section: "${token}".`, state.lineNumber);
+                    } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
                 } else if (token = lexer.matchToken()) {
-                    logError(`Was looking for color for object "${state.objects_candname.toUpperCase()}", got "${token}" instead.`, state.lineNumber);
+                    logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     lexer.matchNotComment();
                 } else throw 'obj-color';
@@ -967,7 +972,7 @@ var codeMirrorFn = function() {
                     if (!obj.colors[value]) 
                         logError(`Trying to access color number ${value + 1} from the color palette of sprite ${state.objects_candname}, but there are only ${obj.colors.length} defined in it."`, state.lineNumber);
                     else kind = 'COLOR BOLDCOLOR COLOR-' + obj.colors[value].toUpperCase();
-                } else logError(`Invalid character "${token}" in sprite for ${state.objects_candname}`, state.lineNumber);
+                } else logError(`Invalid character "${errorCase(token)}" in sprite for ${state.objects_candname}`, state.lineNumber);
                 lexer.pushToken(token, kind);
                 values.push(value);
             }
@@ -1004,7 +1009,7 @@ var codeMirrorFn = function() {
                 let kind = 'ERROR';
                 if (token = lexer.match(/^copy:/i)) {
                     if (symbols.cloneSprite) 
-                        logError(`You already assigned a sprite source for ${symbols.candname}, you can't have more than one!`, state.lineNumber);
+                        logError(`You already assigned a sprite source for "${errorCase(symbols.candname)}", you can't have more than one!`, state.lineNumber);
                     else kind = 'KEYWORD';
                     lexer.pushToken(token, kind);
                     lexer.matchComment();
@@ -1013,7 +1018,9 @@ var codeMirrorFn = function() {
                     if (!(token = lexer.matchObjectName(!state.case_sensitive)))      // ?? glyph too?
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
-                        logError(`You attempted to set the sprite ${symbols.candname} to copy from itself! Please don't."`, state.lineNumber)
+                        logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
+                    else if (!isAlreadyDeclared(state, token))
+                        logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
                     else {
                         kind = 'NAME';
                         symbols.cloneSprite = token;
@@ -1042,7 +1049,7 @@ var codeMirrorFn = function() {
                     token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
                     const dir = isValidDirection(token);
                     if (dir == null)
-                        logError(`Flip requires a direction or tag argument, but you gave it ${token}.`, state.lineNumber);
+                        logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'flip', dir ]);
                         kind = 'METADATATEXT';  //???
@@ -1064,7 +1071,7 @@ var codeMirrorFn = function() {
                     const dir = isValidDirection(parts[0]);
                     const arg = parts[1] ? +parts[1] : 1;
                     if (!(parts.length <= 2 && dir && arg))
-                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${token}.`, state.lineNumber);
+                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'shift', dir, arg ]);
                         kind = 'METADATATEXT';  //???
@@ -1094,7 +1101,7 @@ var codeMirrorFn = function() {
                     const parts = token && token.split(':');
                     const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
                     if (dirs == null)
-                        logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${token}.`, state.lineNumber);
+                        logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         if (dirs.length == 1) dirs.unshift('up');
                         symbols.transforms.push([ 'rot', ...dirs ]);
@@ -1103,7 +1110,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, kind);
 
                 } else if (token = lexer.matchToken()) {
-                    logError(`Invalid token in OBJECT modifier section: "${token}".`, state.lineNumber);
+                    logError(`Invalid token in OBJECT modifier section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     lexer.matchNotComment();
                     break;
@@ -1179,7 +1186,7 @@ var codeMirrorFn = function() {
                 const tobjects = getObjectRefs(state, token);
                 if (!tobjects) {
                     const undef = getObjectUndefs(state, token);
-                    logError(`Found "${token}", which looks like an object but ${ undef[0] ? undef[0].toUpperCase() : 'it' } is not declared anywhere.`, state.lineNumber);
+                    logError(`Found "${errorCase(token)}", which looks like an object but ${ undef[0] ? errorCase(undef[0]) : 'it' } is not declared anywhere.`, state.lineNumber);
                 } else {
                     lexer.pushToken(token, 'NAME');
 
@@ -1210,7 +1217,7 @@ var codeMirrorFn = function() {
                         } else if (token == lexer.matchNotComment()) {
                             const dirok = soundverbs_directional.includes(tverb);
                             const msg = dirok ? "direction or sound seed" : "sound seed";
-                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${token}".`, state.lineNumber);
+                            logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${errorCase(token)}".`, state.lineNumber);
                         }
                     }
                 }
@@ -1231,7 +1238,7 @@ var codeMirrorFn = function() {
                 lexer.matchComment();
             }
             if (token = lexer.matchNotComment()) {
-                logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${token}" here.`, state.lineNumber);
+                logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${errorCase(token)}" here.`, state.lineNumber);
                 return null;
             } else return tsounds;
         }
@@ -1255,9 +1262,9 @@ var codeMirrorFn = function() {
                 symbols.newname = token;
                 const defname = isAlreadyDeclared(state, token);
                 if (defname)
-                    logError(`Name "${token.toUpperCase()}" already in use (on line ${htmlJump(defname.lineNumber, 'errorTextLineNumber')}`);
+                    logError(`Name "${errorCase(token)}" already in use (on line ${htmlJump(defname.lineNumber, 'errorTextLineNumber')}`);
                 else if (keyword_array.includes(token))
-                    logWarning(`You named an object "${token.toUpperCase()}", but this is a keyword. Don't do that!`, state.lineNumber);
+                    logWarning(`You named an object "${errorCase(token)}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
             }
             lexer.matchComment();
@@ -1277,12 +1284,12 @@ var codeMirrorFn = function() {
                     const tobjects = getObjectRefs(state, token);
                     if (!tobjects) {
                         const undef = getObjectUndefs(state, token);
-                        logError(`You're talking about "${token.toUpperCase()}" but ${ undef[0] ? undef[0].toUpperCase() : 'it' } is not defined anywhere.`, state.lineNumber);
+                        logError(`You're talking about "${errorCase(token)}" but ${ undef[0] ? errorCase(undef[0]) : 'it' } is not defined anywhere.`, state.lineNumber);
                     } else if (token == symbols.newname)
-                        logError(`You can't define object "${token.toUpperCase()}" in terms of itself!`, state.lineNumber);
+                        logError(`You can't define object "${errorCase(token)}" in terms of itself!`, state.lineNumber);
                     else {
                         if (names.includes(token))
-                            logWarning(`You're repeating the object "${token.toUpperCase()}" here multiple times on the RHS.  This makes no sense.  Don't do that.`, state.lineNumber);                        
+                            logWarning(`You're repeating the object "${errorCase(token)}" here multiple times on the RHS.  This makes no sense.  Don't do that.`, state.lineNumber);                        
                         names.push(...tobjects);
                         if (tobjects.length > 1) symbols.andor ||= 'or';
                         kind = 'NAME';
@@ -1307,7 +1314,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, kind);
                 } else {
                     token = lexer.match(reg_notcommentstart);
-                    logError(`AND or OR expected, found ${token}`, state.lineNumber);
+                    logError(`AND or OR expected, found ${errorCase(token)}`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
                 }
@@ -1380,17 +1387,17 @@ var codeMirrorFn = function() {
                         logError("Background must be in a layer by itself.",state.lineNumber);
                     else if (!trefs) {
                         const undef = getObjectUndefs(state, token);
-                        logError(`Cannot add "${token.toUpperCase()}" to a collision layer, ${ undef[0] ? undef[0].toUpperCase() : 'it' } has not been declared.`, state.lineNumber);
+                        logError(`Cannot add "${errorCase(token)}" to a collision layer, ${ undef[0] ? errorCase(undef[0]) : 'it' } has not been declared.`, state.lineNumber);
                     } else {
                         if (idents.includes(token))
-                            logWarning(`Object "${token.toUpperCase()}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
+                            logWarning(`Object "${errorCase(token)}" included explicitly multiple times in the same layer. Don't do that innit.`,state.lineNumber);         
                         else idents.push(token);
                         kind = 'NAME';
                     }
                     lexer.pushToken(token, kind);
                 } else {
                     token = lexer.match(reg_notcommentstart);
-                    logError(`Object name expected, found ${token}`, state.lineNumber);
+                    logError(`Object name expected, found ${errorCase(token)}`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
                 }
@@ -1495,7 +1502,7 @@ var codeMirrorFn = function() {
                 });
                 if (dups.size != 0) {
                     const joins = [...dups].map(v => `#${v}, `) + `#${state.collisionLayers.length + 1}`;
-                    logWarning(`Object "${ident.toUpperCase()}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
+                    logWarning(`Object "${errorCase(ident)}" included in multiple collision layers ( layers ${joins} ). You should fix this!`, state.lineNumber);
                 }
 
                 // then use lhs to assign to layers
@@ -1528,7 +1535,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'LOGICWORD');
             } else {
                 token = lexer.match(reg_notcommentstart);
-                logError(`Expecting the start of a win condition ("ALL","SOME","NO") but got "${token.toUpperCase()}".`, state.lineNumber);
+                logError(`Expecting the start of a win condition ("ALL","SOME","NO") but got "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -1541,7 +1548,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'LOGICWORD');
                 } else {
                     token = lexer.matchNotComment();
-                    logError(`Expecting the word "ON" but got "${token.toUpperCase()}".`, state.lineNumber);
+                    logError(`Expecting the word "ON" but got "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
                 }
@@ -1550,7 +1557,7 @@ var codeMirrorFn = function() {
                 getIdent();
                 if (!lexer.matchEol()) {
                     token = lexer.matchNotComment();
-                    logError(`Error in win condition: I don't know what to do with "${token.toUpperCase()}".`, state.lineNumber);
+                    logError(`Error in win condition: I don't know what to do with "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 }
             }
@@ -1562,7 +1569,7 @@ var codeMirrorFn = function() {
             if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
                 if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
-                    logError(`Error in win condition: "${token.toUpperCase()}" is not a valid object name.`, state.lineNumber);
+                    logError(`Error in win condition: "${errorCase(token)}" is not a valid object name.`, state.lineNumber);
                 else {
                     names.push(token);
                     kind = 'NAME';
@@ -1570,7 +1577,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, kind);
             } else {
                 token = lexer.matchNotComment();
-                logError(`Object name expected, found ${token}`, state.lineNumber);
+                logError(`Object name expected, found ${errorCase(token)}`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -1603,17 +1610,17 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.match(/^(goto|level|link|message|section|title)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
-                lexer.pushToken(token, `${token.toUpperCase()}_VERB`);
+                lexer.pushToken(token, `${errorCase(token)}_VERB`);
 
                 if (token == 'link') {
                     if (!(token = lexer.matchObjectName())) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
                     else if (!isAlreadyDeclared(state, token))
-                        logError(`LINK object "${token.toUpperCase()}" not found, it needs to be already defined.`, state.lineNumber);
+                        logError(`LINK object "${errorCase(token)}" not found, it needs to be already defined.`, state.lineNumber);
                     else {      // @@
                         const objects = expandSymbol(state, token, false, () => {});
                         if (!(objects && objects.length == 1))
-                            logError(`LINK object "${token.toUpperCase()}" only works with a simple object or an alias, not something created with AND or OR.`, state.lineNumber);
+                            logError(`LINK object "${errorCase(token)}" only works with a simple object or an alias, not something created with AND or OR.`, state.lineNumber);
                         {
                             symbols.link = objects[0];
                             lexer.pushToken(token, 'NAME');
@@ -1633,7 +1640,7 @@ var codeMirrorFn = function() {
                         symbols.gridline += token;
                         const kind = state.abbrevNames.includes(token) ? 'LEVEL' : 'ERROR';
                         if (kind == 'ERROR')
-                            logError(`Key "${token.toUpperCase()}" not found. Do you need to add it to the legend, or define a new object?`, state.lineNumber);
+                            logError(`Key "${errorCase(token)}" not found. Do you need to add it to the legend, or define a new object?`, state.lineNumber);
                         lexer.pushToken(token, kind);
                     } else break;
                 }

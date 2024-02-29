@@ -90,12 +90,12 @@ RULES
 
 <p>Let's say you have an object called "tree" that you want to create on a clicked tile. In the prelude, add:</p>
 
-<pre><code><a href="../editor.html?demo=plus_mouse_tree_click" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_left TREE</code></pre>
+<pre><code><a href="../editor.html?demo=plus/mouse_tree_click" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_left TREE</code></pre>
 <p>Where "tree" is the name of the object you want to spawn upon mouse click. 
   Now start a level, click a tile, and a tree pops up! 
   This works even in games that don't have any rules.</p>
 
-<img src="./images/plus_treeplanting.gif" width="300px">
+<img src="./images/plus/treeplanting.gif" width="300px">
 <p>Once you add any of the mouse prelude flags, then menus will also automatically support mouse input. Even the level select will work!</p>
 
 Directly creating objects like this usually only suffices for very simple games. Usually, you want to create a temporary object that you handle separately before your main gameplay code.
@@ -103,12 +103,12 @@ Let's say that clicking on a tree should remove it. Create an extra object calle
 <pre><code>mouse_left CLICK</code></pre>
 
 Then add the following rules:
-<pre><code><a href="../editor.html?demo=plus_mouse_tree_toggle" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[Click no Tree] -> [Tree]
+<pre><code><a href="../editor.html?demo=plus/mouse_tree_toggle" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>[Click no Tree] -> [Tree]
 [Click Tree] -> []</code></pre>
 
 <p>Now you can click to plant a tree, and then click it again to remove it.</p>
 
-<img src="./images/plus_tree_remove.gif" width="300px">
+<img src="./images/plus/tree_remove.gif" width="300px">
 <p>Do note objects created by mouse input are just normal objects.
   They need to be assigned to a layer, and they won't be cleared automatically after the turn ends. 
   So make sure you add a rule to remove these temporary objects, if you don't need them any more. 
@@ -128,7 +128,7 @@ Then add the following rules:
   However, it will fire a lot of turns quickly, which might clutter the undo stack (there's a solution, see below), or impact performance in complex games.</p>
 
 <p>For example, here's a way to create a "cursor" object that appears on the tile of the previous drag, then moves towards the tile of the current drag:</p>
-  <pre><code><a href="../editor.html?demo=plus_mouseblocks" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>(Whenever mouse is clicked, create cursor at that position)
+  <pre><code><a href="../editor.html?demo=plus/mouseblocks" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>(Whenever mouse is clicked, create cursor at that position)
 [MouseClick] [Cursor] -> [MouseClick] []
 [MouseClick] [DragTarget] -> [MouseClick] []
 [MouseClick] -> [Cursor DragTarget]
@@ -149,7 +149,7 @@ Then add the following rules:
 
 <p>If there's a case where multiple events are fired with a single input, they resolve in this order. (Click on "Edit" for an input test with verbose logging.)</p>
 
-<pre><code><a href="../editor.html?demo=plus_mouse_input_test" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_up
+<pre><code><a href="../editor.html?demo=plus/mouse_input_test" target="puzzleScript_EditorWindow" class="btn btn-default pull-right" ><span class="glyphicon glyphicon-cog"> Edit</span></a>mouse_up
 mouse_rup
 mouse_left
 mouse_right

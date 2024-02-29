@@ -2640,10 +2640,12 @@ Rule.prototype.queueCommands = function() {
 	for(var i=0;i<commands.length;i++) {
 		var command=commands[i];
 		var already=false;
-		if (curLevel.commandQueue.indexOf(command[0])>=0) {
+		if (command[0] == 'log') {		// log is not queued
+			consolePrintFromRule(`${command[1]}`, this, true);
 			continue;
-		} else if (command[0] == 'gosub') {  // PS>
-			// gosub is not queued
+		} else if (curLevel.commandQueue.indexOf(command[0])>=0) {
+			continue;
+		} else if (command[0] == 'gosub') {			// gosub is not queued
 			gosubTarget = command[1];
 			continue;
 		}
@@ -2667,45 +2669,45 @@ Rule.prototype.queueCommands = function() {
 
 		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
 
-		value = command[1];
+			value = command[1];
 
-		if (value == "wipe") {
-			delete state.metadata[command[0]]; //value = undefined;
-			value = null;
-		} else if (value == "default") {
-			value = deepClone(state.default_metadata[command[0]]);
-		}
-
-		if (value != null) {
-			state.metadata[command[0]] = value;
-		}
-		
-		if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
-			twiddleMetaData(state, true);
-			canvasResize();
-		}
-
-		if (command[0] === "smoothscreen") {
-			if (value !== undefined) {
-				twiddleMetaData(state, true);
-				initSmoothCamera()
-			} else {
-				smoothscreen = false;
+			if (value == "wipe") {
+				delete state.metadata[command[0]]; //value = undefined;
+				value = null;
+			} else if (value == "default") {
+				value = deepClone(state.default_metadata[command[0]]);
 			}
-			canvasResize();
-		}
 
-		twiddleMetadataExtras()
+			if (value != null) {
+				state.metadata[command[0]] = value;
+			}
+			
+			if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
+				twiddleMetaData(state, true);
+				canvasResize();
+			}
 
-		if (state.metadata.runtime_metadata_twiddling_debug) {
-        var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
-        if (value != command[1]) {
-          log += " ("+command[1]+")"
-        }
-        consolePrintFromRule(log,this,true);
-      }
-    }   
-  }
+			if (command[0] === "smoothscreen") {
+				if (value !== undefined) {
+					twiddleMetaData(state, true);
+					initSmoothCamera()
+				} else {
+					smoothscreen = false;
+				}
+				canvasResize();
+			}
+
+			twiddleMetadataExtras()
+
+			if (state.metadata.runtime_metadata_twiddling_debug) {
+				var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
+				if (value != command[1]) {
+					log += " ("+command[1]+")"
+				}
+				consolePrintFromRule(log,this,true);
+			}
+    	}   
+  	}
 };
 
 // despite its name, this function exists to establish default values for prelude settings

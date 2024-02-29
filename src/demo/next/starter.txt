@@ -8,10 +8,10 @@ homepage www.polyomino.com
 // It shows a few of the many new features added to the original PuzzleScript, building 
 // on the work of PuzzleScript Plus, Pattern:Script and others.
 
-// See how you can use // comments instead of () if you prefer, but you can't mix them.
+// See how you can use // comments instead of () if you prefer, or you can mix them.
 
-// For more information, don't forget to check out the NEW EXAMPLES. PuzzleScriptPlus
-// features are in the DOCS link, PuzzleScriptNext are in the readme for now.
+// For more information, don't forget to check out the fully merged documentation, 
+// the examples in the dropdown and the gallery.
 
 // This program can be found in next/starter.txt.
 

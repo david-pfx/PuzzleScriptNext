@@ -1,0 +1,87 @@
+title test min
+author polyomino
+homepage www.polyomino.com
+
+// minimal program as base for tests
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background
+grey darkgray lightgray
+22221
+20001
+20001
+20001
+11111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+late [ p | r ] -> log P is next to r
+late [ p | y ] -> log P is next to y
+late [ p | g ] -> log P is next to g
+late [ p | k ] -> log P is next to k
+
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b...k..
+..........
+..........
+
+message second level
+
+..........
+....pry...
+..........
+
