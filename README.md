@@ -17,6 +17,8 @@ PuzzleScript Next is a combination of the work of many authors:
 
 The latest version is Release v-24b27. 
 It includes new features in support of level branching, and a test program showing how it can be used.
+There is a new command `log`, which writes a message to the console.
+A bug in setting sound volume has been fixed.
 The menus now more distinctively identify this is PuzzleScript Next, and some minor bugs in the menus have been corrected.
 
 Also some new documentation:

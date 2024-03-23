@@ -314,7 +314,8 @@ function selectPauseScreen(lineNo) { //@@
 }
 
 function centerText(text, len, fill = " ") {
-	return text.length >= len ? text.slice(0, len)
+	return !text ? fill.repeat(len)
+		: text.length >= len ? text.slice(0, len)
 		: (fill.repeat(~~((len - text.length) / 2)) + text).padEnd(len, fill);
 }
 
@@ -564,7 +565,7 @@ function wordwrap( str, width, handleNewlines = false ) {
     width = width || 75;
     var cut = true;
  
-	if (!str) return [ str ];
+	if (!str) return [ ];
  
 	var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
 
