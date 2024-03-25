@@ -206,10 +206,9 @@ function levelEditorClick_Fn() {
     lastDownTarget=canvas;	
 }
 
-// const HOSTPAGEURL = "http://www.puzzlescript.net"
-// const PSFORKNAME = "PuzzleScript"
-const HOSTPAGEURL = "https://david-pfx.github.io/PuzzleScriptNext"
-const PSFORKNAME = "Puzzlescript Next"
+// https://stackoverflow.com/questions/1034621/get-the-current-url-with-javascript
+const HOSTPAGEURL = window.location.origin;
+const PSFORKNAME = "Puzzlescript Next";
 
 /* I don't want to setup the required server for an OAuth App, so for now we will use a slightly more complex method for the user, which is to create a personal identification token. */
 function getAuthURL()
