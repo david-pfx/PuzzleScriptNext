@@ -71,7 +71,7 @@ all r on y
 LEVELS
 =======
 
-//message first level
+message first level\n\ntriggers a bug?
 
 ...g......
 ....p.r.y.

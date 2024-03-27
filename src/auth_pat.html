@@ -13,20 +13,27 @@
 <body>
 	<div id="main">
 		<p>Puzzlescript Next requires a somewhat complex method to authenticate your GitHub account. Here's how it works.</p>
-		<p>1) Go to the <a target="_blank" href="https://github.com/settings/tokens/new">Personal Access Token</a> page on GitHub.<br>
-			2) As the Note, enter Puzzlescript Next (or anything you want, really).<br>
-			3) For Scopes, make sure you <b>ONLY</b> check "gist". Leave the rest disabled, if you enable more it can become a security risk for your account.<br>
-			4) Then, click "Generate token". On the next page, you'll be able to see the new personal access token. <b>This code acts basically a password for your account</b>, so don't share it anywhere but here! Copy it down here, press submit, and it should work!</p>
+		<ol>
+		<li>Make sure you're logged into your GitHub account.</li>
+		<li>Go to the <a target="_blank" href="https://github.com/settings/tokens/new">Personal Access Token</a> page on GitHub.</li>
+		<li>As the Note, enter Puzzlescript Next (or anything you want, really).</li>
+		<li>For Scopes, make sure you <b>ONLY</b> check "gist". Leave the rest disabled, if you enable more it can become a security risk for your account.</li>
+		<li>Then, click "Generate token". 
+			On the next page, you'll be able to see the new personal access token. 
+			Copy it down here, press submit, and it should work!</li>
+		</ol>
 		<form>
 			<label for="pat">GitHub personal access token:</label>
 			<input type="password" name="pat"  id="pat" required></input>
 			<input type="submit" name="submit" id="submit"/>
 		</form>
+		<p><b>This code acts basically a password for your account</b>, so don't share it anywhere but here! </p>
 		<p>Need more help? <a target="_blank" href="https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token">A detailed explanation is available in the Github Docs</a>.</p>
 	</div>
 	<div style="display: none;" id="success">
 		<p>PuzzleScript Next has been authorized to save your game as a Gist on GitHub on your behalf from this browser. 
-			The token was saved, and if it was correct you can now share games. <a target="_blank" href="/editor.html">Open the editor</a> and click SHARE to test it! 
+			The token was saved, and if it was correct you can now share games. </p>
+		<p><a target="_blank" href="editor.html">Open the editor</a> and click SHARE to test it! 
 			If for some reason it does not work, click the button below and try the authorization procedure again.</p>
 		<button onclick="resetCredential();">Reset GitHub credential</button>
 	</div>

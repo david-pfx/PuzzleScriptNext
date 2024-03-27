@@ -1,0 +1,119 @@
+title bug
+
+=====
+TAGS
+=====
+
+Shape = Square Round
+
+========
+OBJECTS
+========
+
+Background .
+darkblue
+
+
+
+( Objects inherit "copy:" even though they have their own sprites )
+
+Player
+blue
+.000.
+.000.
+00000
+.000.
+.0.0.
+
+Crate:Shape
+green
+copy: Player
+
+Crate:Square
+brown
+00000
+0...0
+0...0
+0...0
+00000
+
+Crate:Round
+darkred
+.000.
+0...0
+0...0
+0...0
+.000.
+
+
+
+( Inherited sprites are combined with new ones instead of getting replaced )
+
+Crate2:Shape
+green
+.....
+.000.
+.0.0.
+.000.
+.....
+
+Crate2:Square
+orange
+00000
+0...0
+0...0
+0...0
+00000
+
+Crate2:Round
+red
+.000.
+0...0
+0...0
+0...0
+.000.
+
+=======
+LEGEND
+=======
+
+p = Player
+
+a = Crate:Square
+b = Crate:Round
+
+x = Crate2:Square
+y = Crate2:Round
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player
+Crate:Shape
+Crate2:Shape
+
+======
+RULES
+======
+
+[]->cancel
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+.............
+.............
+..p.a.b.x.y..
+.............
+.............

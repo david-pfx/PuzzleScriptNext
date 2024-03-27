@@ -198,30 +198,23 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 		titleSelection = screen.options.includes(select) ? options[screen.options.indexOf(select)] : false;  // todo: ???
 	}
 
+	const setImage = (n,text) => {
+		if (!text) throw "image";
+		titleImage[n] = text.padEnd(TITLE_WIDTH);
+		if (state.metadata.keyhint_color) 
+			lineColorOverride[n] = state.metadata.keyhint_color;
+	}
 	if (state.metadata.text_controls) {
 		const text = wordwrap(state.metadata.text_controls, TITLE_WIDTH, true);
 		text.slice(0, 3).forEach((t,x) => {
-			titleImage[10 + x] = t;
+			setImage(10 + x, t);
 		})
 	} else {
-		titleImage[10] = "arrow keys to move";
-		titleImage[11] = state.metadata.noaction ?" X to select" : " X to action"
-		titleImage[12] = state.metadata.noundo && state.metadata.norestart ? ""
-			: state.metadata.norestart ? " R to restart"
-			: state.metadata.noundo ? " Z to undo"
-			: " Z to undo, R to restart";
-
-		if (IsMouseGameInputEnabled()) {
-			titleImage[10] = state.metadata.mouse_drag || state.metadata.mouse_rdrag ? " Click, Tap, or Drag to interact"
-				: " Click or Tap to interact";
-			titleImage[11] = " Z or Middle Mouse Button to undo";
-			titleImage[12] = " R to restart";
-		}
-	}
-	if (state.metadata.keyhint_color) {
-		lineColorOverride[10] = state.metadata.keyhint_color;
-		lineColorOverride[11] = state.metadata.keyhint_color;
-		lineColorOverride[12] = state.metadata.keyhint_color;
+		const tclick = state.metadata.mouse_drag || state.metadata.mouse_rdrag ? " Click, Tap, or Drag to interact" : " Click or Tap to interact";
+		setImage(10, IsMouseGameInputEnabled() ? tclick : " Arrow keys or WASD to move");
+		setImage(11, (state.metadata.noaction ? " X to select" : " X to action") + (state.metadata.norestart ? "" : ", R to restart"));
+		const tundo = IsMouseGameInputEnabled() ? " Z or Middle Mouse Button to undo" : " Z to undo";
+		setImage(12, (state.metadata.noundo ? " " : tundo));
 	}
 
 	const title = state.metadata.title || "PuzzleScript Next Game";
@@ -314,7 +307,8 @@ function selectPauseScreen(lineNo) { //@@
 }
 
 function centerText(text, len, fill = " ") {
-	return text.length >= len ? text.slice(0, len)
+	return !text ? fill.repeat(len)
+		: text.length >= len ? text.slice(0, len)
 		: (fill.repeat(~~((len - text.length) / 2)) + text).padEnd(len, fill);
 }
 
@@ -564,7 +558,7 @@ function wordwrap( str, width, handleNewlines = false ) {
     width = width || 75;
     var cut = true;
  
-	if (!str) return [ str ];
+	if (!str) return [ ];
  
 	var regex = '.{1,' +width+ '}(\\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\\S+?(\\s|$)');
 
@@ -595,7 +589,7 @@ function drawMessageScreen(message) {
 	const screen = getMessageScreen(
 		quittingMessageScreen ? "" 
 		: state.metadata.text_message_continue ? state.metadata.text_message_continue
-		: IsMouseGameInputEnabled() ? "Click to continue" : "X to continue");
+		: IsMouseGameInputEnabled() ? "Click or X to continue" : "X to continue");
 
 	titleImage = fillAndHighlight(screen);
 	if (state.metadata.keyhint_color)
@@ -1362,6 +1356,9 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
     var torestore = backups[backups.length-1];
     restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
+	// look for undo across link
+	if (linkStack.length > 0 && linkStack.at(-1).backupTop == backups.length)
+	  linkStack.pop();
     if (! force || forceSFX) {
       tryPlayUndoSound();
     }

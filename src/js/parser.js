@@ -878,15 +878,16 @@ var codeMirrorFn = function() {
         function setState() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
-            // in case it already exists, to maintain the correct order of addition.
+
+            // use existing if there is one, to maintain the correct order of addition.
             const newobj = state.objects[candname] || {       // doc: array of objects indexed by name
-                lineNumber: state.lineNumber,
-                colors: [],
-                spritematrix: [],
-                transforms: [],
+                lineNumber: state.lineNumber
             };
-            delete state.objects[candname];
             delete newobj.canRedef;
+            newobj.colors = [];
+            newobj.spritematrix = [];
+            newobj.transforms = [];
+            delete state.objects[candname];
             state.objects[candname] = newobj;
 
             const cnlc = candname.toLowerCase();
@@ -1019,7 +1020,7 @@ var codeMirrorFn = function() {
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
-                    else if (!isAlreadyDeclared(state, token))
+                    else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
                         logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
                     else {
                         kind = 'NAME';
