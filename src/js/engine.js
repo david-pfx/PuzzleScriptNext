@@ -1356,6 +1356,9 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
     var torestore = backups[backups.length-1];
     restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
+	// look for undo across link
+	if (linkStack.length > 0 && linkStack.at(-1).backupTop == backups.length)
+	  linkStack.pop();
     if (! force || forceSFX) {
       tryPlayUndoSound();
     }
