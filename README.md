@@ -15,17 +15,24 @@ PuzzleScript Next is a combination of the work of many authors:
 
 ## New Features and Fixes
 
-The latest version is Release v-24b27. 
-It includes new features in support of level branching, and a test program showing how it can be used.
-There is a new command `log`, which writes a message to the console.
-A bug in setting sound volume has been fixed.
-The menus now more distinctively identify this is PuzzleScript Next, and some minor bugs in the menus have been corrected.
+The latest version is Release v-24c27. New features include the following. For detail see the documentation.
+* Level branching based on a LINK command, and a test program showing how it can be used.
+* A new debugging command `log`, which writes a message to the console.
+* The menus now more distinctively identify this is PuzzleScript Next.
+
+Several bugs have been fixed.
+* Setting sound volume has been fixed to be compatible with Pattern:Script.
+* Share authorisation now works correctly independntly of where it is hosted.
+* Undo across a link now works correctly.
+* An object that has a `copy:` referring to an implied TAG object now resolves correctly.
+* A TAG object with a sprite that is redefined uses the second sprite instead of appending it.
+* MESSAGE or other justified text no longer crashes if it contains consecutive newlines: `\n\n`.
+* Some minor issues with menu wording have been corrected.
+* Debug visualisation now works correctly from one level to another.
+* The pause screen now works on mobile and tablet devices.
 
 Also some new documentation:
 * [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
 * [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
 * [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
 
-Bug fixes include:
-* Debug visualisation now works correctly from one level to another.
-* The pause screen now works on mobile and tablet devices.
