@@ -944,6 +944,8 @@ var codeMirrorFn = function() {
         if (getTokens()) {
             if (values.text) 
                 obj.spritetext = values.text;
+            else if (values.json) 
+                obj.json = values.json;
             else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
@@ -958,6 +960,17 @@ var codeMirrorFn = function() {
                 const kind = obj.colors.length == 1 ? `COLOR COLOR-${obj.colors[0].toUpperCase()}` : 'ERROR';
                 lexer.pushToken(token, kind);
                 values.text = token;
+                state.objects_section = 0;
+                return true;
+            }    
+            token = lexer.match(/^json:/i);
+            if (token) {
+                lexer.pushToken(token, 'LOGICWORD');
+
+                token = lexer.matchAll();
+                const kind = obj.colors.length == 1 ? `COLOR COLOR-${obj.colors[0].toUpperCase()}` : 'ERROR';
+                lexer.pushToken(token, kind);
+                values.json = JSON.parse(token);
                 state.objects_section = 0;
                 return true;
             }    
