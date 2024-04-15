@@ -47,6 +47,21 @@ function createJsonSprite(name, extdata) {
     return canvas;
 }
 
+// Create and return a SVG sprite canvas
+function createSVGSprite(name, extdata) {
+    var canvas = makeSpriteCanvas(name);
+    var context = canvas.getContext('2d');
+    var blob = new Blob([extdata.join("\n")], {type: 'image/svg+xml'});
+    var url = URL.createObjectURL(blob);
+    var image = document.createElement('img');
+    image.src = url;
+    image.addEventListener('load', function () {
+        context.drawImage(image, 0, 0);
+        URL.revokeObjectURL(url);
+    }, false);
+    return canvas;
+}
+
 // draw the pixels of the sprite grid data into the context at a cell position, 
 function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     colors ||= ['#00000000', state.fgcolor];
@@ -139,6 +154,7 @@ function regenSpriteImages() {
             spriteImages[i] =
                 s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
                 : s.extdattype === 'contextdata' ? createJsonSprite(i.toString(), s.extdat)
+                : s.extdattype === 'svgdata' ? createSVGSprite(i.toString(), s.extdat)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
