@@ -52,17 +52,17 @@ function TooManyErrors(){
     throw new Error("Too many errors/warnings; aborting compilation.");
 }
 
-function htmlJump(lineNumber, clss) {	
-	return clss ? htmlClass(clss, htmlJump(lineNumber)) 
+function htmlJump(lineNumber, clss) {   
+    return clss ? htmlClass(clss, htmlJump(lineNumber)) 
         : `<a onclick="jumpToLine(${lineNumber});"  href="javascript:void(0);">${lineNumber}</a>`;
 }
 
 function htmlColor(color, text) {
-	return `<font color="${color}">${text}</font>`;
+    return `<font color="${color}">${text}</font>`;
 }
 
 function htmlClass(clss, text) {
-	return `<span class="${clss}">${text}</span>`;
+    return `<span class="${clss}">${text}</span>`;
 }
 
 function errorCase(ident) {
@@ -81,7 +81,7 @@ function logErrorCacheable(str, lineNumber,urgent) {
             consolePrint(errorString);
             errorStrings.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            if (errorStrings.length>MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -100,7 +100,7 @@ function logError(str, lineNumber,urgent) {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            if (errorStrings.length>MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -118,7 +118,7 @@ function logWarning(str, lineNumber, urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            if (errorStrings.length>MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -152,7 +152,7 @@ function logErrorNoLine(str,urgent) {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
         errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            if (errorStrings.length>MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
     }
         }
@@ -903,10 +903,15 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     function parseObjectColors(stream, state) {
         const lexer = new Lexer(stream, state);
-        const colors = [];
-        
-        if (getTokens())
+        const colors = [];        
+        let extdattype;
+
+        if (getTokens()) {
             state.objects[state.objects_candname].colors = colors;
+            if (extdattype) {
+                state.objects[state.objects_candname].extdattype = extdattype;
+            }
+        }
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -914,12 +919,16 @@ var codeMirrorFn = function() {
             while (!lexer.matchEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
+                const sol = stream.sol();
                 if (token = lexer.match(/^[#\w]+/, true)) {
                     if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
                         colors.push(token);
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
+                    } else if (sol) {
+                        extdattype = token;
+                        kind = 'EXTDATTYPE';
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
@@ -944,9 +953,10 @@ var codeMirrorFn = function() {
         if (getTokens()) {
             if (values.text) 
                 obj.spritetext = values.text;
-            else if (values.json) 
-                obj.json = values.json;
-            else obj.spritematrix = (obj.spritematrix || []).concat([values]);
+            else if (values.extdat) {
+                if (!obj.extdat) obj.extdat = [];
+                obj.extdat.push(values.extdat);
+            } else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
 
@@ -963,15 +973,10 @@ var codeMirrorFn = function() {
                 state.objects_section = 0;
                 return true;
             }    
-            token = lexer.match(/^json:/i);
-            if (token) {
-                lexer.pushToken(token, 'LOGICWORD');
-
+            if (obj.extdattype) {
                 token = lexer.matchAll();
-                const kind = obj.colors.length == 1 ? `COLOR COLOR-${obj.colors[0].toUpperCase()}` : 'ERROR';
-                lexer.pushToken(token, kind);
-                values.json = JSON.parse(token);
-                state.objects_section = 0;
+                lexer.pushToken(token, 'EXTDAT');
+                values.extdat = token;
                 return true;
             }    
 
@@ -1768,7 +1773,7 @@ var codeMirrorFn = function() {
             //console.log(`get token`, lastStream);
             //--- guard against looping?
 
-           	var mixedCase = stream.string;
+            var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
@@ -1857,8 +1862,8 @@ var codeMirrorFn = function() {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
-                                state.objects_section = 0;
+                            //if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
+                            //    state.objects_section = 0;
                         }
                     }
                     if (state.objects_section == 0) {
@@ -1921,7 +1926,7 @@ var codeMirrorFn = function() {
                     state.current_line_wip_array = parseCollisionLayer(stream, state);
                     return flushToken();
                 }
-                case 'rules': {                    	
+                case 'rules': {                     
                         if (sol) {
                             var rule = reg_notcommentstart.exec(stream.string)[0];
                             state.rules.push([rule, state.lineNumber, mixedCase]);
@@ -1976,7 +1981,7 @@ var codeMirrorFn = function() {
                                 } else if (m.match(reg_commandwords)) {
                                     if (commandargs_table.includes(m) || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
-                                    }                                	
+                                    }                                   
                                     return 'COMMAND';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
@@ -2000,7 +2005,7 @@ var codeMirrorFn = function() {
                 default: { 
                     throw 'case!';
                 }
-	        }
+            }
             // end of switch
 
             if (stream.eol()) {

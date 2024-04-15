@@ -905,7 +905,8 @@ function setGameState(_state, command, randomseed) {
                 dat: object.spritematrix,
                 colors: object.colors,
                 text: object.spritetext,
-                json: object.json,
+                extdattype: object.extdattype,
+                extdat: object.extdat,
                 scale: object.scale,
             };
         }

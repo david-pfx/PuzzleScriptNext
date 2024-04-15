@@ -30,10 +30,10 @@ function createTextSprite(name, text, colors, scale) {
 }
 
 // Create and return a custom instructions sprite canvas
-function createJsonSprite(name, json) {
+function createJsonSprite(name, extdata) {
     var canvas = makeSpriteCanvas(name);
     var context = canvas.getContext('2d');
-
+    var json = JSON.parse("[" + extdata + "]");
     context.scale(cellwidth, cellheight);
     for (const instr of json) {
         for (const [key, value] of Object.entries(instr)) {
@@ -138,7 +138,7 @@ function regenSpriteImages() {
         if (s) {
             spriteImages[i] =
                 s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
-                : s.json ? createJsonSprite(i.toString(), s.json)
+                : s.extdattype === 'contextdata' ? createJsonSprite(i.toString(), s.extdat)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
