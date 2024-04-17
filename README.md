@@ -44,8 +44,6 @@ Each line is a JSON object with one property and one value. the property should 
 
 ### svgData
 The following lines should be an entire SVG file which is then rendered in the sprite context. [Example](https://gist.github.com/hfmanson/5888ad62bc271d907e2c931cfb44fc00)
-#### TODO
-currently the game needs to be restarted to get the SVG rendered
 
 
 

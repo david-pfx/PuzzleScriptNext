@@ -58,6 +58,7 @@ function createSVGSprite(name, extdata) {
     image.addEventListener('load', function () {
         context.drawImage(image, 0, 0);
         URL.revokeObjectURL(url);
+        redraw();
     }, false);
     return canvas;
 }
