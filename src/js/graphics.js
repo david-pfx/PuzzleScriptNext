@@ -52,6 +52,8 @@ function createJsonSprite(name, vector) {
 // Create and return a SVG sprite canvas
 function createSVGSprite(name, vector) {
     var canvas = makeSpriteCanvas(name);
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
     var context = canvas.getContext('2d');
     var blob = new Blob([vector.data.join("\n")], {type: 'image/svg+xml'});
     var url = URL.createObjectURL(blob);
