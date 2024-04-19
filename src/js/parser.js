@@ -904,12 +904,12 @@ var codeMirrorFn = function() {
     function parseObjectColors(stream, state) {
         const lexer = new Lexer(stream, state);
         const colors = [];        
-        let extdattype;
+        let vector;
 
         if (getTokens()) {
             state.objects[state.objects_candname].colors = colors;
-            if (extdattype) {
-                state.objects[state.objects_candname].extdattype = extdattype;
+            if (vector) {
+                state.objects[state.objects_candname].vector = vector;
             }
         }
         return lexer.tokens;
@@ -926,10 +926,10 @@ var codeMirrorFn = function() {
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
-                    } else if (sol) {
-                        extdattype = token;
-                        kind = 'EXTDATTYPE';
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
+                } else if (token = lexer.match(/^\{.*\}/, true)) {
+					vector = JSON.parse(token);
+					kind = 'VECTOR';
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -953,9 +953,9 @@ var codeMirrorFn = function() {
         if (getTokens()) {
             if (values.text) 
                 obj.spritetext = values.text;
-            else if (values.extdat) {
-                if (!obj.extdat) obj.extdat = [];
-                obj.extdat.push(values.extdat);
+            else if (values.vectordata) {
+                if (!obj.vector.data) obj.vector.data = [];
+                obj.vector.data.push(values.vectordata);
             } else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
@@ -973,10 +973,10 @@ var codeMirrorFn = function() {
                 state.objects_section = 0;
                 return true;
             }    
-            if (obj.extdattype) {
+            if (obj.vector) {
                 token = lexer.matchAll();
-                lexer.pushToken(token, 'EXTDAT');
-                values.extdat = token;
+                lexer.pushToken(token, 'VECTORDATA');
+                values.vectordata = token;
                 return true;
             }    
 
@@ -1862,8 +1862,8 @@ var codeMirrorFn = function() {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            //if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
-                            //    state.objects_section = 0;
+                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector && !stream.match(/^[.\d]/, false))
+                                state.objects_section = 0;
                         }
                     }
                     if (state.objects_section == 0) {
