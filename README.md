@@ -36,14 +36,20 @@ Also some new documentation:
 * [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
 * [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
 
-## WIP: new data types for objects
-In original PuzzleScript objects are represented as pixel data. This branch introduces two other ways to represent pixel data. The new ways are implemented using a non-existing color stored in the `extdattype` property of an object, followed by non-empty lines which are accumulated in a string stored in the `extdat` property of an object. The new representations  are
+## WIP: Objects with vector based sprites
+In original PuzzleScript objects are represented as pixel data. This branch introduces vector-based object graphics. Instead of specifying colors a JSON object is used.
+the properies of the JSON object are
+- `type`: mandatory: described below
+- `w`: optional width of the sprite expressed in cells, default 1
+- `h`: optional height of the sprite expressed in cells, default 1
+- `x`: optional x offset expressed in cells, default 0
+- `y`: optional y offset expressed in cells, default 0
 
-### contextData
-Each line is a JSON object with one property and one value. the property should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. When the propery is a CanvasRenderingContext2D function it is invoked with the value which should be a possible empty array containing the function arguments, otherwise the CanvasRenderingContext2D property is assigned to the value. [Example](https://gist.github.com/hfmanson/bae827c42baa4b4316667642f5e42da0). The coordinate range is 0 to 1 for x and y.
+### Vector types
+Currently two vector types are defined
 
-### svgData
+#### canvas
+Each line is a JSON object with one property and one value. the property should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. When the propery is a CanvasRenderingContext2D function it is invoked with the value which should be a possible empty array containing the function arguments, otherwise the CanvasRenderingContext2D property is assigned to the value. [Example](https://mansoft.nl/puzzlescriptnext/play.html?p=35cac26d8267562d05e129ccac4483c1). The coordinate range is 0 to 1 for x and y.
+
+#### svg
 The following lines should be an entire SVG file which is then rendered in the sprite context. [Example](https://gist.github.com/hfmanson/5888ad62bc271d907e2c931cfb44fc00)
-
-
-
