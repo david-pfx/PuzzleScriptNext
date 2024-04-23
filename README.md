@@ -14,8 +14,9 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
+The latest version is Release v-24d23. It fixes a crash on resizing the browser window.
 
-The latest version is Release v-24c27. New features include the following. For detail see the documentation.
+The previous version is Release v-24c27. New features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
 * A new debugging command `log`, which writes a message to the console.
 * The menus now more distinctively identify this is PuzzleScript Next.
