@@ -36,8 +36,8 @@ Also some new documentation:
 * [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
 * [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
 
-## WIP: Objects with vector based sprites
-In original PuzzleScript objects are represented as pixel data. This branch introduces vector-based object graphics. Instead of specifying colors a JSON object is used.
+## Objects with vector based sprites
+In original PuzzleScript objects are represented as pixel data. This branch introduces vector-based object graphics. Instead of specifying colors on a line a stringified JSON object is used instead.
 the properies of the JSON object are
 - `type`: mandatory: described below
 - `w`: optional width of the sprite expressed in cells, default 1
@@ -45,11 +45,10 @@ the properies of the JSON object are
 - `x`: optional x offset expressed in cells, default 0
 - `y`: optional y offset expressed in cells, default 0
 
+The non-empty lines following the JSON object are accumulated as a string and passed to a vector based graphic handler
+
 ### Vector types
-Currently two vector types are defined
+Currently one vector type is defined
 
 #### canvas
 Each line is a JSON object with one property and one value. the property should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. When the propery is a CanvasRenderingContext2D function it is invoked with the value which should be a possible empty array containing the function arguments, otherwise the CanvasRenderingContext2D property is assigned to the value. [Example](https://mansoft.nl/puzzlescriptnext/play.html?p=35cac26d8267562d05e129ccac4483c1). The coordinate range is 0 to 1 for x and y.
-
-#### svg
-The following lines should be an entire SVG file which is then rendered in the sprite context. [Example](https://gist.github.com/hfmanson/5888ad62bc271d907e2c931cfb44fc00)
