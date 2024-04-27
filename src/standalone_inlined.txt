@@ -7092,7 +7092,8 @@ var xoffset;
 var yoffset;
 let pixelSize;
 
-window.addEventListener('resize', canvasResize, false);
+// takes a level argument, not an event
+window.addEventListener('resize', (e) => canvasResize(), false);
 canvas = document.getElementById('gameCanvas');
 ctx = canvas.getContext('2d');
 x = 0;
@@ -8372,7 +8373,7 @@ function returnLink() {
 	const level = state.levels[linkEntry.backup.levelNo];
 	backups = backups.slice(0, linkEntry.backupTop);
 	if (verbose_logging)
-		consolePrint(`Returning to level ${linkEntry.backup.levelNo} (${htmlJump(level.lineNumber)})`, true, level.lineNumber);
+		consolePrint(`Returning to level ${linkEntry.backup.levelNo} (${htmlJump(level.lineNumber)}).`, true, level.lineNumber);
 	restoreLevel(linkEntry.backup);
 	updateLocalStorage();
 	resetFlickDat();
@@ -8552,7 +8553,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //todo:
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -9411,7 +9412,7 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
 			// does it match any movement at this location?
       		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
     			if (verbose_logging) 
-					consolePrint(`Object "${state.idDict[fx.objId]}" has moved, playing seed "${fx.seed}"`)
+					consolePrint(`Object "${state.idDict[fx.objId]}" has moved, playing seed "${fx.seed}".`)
 				if (fx.seed.startsWith('afx')) {
 					const object = getObject(fx.objId);
 					const move = getLayerMovement(movementMask, object.layer);
@@ -10971,7 +10972,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				//  consolePrint('=======================');
 				consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
 			}
-			consolePrint('Applying rules');
+			consolePrint('Applying rules.');
 		}
 		
         var bannedGroup = [];
@@ -11067,7 +11068,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 						debugger_turnIndex++;
 						addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
 					
-						consolePrint('Applying late rules');
+						consolePrint('Applying late rules.');
 					}
 				}
         		applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
@@ -11327,7 +11328,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		}
 		
 		if (verbose_logging) { 
-			consolePrint(`Turn complete`);    
+			consolePrint(`Turn complete.`);    
 		}
 
 		currentMovedEntities = newMovedEntities;
@@ -11370,7 +11371,7 @@ function checkWin(dontDoWin) {
 			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
 		} else {
 			if (verbose_logging && !solving) {
-				consolePrint("Win Condition Satisfied");
+				consolePrint("Win Condition Satisfied.");
 			}
 		}
 		if(!dontDoWin){
@@ -11449,7 +11450,7 @@ function checkWin(dontDoWin) {
 			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
 		} else {
 			if (verbose_logging && !solving) {
-				consolePrint("Win Condition Satisfied");
+				consolePrint("Win Condition Satisfied.");
 			}
 		}
 		if (!dontDoWin){

@@ -334,7 +334,8 @@ var xoffset;
 var yoffset;
 let pixelSize;
 
-window.addEventListener('resize', canvasResize, false);
+// takes a level argument, not an event
+window.addEventListener('resize', (e) => canvasResize(), false);
 canvas = document.getElementById('gameCanvas');
 ctx = canvas.getContext('2d');
 x = 0;
