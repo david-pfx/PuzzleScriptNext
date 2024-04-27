@@ -2,10 +2,10 @@
 
 // Create and return a graphic sprite canvas
 function createSprite(name,spritegrid, colors, size) {
-	colors ||= [state.bgcolor, state.fgcolor];
+    colors ||= [state.bgcolor, state.fgcolor];
 
-	var canvas = makeSpriteCanvas(name);
-	var context = canvas.getContext('2d');
+    var canvas = makeSpriteCanvas(name);
+    var context = canvas.getContext('2d');
 
     canvas.width = spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize;
     canvas.height = spritegrid.length * pixelSize;
@@ -17,15 +17,35 @@ function createSprite(name,spritegrid, colors, size) {
 
 // Create and return a text sprite canvas
 function createTextSprite(name, text, colors, scale) {
-	colors ||= [state.bgcolor, state.fgcolor];
+    colors ||= [state.bgcolor, state.fgcolor];
 
-	var canvas = makeSpriteCanvas(name);
-	var context = canvas.getContext('2d');
+    var canvas = makeSpriteCanvas(name);
+    var context = canvas.getContext('2d');
 
     drawTextWithFont(context, text, colors, 
         0.5 * cellwidth, 0.5 * cellheight, 
         scale ? (scale * cellheight) : (cellheight / text.length));
 
+    return canvas;
+}
+
+// Create and return a custom instructions sprite canvas
+function createJsonSprite(name, vector) {
+    var canvas = makeSpriteCanvas(name);
+    var context = canvas.getContext('2d');
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    var json = JSON.parse("[" + vector.data + "]");
+    context.scale(cellwidth, cellheight);
+    for (const instr of json) {
+        for (const [key, value] of Object.entries(instr)) {
+            if (context[key] instanceof Function) {
+                context[key].apply(context, value);
+            } else {
+                context[key] = value;
+            }
+        }
+    }
     return canvas;
 }
 
@@ -100,12 +120,18 @@ function regenText() {
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
 
 var spriteImages;
+
+function handleVector(name, vector) {
+    return vector.type === 'canvas' ? createJsonSprite(name, vector)
+    : undefined;
+}
+
 function regenSpriteImages() {
-	if (textMode) {
+    if (textMode) {
         spriteImages = [];
-		regenText();
-		return;
-	} 
+        regenText();
+        return;
+    } 
     
     if (IDE===true) {
         textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);
@@ -118,13 +144,15 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+            spriteImages[i] =
+                s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+                : s.vector ? handleVector(i.toString(), s.vector)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
 
     if (canOpenEditor) {
-    	generateGlyphImages();
+        generateGlyphImages();
     }
 }
 
@@ -149,9 +177,9 @@ function makeSpriteCanvas(name) {
         canvas = document.createElement('canvas');
         canvasdict[name]=canvas;
     }
-	canvas.width = cellwidth;
-	canvas.height = cellheight;
-	return canvas;
+    canvas.width = cellwidth;
+    canvas.height = cellheight;
+    return canvas;
 }
 
 
@@ -159,13 +187,13 @@ function generateGlyphImages() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-	glyphImagesCorrespondance=[];
-	glyphImages=[];
-	
+    glyphImagesCorrespondance=[];
+    glyphImages=[];
+    
     seenobjects = {};
-	for (var n of state.glyphOrder) {
-		if (n.length==1 && state.glyphDict.hasOwnProperty(n)) {            
-			var g=state.glyphDict[n];
+    for (var n of state.glyphOrder) {
+        if (n.length==1 && state.glyphDict.hasOwnProperty(n)) {            
+            var g=state.glyphDict[n];
 
             /* hide duplicate entries from editor palette*/
             var trace = g.join(",");
@@ -173,27 +201,27 @@ function generateGlyphImages() {
                 continue;
             }
             
-			var sprite = makeSpriteCanvas("C"+n)
-			var spritectx = sprite.getContext('2d');
-			glyphImagesCorrespondance.push(n);
+            var sprite = makeSpriteCanvas("C"+n)
+            var spritectx = sprite.getContext('2d');
+            glyphImagesCorrespondance.push(n);
             seenobjects[trace]=true;
 
-			for (var i=0;i<g.length;i++){
-				var id = g[i];
-				if (id===-1) {
-					continue;
+            for (var i=0;i<g.length;i++){
+                var id = g[i];
+                if (id===-1) {
+                    continue;
                 }
-				spritectx.drawImage(spriteImages[id], 0, 0);
-			}
-			glyphImages.push(sprite);
-		}
-	}
+                spritectx.drawImage(spriteImages[id], 0, 0);
+            }
+            glyphImages.push(sprite);
+        }
+    }
 
-	if (IDE) {
-		//make highlight thingy
-		glyphHighlight = makeSpriteCanvas("highlight");
-		var spritectx = glyphHighlight.getContext('2d');
-		spritectx.fillStyle = '#FFFFFF';
+    if (IDE) {
+        //make highlight thingy
+        glyphHighlight = makeSpriteCanvas("highlight");
+        var spritectx = glyphHighlight.getContext('2d');
+        spritectx.fillStyle = '#FFFFFF';
 
         const hlwid = 3;
         spritectx.fillRect(0, 0, cellwidth, hlwid);
@@ -202,46 +230,46 @@ function generateGlyphImages() {
         spritectx.fillRect(0, cellheight - hlwid, cellwidth, hlwid);
         spritectx.fillRect(cellwidth - hlwid, 0, hlwid, cellheight);
 
-		glyphPrintButton = textImages['editor_s'];
+        glyphPrintButton = textImages['editor_s'];
 
-		//make diff highlighter thingy
-		glyphHighlightDiff = makeSpriteCanvas("glyphHighlightDiff");
-		var spritectx = glyphHighlightDiff.getContext('2d');
+        //make diff highlighter thingy
+        glyphHighlightDiff = makeSpriteCanvas("glyphHighlightDiff");
+        var spritectx = glyphHighlightDiff.getContext('2d');
         
-		spritectx.fillStyle =  state.bgcolor;
+        spritectx.fillStyle =  state.bgcolor;
 
-		spritectx.fillRect(0,0,cellwidth,2);
-		spritectx.fillRect(0,0,2,cellheight);
-		
-		spritectx.fillRect(0,cellheight-2,cellwidth,2);
-		spritectx.fillRect(cellwidth-2,0,2,cellheight);
+        spritectx.fillRect(0,0,cellwidth,2);
+        spritectx.fillRect(0,0,2,cellheight);
+        
+        spritectx.fillRect(0,cellheight-2,cellwidth,2);
+        spritectx.fillRect(cellwidth-2,0,2,cellheight);
 
-		spritectx.fillStyle = state.fgcolor;
+        spritectx.fillStyle = state.fgcolor;
 
-		spritectx.fillRect(0,0,cellwidth,1);
-		spritectx.fillRect(0,0,1,cellheight);
-		
-		spritectx.fillRect(0,cellheight-1,cellwidth,1);
-		spritectx.fillRect(cellwidth-1,0,1,cellheight);
+        spritectx.fillRect(0,0,cellwidth,1);
+        spritectx.fillRect(0,0,1,cellheight);
+        
+        spritectx.fillRect(0,cellheight-1,cellwidth,1);
+        spritectx.fillRect(cellwidth-1,0,1,cellheight);
 
-		glyphPrintButton = textImages['editor_s'];
+        glyphPrintButton = textImages['editor_s'];
 
-		//make highlight thingy
-		glyphHighlightResize = makeSpriteCanvas("highlightresize");
-		var spritectx = glyphHighlightResize.getContext('2d');
-		spritectx.fillStyle = '#FFFFFF';
-		
+        //make highlight thingy
+        glyphHighlightResize = makeSpriteCanvas("highlightresize");
+        var spritectx = glyphHighlightResize.getContext('2d');
+        spritectx.fillStyle = '#FFFFFF';
+        
         const rswid = 3;
         const minx = ~~(cellwidth / 2 - 1);
         const miny = ~~(cellheight / 2 - 1);
-		spritectx.fillRect(minx, 0, rswid, cellheight);
-		spritectx.fillRect(0, miny, cellwidth, rswid);
+        spritectx.fillRect(minx, 0, rswid, cellheight);
+        spritectx.fillRect(0, miny, cellwidth, rswid);
 
-		//make highlight thingy
-		glyphMouseOver = makeSpriteCanvas("glyphMouseOver");
-		var spritectx = glyphMouseOver.getContext('2d');
-		spritectx.fillStyle = 'yellow';
-		const mowid = 3;  // was 2
+        //make highlight thingy
+        glyphMouseOver = makeSpriteCanvas("glyphMouseOver");
+        var spritectx = glyphMouseOver.getContext('2d');
+        spritectx.fillStyle = 'yellow';
+        const mowid = 3;  // was 2
 
         spritectx.fillRect(0, 0, cellwidth, mowid);
         spritectx.fillRect(0, 0, mowid, cellheight);
@@ -278,8 +306,8 @@ function generateGlyphImages() {
             spritectx.lineWidth=1;
             
             
-		    spritectx.fillStyle =  state.bgcolor;
-		    spritectx.strokeStyle = state.fgcolor;
+            spritectx.fillStyle =  state.bgcolor;
+            spritectx.strokeStyle = state.fgcolor;
 
 
             spritectx.beginPath();       // Start a new path
@@ -291,7 +319,7 @@ function generateGlyphImages() {
             spritectx.fill();
             spritectx.stroke();          // Render the path        
         }
-	}
+    }
 }
 
 var canvas;
@@ -583,10 +611,21 @@ function redrawCellGrid(curlevel) {
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
                         // size of the sprite in pixels
-                        const spriteSize = {
-                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
-                            h: obj.spritematrix.length * pixelSize,
-                        };
+                        let spriteSize;
+                        const vector = obj.vector;
+                        if (vector) {
+                            spriteSize = {
+                                w: (vector.w || 1) * cellwidth,
+                                h: (vector.h || 1) * cellheight,
+                            };
+                            params.x = vector.x || 0;
+                            params.y = vector.y || 0;
+                        } else {
+                            spriteSize = {
+                                w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                                h: obj.spritematrix.length * pixelSize,
+                            };
+                        }
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -876,17 +915,17 @@ function drawEditorIcons(mini,minj) {
 
     let dp0 = drawPos(0)
     dp0.x -= cellSize.w;  // special
-	ctx.drawImage(glyphPrintButton, dp0.x, dp0.y);
-	if (mousePos.x == panelRect.x - 1 && mousePos.y == panelRect.y) 
-		ctx.drawImage(glyphMouseOver, dp0.x, dp0.y);
+    ctx.drawImage(glyphPrintButton, dp0.x, dp0.y);
+    if (mousePos.x == panelRect.x - 1 && mousePos.y == panelRect.y) 
+        ctx.drawImage(glyphMouseOver, dp0.x, dp0.y);
 
     glyphImages.forEach((glyph,index) => {
-		ctx.drawImage(glyph, drawPos(index).x, drawPos(index).y);
-		if (index == mouseIndex)
-			ctx.drawImage(glyphMouseOver, drawPos(index).x, drawPos(index).y);
-		if (index == glyphSelectedIndex) 
-			ctx.drawImage(glyphHighlight, drawPos(index).x, drawPos(index).y);
-	});
+        ctx.drawImage(glyph, drawPos(index).x, drawPos(index).y);
+        if (index == mouseIndex)
+            ctx.drawImage(glyphMouseOver, drawPos(index).x, drawPos(index).y);
+        if (index == glyphSelectedIndex) 
+            ctx.drawImage(glyphHighlight, drawPos(index).x, drawPos(index).y);
+    });
 
     let tooltip_string = '';
     let tooltip_objects = null;
@@ -919,17 +958,17 @@ function drawEditorIcons(mini,minj) {
 
     if (mouseCoordX >= -1 && mouseCoordY >= -1 && mouseCoordX <= screenwidth && mouseCoordY <= screenheight) {
         if (mouseCoordX == -1 || mouseCoordY == -1 || mouseCoordX == screenwidth || mouseCoordY === screenheight) {
-			ctx.drawImage(glyphHighlightResize,
-				xoffset+mouseCoordX*cellwidth,
-				yoffset+mouseCoordY*cellheight
-				);								
-		} else {
-			ctx.drawImage(glyphHighlight,
-				xoffset+mouseCoordX*cellwidth,
-				yoffset+mouseCoordY*cellheight
-				);				
-		}
-	}
+            ctx.drawImage(glyphHighlightResize,
+                xoffset+mouseCoordX*cellwidth,
+                yoffset+mouseCoordY*cellheight
+                );                              
+        } else {
+            ctx.drawImage(glyphHighlight,
+                xoffset+mouseCoordX*cellwidth,
+                yoffset+mouseCoordY*cellheight
+                );              
+        }
+    }
 
 }
 
@@ -1008,8 +1047,8 @@ function canvasResize(level) {
     if (levelEditorOpened && !textMode) {
         xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
         yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
-    	xoffset+=cellwidth;
-    	yoffset+=cellheight*(1+editorRowCount);
+        xoffset+=cellwidth;
+        yoffset+=cellheight*(1+editorRowCount);
     } else {
         xoffset = (canvas.width - cellwidth * screenwidth) / 2;
         yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
@@ -1032,8 +1071,8 @@ function canvasResize(level) {
     }
     
     if (oldcellwidth!=cellwidth||oldcellheight!=cellheight||oldtextmode!=textMode||textMode||oldfgcolor!=state.fgcolor||forceRegenImages){
-    	forceRegenImages=false;
-    	regenSpriteImages();
+        forceRegenImages=false;
+        regenSpriteImages();
     }
 
     oldcellheight=cellheight;
