@@ -928,8 +928,13 @@ var codeMirrorFn = function() {
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
                 } else if (token = lexer.match(/^\{.*\}/, true)) {
-					vector = JSON.parse(token);
-					kind = 'VECTOR';
+                    kind = 'VECTOR';
+                    try {
+                        vector = JSON.parse(token);
+                    } catch (error) {
+                        //console.log(error);
+                        kind = 'ERROR';
+                    }
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
