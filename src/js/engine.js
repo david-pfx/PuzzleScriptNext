@@ -476,17 +476,17 @@ function gotoLink() {
 }
 
 function returnLink() {
-    if (debugSwitch.includes('load')) console.log('returnLink()', `stack:`, linkStack);
-    const linkEntry = linkStack.pop();
-    const level = state.levels[linkEntry.backup.levelNo];
-    backups = backups.slice(0, linkEntry.backupTop);
-    if (verbose_logging)
-        consolePrint(`Returning to level ${linkEntry.backup.levelNo} (${htmlJump(level.lineNumber)})`, true, level.lineNumber);
-    restoreLevel(linkEntry.backup);
-    updateLocalStorage();
-    resetFlickDat();
-    canvasResize(); 
-    clearInputHistory();
+	if (debugSwitch.includes('load')) console.log('returnLink()', `stack:`, linkStack);
+	const linkEntry = linkStack.pop();
+	const level = state.levels[linkEntry.backup.levelNo];
+	backups = backups.slice(0, linkEntry.backupTop);
+	if (verbose_logging)
+		consolePrint(`Returning to level ${linkEntry.backup.levelNo} (${htmlJump(level.lineNumber)}).`, true, level.lineNumber);
+	restoreLevel(linkEntry.backup);
+	updateLocalStorage();
+	resetFlickDat();
+	canvasResize();	
+	clearInputHistory();
 }
 
 let introState = {
@@ -657,12 +657,12 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
         setSectionSolved(state.levels[Number(curLevelNo)].section)
         gotoLevel(leveldat.target);
     } else {
-        titleMode=0;
-        textMode=false;
-        curLevel = leveldat.clone();
-        if (verbose_logging)
-            consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);  //todo:
-        RebuildLevelArrays();
+      	titleMode=0;
+      	textMode=false;
+    	curLevel = leveldat.clone();
+		if (verbose_logging)
+			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
+    	RebuildLevelArrays();
         if (state!==undefined) {
             if (state.metadata.flickscreen!==undefined){
                 oldflickscreendat=[
@@ -1512,31 +1512,31 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
         return false;
     }
 
-    // for each sound movement event, which applies to a single object and layer
-    for (let i=0;i<state.sfx_MovementMasks[layer].length;i++) {
-        const fx = state.sfx_MovementMasks[layer][i];
-        if (sourceMask.get(fx.objId)) {
-            var movementMask = curLevel.getMovements(positionIndex);
-            var directionMask = fx.directionMask;
-            // does it match any movement at this location?
-            if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
-                if (verbose_logging) 
-                    consolePrint(`Object "${state.idDict[fx.objId]}" has moved, playing seed "${fx.seed}"`)
-                if (fx.seed.startsWith('afx')) {
-                    const object = getObject(fx.objId);
-                    const move = getLayerMovement(movementMask, object.layer);
-                    const position = deltaPositionIndex(curLevel, positionIndex, dirMasksDelta[move][0], dirMasksDelta[move][1])
-                    seedsToAnimate[position+','+fx.objId] = { 
-                        kind: 'move', 
-                        seed: fx.seed, 
-                        dir: move 
-                    };
-                }
-                else if (seedsToPlay_CanMove.indexOf(fx.seed)===-1)
-                    seedsToPlay_CanMove.push(fx.seed);
-            }
-        }
-    }
+	// for each sound movement event, which applies to a single object and layer
+	for (let i=0;i<state.sfx_MovementMasks[layer].length;i++) {
+		const fx = state.sfx_MovementMasks[layer][i];
+		if (sourceMask.get(fx.objId)) {
+      		var movementMask = curLevel.getMovements(positionIndex);
+      		var directionMask = fx.directionMask;
+			// does it match any movement at this location?
+      		if (movementMask.anyBitsInCommon(directionMask)) {  // bug: two objects at location can cause false trigger
+    			if (verbose_logging) 
+					consolePrint(`Object "${state.idDict[fx.objId]}" has moved, playing seed "${fx.seed}".`)
+				if (fx.seed.startsWith('afx')) {
+					const object = getObject(fx.objId);
+					const move = getLayerMovement(movementMask, object.layer);
+					const position = deltaPositionIndex(curLevel, positionIndex, dirMasksDelta[move][0], dirMasksDelta[move][1])
+					seedsToAnimate[position+','+fx.objId] = { 
+						kind: 'move', 
+						seed: fx.seed, 
+						dir: move 
+					};
+				}
+				else if (seedsToPlay_CanMove.indexOf(fx.seed)===-1)
+					seedsToPlay_CanMove.push(fx.seed);
+      		}
+    	}
+  	}
 
     var movingEntities = sourceMask.clone();
     sourceMask.iclear(layerMask);
@@ -3052,38 +3052,38 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         bak = backupLevel();
     }
   
-    // this looks dodgy, but playerPositions is not used and dir test always succeeds
-    playerPositions= [];
-    playerPositionsAtTurnStart = getPlayerPositions();
-    
-    if (dir < dirNames.length) {
+	// this looks dodgy, but playerPositions is not used and dir test always succeeds
+  	playerPositions= [];
+	playerPositionsAtTurnStart = getPlayerPositions();
+	
+	if (dir < dirNames.length) {
 
-        if (verbose_logging) { 
-            debugger_turnIndex++;
-            addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
-        }
+		if (verbose_logging) { 
+			debugger_turnIndex++;
+			addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
+		}
 
-        const dirName = dirNames[dir];
+		const dirName = dirNames[dir];
 
-        // todo: reaction
-        if ([ 0,1,2,3,4 ].includes(dir)) {      // arrows plus action go to player 
-            playerPositions = startMovement(dirMasks[dirName]);
-        } else if ([ 6,7 ].includes(dir)) {         // clicks go to object(s)
-            const mask = curLevel.getCell(coord);
-            moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
-        }
+		// todo: reaction
+		if ([ 0,1,2,3,4 ].includes(dir)) {		// arrows plus action go to player 
+			playerPositions = startMovement(dirMasks[dirName]);
+		} else if ([ 6,7 ].includes(dir)) {			// clicks go to object(s)
+			const mask = curLevel.getCell(coord);
+			moveEntitiesAtIndex(coord, mask, dirMasks[dirName]);
+		}
 
-        if (verbose_logging) { 
-            const inspect_ID = addToDebugTimeline(curLevel, -1);
-            if (dir===-1) {
-                consolePrint(`Turn starts with no input.`, false, null, inspect_ID)
-            } else {
-                //  consolePrint('=======================');
-                consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
-            }
-            consolePrint('Applying rules');
-        }
-        
+		if (verbose_logging) { 
+			const inspect_ID = addToDebugTimeline(curLevel, -1);
+			if (dir===-1) {
+				consolePrint(`Turn starts with no input.`, false, null, inspect_ID)
+			} else {
+				//  consolePrint('=======================');
+				consolePrint(`Turn starts with input of ${dirName}.`, false, null, inspect_ID);
+			}
+			consolePrint('Applying rules.');
+		}
+		
         var bannedGroup = [];
 
         curLevel.commandQueue=[];
@@ -3116,73 +3116,73 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         do {
         //not particularly elegant, but it'll do for now - should copy the world state and check
         //after each iteration
-            rigidloop=false;
-            i++;
+        	rigidloop=false;
+        	i++;
 
-            applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
-            var shouldUndo = resolveMovements(curLevel, bannedGroup);
-            
-            if (shouldUndo) {
-                rigidloop=true;
+			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
+			var shouldUndo = resolveMovements(curLevel, bannedGroup);
+			
+        	if (shouldUndo) {
+        		rigidloop=true;
 
-                {
-                    // trackback
-                    if (IDE){
-                        // newBannedGroups is the list of keys of bannedGroup that aren't already in alreadyResolved
-                        var newBannedGroups = [];
-                        for (var key in bannedGroup) {
-                            if (!alreadyResolved.includes(key)) {
-                                newBannedGroups.push(key);
-                                alreadyResolved.push(key);
-                            }
-                        }
-                        var bannedLineNumbers = newBannedGroups.map( rgi => state.rules[rgi][0].lineNumber);
-                        var ts = bannedLineNumbers.length>1 ? "lines " : "line ";
-                        ts += bannedLineNumbers.map(ln => `<a onclick="jumpToLine(${ln});" href="javascript:void(0);">${ln}</a>`).join(", ");
-                        consolePrint(`Rigid movement application failed in rule-Group starting from ${ts}, and will be disabled in resimulation. Rolling back...`)
-                    }
-                    //don't need to concat or anythign here, once something is restored it won't be used again.
-                    curLevel.objects = new Int32Array(startState.objects)
-                    curLevel.movements = new Int32Array(startState.movements)
-                    curLevel.rigidGroupIndexMask = startState.rigidGroupIndexMask.concat([])
-                    curLevel.rigidMovementAppliedMask = startState.rigidMovementAppliedMask.concat([])
-                    // TODO: shouldn't we also save/restore the level data computed by level.calculateRowColMasks() ?
-                    curLevel.commandQueue = startState.commandQueue.concat([])
-                    curLevel.commandQueueSourceRules = startState.commandQueueSourceRules.concat([])
-                    sfxCreateMask.setZero()
-                    sfxDestroyMask.setZero()
-                    sfxCreateList = [];
-                    sfxDestroyList = [];
+				{
+					// trackback
+					if (IDE){
+						// newBannedGroups is the list of keys of bannedGroup that aren't already in alreadyResolved
+						var newBannedGroups = [];
+						for (var key in bannedGroup) {
+							if (!alreadyResolved.includes(key)) {
+								newBannedGroups.push(key);
+								alreadyResolved.push(key);
+							}
+						}
+						var bannedLineNumbers = newBannedGroups.map( rgi => state.rules[rgi][0].lineNumber);
+						var ts = bannedLineNumbers.length>1 ? "lines " : "line ";
+						ts += bannedLineNumbers.map(ln => `<a onclick="jumpToLine(${ln});" href="javascript:void(0);">${ln}</a>`).join(", ");
+						consolePrint(`Rigid movement application failed in rule-Group starting from ${ts}, and will be disabled in resimulation. Rolling back...`)
+					}
+					//don't need to concat or anythign here, once something is restored it won't be used again.
+					curLevel.objects = new Int32Array(startState.objects)
+					curLevel.movements = new Int32Array(startState.movements)
+					curLevel.rigidGroupIndexMask = startState.rigidGroupIndexMask.concat([])
+					curLevel.rigidMovementAppliedMask = startState.rigidMovementAppliedMask.concat([])
+					// TODO: shouldn't we also save/restore the level data computed by level.calculateRowColMasks() ?
+					curLevel.commandQueue = startState.commandQueue.concat([])
+					curLevel.commandQueueSourceRules = startState.commandQueueSourceRules.concat([])
+					sfxCreateMask.setZero()
+					sfxDestroyMask.setZero()
+					sfxCreateList = [];
+					sfxDestroyList = [];
 
-                }
+				}
 
-                if (verbose_logging && rigidloop && i>0){               
-                    consolePrint('Relooping through rules because of rigid.');
-                        
-                    debugger_turnIndex++;
-                    addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
-                }
+				if (verbose_logging && rigidloop && i>0){				
+					consolePrint('Relooping through rules because of rigid.');
+						
+					debugger_turnIndex++;
+					addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
+				}
 
-                startRuleGroupIndex=0;//rigidGroupUndoDat.ruleGroupIndex+1;
-            } else {
-                if (verbose_logging){
+        		startRuleGroupIndex=0;//rigidGroupUndoDat.ruleGroupIndex+1;
+        	} else {
+        		if (verbose_logging){
 
-                    var eof_idx = debug_visualisation_array[debugger_turnIndex].length+1;//just need some number greater than any rule group
-                    var inspect_ID = addToDebugTimeline(curLevel,eof_idx);
+					var eof_idx = debug_visualisation_array[debugger_turnIndex].length+1;//just need some number greater than any rule group
+					var inspect_ID = addToDebugTimeline(curLevel,eof_idx);
 
-                    consolePrint(`Processed movements.`,false,null,inspect_ID);
-                    
-                    if (state.lateRules.length>0){
-                                            
-                        debugger_turnIndex++;
-                        addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
-                    
-                        consolePrint('Applying late rules');
-                    }
-                }
-                applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
-                startRuleGroupIndex=0;
-            }
+					consolePrint(`Processed movements.`,false,null,inspect_ID);
+					
+					if (state.lateRules.length>0){
+											
+						debugger_turnIndex++;
+						addToDebugTimeline(curLevel,-2);//pre-movement-applied debug state
+					
+						consolePrint('Applying late rules.');
+					}
+				}
+        		applyRules(state.lateRules, state.lateLoopPoint, state.subroutines, 0);
+        		startRuleGroupIndex=0;
+        	}
         } while (i < 250 && rigidloop);
 
         if (i>=250) {
@@ -3381,71 +3381,71 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
             }
         }
   
-        if (!dontModify){
-            processOutputCommands(curLevel.commandQueue);
-        }
+		if (!dontModify){
+	    	processOutputCommands(curLevel.commandQueue);
+		}
 
-        if (textMode===false) {
-            if (verbose_logging) { 
-                consolePrint('Checking win conditions.');
-            }
-            if (dontDoWin===undefined){
-                dontDoWin = false;
-            }
-            checkWin( dontDoWin );
-        }
+	    if (textMode===false) {
+	    	if (verbose_logging) { 
+	    		consolePrint('Checking win conditions.');
+			}
+			if (dontDoWin===undefined){
+				dontDoWin = false;
+			}
+	    	checkWin( dontDoWin );
+	    }
 
-        if (!winning) {
-            if (curLevel.commandQueue.indexOf('checkpoint')>=0) {
-                if (verbose_logging) { 
-                    var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
-                    consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
-                }
-                restartTarget=level4Serialization();
-                hasUsedCheckpoint=true;
-                var backupStr = JSON.stringify(restartTarget);
-                storage_set(document.URL+'_checkpoint',backupStr);
-                storage_set(document.URL,curLevelNo);               
-            }    
+	    if (!winning) {
+			if (curLevel.commandQueue.indexOf('checkpoint')>=0) {
+		    	if (verbose_logging) { 
+	    			var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
+		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
+				}
+				restartTarget=level4Serialization();
+				hasUsedCheckpoint=true;
+				var backupStr = JSON.stringify(restartTarget);
+				storage_set(document.URL+'_checkpoint',backupStr);
+				storage_set(document.URL,curLevelNo);				
+			}	 
 
-            if (curLevel.commandQueue.indexOf('again')>=0 && modified) {
+		    if (curLevel.commandQueue.indexOf('again')>=0 && modified) {
 
-                var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('again')];
+	    		var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('again')];
 
-                //first have to verify that something's changed
-                var old_verbose_logging=verbose_logging;
-                var oldmessagetext = messagetext;
-                verbose_logging=false;
-                if (processInput(-1,true,true)) {
-                    verbose_logging=old_verbose_logging;
+		    	//first have to verify that something's changed
+		    	var old_verbose_logging=verbose_logging;
+		    	var oldmessagetext = messagetext;
+		    	verbose_logging=false;
+		    	if (processInput(-1,true,true)) {
+			    	verbose_logging=old_verbose_logging;
 
-                    if (verbose_logging) { 
-                        consolePrintFromRule('AGAIN command executed, with changes detected - will execute another turn.',r);
-                    }
+			    	if (verbose_logging) { 
+			    		consolePrintFromRule('AGAIN command executed, with changes detected - will execute another turn.',r);
+					}
 
-                    againing=true;
-                    timer=0;
-                } else {                
-                    verbose_logging=old_verbose_logging;
-                    if (verbose_logging) { 
-                        consolePrintFromRule('AGAIN command not executed, it wouldn\'t make any changes.',r);
-                    }
-                }
-                verbose_logging=old_verbose_logging;
-                messagetext = oldmessagetext;
-            }   
-        }
-        
-        if (verbose_logging) { 
-            consolePrint(`Turn complete`);    
-        }
+			    	againing=true;
+			    	timer=0;
+			    } else {		    	
+			    	verbose_logging=old_verbose_logging;
+					if (verbose_logging) { 
+						consolePrintFromRule('AGAIN command not executed, it wouldn\'t make any changes.',r);
+					}
+			    }
+			    verbose_logging=old_verbose_logging;
+			    messagetext = oldmessagetext;
+		    }   
+		}
+		
+		if (verbose_logging) { 
+			consolePrint(`Turn complete.`);    
+		}
 
-        currentMovedEntities = newMovedEntities;
-        tweentimer = 0;
-        
-        curLevel.commandQueue=[];
-        curLevel.commandQueueSourceRules=[];
-        if (debugSwitch.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
+		currentMovedEntities = newMovedEntities;
+		tweentimer = 0;
+		
+	    curLevel.commandQueue=[];
+	    curLevel.commandQueueSourceRules=[];
+		if (debugSwitch.includes('anim')) console.log(`Animate: ${JSON.stringify(seedsToAnimate)}`);
 
     }
 
@@ -3475,46 +3475,46 @@ function checkWin(dontDoWin) {
     dontDoWin=true;
   }
 
-    if (curLevel.commandQueue.indexOf('win')>=0) {
-        if (runrulesonlevelstart_phase){
-            consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");      
-        } else {
-            if (verbose_logging && !solving) {
-                consolePrint("Win Condition Satisfied");
-            }
-        }
-        if(!dontDoWin){
-            DoWin();
-        }
-        return;
-    }
+	if (curLevel.commandQueue.indexOf('win')>=0) {
+		if (runrulesonlevelstart_phase){
+			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
+		} else {
+			if (verbose_logging && !solving) {
+				consolePrint("Win Condition Satisfied.");
+			}
+		}
+		if(!dontDoWin){
+			DoWin();
+		}
+		return;
+	}
 
-    var won= false;
-    if (state.winconditions.length>0)  {
-        var passed=true;
-        for (var wcIndex=0;wcIndex<state.winconditions.length;wcIndex++) {
-            var wincondition = state.winconditions[wcIndex];
-            var filter1 = wincondition[1];
-            var filter2 = wincondition[2];
-            var aggr1 = wincondition[4];
-            var aggr2 = wincondition[5];
+	var won= false;
+	if (state.winconditions.length>0)  {
+		var passed=true;
+		for (var wcIndex=0;wcIndex<state.winconditions.length;wcIndex++) {
+			var wincondition = state.winconditions[wcIndex];
+			var filter1 = wincondition[1];
+			var filter2 = wincondition[2];
+			var aggr1 = wincondition[4];
+			var aggr2 = wincondition[5];
 
-            var rulePassed=true;
-            
-            const f1 = aggr1 ? c=>filter1.bitsSetInArray(c) : c=>!filter1.bitsClearInArray(c);
-            const f2 = aggr2 ? c=>filter2.bitsSetInArray(c) : c=>!filter2.bitsClearInArray(c);
+			var rulePassed=true;
+			
+			const f1 = aggr1 ? c=>filter1.bitsSetInArray(c) : c=>!filter1.bitsClearInArray(c);
+			const f2 = aggr2 ? c=>filter2.bitsSetInArray(c) : c=>!filter2.bitsClearInArray(c);
 
-            switch(wincondition[0]) {
-                case -1://NO
-                {
-                    for (var i=0;i<curLevel.n_tiles;i++) {
-                        var cell = curLevel.getCellInto(i,_o10);
-                        if ( (f1(cell.data)) &&  
-                             (f2(cell.data)) ) {
-                            rulePassed=false;
-                            break;
-                        }
-                    }
+			switch(wincondition[0]) {
+				case -1://NO
+				{
+					for (var i=0;i<curLevel.n_tiles;i++) {
+						var cell = curLevel.getCellInto(i,_o10);
+						if ( (f1(cell.data)) &&  
+							 (f2(cell.data)) ) {
+							rulePassed=false;
+							break;
+						}
+					}
 
           break;
         }
@@ -3554,18 +3554,18 @@ function checkWin(dontDoWin) {
     won=passed;
   }
 
-    if (won) {
-        if (runrulesonlevelstart_phase){
-            consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");      
-        } else {
-            if (verbose_logging && !solving) {
-                consolePrint("Win Condition Satisfied");
-            }
-        }
-        if (!dontDoWin){
-            DoWin();
-        }
-    }
+	if (won) {
+		if (runrulesonlevelstart_phase){
+			consolePrint("Win Condition Satisfied (However this is in the run_rules_on_level_start rule pass, so I'm going to ignore it for you.  Why would you want to complete a level before it's already started?!)");		
+		} else {
+			if (verbose_logging && !solving) {
+				consolePrint("Win Condition Satisfied.");
+			}
+		}
+		if (!dontDoWin){
+			DoWin();
+		}
+	}
 }
 
 function DoWin() {

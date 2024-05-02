@@ -302,10 +302,20 @@ function getObjectUndefs(state, ident) {
 }
 
 // create a property object for an ident with parts, if possible and not already there
+// but if property contains a relative direction, create one for each absolute direction
 // todo: this fails if an expansion is an aggregate -- see isaac_and_mass
 function createObjectRef(state, ident) {
     const ref = getObjectRefs(state, ident);
     if (ref && ref.length > 1) {
+        const parts = ident.split(':');
+        if (parts.some(e => relativeDirections.includes(e))) {
+            if (debugSwitch.includes('exp')) console.log(`Create object ref for relative direction: ${ident}`);
+            for (const forward of simpleAbsoluteDirections) { //@@
+                const absOf = dir => relativeDirs.includes(dir) ? relativeDict[forward][relativeDirs.indexOf(dir)] : dir;
+                const id = ident.split(':').map(p => absOf(p)).join(':');
+                createObjectRef(state, id);
+            }
+        }
         const newlegend = [ ident, ...ref ];
         newlegend.lineNumber = state.lineNumber;  // bug: it's an array, isn't it?
         state.legend_properties.push(newlegend);
@@ -1719,6 +1729,8 @@ function expandRuleTags(state, cell) {
     return expanded;
 
 }
+
+// inline expansion of negative properties: expand [ no flying ] to [ no cat no bat ]
 function expandNoPrefixedProperties(state, cell) {
     var expanded = [];
     for (var i = 0; i < cell.length; i += 2) {
