@@ -33,18 +33,28 @@ function createTextSprite(name, text, colors, scale) {
 function createJsonSprite(name, vector) {
     var canvas = makeSpriteCanvas(name);
     var context = canvas.getContext('2d');
+    let lastinstr;
+
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
-    var json = JSON.parse("[" + vector.data + "]");
-    context.scale(cellwidth, cellheight);
-    for (const instr of json) {
-        for (const [key, value] of Object.entries(instr)) {
-            if (context[key] instanceof Function) {
-                context[key].apply(context, value);
-            } else {
-                context[key] = value;
+    try {
+        var json = JSON.parse("[" + vector.data + "]");
+        context.scale(cellwidth, cellheight);
+        for (const instr of json) {
+            lastinstr = instr;
+            for (const [key, value] of Object.entries(instr)) {
+                if (context[key] instanceof Function) {
+                    context[key].apply(context, value);
+                } else {
+                    context[key] = value;
+                }
             }
         }
+    } catch (error) {
+        console.log(error);
+        logErrorNoLine("error in " + JSON.stringify(lastinstr), 1);
+        logErrorNoLine(error, 1);
+		return canvas;
     }
     return canvas;
 }
