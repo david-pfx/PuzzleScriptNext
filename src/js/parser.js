@@ -925,9 +925,17 @@ var codeMirrorFn = function() {
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
-                } else if (token = lexer.match(/^\{.*\}/, true)) {
-					vector = JSON.parse(token);
-					kind = 'VECTOR';
+                } else if (token = lexer.match(/^\{.*\}/, false)) {
+                    // should look like this: {"type":"canvas","w":2,"h":1}
+                    try {
+                        vector = JSON.parse(token);
+                        if (!(vector && vector.type == 'canvas'))
+                            logError(`If this is a vector sprite it would need to be of type "canvas", but this is something different: ${token}.`, state.lineNumber);
+                        else kind = 'SPRITEMATRIX';
+                    } catch (error) {
+                        logError(`I was looking for some valid JSON (in curly braces) but found this instead: ${token}.`, state.lineNumber);
+                        kind = 'ERROR';
+                    }
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -953,15 +961,36 @@ var codeMirrorFn = function() {
                 obj.spritetext = values.text;
             else if (values.vectordata) {
                 if (!obj.vector.data) obj.vector.data = [];
-                obj.vector.data.push(values.vectordata);
+                obj.vector.data.push(...values.vectordata);
             } else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
 
         // build a list of tokens and kinds, and extract values
         function getTokens() {
-            let token = lexer.match(/^text:/i);
-            if (token) {
+            let kind = 'ERROR';
+            let token;
+            if (obj.vector) {
+                values.vectordata = [];
+                while (!lexer.matchEol()) {
+                    kind = 'ERROR';
+                    if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                        try {
+                            const json = JSON.parse(token);
+                            if (json) {
+                                values.vectordata.push(json);
+                                kind = 'SPRITEMATRIX';
+                            }
+                        } catch (error) { }
+                    } else token = lexer.matchAll();
+                    lexer.pushToken(token, kind);
+                    if (kind == 'ERROR') {
+                        logError(`I was looking for some valid JSON (in curly braces) but found this instead: "${token}."`, state.lineNumber);
+                        return false;
+                    }
+                }
+                return true;
+            } else if ((token = lexer.match(/^text:/i, false))) {
                 lexer.pushToken(token, 'LOGICWORD');
 
                 token = lexer.matchAll();
@@ -969,12 +998,6 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, kind);
                 values.text = token;
                 state.objects_section = 0;
-                return true;
-            }    
-            if (obj.vector) {
-                token = lexer.matchAll();
-                lexer.pushToken(token, 'VECTORDATA');
-                values.vectordata = token;
                 return true;
             }    
 

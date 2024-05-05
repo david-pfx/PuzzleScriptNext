@@ -37,7 +37,7 @@ function createJsonSprite(name, vector) {
 
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
-    const json = JSON.parse("[" + vector.data + "]");
+    const json = vector.data;
     context.scale(cellwidth, cellheight);
     for (const instr of json) {
         try {
@@ -48,7 +48,7 @@ function createJsonSprite(name, vector) {
                     context[key] = value;
                 }
             }
-        } catch (error) {
+        } catch (error) { // does this ever happen???
             console.log(error);
             logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
             logErrorNoLine(`The system returned this error message: ${error}`, true);
