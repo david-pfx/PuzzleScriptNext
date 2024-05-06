@@ -1,0 +1,119 @@
+run_rules_on_level_start
+sprite_size 6x6
+debug_switch noul
+=====
+TAGS
+=====
+
+quarterTiles = side front innerCorner outerCorner fill
+
+========
+OBJECTS
+========
+
+background .
+darkgreen
+
+player p
+transparent
+
+wall #
+yellow
+......
+......
+..00..
+..00..
+......
+......
+
+wall:directions:side
+yellow orange red
+...000
+...111
+...222
+......
+......
+......
+rot:right:directions
+
+wall:directions:front
+yellow orange red
+...210
+...210
+...210
+......
+......
+......
+rot:right:directions
+
+wall:directions:innerCorner
+yellow orange red
+...210
+...221
+...222
+......
+......
+......
+rot:right:directions
+
+wall:directions:outerCorner
+yellow orange red
+...00.
+...110
+...210
+......
+......
+......
+rot:right:directions
+
+wall:directions:fill
+red darkgreen
+...001
+...010
+...100
+......
+......
+......
+rot:right:directions
+
+================
+COLLISIONLAYERS
+================
+
+background
+wall, player
+directions, quarterTiles -> wall:directions:quarterTiles
+
+======
+RULES
+======
+
+late [ wall | no wall ] -> [ wall wall:>:front wall:v:side | ]
+late [ wall:>:side wall:>:front ] -> [ wall:>:outerCorner ]
+late [ wall:>:side | no wall:^:front ] -> [ wall:>:side | wall:^:innerCorner ]
+late [ wall no wall:>:quarterTiles ] -> [ wall wall:>:fill ]
+
+=======
+LEGEND
+=======
+
+=======
+SOUNDS
+=======
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+.........
+.###..#..
+.###..##.
+..#.p..#.
+.........
+.#####.#.
+.#.####..
+....####.
