@@ -1,0 +1,257 @@
+title Hysteresis maze [Test/WIP]
+author Andrea Gilbert
+homepage http://www.clickmazes.com/hk/new-hk.htm
+
+========
+OBJECTS
+========
+
+background
+white
+
+border
+black
+
+xNE
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"black"}
+{"moveTo":[0,0]}
+{"lineTo":[1,1]}
+{"stroke":[]}
+
+xNW
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"black"}
+{"moveTo":[0,1]}
+{"lineTo":[1,0]}
+{"stroke":[]}
+
+zSW
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"black"}
+{"moveTo":[0,0]}
+{"lineTo":[1,0]}
+{"lineTo":[1,1]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+zSE
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"black"}
+{"moveTo":[0,0]}
+{"lineTo":[1,0]}
+{"lineTo":[0,1]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+zNE
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"black"}
+{"moveTo":[0,0]}
+{"lineTo":[1,1]}
+{"lineTo":[0,1]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+zNW
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"black"}
+{"moveTo":[0,1]}
+{"lineTo":[1,1]}
+{"lineTo":[1,0]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+moveVH
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"fillStyle":"purple"}
+{"moveTo":[0.5,0]}
+{"lineTo":[1,0.5]}
+{"lineTo":[0.5,1]}
+{"lineTo":[0,0.5]}
+{"closePath":[]}
+{"fill":[]}
+
+moveH
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"fillStyle":"purple"}
+{"moveTo":[0.5,0]}
+{"lineTo":[1,0.5]}
+{"lineTo":[0.5,1]}
+{"lineTo":[0,0.5]}
+{"closePath":[]}
+{"fill":[]}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"orange"}
+{"moveTo":[0.2,0.5]}
+{"lineTo":[0.8,0.5]}
+{"stroke":[]}
+
+moveV
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"fillStyle":"purple"}
+{"moveTo":[0.5,0]}
+{"lineTo":[1,0.5]}
+{"lineTo":[0.5,1]}
+{"lineTo":[0,0.5]}
+{"closePath":[]}
+{"fill":[]}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"orange"}
+{"moveTo":[0.5,0.2]}
+{"lineTo":[0.5,0.8]}
+{"stroke":[]}
+
+switch
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"orange"}
+{"moveTo":[0.5,0.2]}
+{"lineTo":[0.5,0.8]}
+{"stroke":[]}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"orange"}
+{"moveTo":[0.2,0.5]}
+{"lineTo":[0.8,0.5]}
+{"stroke":[]}
+
+goal
+{"type":"canvas"}
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"red"}
+{"moveTo":[0.5,0.1]}
+{"lineTo":[0.9,0.5]}
+{"lineTo":[0.5,0.9]}
+{"lineTo":[0.1,0.5]}
+{"closePath":[]}
+{"stroke":[]}
+
+cell
+transparent
+
+=======
+LEGEND
+=======
+
+o = border
+. = cell
+\ = xNE
+/ = xNW
+a = zNE
+b = zSE
+c = zSW
+d = zNW
+p = moveH
+g = goal
+* = switch
+
+player = moveV or moveH or moveVH
+
+slide = xNE or xNW
+halfslide = zNW or zNE or zSW or zSE
+wall = slide or halfslide
+maze = cell or wall or switch
+
+rPushN = xNW or zNW
+rPushS = xNE or zSW
+lPushN = xNE or zNE
+lPushS = xNW or zSE
+uPushR = xNW or zSE
+uPushL = xNE or zSW
+dPushR = xNE or zNE
+dPushL = xNW or zNW
+
+moveHx = moveH or moveVH
+moveVx = moveV or moveVH
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+background
+border
+player
+maze
+goal
+
+======
+RULES
+======
+
+[ > player | border ] -> cancel
+horizontal [ > moveV ] -> cancel
+vertical   [ > moveH ] -> cancel
+
+horizontal [ > moveVH switch | cell ] -> [ switch | moveH cell ]
+vertical   [ > moveVH switch | cell ] -> [ switch | moveV cell ]
+
+right [ right moveHx | rPushN ] -> [ | up moveH rPushN ]  
+right [ right moveHx | rPushS ] -> [ | down moveH rPushS ]  
+left  [ left moveHx | lPushS ]  -> [ | down moveH lPushS ]  
+left  [ left moveHx | lPushN ]  -> [ | up moveH lPushN ] 
+up    [ up moveVx | uPushR ]    -> [ | right moveV uPushR ]  
+up    [ up moveVx | uPushL ]    -> [ | left moveV uPushL ]  
+down  [ down moveVx | dPushL ]  -> [ | left moveV dPushL ]  
+down  [ down moveVx | dPushR ]  -> [ | right moveV dPushR ] 
+
+late [ player wall ]   -> cancel
+late [ player border ] -> cancel
+
+late [ player switch ] -> [ moveVH switch ]
+late [ player goal ]   -> [ player ]
+
+==============
+WINCONDITIONS
+==============
+
+No goal
+
+=======
+LEVELS
+=======
+
+Message To the red target
+
+oooooooooooo
+o*./...\.*.o
+o..../.../.o
+o.\..*...\.o
+o...*.b*...o
+o\.*c../*/.o
+o*.\......*o
+o.....*././o
+o.d.*.....\o
+o.../...*..o
+o\*.p./g.\.o
+oooooooooooo
