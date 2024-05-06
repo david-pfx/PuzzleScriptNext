@@ -29,6 +29,35 @@ function createTextSprite(name, text, colors, scale) {
     return canvas;
 }
 
+// Create and return a custom instructions sprite canvas
+function createJsonSprite(name, vector) {
+    const canvas = makeSpriteCanvas(name);
+    const context = canvas.getContext('2d');
+    //let lastinstr;
+
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    const json = vector.data;
+    context.scale(cellwidth, cellheight);
+    for (const instr of json) {
+        try {
+            for (const [key, value] of Object.entries(instr)) {
+                if (context[key] instanceof Function) {
+                    context[key].apply(context, value);
+                } else {
+                    context[key] = value;
+                }
+            }
+        } catch (error) { // does this ever happen???
+            console.log(error);
+            logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
+            logErrorNoLine(`The system returned this error message: ${error}`, true);
+            return canvas;
+        }
+    }
+    return canvas;
+}
+
 // draw the pixels of the sprite grid data into the context at a cell position, 
 function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     colors ||= ['#00000000', state.fgcolor];
@@ -100,6 +129,12 @@ function regenText() {
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
 
 var spriteImages;
+
+function createVectorSprite(name, vector) {
+    return vector.type == 'canvas' ? createJsonSprite(name, vector)
+        : null;
+}
+
 function regenSpriteImages() {
 	if (textMode) {
         spriteImages = [];
@@ -118,7 +153,9 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+            spriteImages[i] =
+                s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+                : s.vector ? createVectorSprite(i.toString(), s.vector)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
@@ -583,10 +620,21 @@ function redrawCellGrid(curlevel) {
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
                         // size of the sprite in pixels
-                        const spriteSize = {
-                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
-                            h: obj.spritematrix.length * pixelSize,
-                        };
+                        let spriteSize;
+                        const vector = obj.vector;
+                        if (vector) {
+                            spriteSize = {
+                                w: (vector.w || 1) * cellwidth,
+                                h: (vector.h || 1) * cellheight,
+                            };
+                            params.x = vector.x || 0;
+                            params.y = vector.y || 0;
+                        } else {
+                            spriteSize = {
+                                w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                                h: obj.spritematrix.length * pixelSize,
+                            };
+                        }
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
