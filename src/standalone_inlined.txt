@@ -6815,6 +6815,35 @@ function createTextSprite(name, text, colors, scale) {
     return canvas;
 }
 
+// Create and return a custom instructions sprite canvas
+function createJsonSprite(name, vector) {
+    const canvas = makeSpriteCanvas(name);
+    const context = canvas.getContext('2d');
+    //let lastinstr;
+
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    const json = vector.data;
+    context.scale(cellwidth, cellheight);
+    for (const instr of json) {
+        try {
+            for (const [key, value] of Object.entries(instr)) {
+                if (context[key] instanceof Function) {
+                    context[key].apply(context, value);
+                } else {
+                    context[key] = value;
+                }
+            }
+        } catch (error) { // does this ever happen???
+            console.log(error);
+            logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
+            logErrorNoLine(`The system returned this error message: ${error}`, true);
+            return canvas;
+        }
+    }
+    return canvas;
+}
+
 // draw the pixels of the sprite grid data into the context at a cell position, 
 function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     colors ||= ['#00000000', state.fgcolor];
@@ -6886,6 +6915,12 @@ function regenText() {
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
 
 var spriteImages;
+
+function createVectorSprite(name, vector) {
+    return vector.type == 'canvas' ? createJsonSprite(name, vector)
+        : null;
+}
+
 function regenSpriteImages() {
 	if (textMode) {
         spriteImages = [];
@@ -6904,7 +6939,9 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+            spriteImages[i] =
+                s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+                : s.vector ? createVectorSprite(i.toString(), s.vector)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
@@ -7369,10 +7406,21 @@ function redrawCellGrid(curlevel) {
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
                         // size of the sprite in pixels
-                        const spriteSize = {
-                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
-                            h: obj.spritematrix.length * pixelSize,
-                        };
+                        let spriteSize;
+                        const vector = obj.vector;
+                        if (vector) {
+                            spriteSize = {
+                                w: (vector.w || 1) * cellwidth,
+                                h: (vector.h || 1) * cellheight,
+                            };
+                            params.x = vector.x || 0;
+                            params.y = vector.y || 0;
+                        } else {
+                            spriteSize = {
+                                w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                                h: obj.spritematrix.length * pixelSize,
+                            };
+                        }
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -8797,6 +8845,7 @@ function setGameState(_state, command, randomseed) {
                 dat: object.spritematrix,
                 colors: object.colors,
 				text: object.spritetext,
+                vector: object.vector,
 				scale: object.scale,
             };
         }
@@ -10157,8 +10206,7 @@ function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_
 
 			for (var y=ymin;y<ymax;y++) {
 				var i = x*curLevel.height+y;
-				if (cellRowMatch(	cellRow,i, d, curLevel.objects, curLevel.movements))
-				{
+				if (cellRowMatch(cellRow,i, d, curLevel.objects, curLevel.movements)) {
 					result.push(i);
 				}
 			}
@@ -12669,9 +12717,13 @@ var codeMirrorFn = function() {
     function parseObjectColors(stream, state) {
         const lexer = new Lexer(stream, state);
         const colors = [];
-        
-        if (getTokens())
+        let vector;
+
+        if (getTokens()) {
             state.objects[state.objects_candname].colors = colors;
+            if (vector)
+                state.objects[state.objects_candname].vector = vector;
+        }
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -12686,6 +12738,17 @@ var codeMirrorFn = function() {
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
+                } else if (token = lexer.match(/^\{.*\}/, false)) {
+                    // should look like this: {"type":"canvas","w":2,"h":1}
+                    try {
+                        vector = JSON.parse(token);
+                        if (!(vector && vector.type == 'canvas'))
+                            logError(`If this is a vector sprite it would need to be of type "canvas", but this is something different: ${token}.`, state.lineNumber);
+                        else kind = 'SPRITEMATRIX';
+                    } catch (error) {
+                        logError(`I was looking for some valid JSON (in curly braces) but found this instead: ${token}.`, state.lineNumber);
+                        kind = 'ERROR';
+                    }
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -12709,14 +12772,38 @@ var codeMirrorFn = function() {
         if (getTokens()) {
             if (values.text) 
                 obj.spritetext = values.text;
-            else obj.spritematrix = (obj.spritematrix || []).concat([values]);
+            else if (values.vectordata) {
+                if (!obj.vector.data) obj.vector.data = [];
+                obj.vector.data.push(...values.vectordata);
+            } else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
 
         // build a list of tokens and kinds, and extract values
         function getTokens() {
-            let token = lexer.match(/^text:/i);
-            if (token) {
+            let kind = 'ERROR';
+            let token;
+            if (obj.vector) {
+                values.vectordata = [];
+                while (!lexer.matchEol()) {
+                    kind = 'ERROR';
+                    if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                        try {
+                            const json = JSON.parse(token);
+                            if (json) {
+                                values.vectordata.push(json);
+                                kind = 'SPRITEMATRIX';
+                            }
+                        } catch (error) { }
+                    } else token = lexer.matchAll();
+                    lexer.pushToken(token, kind);
+                    if (kind == 'ERROR') {
+                        logError(`I was looking for some valid JSON (in curly braces) but found this instead: "${token}."`, state.lineNumber);
+                        return false;
+                    }
+                }
+                return true;
+            } else if ((token = lexer.match(/^text:/i, false))) {
                 lexer.pushToken(token, 'LOGICWORD');
 
                 token = lexer.matchAll();
@@ -13520,7 +13607,7 @@ var codeMirrorFn = function() {
             //console.log(`get token`, lastStream);
             //--- guard against looping?
 
-           	var mixedCase = stream.string;
+            var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
@@ -13609,7 +13696,7 @@ var codeMirrorFn = function() {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
+                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector && !stream.match(/^[.\d]/, false))
                                 state.objects_section = 0;
                         }
                     }
@@ -13673,7 +13760,7 @@ var codeMirrorFn = function() {
                     state.current_line_wip_array = parseCollisionLayer(stream, state);
                     return flushToken();
                 }
-                case 'rules': {                    	
+                case 'rules': {
                         if (sol) {
                             var rule = reg_notcommentstart.exec(stream.string)[0];
                             state.rules.push([rule, state.lineNumber, mixedCase]);
@@ -13728,7 +13815,7 @@ var codeMirrorFn = function() {
                                 } else if (m.match(reg_commandwords)) {
                                     if (commandargs_table.includes(m) || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
-                                    }                                	
+                                    }
                                     return 'COMMAND';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);
@@ -14276,7 +14363,10 @@ function generateExtraMembers(state) {
     // fix and convert colors to hex
     const maxColours = 36; // now 0-9 and a-z
     for (const obj of Object.values(state.objects)) {
-        if (obj.colors.length == 0) {
+        if (obj.vector) {
+            if (obj.colors.length > 0)
+                logWarning(`Please don't define colors for vector sprites. They're just going to get ignored anyway.`, obj.lineNumber + 1);
+        } else if (obj.colors.length == 0) {
             logWarning(`A sprite must have at least one color. However did this happen?`, obj.lineNumber + 1);
             obj.colors.push('#ff00ff');
         } else if (obj.colors.length > maxColours) {
