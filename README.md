@@ -41,18 +41,39 @@ Also some new documentation:
 * [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
 
 ## Objects with vector based sprites
-In original PuzzleScript objects are represented as pixel data. This branch introduces vector-based object graphics. Instead of specifying colors on a line a stringified JSON object is used instead.
-the properies of the JSON object are
-- `type`: mandatory: described below
-- `w`: optional width of the sprite expressed in cells, default 1
+This is the initial release of vector-based object graphics, as an alternative to the more usual pixel graphics.
+Instead of colors and pixels, a stringified JSON object is used to specify a drawing.
+
+The first line specifies properties of the JSON object as follows.
+- `type`: mandatory: see below.
+- `w`: optional width of the sprite expressed in cells, default 1 
 - `h`: optional height of the sprite expressed in cells, default 1
 - `x`: optional x offset expressed in cells, default 0
 - `y`: optional y offset expressed in cells, default 0
 
-The non-empty lines following the JSON object are accumulated as a string and passed to a vector based graphic handler
+Note that these are settings for the size and position of the drawing, with the origin at the top left corner.
+Vector drawings that fall outside these bounds will be clipped.
+
+The non-empty lines following the JSON object are accumulated as a string and passed to a vector based graphic handler.
 
 ### Vector types
-Currently one vector type is defined
+Currently one vector type is defined: `canvas`.
 
 #### canvas
-Each line is a JSON object with one property and one value. the property should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. When the propery is a CanvasRenderingContext2D function it is invoked with the value which should be a possible empty array containing the function arguments, otherwise the CanvasRenderingContext2D property is assigned to the value. [Example](https://mansoft.nl/puzzlescriptnext/play.html?p=35cac26d8267562d05e129ccac4483c1). The coordinate range is 0 to 1 for x and y.
+Each line is a JSON object with one name and one value. 
+The name should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. 
+If the name is a function it is invoked with the value, which is a (possibly empty) array containing the function arguments.
+Otherwise it is a property, and the value is assigned to that property. 
+
+Objects are scaled so that a size of 1.0 is one cell.
+Angles are in radians.
+
+Example of an object that is a grey blob.
+```
+blob b
+{"type":"canvas","w":2,"h":1}
+// this is a grey blob
+{"beginPath":[]}{"fillStyle":"#C0C0C0"}
+{"arc":[1.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+```
