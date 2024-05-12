@@ -14,16 +14,17 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24e01. 
-* Inline expansion of rules referring to the absence of an object by a relative reference now works correctly.
-For example: `late [ wall no wall:>:quarterTiles ] -> [ wall wall:>:fill ]`
+The latest version is Release v-24e12. 
+This is an ALPHA release of support for vector sprites, based on either canvas API calls or SVG, see below.
 
-Recent new features include the following. For detail see the documentation.
+Other new features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
 * A new debugging command `log`, which writes a message to the console.
 * The menus now more distinctively identify this is PuzzleScript Next.
 
 Several other bugs have already been fixed.
+* Inline expansion of rules referring to the absence of an object by a relative reference now works correctly.
+For example: `late [ wall no wall:>:quarterTiles ] -> [ wall wall:>:fill ]`
 * No longer crashes on resizing the browser window.
 * Setting sound volume has been fixed to be compatible with Pattern:Script.
 * Share authorisation now works correctly independntly of where it is hosted.
@@ -41,11 +42,11 @@ Also some new documentation:
 * [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
 
 ## Objects with vector based sprites
-This is the initial release of vector-based object graphics, as an alternative to the more usual pixel graphics.
+This is an ALPHA of vector-based object graphics, as an alternative to the more usual pixel graphics.
 Instead of colors and pixels, a stringified JSON object is used to specify a drawing.
 
 The first line specifies properties of the JSON object as follows.
-- `type`: mandatory: see below.
+- `type`: mandatory: either `canvas` or `svg`.
 - `w`: optional width of the sprite expressed in cells, default 1 
 - `h`: optional height of the sprite expressed in cells, default 1
 - `x`: optional x offset expressed in cells, default 0
@@ -54,18 +55,15 @@ The first line specifies properties of the JSON object as follows.
 Note that these are settings for the size and position of the drawing, with the origin at the top left corner.
 Vector drawings that fall outside these bounds will be clipped.
 
-The non-empty lines following the JSON object are accumulated as a string and passed to a vector based graphic handler.
+The non-empty lines following the JSON object are accumulated and passed to a vector based graphic handler, either `canvas` or `svg`.
 
-### Vector types
-Currently one vector type is defined: `canvas`.
-
-#### canvas
-Each line is a JSON object with one name and one value. 
+### Vector type `canvas`
+Each line is one or more JSON objects, each with one name and one value. 
 The name should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. 
 If the name is a function it is invoked with the value, which is a (possibly empty) array containing the function arguments.
 Otherwise it is a property, and the value is assigned to that property. 
 
-Objects are scaled so that a size of 1.0 is one cell.
+Objects are scaled so that a size of 1.0 is one cell (or as defined by `w` and `h`).
 Angles are in radians.
 
 Example of an object that is a grey blob.
@@ -77,3 +75,18 @@ blob b
 {"arc":[1.5,0.5,0.4,0,6.28]}
 {"fill":[]}
 ```
+
+### Vector type `svg`
+Each line must start with `<` and together the lines form a single XML document. 
+The [SVG specification](https://developer.mozilla.org/en-US/docs/Web/SVG) can be found here.
+
+The root element (the first line) must be `svg`, and it must specify a `viewBox` and a namespace as shown in the example.
+Objects are scaled so that the `viewBox` occupies one cell (or as defined by `w` and `h`).
+
+Example of an object that is a rounded rectangle with a thick border and partially transparent.
+```
+rect r
+{"type": "svg", "h": 2, "w": 2 }
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="280" height="280" x="10" y="10" rx="20" ry="20" style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
+</svg>```

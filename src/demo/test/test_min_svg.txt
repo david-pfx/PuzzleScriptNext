@@ -1,0 +1,208 @@
+title test min canvas
+author polyomino
+homepage www.polyomino.com
+
+// test program canvas vector sprites
+
+verbose_logging
+debug
+
+sprite_size 7
+
+========
+OBJECTS
+========
+//Background;grey
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+t;black
+
+1 // sphere
+{"type": "svg", "w":2, "h":2}
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg version="1.0" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <defs>
+  <radialGradient id="radialGradient3141" cx="204.51" cy="264.19" r="53.316" gradientTransform="matrix(.38806 .10448 -.24057 .89355 188.7 6.7552)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <radialGradient id="radialGradient3157" cx="204.51" cy="264.19" r="56.124" gradientTransform="matrix(1 0 0 .92911 0 18.729)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fff" offset="0"/>
+   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <linearGradient id="linearGradient3169" x1="110.65" x2="134.37" y1="34.522" y2="121.75" gradientTransform="translate(8.6921 5.9376)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fff" offset="0"/>
+   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
+  </linearGradient>
+  <filter id="filter3182" x="-.16821" y="-.31785" width="1.3364" height="1.6357">
+   <feGaussianBlur stdDeviation="13.951612"/>
+  </filter>
+  <filter id="filter3202" x="-.39604" y="-.42798" width="1.7921" height="1.856">
+   <feGaussianBlur stdDeviation="16.425908"/>
+  </filter>
+ </defs>
+ <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#0f04b4"/>
+ <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#2400ff" opacity=".032222" stroke="#060000" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
+ <ellipse transform="matrix(1.3266 -.40124 .32993 .55721 -186.18 172.78)" cx="204.51" cy="264.19" rx="53.316" ry="49.337" fill="url(#radialGradient3157)" filter="url(#filter3202)" stroke="url(#radialGradient3141)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
+ <path d="m118.51 44.134c-39.251 10.212-78.392 54.952-83.596 71.306-26.616 74.13 269.32-4.28 180.76-56.699-24.18-18.918-67.35-21.931-97.16-14.607z" fill="url(#linearGradient3169)" fill-rule="evenodd" filter="url(#filter3182)"/>
+</svg>
+
+2 // rounded rect
+{"type": "svg", "w":2, "h":2 }
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" x="10" y="10" rx="20" ry="20" fill="blue" />
+</svg>
+
+3;{"type": "svg", "h": 2, "w": 2 }
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="280" height="280" x="10" y="10" rx="20" ry="20" style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
+</svg>
+
+// bezier
+4;{"type": "svg", "h": 2, "w": 2 }
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+<!-- Draw the paths -->
+  <path id="lineAB" d="M 100 350 l 150 -300" stroke="red" stroke-width="4"/>
+  <path id="lineBC" d="M 250 50 l 150 300" stroke="red" stroke-width="4"/>
+  <path id="lineMID" d="M 175 200 l 150 0" stroke="green" stroke-width="4"/>
+  <path id="lineAC" d="M 100 350 q 150 -300 300 0" stroke="blue" fill="none" stroke-width="4"/>
+<!-- Mark relevant points -->
+  <g stroke="black" stroke-width="3" fill="black">
+    <circle id="pointA" cx="100" cy="350" r="4" />
+    <circle id="pointB" cx="250" cy="50" r="4" />
+    <circle id="pointC" cx="400" cy="350" r="4" />
+  </g>
+<!-- Label the points -->
+  <g font-size="30" font-family="sans-serif" fill="green" text-anchor="middle">
+    <text x="100" y="350" dx="-30">A</text>
+    <text x="250" y="50" dy="-10">B</text>
+    <text x="400" y="350" dx="30">C</text>
+  </g>
+</svg>
+
+// staircase
+5;{"type": "svg", "h": 2, "w": 2 }
+<svg viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
+  <polyline points="0,40 40,40 40,80 80,80 80,120 120,120 120,160" style="fill:yellow;stroke:red;stroke-width:4" />
+</svg>
+
+// star
+6;{"type": "svg", "x": 0, "h": 2, "w": 2 }
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="100,10 40,198 190,78 10,78 160,198" style="fill:lime;stroke:purple;stroke-width:5;fill-rule:evenodd;"/>
+</svg>
+
+// pentagon
+7;{"type": "svg", "x": 0, "h": 2, "w": 2 }
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="150,15 258,77 258,202 150,265 42,202 42,77" style="fill:lime;stroke:purple;stroke-width:3" />
+</svg>
+
+// ellipse
+8;{"type": "svg", "x": 0, "h": 2, "w": 2 }
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="120" cy="80" rx="100" ry="50" style="fill:yellow;stroke:green;stroke-width:3" />
+</svg>
+
+// cloud
+9;{"type": "svg", "x": 0, "h": 2, "w": 2 }
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>'
+    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+    <g id="SVGRepo_iconCarrier"> 
+        <path d="M4 14.7519C3.37037 13.8768 3 12.8059 3 11.6493C3 9.20008 4.8 6.9375 7.5 6.5C8.34694 4.48637 10.3514 3 12.6893 3C15.684 3 18.1317 5.32251 18.3 8.25C19.8893 8.94488 21 10.6503 21 12.4969C21 13.5693 20.6254 14.5541 20 15.3275M12.5 12.9995L10.5 21.0008M8.5 11.9995L6.5 20.0008M16.5 12L14.5 20.0013" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        </path> 
+    </g>
+</svg>
+
+0;{"type": "svg", "x": 0, "h": 2, "w": 2 }
+<svg viewBox="-100 -100 200 200"  xmlns="http://www.w3.org/2000/svg">      
+  <g transform="translate(0 5)">
+    <g>
+      <polygon points="0,0 36,-50 0,-100" fill="#EDD8B7" />
+      <polygon points="0,0 -36,-50 0,-100" fill="#E5C39C" />
+    </g>
+    <g transform="rotate(72)">
+      <polygon points="0,0 36,-50 0,-100" fill="#EDD8B7" />
+      <polygon points="0,0 -36,-50 0,-100" fill="#E5C39C" />
+    </g>
+    <g transform="rotate(-72)">
+      <polygon points="0,0 36,-50 0,-100" fill="#EDD8B7" />
+      <polygon points="0,0 -36,-50 0,-100" fill="#E5C39C" />
+    </g>
+    <g transform="rotate(144)">
+      <polygon points="0,0 36,-50 0,-100" fill="#EDD8B7" />
+      <polygon points="0,0 -36,-50 0,-100" fill="#E5C39C" />
+    </g>
+    <g transform="rotate(-144)">
+      <polygon points="0,0 36,-50 0,-100" fill="#EDD8B7" />
+      <polygon points="0,0 -36,-50 0,-100" fill="#E5C39C" />
+    </g>
+  </g>
+</svg>
+
+=======
+LEGEND
+=======
+. = Background
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k, t
+--
+1,2,3,4,5,6,7,8,9,0
+
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+.............
+.rbgykprbgyk.
+.t..t..t..t..
+.1..2..3..4..
+.t..t..t..t..
+.5..6..7..8..
+.t..t..t..t..
+.9..0........
+.t..t..t..t..

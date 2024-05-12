@@ -58,6 +58,29 @@ function createJsonSprite(name, vector) {
     return canvas;
 }
 
+// Create and return a SVG template sprite canvas
+function createSvgSprite(name, vector) {
+    var canvas = makeSpriteCanvas(name);
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    var context = canvas.getContext('2d');
+    const body = vector.data.join("\n");
+    const svg = body;
+// `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
+// ${body}
+// </svg>`;
+    var blob = new Blob([svg], {type: 'image/svg+xml'});
+    var url = URL.createObjectURL(blob);
+    var image = document.createElement('img');
+    image.src = url;
+    image.addEventListener('load', function () {
+        context.drawImage(image, 0, 0);
+        URL.revokeObjectURL(url);
+        redraw();
+    }, false);
+    return canvas;
+}
+
 // draw the pixels of the sprite grid data into the context at a cell position, 
 function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     colors ||= ['#00000000', state.fgcolor];
@@ -131,8 +154,9 @@ var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]
 var spriteImages;
 
 function createVectorSprite(name, vector) {
-    return vector.type == 'canvas' ? createJsonSprite(name, vector)
-        : null;
+    return vector.type === 'canvas' ? createJsonSprite(name, vector)
+    : vector.type === 'svg' ? createSvgSprite(name, vector)
+    : null;
 }
 
 function regenSpriteImages() {
