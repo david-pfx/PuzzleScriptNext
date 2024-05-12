@@ -929,8 +929,8 @@ var codeMirrorFn = function() {
                     // should look like this: {"type":"canvas","w":2,"h":1}
                     try {
                         vector = JSON.parse(token);
-                        if (!(vector && vector.type == 'canvas'))
-                            logError(`If this is a vector sprite it would need to be of type "canvas", but this is something different: ${token}.`, state.lineNumber);
+                        if (!(vector && (vector.type == 'canvas' || vector.type == 'svg')))
+                            logError(`If this is a vector sprite it would need to be of type "canvas" or "svg", but this is something different: ${token}.`, state.lineNumber);
                         else kind = 'SPRITEMATRIX';
                     } catch (error) {
                         logError(`I was looking for some valid JSON (in curly braces) but found this instead: ${token}.`, state.lineNumber);
@@ -974,18 +974,25 @@ var codeMirrorFn = function() {
                 values.vectordata = [];
                 while (!lexer.matchEol()) {
                     kind = 'ERROR';
-                    if (token = lexer.match(/^\{[^}]*\}/, false)) {
-                        try {
-                            const json = JSON.parse(token);
-                            if (json) {
-                                values.vectordata.push(json);
-                                kind = 'SPRITEMATRIX';
-                            }
-                        } catch (error) { }
-                    } else token = lexer.matchAll();
+                    if (obj.vector.type == 'canvas') {
+                        if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                            try {
+                                const json = JSON.parse(token);
+                                if (json) {
+                                    values.vectordata.push(json);
+                                    kind = 'SPRITEMATRIX';
+                                }
+                            } catch (error) { }
+                        } else token = lexer.matchAll();   
+                    } else if (obj.vector.type == 'svg') {
+                        // TODO: check svg syntax
+                        kind = 'SPRITEMATRIX';
+                        token = lexer.matchAll();
+                        values.vectordata.push(token);
+                    }
                     lexer.pushToken(token, kind);
                     if (kind == 'ERROR') {
-                        logError(`I was looking for some valid JSON (in curly braces) but found this instead: "${token}."`, state.lineNumber);
+                        logError(`I was looking for some valid JSON (in curly braces) or SVG but found this instead: "${token}."`, state.lineNumber);
                         return false;
                     }
                 }
