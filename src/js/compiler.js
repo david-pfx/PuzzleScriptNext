@@ -370,6 +370,14 @@ function generateExtraMembers(state) {
             }
         }
     }
+    // assign id's to abstract objects
+    for (const obj of Object.values(state.objects)) {
+        if (isAbstractObject(obj)) {
+            obj.id = idcount;
+            state.idDict[idcount] = n;
+            idcount++;
+        }
+    }
 
     // PS> fill in start and length of each group of objects
     let prevObjectNo = idcount;
@@ -2856,8 +2864,9 @@ function generateMasks(state) {
 function isAbstractObject(obj) {
     let rc = false;
     if (obj.vector) {
+        const type = obj.vector.type;
         const subtype = obj.vector.subtype;
-        rc = subtype === "include";
+        rc = type === "canvas" && subtype === "include" || type === "svg" && subtype === "template";
     }
     return rc;
 }
