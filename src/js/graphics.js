@@ -33,28 +33,38 @@ function createTextSprite(name, text, colors, scale) {
 function createJsonSprite(name, vector) {
     const canvas = makeSpriteCanvas(name);
     const context = canvas.getContext('2d');
+    
+    function addInstr(json) {
+        for (const instr of json) {
+            try {
+                for (const [key, value] of Object.entries(instr)) {
+                    if (key === "ps-include") {
+                        console.log("ps-include: " + value);
+                        const include = state.objects[value.toLowerCase()];
+                        if (include) {
+                            addInstr(include.vector.data);
+                        } else {
+                            logWarningNoLine("include object '" + value + "' not found");
+                        }
+                    } else if (context[key] instanceof Function) {
+                        context[key].apply(context, value);
+                    } else {
+                        context[key] = value;
+                    }
+                }
+            } catch (error) { // does this ever happen???
+                console.log(error);
+                logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
+                logErrorNoLine(`The system returned this error message: ${error}`, true);
+            }
+        }
+    }
     //let lastinstr;
 
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
-    const json = vector.data;
     context.scale(cellwidth, cellheight);
-    for (const instr of json) {
-        try {
-            for (const [key, value] of Object.entries(instr)) {
-                if (context[key] instanceof Function) {
-                    context[key].apply(context, value);
-                } else {
-                    context[key] = value;
-                }
-            }
-        } catch (error) { // does this ever happen???
-            console.log(error);
-            logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
-            logErrorNoLine(`The system returned this error message: ${error}`, true);
-            return canvas;
-        }
-    }
+    addInstr(vector.data);
     return canvas;
 }
 

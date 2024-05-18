@@ -2853,9 +2853,18 @@ function generateMasks(state) {
     }
 }
 
+function isAbstractObject(obj) {
+    let rc = false;
+    if (obj.vector) {
+        const subtype = obj.vector.subtype;
+        rc = subtype === "include";
+    }
+    return rc;
+}
+
 function checkObjectsAreLayered(state) {
-    for (var n in state.objects) {
-        if (state.objects.hasOwnProperty(n)) {
+    for (const [n, obj] of Object.entries(state.objects)) {
+        if (!isAbstractObject(obj)) {
             var found = false;
             for (var i = 0; i < state.collisionLayers.length; i++) {
                 var layer = state.collisionLayers[i];
@@ -2869,10 +2878,9 @@ function checkObjectsAreLayered(state) {
                     break;
                 }
             }
-            if (found === false) {
-                var o = state.objects[n];
-                logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', o.lineNumber);
-            }
+            if (!found) {
+                logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', obj.lineNumber);
+            }    
         }
     }
 }
