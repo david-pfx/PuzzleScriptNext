@@ -78,10 +78,11 @@ blob b
 
 ### Vector type `svg`
 Each line must start with `<` and together the lines form a single XML document. 
-The [SVG specification](https://developer.mozilla.org/en-US/docs/Web/SVG) can be found here.
-
 The root element (the first line) must be `svg`, and it must specify a `viewBox` and a namespace as shown in the example.
 Objects are scaled so that the `viewBox` occupies one cell (or as defined by `w` and `h`).
+
+The [SVG specification](https://developer.mozilla.org/en-US/docs/Web/SVG) can be found here.
+There are many useful examples online.
 
 Example of an object that is a rounded rectangle with a thick border and partially transparent.
 ```
