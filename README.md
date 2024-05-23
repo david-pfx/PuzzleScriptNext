@@ -61,7 +61,7 @@ The non-empty lines following the JSON object are accumulated and passed to a ve
 Each line is one or more JSON objects, each with one name and one value. 
 The name should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. 
 If the name is a function it is invoked with the value, which is a (possibly empty) array containing the function arguments.
-Otherwise it is a property, and the value is assigned to that property. 
+Otherwise the name is a property, and the value is assigned to that property. 
 
 Objects are scaled so that a size of 1.0 is one cell (or as defined by `w` and `h`).
 Angles are in radians.
@@ -74,6 +74,34 @@ blob b
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}
 {"arc":[1.5,0.5,0.4,0,6.28]}
 {"fill":[]}
+```
+
+#### canvas subtype
+`{"type":"canvas", "subtype": "include"}` means the canvas instructions are to be included in a normal `{"type":"canvas"}` object using a special attribute `"ps-include"`.
+Objects having this subtype will not be part of `COLLISIONLAYERS`.
+
+Example, the `ArrowIncl` "object" is included by the `NE` object.
+
+```
+ArrowIncl
+{"type":"canvas", "subtype": "include"}
+{"lineWidth":"0.12"}
+{"lineCap":"round"}
+{"beginPath":[]}
+{"moveTo":[-0.3,0.0]}
+{"lineTo":[0.3,0.0]}
+{"moveTo":[0.1,-0.2]}
+{"lineTo":[0.3,0.0]}
+{"moveTo":[0.1,0.2]}
+{"lineTo":[0.3,0.0]}
+{"stroke":[]}
+
+NE
+{"type":"canvas"}
+{"translate":[0.5,0.5]}
+{"rotate":[-0.785]}
+{"strokeStyle":"green"}
+{"ps-include":"ArrowIncl"}
 ```
 
 ### Vector type `svg`
@@ -89,4 +117,66 @@ rect r
 {"type": "svg", "h": 2, "w": 2 }
 <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
   <rect width="280" height="280" x="10" y="10" rx="20" ry="20" style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
-</svg>```
+</svg>
+```
+
+#### svg subtypes
+`{"type":"svg", "subtype": "template"}` is a SVG file without a "body".
+Objects having this subtype will not be part of `COLLISIONLAYERS`.
+
+The body will be defined by an object `{"type":"svg", "subtype": "instance", "template": "<template>"}`  and the rendered SVG will be the template with the instance object concatenated.
+
+Example, `Marbles` is the template object referenced by the `nWall` object.
+
+```
+Marbles
+{"type":"svg","subtype":"template"}
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1 1">
+	<style type="text/css">
+		.E {
+			--rotation: 0deg;
+		}
+		.S {
+			--rotation: 90deg;
+		}
+		.W {
+			--rotation: 180deg;
+		}
+		.N {
+			--rotation: -90deg;
+		}
+        #thinwall {
+			stroke-width: 0.3px;
+			stroke-linecap: round;
+			transform-origin: 0.5px 0.5px; 
+			stroke: black;
+            transform: rotate(var(--rotation));
+		}
+        #thinbar {
+			stroke-width: 0.1px;
+			stroke-linecap: round;
+			transform-origin: 0.5px 0.5px; 
+			stroke: lightgrey;
+            transform: rotate(var(--rotation));
+		}           
+        .black {
+        	fill: black;
+        }
+        .red {
+        	fill: red;
+        }
+	</style>
+	<defs>
+    	<path id="thinwall" d="M 0.5 0.5 L 1 0.5"/>
+        <path id="thinbar"  d="M 0 0.5 L 1 0.5"/>       
+        <rect id="vortex" x="0" y="0" width="1.5" height="1.5" fill="#aaa"/>
+        <circle id="ball" cx="0.5" cy="0.5" r="0.31"/>
+	</defs>
+</svg>           
+```
+
+```
+nWall
+{"type":"svg","subtype":"instance","template":"Marbles"}
+<use xlink:href="#thinwall" class="N"/>
+```
