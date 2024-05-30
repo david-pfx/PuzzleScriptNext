@@ -66,9 +66,6 @@ function createSvgSprite(name, vector) {
     var context = canvas.getContext('2d');
     const body = vector.data.join("\n");
     const svg = body;
-// `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
-// ${body}
-// </svg>`;
     var blob = new Blob([svg], {type: 'image/svg+xml'});
     var url = URL.createObjectURL(blob);
     var image = document.createElement('img');
@@ -178,8 +175,8 @@ function regenSpriteImages() {
     objectSprites.forEach((s,i) => {
         if (s) {
             spriteImages[i] =
-                s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
-                : s.vector ? createVectorSprite(i.toString(), s.vector)
+                s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
+                : s.vector ? createVectorSprite('v' + i.toString(), s.vector)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
