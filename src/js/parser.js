@@ -30,7 +30,7 @@ let caseSensitive = false;
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
-const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
+const reg_objmodi = /^[a-z]+:/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
@@ -904,13 +904,9 @@ var codeMirrorFn = function() {
     function parseObjectColors(stream, state) {
         const lexer = new Lexer(stream, state);
         const colors = [];
-        let vector;
 
-        if (getTokens()) {
+        if (getTokens())
             state.objects[state.objects_candname].colors = colors;
-            if (vector)
-                state.objects[state.objects_candname].vector = vector;
-        }
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -925,17 +921,7 @@ var codeMirrorFn = function() {
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
-                } else if (token = lexer.match(/^\{.*\}/, false)) {
-                    // should look like this: {"type":"canvas","w":2,"h":1}
-                    try {
-                        vector = JSON.parse(token);
-                        if (!(vector && (vector.type == 'canvas' || vector.type == 'svg')))
-                            logError(`If this is a vector sprite it would need to be of type "canvas" or "svg", but this is something different: ${token}.`, state.lineNumber);
-                        else kind = 'SPRITEMATRIX';
-                    } catch (error) {
-                        logError(`I was looking for some valid JSON (in curly braces) but found this instead: ${token}.`, state.lineNumber);
-                        kind = 'ERROR';
-                    }
+
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -959,10 +945,7 @@ var codeMirrorFn = function() {
         if (getTokens()) {
             if (values.text) 
                 obj.spritetext = values.text;
-            else if (values.vectordata) {
-                if (!obj.vector.data) obj.vector.data = [];
-                obj.vector.data.push(...values.vectordata);
-            } else obj.spritematrix = (obj.spritematrix || []).concat([values]);
+            else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
         return lexer.tokens;
 
@@ -970,34 +953,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let kind = 'ERROR';
             let token;
-            if (obj.vector) {
-                values.vectordata = [];
-                while (!lexer.matchEol()) {
-                    kind = 'ERROR';
-                    if (obj.vector.type == 'canvas') {
-                        if (token = lexer.match(/^\{[^}]*\}/, false)) {
-                            try {
-                                const json = JSON.parse(token);
-                                if (json) {
-                                    values.vectordata.push(json);
-                                    kind = 'SPRITEMATRIX';
-                                }
-                            } catch (error) { }
-                        } else token = lexer.matchAll();   
-                    } else if (obj.vector.type == 'svg') {
-                        // TODO: check svg syntax
-                        kind = 'SPRITEMATRIX';
-                        token = lexer.matchAll();
-                        values.vectordata.push(token);
-                    }
-                    lexer.pushToken(token, kind);
-                    if (kind == 'ERROR') {
-                        logError(`I was looking for some valid JSON (in curly braces) or SVG but found this instead: "${token}."`, state.lineNumber);
-                        return false;
-                    }
-                }
-                return true;
-            } else if ((token = lexer.match(/^text:/i, false))) {
+            if ((token = lexer.match(/^text:/i, false))) {
                 lexer.pushToken(token, 'LOGICWORD');
 
                 token = lexer.matchAll();
@@ -1025,6 +981,50 @@ var codeMirrorFn = function() {
             }
             lexer.matchEol();
             return !lexer.tokens.some(t => t.kind == 'ERROR');
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // parse vector data for canvas or svg
+    function parseObjectVector(stream, state) {
+        const lexer = new Lexer(stream, state);
+        const values = [];
+        const obj = state.objects[state.objects_candname];
+        
+        if (getTokens()) 
+            obj.vector.data = (obj.vector.data || []).concat(values);
+        return lexer.tokens;
+
+        // build a list of tokens and kinds, and extract array of values
+        function getTokens() {
+            let kind = 'ERROR';
+            let token;
+            if (obj.vector.type == 'canvas') {
+                while (!lexer.matchEol()) {
+                    kind = 'ERROR';
+                    if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                        try {
+                            const json = JSON.parse(token);
+                            if (json) {
+                                values.push(json);
+                                kind = 'SPRITEMATRIX';
+                            }
+                        } catch (error) { }
+                    } else token = lexer.matchAll();   
+                }
+                lexer.pushToken(token, kind);
+                if (kind == 'ERROR') 
+                    logError(`I was looking for some valid JSON (in curly braces) but found this instead: "${token}."`, state.lineNumber);
+                return kind != `ERROR`;
+
+            } else if (obj.vector.type == 'svg') {
+                // TODO: check svg syntax
+                kind = 'SPRITEMATRIX';
+                token = lexer.matchAll();
+                values.push(token);
+                return true;
+
+            } else throw 'vector';
         }
     }
 
@@ -1156,6 +1156,53 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
+                } else if (token = lexer.match(/^canvas:/)) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.matchComment();
+
+                    token = lexer.match(/^[a-z]+/i, true);
+                    if (token != 'json') 
+                        logError(`Canvas has to be specified in JSON, not ${token}.`, state.lineNumber);
+                    else {
+                        symbols.vector = { 
+                            type: 'canvas', 
+                            data: [] 
+                        };
+                        kind = 'METADATATEXT';
+                    }
+                    lexer.pushToken(token, kind);
+
+                } else if (symbols.vector && (token = lexer.match(/^size:/i))) {
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.matchComment();
+
+                    token = lexer.match(/^[0-9,]+/i,  true);
+                    const parts = token && token.split(',');
+                    if (!(parts.length >= 1 && parts.length <= 2))
+                        logError(`Size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
+                    else {
+                        symbols.vector.w = parts[0];
+                        symbols.vector.h = parts[1] || parts[0];
+                        kind = 'METADATATEXT';  //???
+                    }
+                    lexer.pushToken(token, kind);
+
+                // later???
+                // } else if (token = lexer.match(/^offset:/i)) {
+                //     lexer.pushToken(token, 'KEYWORD');
+                //     lexer.matchComment();
+
+                //     token = lexer.match(/^[0-9,]+/i,  true);
+                //     const parts = token && t oken.split(',');
+                //     if (!(parts.length >= 1 && parts.length <= 2))
+                //         logError(`Offset has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
+                //     else {
+                //         if (parts.length == 1) parts.push(parts[0]);
+                //         symbols.transforms.push([ 'offset', +parts[0], +parts[1] ]);
+                //         kind = 'METADATATEXT';  //???
+                //     }
+                //     lexer.pushToken(token, kind);
+
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid token in OBJECT modifier section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -1169,6 +1216,7 @@ var codeMirrorFn = function() {
         function setState() {
             if (symbols.cloneSprite) obj.cloneSprite = symbols.cloneSprite;
             if (symbols.scale) obj.scale = symbols.scale;
+            if (symbols.vector) obj.vector = symbols.vector;
             if (symbols.transforms) obj.transforms.push( ...symbols.transforms );
         }
     }
@@ -1884,13 +1932,22 @@ var codeMirrorFn = function() {
                     }
                     return flushToken();
                 }
+
+                // Objects parsing is all LL(1):
+                // object alias* (prop : value?)*
+                // ( colour+ )?
+                // ( digit+ )*
+                // ( json )*
+                // ( prop+ )*
+
                 case 'objects': {
                     if (sol) {  // start of line, no previous blank line, what to do?
                         if (stream.match(reg_objmodi, false)) {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector && !stream.match(/^[.\d]/, false))
+                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector 
+                                && !stream.match(/^[.\d]/, false))
                                 state.objects_section = 0;
                         }
                     }
@@ -1918,15 +1975,22 @@ var codeMirrorFn = function() {
                             }
                             return flushToken();
                         }
-                    case 2: { 
+                    case 2: 
+                        if (stream.match(/^[#\w]+/, false)) {
                             state.current_line_wip_array.push(...parseObjectColors(stream, state));
                             state.objects_section++;
                             return flushToken();
+                        } else {
+                            state.objects_section++;
+                            // fall through
                         }
                     case 3: 
                     case 4: {
                             stream.string = mixedCase;
-                            state.current_line_wip_array.push(...parseObjectSprite(stream, state));
+                            const tokens = state.objects[state.objects_candname].vector 
+                                ? parseObjectVector(stream, state) 
+                                : parseObjectSprite(stream, state);
+                            state.current_line_wip_array.push(...tokens);
                             if (state.objects_section == 3)  // text:?
                                 state.objects_section++;
                             return flushToken();

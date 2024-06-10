@@ -1,4 +1,4 @@
-title test min canvas
+title test min svg
 author polyomino
 homepage www.polyomino.com
 
@@ -39,36 +39,15 @@ y;yellow
 k;pink
 t;black
 
-1 // sphere
-{"type": "svg", "w":2, "h":2}
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg version="1.0" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
- <defs>
-  <radialGradient id="radialGradient3141" cx="204.51" cy="264.19" r="53.316" gradientTransform="matrix(.38806 .10448 -.24057 .89355 188.7 6.7552)" gradientUnits="userSpaceOnUse">
-   <stop offset="0"/>
-   <stop stop-opacity="0" offset="1"/>
-  </radialGradient>
-  <radialGradient id="radialGradient3157" cx="204.51" cy="264.19" r="56.124" gradientTransform="matrix(1 0 0 .92911 0 18.729)" gradientUnits="userSpaceOnUse">
-   <stop stop-color="#fff" offset="0"/>
-   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
-  </radialGradient>
-  <linearGradient id="linearGradient3169" x1="110.65" x2="134.37" y1="34.522" y2="121.75" gradientTransform="translate(8.6921 5.9376)" gradientUnits="userSpaceOnUse">
-   <stop stop-color="#fff" offset="0"/>
-   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
-  </linearGradient>
-  <filter id="filter3182" x="-.16821" y="-.31785" width="1.3364" height="1.6357">
-   <feGaussianBlur stdDeviation="13.951612"/>
-  </filter>
-  <filter id="filter3202" x="-.39604" y="-.42798" width="1.7921" height="1.856">
-   <feGaussianBlur stdDeviation="16.425908"/>
-  </filter>
- </defs>
- <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#0f04b4"/>
- <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#2400ff" opacity=".032222" stroke="#060000" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
- <ellipse transform="matrix(1.3266 -.40124 .32993 .55721 -186.18 172.78)" cx="204.51" cy="264.19" rx="53.316" ry="49.337" fill="url(#radialGradient3157)" filter="url(#filter3202)" stroke="url(#radialGradient3141)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
- <path d="m118.51 44.134c-39.251 10.212-78.392 54.952-83.596 71.306-26.616 74.13 269.32-4.28 180.76-56.699-24.18-18.918-67.35-21.931-97.16-14.607z" fill="url(#linearGradient3169)" fill-rule="evenodd" filter="url(#filter3182)"/>
+1 // rect
+{"type": "svg", "w":3, "h":3 }
+<svg height="110" width="110" xmlns="http://www.w3.org/2000/svg">
+  <rect width="90" height="90" x="10" y="10" fill="green" />
 </svg>
+//{"type": "svg", "w":3, "h":3 }
+//<svg viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+//  <rect width="90" height="90" x="10" y="10" fill="green" />
+//</svg>
 
 2 // rounded rect
 {"type": "svg", "w":2, "h":2 }
@@ -81,8 +60,13 @@ t;black
   <rect width="280" height="280" x="10" y="10" rx="20" ry="20" style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
 </svg>
 
-// bezier
 4;{"type": "svg", "h": 2, "w": 2 }
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="280" height="280" x="10" y="10" rx="20" ry="20" style="fill:red;stroke:black;stroke-width:5;opacity:0.5" />
+</svg>
+
+// bezier
+_;{"type": "svg", "h": 2, "w": 2 }
 <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
 <!-- Draw the paths -->
   <path id="lineAB" d="M 100 350 l 150 -300" stroke="red" stroke-width="4"/>
@@ -110,6 +94,11 @@ t;black
 </svg>
 
 // star
+//6;{"type":"svg"}
+//<svg xmlns="http://www.w3.org/2000/svg">
+//<polygon points="1,0.1 0.4,1.98 1.90,0.78 0.10,0.78 1.60,1.98" style="fill:yellow;stroke:red;stroke-width:0.02;fill-rule:evenodd;"/>
+//</svg>
+
 6;{"type": "svg", "x": 0, "h": 2, "w": 2 }
 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <polygon points="100,10 40,198 190,78 10,78 160,198" style="fill:lime;stroke:purple;stroke-width:5;fill-rule:evenodd;"/>
@@ -164,6 +153,37 @@ t;black
   </g>
 </svg>
 
+$ // sphere
+{"type": "svg", "w":2, "h":2}
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg version="1.0" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <defs>
+  <radialGradient id="radialGradient3141" cx="204.51" cy="264.19" r="53.316" gradientTransform="matrix(.38806 .10448 -.24057 .89355 188.7 6.7552)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <radialGradient id="radialGradient3157" cx="204.51" cy="264.19" r="56.124" gradientTransform="matrix(1 0 0 .92911 0 18.729)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fff" offset="0"/>
+   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <linearGradient id="linearGradient3169" x1="110.65" x2="134.37" y1="34.522" y2="121.75" gradientTransform="translate(8.6921 5.9376)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fff" offset="0"/>
+   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
+  </linearGradient>
+  <filter id="filter3182" x="-.16821" y="-.31785" width="1.3364" height="1.6357">
+   <feGaussianBlur stdDeviation="13.951612"/>
+  </filter>
+  <filter id="filter3202" x="-.39604" y="-.42798" width="1.7921" height="1.856">
+   <feGaussianBlur stdDeviation="16.425908"/>
+  </filter>
+ </defs>
+ <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#0f04b4"/>
+ <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#2400ff" opacity=".032222" stroke="#060000" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
+ <ellipse transform="matrix(1.3266 -.40124 .32993 .55721 -186.18 172.78)" cx="204.51" cy="264.19" rx="53.316" ry="49.337" fill="url(#radialGradient3157)" filter="url(#filter3202)" stroke="url(#radialGradient3141)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
+ <path d="m118.51 44.134c-39.251 10.212-78.392 54.952-83.596 71.306-26.616 74.13 269.32-4.28 180.76-56.699-24.18-18.918-67.35-21.931-97.16-14.607z" fill="url(#linearGradient3169)" fill-rule="evenodd" filter="url(#filter3182)"/>
+</svg>
+
 =======
 LEGEND
 =======
@@ -180,7 +200,7 @@ y
 Player, R, B, G
 k, t
 --
-1,2,3,4,5,6,7,8,9,0
+1,2,3,4,5,6,7,8,9,0,$,_
 
 ======
 RULES
@@ -204,5 +224,6 @@ LEVELS
 .t..t..t..t..
 .5..6..7..8..
 .t..t..t..t..
-.9..0........
+.9..0..$.._..
 .t..t..t..t..
+.............

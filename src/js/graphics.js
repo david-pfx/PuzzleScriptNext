@@ -33,7 +33,6 @@ function createTextSprite(name, text, colors, scale) {
 function createJsonSprite(name, vector) {
     const canvas = makeSpriteCanvas(name);
     const context = canvas.getContext('2d');
-    //let lastinstr;
 
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;

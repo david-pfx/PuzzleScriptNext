@@ -14,6 +14,10 @@ OBJECTS
 ========
 //Background;grey
 
+q canvas:json
+{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
+{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
+
 Background
 grey darkgray lightgray
 2222221
@@ -38,9 +42,8 @@ g;green
 y;yellow
 k;pink
 
-s
 // 3 filled circles, one above the other
-{"type":"canvas","w":2,"h":1}
+s canvas:json size:2,1
 //
 // this is the first blob
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}
@@ -56,46 +59,35 @@ s
 {"arc":[0.5,0.5,0.4,0,6.28]}
 {"fill":[]}
 
-t
-{"type":"canvas","w":2,"h":1,"x":-1}
+t canvas:json size:2,1 //offset:-1,0
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"#404040"}{"arc":[1.0,0.5,0.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"black"}{"arc":[1.5,0.5,0.4,0,6.28]}{"fill":[]}
 
-u
-{"type":"canvas","w":1,"h":2}
+u canvas:json size:1,2
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
 
-w
-{"type":"canvas","w":1,"h":2,"y":-1}
+w canvas:json size:2,1 //offset:0,-1
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
 
-m
-{"type":"canvas","w":3,"h":3}
+m canvas:json size:3,3
 {"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"blue"} {"arc":[1.5,1.5,0.7,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"arc":[1.5,1.5,0.35,0,6.28]}{"fill":[]}
 
-n
-{"type":"canvas","w":3,"h":3}
+n canvas:json size:3,3
 {"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,3]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"blue"} {"arc":[1.5,1.5,0.7,1,4]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"arc":[1.5,1.5,0.35,2,5]}{"fill":[]}
 
-o
-{"type":"canvas","w":2,"h":2}
+o canvas:json size:2,2
 {"beginPath":[]}{"fillStyle":"red"}  {"roundRect":[0.2,0.4,1.8,1.5,0.1]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"blue"} {"roundRect":[0.2,0.4,1.5,1.1,0.1]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"roundRect":[0.2,0.4,0.9,0.7,0.1]}{"fill":[]}
-
-q
-{"type":"canvas"}
-{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
-{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
 
 =======
 LEGEND
