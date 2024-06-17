@@ -33,42 +33,42 @@ function createTextSprite(name, text, colors, scale) {
 function createJsonSprite(name, vector) {
     const canvas = makeSpriteCanvas(name);
     const context = canvas.getContext('2d');
-    
-    function addInstr(json) {
-        for (const instr of json) {
-            try {
-                for (const [key, value] of Object.entries(instr)) {
-                    if (key === "ps-include") {
-                        console.log("ps-include: " + value);
-                        const include = state.objects[value.toLowerCase()];
-                        if (include) {
-                            addInstr(include.vector.data);
-                        } else {
-                            logWarningNoLine("include object '" + value + "' not found");
-                        }
-                    } else if (context[key] instanceof Function) {
-                        context[key].apply(context, value);
-                    } else {
-                        context[key] = value;
-                    }
-                }
-            } catch (error) { // does this ever happen???
-                console.log(error);
-                logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
-                logErrorNoLine(`The system returned this error message: ${error}`, true);
-            }
-        }
-    }
     //let lastinstr;
 
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
+    const json = vector.data;
     context.scale(cellwidth, cellheight);
-    addInstr(vector.data);
+    for (const instr of json) {
+        try {
+            for (const [key, value] of Object.entries(instr)) {
+                if (context[key] instanceof Function) {
+                    context[key].apply(context, value);
+                } else {
+                    context[key] = value;
+                }
+            }
+        } catch (error) { // does this ever happen???
+            console.log(error);
+            logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
+            logErrorNoLine(`The system returned this error message: ${error}`, true);
+            return canvas;
+        }
+    }
     return canvas;
 }
 
-function drawSvgImage(svg, context) {
+// Create and return a SVG template sprite canvas
+function createSvgSprite(name, vector) {
+    var canvas = makeSpriteCanvas(name);
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    var context = canvas.getContext('2d');
+    const body = vector.data.join("\n");
+    const svg = body;
+// `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
+// ${body}
+// </svg>`;
     var blob = new Blob([svg], {type: 'image/svg+xml'});
     var url = URL.createObjectURL(blob);
     var image = document.createElement('img');
@@ -78,34 +78,6 @@ function drawSvgImage(svg, context) {
         URL.revokeObjectURL(url);
         redraw();
     }, false);
-}
-
-// Create and return a SVG template sprite canvas
-function createSvgSprite(name, vector) {
-    var canvas = makeSpriteCanvas(name);
-    if (vector.w) canvas.width *= vector.w;
-    if (vector.h) canvas.height *= vector.h;
-    var context = canvas.getContext('2d');
-    const svg = vector.data.join("\n");
-    if (vector.subtype) {
-        const parser = new DOMParser();
-        if (vector.subtype === "template") {
-            vector.doc = parser.parseFromString(svg, "application/xml");    
-        } else if (vector.subtype === "instance") {
-            const template = vector.template;
-            if (template) {
-                const templateobj = state.objects[template];
-                if (templateobj) {
-                    const doc = templateobj.vector.doc.cloneNode(true);
-                    const instance = parser.parseFromString('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' + svg + '</svg>', "application/xml");    
-                    doc.documentElement.append(instance.documentElement.firstElementChild);
-                    drawSvgImage(doc.documentElement.outerHTML, context);
-                }
-            }
-        }
-    } else {
-        drawSvgImage(svg, context);
-    }
     return canvas;
 }
 
@@ -204,16 +176,7 @@ function regenSpriteImages() {
     spriteImages = [];
     
     objectSprites.forEach((s,i) => {
-        if (s && isAbstractObject(s)) {
-            spriteImages[i] =
-                s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
-                : s.vector ? createVectorSprite(i.toString(), s.vector)
-                : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
-        }
-    });
-
-    objectSprites.forEach((s,i) => {
-        if (s && !isAbstractObject(s)) {
+        if (s) {
             spriteImages[i] =
                 s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
                 : s.vector ? createVectorSprite(i.toString(), s.vector)
