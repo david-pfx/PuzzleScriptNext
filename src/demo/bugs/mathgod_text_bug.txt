@@ -1,0 +1,23 @@
+// comment
+debug_switch obj
+========
+OBJECTS
+========
+Background .; black
+Player; green
+A; red; text: A
+B; blue; text: A
+================
+COLLISIONLAYERS
+================
+Background
+Player
+A B
+======
+RULES
+======
+[] -> []
+=======
+LEVELS
+=======
+AB
