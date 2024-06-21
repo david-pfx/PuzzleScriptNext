@@ -534,6 +534,7 @@ function mouseAction(event,click,id) {
 			}
 		} else if (messageselected===false && (state.levels[curLevelNo].message || messagetext != "")) {
 			messageselected=true;
+			//console.log(`MA TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
 			timer=0;
 			quittingMessageScreen=true;
 			tryPlayCloseMessageSound();
@@ -1108,10 +1109,11 @@ function pollGamepads() {
 
 let debugTimestamp
 function checkKey(e,justPressed) {
-    if (debugSwitch.includes('input') && justPressed) console.log('checkKey', e, justPressed);
+    if (debugSwitch.includes('input') && justPressed) console.log('checkKey', prevTimestamp, e, justPressed);
     if (debugSwitch.includes('key')) {
 		const ele = document.getElementById('debug');
-		ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+		if (ele)
+			ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 		debugTimestamp = prevTimestamp;
 	}
 	ULBS();
@@ -1313,6 +1315,7 @@ function checkKey(e,justPressed) {
 			}
 		}
     }
+    if (debugSwitch.includes('input')) console.log('checkKey', prevTimestamp, throttle_movement, inputdir, input_throttle_timer, repeatinterval);
     if (throttle_movement && inputdir>=0&&inputdir<=3) {
     	if (lastinput==inputdir && input_throttle_timer<repeatinterval) {
     		return;
@@ -1387,6 +1390,7 @@ function checkKey(e,justPressed) {
 					nextLevel();
 					return;
 				} else if (messageselected===false) {
+					//console.log(`CK TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
     				messageselected=true;
     				timer=0;
     				quittingMessageScreen=true;
@@ -1443,6 +1447,7 @@ function update() {
         }
     }
     if (quittingMessageScreen) {
+		//console.log(`UP TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
         if (timer/1000>0.15) {
             quittingMessageScreen=false;
             if (state.levels[curLevelNo].message) {
@@ -1478,7 +1483,8 @@ function update() {
 	    	var key = keybuffer[keyRepeatIndex];
 			if (debugSwitch.includes('key')) {
 				const ele = document.getElementById('debug');
-				ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+				if (ele)
+					ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 				debugTimestamp = prevTimestamp;
 			}
 	        checkKey({keyCode:key},false);
@@ -1509,7 +1515,8 @@ var loop = function(timestamp){
 		deltatime = timestamp - prevTimestamp
 		if (debugSwitch.includes('key')) {
 			const ele = document.getElementById('debug');
-			ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+			if (ele)
+				ele.innerHTML = `timer=${timer.toFixed()} TS=${~~timestamp} delta=${~~(deltatime*1000)} KB=${keybuffer.length}`;
 		}
 	}
 	prevTimestamp = timestamp

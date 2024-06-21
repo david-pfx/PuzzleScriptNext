@@ -6,7 +6,12 @@ homepage www.polyomino.com
 
 verbose_logging
 debug
-require_player_movement
+( require_player_movement )
+
+( delays message quit due to throttling in PS+, PS> )
+key_repeat_interval 5
+
+( debug_switch key,input )
 
 ========
 OBJECTS
@@ -66,6 +71,8 @@ RULES
 ======
 
 [ temp ] -> [] again
+
+[ action p ] -> [ ] win
 
 up [ > p | y ] -> [ p | y ] sfx1
 up [ > p | r ] -> [ p | r ] cancel
