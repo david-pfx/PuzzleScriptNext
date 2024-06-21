@@ -879,13 +879,14 @@ var codeMirrorFn = function() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
 
-            // use existing if there is one, to maintain the correct order of addition.
+            // use existing if there is one, to maintain the correct order of addition
+            // preserve colors and sprite matrix, not transforms
             const newobj = state.objects[candname] || {       // doc: array of objects indexed by name
-                lineNumber: state.lineNumber
+                lineNumber: state.lineNumber,
+                colors: [],
+                spritematrix: [],
             };
             delete newobj.canRedef;
-            newobj.colors = [];
-            newobj.spritematrix = [];
             newobj.transforms = [];
             delete state.objects[candname];
             state.objects[candname] = newobj;

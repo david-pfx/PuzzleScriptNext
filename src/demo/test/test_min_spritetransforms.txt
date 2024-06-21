@@ -18,6 +18,8 @@ offs = up down left right
 t1 = right left down up
 t2 = up left down right
 t3 = red green blue
+// hat tricks
+AX = A1 A2 A3 A4 A5
 
 ========
 OBJECTS
@@ -151,6 +153,29 @@ x1; red;
 x2 copy:x1; blue;
 x3 copy:x2; green;
 
+// hat tricks #33
+pair:AX
+red red pink black
+..00000..
+..01210..
+..02320..
+..01210..
+..00000..
+.........
+.........
+
+pair:A2 i
+green green green lightgreen
+
+pair:A3 j
+orange lightbrown lightbrown black
+ 
+pair:A4 k
+purple purple blue blue
+
+pair:A5 l
+lightblue pink lightblue black
+
 =======
 LEGEND
 =======
@@ -164,6 +189,7 @@ LEGEND
 7 = cut:down
 8 = cut:left
 n = vs_active_under:down
+h = pair:A1
 
 ================
 COLLISIONLAYERS
@@ -173,6 +199,7 @@ Player
 --
 a,b,c,d,e,f,g
 m,s,t,x
+h,i,j,k,l
 r
 y
 b:t1
@@ -190,17 +217,16 @@ RULES
 =======
 LEVELS
 =======
-.............
-.p.r.y.......
-.............
-.a.b.c.d.....
-.............
-.e.f.g.......
-.............
-.1.2.3.4..s..
-.............
-.5.6.7.8..t..
-.............
-.m.n.........
-.............
+.................
+.p.r.y...........
+.........s..t....
+.................
+.a.b.c.d.e.f.g...
+.................
+.1.2.3.4.5.6.7.8.
+.................
+.h.i.j.k.l.......
+.................
+.m.n.............
+.................
 
