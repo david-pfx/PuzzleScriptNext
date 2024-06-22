@@ -207,16 +207,17 @@ function levelEditorClick_Fn() {
 }
 
 // https://stackoverflow.com/questions/1034621/get-the-current-url-with-javascript
-const HOSTPAGEURL = window.location.origin;
+const HOSTPAGEURL = window.location.origin + window.location.pathname;
 const PSFORKNAME = "Puzzlescript Next";
 
-/* I don't want to setup the required server for an OAuth App, so for now we will use a slightly more complex method for the user, which is to create a personal identification token. */
-function getAuthURL()
-{
-	return HOSTPAGEURL+'/src/auth_pat.html';
+// I don't want to setup the required server for an OAuth App, so for now we will use a slightly 
+// more complex method for the user, which is to create a personal identification token.
+// No longer dependent on fixed host, but still dependent on 'editor.html'. Could use regex?
+function getAuthURL() {
+	return HOSTPAGEURL.replace('/editor.html', '/auth_pat.html');
 }
 
-function printUnauthorized()
+function printUnauthorized() 
 {
 	const authUrl = getAuthURL();
 	consolePrint(
@@ -256,7 +257,7 @@ function shareClick() {
 		"public" : true,
 		"files": {
 			"readme.txt" : {
-				"content": `Play this game by pasting the script into ${HOSTPAGEURL}/src/editor.html`
+				"content": `Play this game by pasting the script into ${HOSTPAGEURL}`
 			},
 			"script.txt" : {
 				"content": source

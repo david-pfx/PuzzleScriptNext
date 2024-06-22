@@ -118,7 +118,7 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+            spriteImages[i] = s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
