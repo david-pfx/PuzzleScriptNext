@@ -14,9 +14,10 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24e01. 
-* Inline expansion of rules referring to the absence of an object by a relative reference now works correctly.
-For example: `late [ wall no wall:>:quarterTiles ] -> [ wall wall:>:fill ]`
+The latest version is Release v-24f22. 
+New fixes:
+* A child object that defines no sprite and/or colour inherits them from its parent (hat tricks).
+* The `share` link now targets the correct URL wherever it is hosted.
 
 Recent new features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
@@ -24,9 +25,10 @@ Recent new features include the following. For detail see the documentation.
 * The menus now more distinctively identify this is PuzzleScript Next.
 
 Several other bugs have already been fixed.
+* Inline expansion of rules referring to the absence of an object by a relative reference now works correctly.
+For example: `late [ wall no wall:>:quarterTiles ] -> [ wall wall:>:fill ]`
 * No longer crashes on resizing the browser window.
 * Setting sound volume has been fixed to be compatible with Pattern:Script.
-* Share authorisation now works correctly independntly of where it is hosted.
 * Undo across a link now works correctly.
 * An object that has a `copy:` referring to an implied TAG object now resolves correctly.
 * A TAG object with a sprite that is redefined uses the second sprite instead of appending it.
