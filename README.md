@@ -18,6 +18,7 @@ The latest version is Release v-24f22.
 New fixes:
 * A child object that defines no sprite and/or colour inherits them from its parent (hat tricks).
 * The `share` link now targets the correct URL wherever it is hosted.
+* Two text objects with same content no longer get the same colour.
 
 Recent new features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
