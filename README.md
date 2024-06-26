@@ -14,7 +14,7 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24f22. 
+The latest version is Release v-24f26. 
 New fixes:
 * Checkpoints are no longer lost when the program is interrupted or restarted at the title menu. 
 Note: this behaviour is widely expected, but is not documented.
