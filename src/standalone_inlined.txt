@@ -466,18 +466,24 @@ a {
 <!--___SCRIPTINSERT___-->
 <script>
 function storage_has(key){
-    return localStorage.getItem(key)!==null;
+    const value = localStorage.getItem(key) != undefined;
+    if (debugSwitch.includes('stor')) console.log(`Storage has key=${key} = ${value}.`);
+    return value;
 }
 
 function storage_get(key){
-    return localStorage.getItem(key);
+    const value = localStorage.getItem(key);
+    if (debugSwitch.includes('stor')) console.log(`Storage get key=${key} = "${value}".`);
+    return value;
 }
 
-function storage_set(key,value){
+function storage_set(key, value){
+    if (debugSwitch.includes('stor')) console.log(`Storage set key=${key} = "${value}".`);
     return localStorage.setItem(key,value);
 }
 
 function storage_remove(key){
+    if (debugSwitch.includes('stor')) console.log(`Storage remove key=${key}.`);
     localStorage.removeItem(key);
 }
 </script>
@@ -6904,7 +6910,7 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite('t' + s.text, s.text, s.colors, s.scale)
+            spriteImages[i] = s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
                 : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
@@ -7986,7 +7992,7 @@ let linkStack = [];				// where a link goto came from
 function doSetupTitleScreenLevelContinue(){
     try {
         if (storage_has(document.URL)) {
-            if (storage_has(document.URL+'_checkpoint')){
+            if (storage_has(document.URL+'_checkpoint')) {
                 var backupStr = storage_get(document.URL+'_checkpoint');
                 curlevelTarget = JSON.parse(backupStr);
                 
@@ -7997,8 +8003,8 @@ function doSetupTitleScreenLevelContinue(){
                 curlevelTarget.dat = new Int32Array(arr);
             }
             curLevelNo = storage_get(document.URL); 
-			if (localStorage[document.URL+"_sections"]!==undefined) {
-				solvedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
+			if (storage_has(document.URL+"_sections")) {
+				solvedSections = JSON.parse(storage_get(document.URL + "_sections"));
 			}
 		}
     } catch(ex) {
@@ -8141,7 +8147,7 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 }
 
 function goToPauseScreen() {
-	// todo: yuck!
+	// todo: de-yuck!
 	levelSelectScrollPos = 0;
 	titleSelected = false;
 	timer = 0;
@@ -8172,7 +8178,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 	redraw();
 }
 
-function selectPauseScreen(lineNo) { //@@
+function selectPauseScreen(lineNo) { 
 	const options = [
 		() => {
 			textMode = false;
@@ -8260,7 +8266,7 @@ function gotoLevelSelectScreen() {
 	generateLevelSelectScreen();
 }
 
-function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { //@@
+function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
 	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
 
@@ -8615,7 +8621,6 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
     }
     loadLevelFromLevelDat(state,state.levels[levelindex],randomseed);
     restoreLevel(target, true);
-	curlevelTarget = null;
     restartTarget=target;
 }
 
@@ -11503,7 +11508,7 @@ function nextLevel() {
 			curlevelTarget=null;
 
 			if (state.metadata.level_select === undefined) {
-				clearLocalStorage();
+				clearLocalStorage();		//@@???
 			}
 
 			loadLevelFromStateOrTarget();
@@ -11649,7 +11654,7 @@ function setSectionSolved(section) {
 	try {
 		if(!!window.localStorage) {
 			solvedSections.push(section);
-			localStorage.setItem(document.URL + "_sections", JSON.stringify(solvedSections));
+			storage_set(document.URL + "_sections", JSON.stringify(solvedSections));
 		}
 	} catch(ex) { }
 }
@@ -11661,9 +11666,9 @@ function clearLocalStorage() {
 
 	try {
 		if (!!window.localStorage) {
-			localStorage.removeItem(document.URL);
-			localStorage.removeItem(document.URL+'_checkpoint');
-			localStorage.removeItem(document.URL+'_sections');
+			storage_remove(document.URL);
+			storage_remove(document.URL+'_checkpoint');
+			storage_remove(document.URL+'_sections');
 		}
 	} catch(ex){ }
 }
@@ -11831,7 +11836,7 @@ function htmlClass(clss, text) {
 }
 
 function errorCase(ident) {
-    return caseSensitive ? ident : ident.toUpperCase();
+    return caseSensitive ? ident : ident ? ident.toUpperCase() : '<null>';
 }
 
 function logErrorCacheable(str, lineNumber,urgent) {
@@ -12644,13 +12649,14 @@ var codeMirrorFn = function() {
             const candname = state.objects_candname = symbols.candname;
             registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
 
-            // use existing if there is one, to maintain the correct order of addition.
+            // use existing if there is one, to maintain the correct order of addition
+            // preserve colors and sprite matrix, not transforms
             const newobj = state.objects[candname] || {       // doc: array of objects indexed by name
-                lineNumber: state.lineNumber
+                lineNumber: state.lineNumber,
+                colors: [],
+                spritematrix: [],
             };
             delete newobj.canRedef;
-            newobj.colors = [];
-            newobj.spritematrix = [];
             newobj.transforms = [];
             delete state.objects[candname];
             state.objects[candname] = newobj;
@@ -12867,7 +12873,7 @@ var codeMirrorFn = function() {
                     const parts = token && token.split(':');
                     const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
                     if (dirs == null)
-                        logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`For rot: you need 1 or 2 direction or tag arguments, but you gave it ${token ? errorCase(token) : 'neither'}.`, state.lineNumber);
                     else {
                         if (dirs.length == 1) dirs.unshift('up');
                         symbols.transforms.push([ 'rot', ...dirs ]);
@@ -18130,6 +18136,7 @@ function mouseAction(event,click,id) {
 			}
 		} else if (messageselected===false && (state.levels[curLevelNo].message || messagetext != "")) {
 			messageselected=true;
+			//console.log(`MA TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
 			timer=0;
 			quittingMessageScreen=true;
 			tryPlayCloseMessageSound();
@@ -18704,10 +18711,11 @@ function pollGamepads() {
 
 let debugTimestamp
 function checkKey(e,justPressed) {
-    if (debugSwitch.includes('input') && justPressed) console.log('checkKey', e, justPressed);
+    if (debugSwitch.includes('input') && justPressed) console.log('checkKey', prevTimestamp, e, justPressed);
     if (debugSwitch.includes('key')) {
 		const ele = document.getElementById('debug');
-		ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+		if (ele)
+			ele.innerHTML = `key-${e.keyCode} just=${justPressed} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 		debugTimestamp = prevTimestamp;
 	}
 	ULBS();
@@ -18909,6 +18917,7 @@ function checkKey(e,justPressed) {
 			}
 		}
     }
+    if (debugSwitch.includes('input')) console.log('checkKey', prevTimestamp, throttle_movement, inputdir, input_throttle_timer, repeatinterval);
     if (throttle_movement && inputdir>=0&&inputdir<=3) {
     	if (lastinput==inputdir && input_throttle_timer<repeatinterval) {
     		return;
@@ -18983,6 +18992,7 @@ function checkKey(e,justPressed) {
 					nextLevel();
 					return;
 				} else if (messageselected===false) {
+					//console.log(`CK TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
     				messageselected=true;
     				timer=0;
     				quittingMessageScreen=true;
@@ -19039,6 +19049,7 @@ function update() {
         }
     }
     if (quittingMessageScreen) {
+		//console.log(`UP TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
         if (timer/1000>0.15) {
             quittingMessageScreen=false;
             if (state.levels[curLevelNo].message) {
@@ -19074,7 +19085,8 @@ function update() {
 	    	var key = keybuffer[keyRepeatIndex];
 			if (debugSwitch.includes('key')) {
 				const ele = document.getElementById('debug');
-				ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+				if (ele)
+					ele.innerHTML = `key-${key} TL=${~~ticklength} last=${~~(prevTimestamp-debugTimestamp)} TS=${~~prevTimestamp} delta=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
 				debugTimestamp = prevTimestamp;
 			}
 	        checkKey({keyCode:key},false);
@@ -19105,7 +19117,8 @@ var loop = function(timestamp){
 		deltatime = timestamp - prevTimestamp
 		if (debugSwitch.includes('key')) {
 			const ele = document.getElementById('debug');
-			ele.innerHTML = `timestamp=${~~timestamp} deltatime=${~~(deltatime*1000)} keybuffer=${keybuffer.length}`;
+			if (ele)
+				ele.innerHTML = `timer=${timer.toFixed()} TS=${~~timestamp} delta=${~~(deltatime*1000)} KB=${keybuffer.length}`;
 		}
 	}
 	prevTimestamp = timestamp

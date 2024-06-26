@@ -66,7 +66,7 @@ function htmlClass(clss, text) {
 }
 
 function errorCase(ident) {
-    return caseSensitive ? ident : ident.toUpperCase();
+    return caseSensitive ? ident : ident ? ident.toUpperCase() : '<null>';
 }
 
 function logErrorCacheable(str, lineNumber,urgent) {
@@ -1103,7 +1103,7 @@ var codeMirrorFn = function() {
                     const parts = token && token.split(':');
                     const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
                     if (dirs == null)
-                        logError(`Rot requires a 1 or 2 direction or tag arguments, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`For rot: you need 1 or 2 direction or tag arguments, but you gave it ${token ? errorCase(token) : 'neither'}.`, state.lineNumber);
                     else {
                         if (dirs.length == 1) dirs.unshift('up');
                         symbols.transforms.push([ 'rot', ...dirs ]);

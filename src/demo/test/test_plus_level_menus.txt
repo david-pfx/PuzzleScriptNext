@@ -1,0 +1,227 @@
+title test plus level menus
+author Polyomino
+homepage www.polyomino.com
+
+level_select
+level_select_lock
+level_select_unlocked_ahead 3
+level_select_solve_symbol ✓
+//continue_is_level_select
+
+sprite_size 7
+debug_switch stor
+
+========
+OBJECTS
+========
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
+Target
+DarkBlue
+.......
+.......
+..000..
+..0.0..
+..000..
+.......
+.......
+
+Wall
+BROWN DARKBROWN
+0000100
+1111111
+0010000
+1111111
+0000100
+1111111
+0010000
+
+Player 
+Black Orange White Blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+Crate
+Orange Yellow
+00000
+0...0
+0...0
+0...0
+00000
+
+Checkpt c
+red
+.......
+..000..
+.00000.
+.00000.
+.00000.
+..000..
+.......
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+
+=======
+SOUNDS
+=======
+
+endlevel 18374500
+sfx1 163500
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+Checkpt
+Player, Wall, Crate
+
+======
+RULES
+======
+
+[ >  Player | Crate ] -> [  >  Player | > Crate  ]
+late [ Player Checkpt ] -> checkpoint sfx1
+
+==============
+WINCONDITIONS
+==============
+
+All Player on Target
+
+=======
+LEVELS
+=======
+
+section Level 1
+message level 1 of 10
+
+########
+#......#
+#......#
+#.P.O..#
+#..C...#
+#......#
+########
+
+section Level 2
+message level 2 of 10
+
+########
+#......#
+#...P..#
+#..CO..#
+#......#
+#......#
+########
+
+section Level 3
+message level 3 of 10
+
+########
+#......#
+#..C...#
+#.O.P..#
+#......#
+#......#
+########
+
+section Level 4
+message level 4 of 10
+
+########
+#......#
+#...C..#
+#...O..#
+#...P..#
+#......#
+########
+
+section Level 5
+message level 5 of 10
+
+########
+#......#
+#..P.C.#
+#...O..#
+#......#
+#......#
+########
+
+section Level 6
+message level 6 of 10
+
+########
+#......#
+#..C...#
+#...O..#
+#..P...#
+#......#
+########
+
+section Level 7
+message level 7 of 10
+
+########
+#......#
+#..C...#
+#...O..#
+#....P.#
+#......#
+########
+
+section Level 8
+message level 8 of 10
+
+########
+#......#
+#..C.P.#
+#...O..#
+#......#
+#......#
+########
+
+section Level 9
+message level 9 of 10
+
+########
+#...P..#
+#.C....#
+#...O..#
+#......#
+#......#
+########
+
+section Level 10
+message level 10 of 10
+
+########
+#......#
+#......#
+#...O..#
+#.C....#
+#...P..#
+########
+
+message congratulations!
