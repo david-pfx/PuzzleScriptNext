@@ -94,7 +94,7 @@ let linkStack = [];				// where a link goto came from
 function doSetupTitleScreenLevelContinue(){
     try {
         if (storage_has(document.URL)) {
-            if (storage_has(document.URL+'_checkpoint')){
+            if (storage_has(document.URL+'_checkpoint')) {
                 var backupStr = storage_get(document.URL+'_checkpoint');
                 curlevelTarget = JSON.parse(backupStr);
                 
@@ -105,8 +105,8 @@ function doSetupTitleScreenLevelContinue(){
                 curlevelTarget.dat = new Int32Array(arr);
             }
             curLevelNo = storage_get(document.URL); 
-			if (localStorage[document.URL+"_sections"]!==undefined) {
-				solvedSections = JSON.parse(localStorage.getItem(document.URL + "_sections"));
+			if (storage_has(document.URL+"_sections")) {
+				solvedSections = JSON.parse(storage_get(document.URL + "_sections"));
 			}
 		}
     } catch(ex) {
@@ -249,7 +249,7 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 }
 
 function goToPauseScreen() {
-	// todo: yuck!
+	// todo: de-yuck!
 	levelSelectScrollPos = 0;
 	titleSelected = false;
 	timer = 0;
@@ -280,7 +280,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 	redraw();
 }
 
-function selectPauseScreen(lineNo) { //@@
+function selectPauseScreen(lineNo) { 
 	const options = [
 		() => {
 			textMode = false;
@@ -368,7 +368,7 @@ function gotoLevelSelectScreen() {
 	generateLevelSelectScreen();
 }
 
-function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { //@@
+function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
 	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
 
@@ -723,7 +723,6 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
     }
     loadLevelFromLevelDat(state,state.levels[levelindex],randomseed);
     restoreLevel(target, true);
-	curlevelTarget = null;
     restartTarget=target;
 }
 
@@ -3611,7 +3610,7 @@ function nextLevel() {
 			curlevelTarget=null;
 
 			if (state.metadata.level_select === undefined) {
-				clearLocalStorage();
+				clearLocalStorage();		//@@???
 			}
 
 			loadLevelFromStateOrTarget();
@@ -3757,7 +3756,7 @@ function setSectionSolved(section) {
 	try {
 		if(!!window.localStorage) {
 			solvedSections.push(section);
-			localStorage.setItem(document.URL + "_sections", JSON.stringify(solvedSections));
+			storage_set(document.URL + "_sections", JSON.stringify(solvedSections));
 		}
 	} catch(ex) { }
 }
@@ -3769,9 +3768,9 @@ function clearLocalStorage() {
 
 	try {
 		if (!!window.localStorage) {
-			localStorage.removeItem(document.URL);
-			localStorage.removeItem(document.URL+'_checkpoint');
-			localStorage.removeItem(document.URL+'_sections');
+			storage_remove(document.URL);
+			storage_remove(document.URL+'_checkpoint');
+			storage_remove(document.URL+'_sections');
 		}
 	} catch(ex){ }
 }

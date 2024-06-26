@@ -16,10 +16,12 @@ PuzzleScript Next is a combination of the work of many authors:
 ## New Features and Fixes
 The latest version is Release v-24f22. 
 New fixes:
+* Checkpoints are no longer lost when the program is interrupted or restarted at the title menu. 
+Note: this behaviour is widely expected, but is not documented.
 * A child object that defines no sprite and/or colour inherits them from its parent (hat tricks).
 * The `share` link now targets the correct URL wherever it is hosted.
 * Two text objects with same content no longer get the same colour.
-* Using rot: with no arguments no longer causes a crash.
+* Using `rot:` with no arguments no longer causes a crash.
 
 Recent new features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
