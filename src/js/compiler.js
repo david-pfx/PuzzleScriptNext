@@ -433,7 +433,10 @@ function generateExtraMembers(state) {
     // fix and convert colors to hex
     const maxColours = 36; // now 0-9 and a-z
     for (const obj of Object.values(state.objects)) {
-        if (obj.colors.length == 0) {
+        if (obj.vector) {
+            if (obj.colors.length > 0)
+                logWarning(`Please don't define colors for vector sprites. They're just going to get ignored anyway.`, obj.lineNumber + 1);
+        } else if (obj.colors.length == 0) {
             logWarning(`A sprite must have at least one color. However did this happen?`, obj.lineNumber + 1);
             obj.colors.push('#ff00ff');
         } else if (obj.colors.length > maxColours) {

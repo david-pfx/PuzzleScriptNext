@@ -904,6 +904,7 @@ function setGameState(_state, command, randomseed) {
                 dat: object.spritematrix,
                 colors: object.colors,
 				text: object.spritetext,
+                vector: object.vector,
 				scale: object.scale,
             };
         }
@@ -2264,8 +2265,7 @@ function matchCellRow(direction, cellRowMatch, cellRow, cellRowMask,cellRowMask_
 
 			for (var y=ymin;y<ymax;y++) {
 				var i = x*curLevel.height+y;
-				if (cellRowMatch(	cellRow,i, d, curLevel.objects, curLevel.movements))
-				{
+				if (cellRowMatch(cellRow,i, d, curLevel.objects, curLevel.movements)) {
 					result.push(i);
 				}
 			}
