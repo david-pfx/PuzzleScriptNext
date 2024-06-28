@@ -12,8 +12,7 @@ white
 border
 black
 
-xNE
-{"type":"canvas"}
+xNE canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"black"}
@@ -21,8 +20,7 @@ xNE
 {"lineTo":[1,1]}
 {"stroke":[]}
 
-xNW
-{"type":"canvas"}
+xNW canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"black"}
@@ -30,8 +28,7 @@ xNW
 {"lineTo":[1,0]}
 {"stroke":[]}
 
-zSW
-{"type":"canvas"}
+zSW canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"black"}
@@ -42,8 +39,7 @@ zSW
 {"stroke":[]}
 {"fill":[]}
 
-zSE
-{"type":"canvas"}
+zSE canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"black"}
@@ -54,8 +50,7 @@ zSE
 {"stroke":[]}
 {"fill":[]}
 
-zNE
-{"type":"canvas"}
+zNE canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"black"}
@@ -66,8 +61,7 @@ zNE
 {"stroke":[]}
 {"fill":[]}
 
-zNW
-{"type":"canvas"}
+zNW canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"black"}
@@ -78,8 +72,7 @@ zNW
 {"stroke":[]}
 {"fill":[]}
 
-moveVH
-{"type":"canvas"}
+moveVH canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"fillStyle":"purple"}
@@ -90,8 +83,7 @@ moveVH
 {"closePath":[]}
 {"fill":[]}
 
-moveH
-{"type":"canvas"}
+moveH canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"fillStyle":"purple"}
@@ -108,8 +100,7 @@ moveH
 {"lineTo":[0.8,0.5]}
 {"stroke":[]}
 
-moveV
-{"type":"canvas"}
+moveV canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"fillStyle":"purple"}
@@ -126,8 +117,7 @@ moveV
 {"lineTo":[0.5,0.8]}
 {"stroke":[]}
 
-switch
-{"type":"canvas"}
+switch canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"orange"}
@@ -141,8 +131,7 @@ switch
 {"lineTo":[0.8,0.5]}
 {"stroke":[]}
 
-goal
-{"type":"canvas"}
+goal canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"red"}

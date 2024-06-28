@@ -1158,52 +1158,24 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^canvas:/)) {
+                } else if (token = lexer.match(/^canvas:/)) {//@@
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
-
-                    token = lexer.match(/^[a-z]+/i, true);
-                    if (token != 'json') 
-                        logError(`Canvas has to be specified in JSON, not ${token}.`, state.lineNumber);
-                    else {
-                        symbols.vector = { 
-                            type: 'canvas', 
-                            data: [] 
-                        };
-                        kind = 'METADATATEXT';
+                    symbols.vector = { 
+                        type: 'canvas', 
+                        data: [] 
+                    };
+                    if (token = lexer.match(/^[0-9,]+/i,  true)) {
+                        const parts = token && token.split(',');
+                        if (!(parts.length >= 1 && parts.length <= 2))
+                            logError(`Canvas size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
+                        else {
+                            symbols.vector.w = parts[0];
+                            symbols.vector.h = parts[1] || parts[0];
+                            kind = 'METADATATEXT';  //???
+                        }
+                        lexer.pushToken(token, kind);
                     }
-                    lexer.pushToken(token, kind);
-
-                } else if (symbols.vector && (token = lexer.match(/^size:/i))) {
-                    lexer.pushToken(token, 'KEYWORD');
-                    lexer.matchComment();
-
-                    token = lexer.match(/^[0-9,]+/i,  true);
-                    const parts = token && token.split(',');
-                    if (!(parts.length >= 1 && parts.length <= 2))
-                        logError(`Size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
-                    else {
-                        symbols.vector.w = parts[0];
-                        symbols.vector.h = parts[1] || parts[0];
-                        kind = 'METADATATEXT';  //???
-                    }
-                    lexer.pushToken(token, kind);
-
-                // later???
-                // } else if (token = lexer.match(/^offset:/i)) {
-                //     lexer.pushToken(token, 'KEYWORD');
-                //     lexer.matchComment();
-
-                //     token = lexer.match(/^[0-9,]+/i,  true);
-                //     const parts = token && t oken.split(',');
-                //     if (!(parts.length >= 1 && parts.length <= 2))
-                //         logError(`Offset has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
-                //     else {
-                //         if (parts.length == 1) parts.push(parts[0]);
-                //         symbols.transforms.push([ 'offset', +parts[0], +parts[1] ]);
-                //         kind = 'METADATATEXT';  //???
-                //     }
-                //     lexer.pushToken(token, kind);
 
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid token in OBJECT modifier section: "${errorCase(token)}".`, state.lineNumber);
