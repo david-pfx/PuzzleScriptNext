@@ -11,6 +11,7 @@ PuzzleScript Next is a combination of the work of many authors:
 * the great features added in [Puzzlescript Plus by Auroriax](https://github.com/Auroriax/PuzzleScriptPlus)
 * more great features added in [Pattern:Script](https://clementsparrow.github.io/Pattern-Script)
 * a few contributions from my own [PuzzleFAB](https://github.com/david-pfx/PuzzleFAB)
+* the vector feature created by [hfmanson](https://github.com/hfmanson/PuzzleScriptNext)
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes

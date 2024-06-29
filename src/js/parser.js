@@ -30,7 +30,7 @@ let caseSensitive = false;
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
-const reg_objmodi = /^[a-z]+:/i;
+const reg_objmodi = /^(canvas|copy|flip|rot|scale|shift|text|translate):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
@@ -1090,7 +1090,7 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^flip:/)) {
+                } else if (token = lexer.match(/^flip:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
@@ -1158,14 +1158,14 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^canvas:/)) {//@@
+                } else if (token = lexer.match(/^canvas:/i)) {//@@
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
                     symbols.vector = { 
                         type: 'canvas', 
                         data: [] 
                     };
-                    if (token = lexer.match(/^[0-9,]+/i,  true)) {
+                    if (token = lexer.match(/^[0-9,]+/,  true)) {
                         const parts = token && token.split(',');
                         if (!(parts.length >= 1 && parts.length <= 2))
                             logError(`Canvas size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
