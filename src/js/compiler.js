@@ -223,46 +223,43 @@ function createObjectTagsAsProps(state, ident) {
 
 
 // generate a new sprite matrix based on transforms
-function generateSpriteMatrix(state, obj) {
+function applySpriteTransforms(obj) {
     const cwd = dir => clockwiseDirections.indexOf(dir);
     const tranfunc = {
-        'flip': (mat,_,dir) => [
-            (m => m.reverse()),
-		    (m => m.map(row => row.reverse())),
+        'flip': (mat,dir) => [
+            (mat => mat.reverse()),
+		    (mat => mat.map(row => row.reverse())),
         ][dir % 2](mat),
-        'shift': (mat,_,dir,amt) => [ // up right down left
-            (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
-            (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
-            (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
-            (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
+        'shift': (mat,dir,amt) => [ // up right down left
+            (mat => [ ...mat.slice(amt), ...mat.slice(0, amt) ]),
+            (mat => mat.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
+            (mat => [ ...mat.slice(-amt), ...mat.slice(0, -amt) ]),
+            (mat => mat.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
         ][dir](mat),
-        'rot': (mat,_,dir1,dir2) => [
-            m => m, // 0°
-            m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
-            m => Array.from(m, l => l.reverse() ).reverse(), // 180°
-            m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
+        'rot': (mat,dir1,dir2) => [
+            mat => mat, // 0°
+            mat => Array.from(mat[0], (ch,col) => mat.map( row => row[col] ).reverse()), // 90°
+            mat => Array.from(mat, l => l.reverse() ).reverse(), // 180°
+            mat => Array.from(mat[0], (ch,col) => mat.map( row => row[col] )).reverse() // 270°
         ][(4 + cwd(dir2) - dir1) % 4](mat),
-        'translate': (m,off,dir,amt) => {
-            off.x += [0,1,0,-1][dir] * amt;
-            off.y += [-1,0,1,0][dir] * amt;
-            return m;
-        }
+        'translate': (mat,_,_) => mat,
+        // 'translate': (m,off,dir,amt) => {
+        //     off.x += [0,1,0,-1][dir] * amt;
+        //     off.y += [-1,0,1,0][dir] * amt;
+        //     return m;
+        // }
     };
 
-    obj.spriteoffset = { x: 0, y: 0 };
-    if (obj.cloneSprite) {
-        const other = state.objects[obj.cloneSprite];
-        obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
-        obj.spriteoffset = { ...other.spriteoffset };
-    } else if (obj.spritematrix.length == 0) {
-        obj.spritematrix = Array.from( 
-            { length: state.sprite_size }, 
-            () => (new Array(state.sprite_size).fill(0)) 
-        );
-    }
-    
     for (const tf of obj.transforms || []) {
-        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), tf[2]);
+        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, cwd(tf[1]), tf[2]);
+    }
+}
+
+function applySpriteTranslates(obj) {
+    const cwd = dir => clockwiseDirections.indexOf(dir);
+    for (const tf of (obj.transforms || []).filter(tf[0] == 'translate')) {
+        obj.spriteoffset.x += [0,1,0,-1][cwd(tf[1])] * tf[2];
+        obj.spriteoffset.y += [-1,0,1,0][cwd(tf[1])] * tf[2];
     }
 }
 
@@ -455,13 +452,32 @@ function generateExtraMembers(state) {
     }
 
     // fix up objects
-    for (const [key, value] of Object.entries(state.objects)) {
-        generateSpriteMatrix(state, value);
-        //createObjectTagsAsProps(state, key);  // does this now do anything?
-    }    
-    // for (const obj of Object.values(state.objects)) {
-    //     generateSpriteMatrix(state, obj);
-    // }
+    for (const [key, obj] of Object.entries(state.objects)) {
+        obj.spriteoffset = { x: 0, y: 0 };
+        if (obj.vector) {            
+            if (obj.cloneSprite) {
+                const other = state.objects[obj.cloneSprite];
+                obj.vector = other.vector; // immutable
+                obj.spriteoffset = { ...other.spriteoffset };
+            } 
+            applySpriteTranslates(obj);
+        } else {
+            if (obj.cloneSprite) {
+                const other = state.objects[obj.cloneSprite];
+                obj.spritematrix = other.spritematrix.map(row => [...row]);
+                obj.spriteoffset = { ...other.spriteoffset };
+            } 
+            if (obj.spritematrix.length == 0) {
+                obj.spritematrix = Array.from(
+                    { length: state.sprite_size },
+                    () => (new Array(state.sprite_size).fill(0))
+                );
+            }
+            applySpriteTransforms(obj);
+            applySpriteTranslates(obj);
+        }
+    }
+
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);

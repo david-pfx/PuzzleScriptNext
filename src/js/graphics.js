@@ -30,7 +30,7 @@ function createTextSprite(name, text, colors, scale) {
 }
 
 // Create and return a custom instructions sprite canvas
-function createJsonSprite(name, vector) {
+function createCanvasSprite(name, vector) {
     const canvas = makeSpriteCanvas(name);
     const context = canvas.getContext('2d');
 
@@ -42,8 +42,8 @@ function createJsonSprite(name, vector) {
         for (const instr of json) {
             try {
                 for (const [key, value] of Object.entries(instr)) {
-                    if (key === "ps-include") {
-                        console.log("ps-include: " + value);
+                    if (key === "!include") {
+                        //console.log(`!include: ${value}`);
                         const include = state.objects[value.toLowerCase()];
                         if (include) {
                             addInstr(include.vector.data);
@@ -86,6 +86,45 @@ function createSvgSprite(name, vector) {
         redraw();
     }, false);
     return canvas;
+}
+
+// generate a new sprite matrix based on transforms
+function applyCanvasTransforms(obj, context) {
+    const cwd = dir => clockwiseDirections.indexOf(dir);
+    const tranfunc = {
+        'flip': (ctx,_,dir) => [
+            (c => c.scale(-1,1)),
+		    (c => c.scale(1,-1)),
+        ][dir % 2](ctx),
+        'shift': (ctx,_,dir,amt) => [ // up right down left
+            (c => c.translate(0,-1)),
+            (c => c.translate(1,0)),
+            (c => c.translate(0,1)),
+            (c => c.translate(-1,0)),
+        ][dir](ctx),
+        'rot': (ctx,_,dir1,dir2) => [
+            c => c, // 0°
+            c => c.rotate(90 * Math.PI / 90),
+            c => c.rotate(90 * Math.PI / 180),
+            c => c.rotate(90 * Math.PI / 270),
+        ][(4 + cwd(dir2) - dir1) % 4](ctx),
+        'translate': (c,off,dir,amt) => { 
+            off.x += [0,1,0,-1][dir] * amt;
+            off.y += [-1,0,1,0][dir] * amt;
+            return c;
+        }
+    };
+
+    // obj.spriteoffset = { x: 0, y: 0 };
+    // if (obj.cloneSprite) {
+    //     const other = state.objects[obj.cloneSprite];
+    //     obj.vector = other.vector; // immutable
+    //     obj.spriteoffset = { ...other.spriteoffset };
+    // }
+    
+    for (const tf of obj.transforms || []) {
+        tranfunc[tf[0]](context, obj.spriteoffset, cwd(tf[1]), tf[2]);
+    }
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
@@ -161,9 +200,9 @@ var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]
 var spriteImages;
 
 function createVectorSprite(name, vector) {
-    return vector.type === 'canvas' ? createJsonSprite(name, vector)
-    : vector.type === 'svg' ? createSvgSprite(name, vector)
-    : null;
+    return vector.type === 'canvas' ? createCanvasSprite(name, vector)
+        : vector.type === 'svg' ? createSvgSprite(name, vector)
+        : null;
 }
 
 function regenSpriteImages() {
@@ -185,9 +224,9 @@ function regenSpriteImages() {
     objectSprites.forEach((s,i) => {
         if (s) {
             spriteImages[i] =
-                s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
+                    s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
                 : s.vector ? createVectorSprite('v' + i.toString(), s.vector)
-                : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
+            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
 
