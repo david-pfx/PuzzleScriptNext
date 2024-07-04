@@ -43,7 +43,6 @@ function createCanvasSprite(name, vector) {
             try {
                 for (const [key, value] of Object.entries(instr)) {
                     if (key === "!include") {
-                        //console.log(`!include: ${value}`);
                         const include = state.objects[value.toLowerCase()];
                         if (include) {
                             addInstr(include.vector.data);
@@ -70,15 +69,15 @@ function createCanvasSprite(name, vector) {
 
 // Create and return a SVG template sprite canvas
 function createSvgSprite(name, vector) {
-    var canvas = makeSpriteCanvas(name);
+    const canvas = makeSpriteCanvas(name);
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
-    var context = canvas.getContext('2d');
+    const context = canvas.getContext('2d');
     const body = vector.data.join("\n");
     const svg = body;
-    var blob = new Blob([svg], {type: 'image/svg+xml'});
-    var url = URL.createObjectURL(blob);
-    var image = document.createElement('img');
+    const blob = new Blob([svg], {type: 'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const image = document.createElement('img');
     image.src = url;
     image.addEventListener('load', function () {
         context.drawImage(image, 0, 0);
@@ -86,45 +85,6 @@ function createSvgSprite(name, vector) {
         redraw();
     }, false);
     return canvas;
-}
-
-// generate a new sprite matrix based on transforms
-function applyCanvasTransforms(obj, context) {
-    const cwd = dir => clockwiseDirections.indexOf(dir);
-    const tranfunc = {
-        'flip': (ctx,_,dir) => [
-            (c => c.scale(-1,1)),
-		    (c => c.scale(1,-1)),
-        ][dir % 2](ctx),
-        'shift': (ctx,_,dir,amt) => [ // up right down left
-            (c => c.translate(0,-1)),
-            (c => c.translate(1,0)),
-            (c => c.translate(0,1)),
-            (c => c.translate(-1,0)),
-        ][dir](ctx),
-        'rot': (ctx,_,dir1,dir2) => [
-            c => c, // 0°
-            c => c.rotate(90 * Math.PI / 90),
-            c => c.rotate(90 * Math.PI / 180),
-            c => c.rotate(90 * Math.PI / 270),
-        ][(4 + cwd(dir2) - dir1) % 4](ctx),
-        'translate': (c,off,dir,amt) => { 
-            off.x += [0,1,0,-1][dir] * amt;
-            off.y += [-1,0,1,0][dir] * amt;
-            return c;
-        }
-    };
-
-    // obj.spriteoffset = { x: 0, y: 0 };
-    // if (obj.cloneSprite) {
-    //     const other = state.objects[obj.cloneSprite];
-    //     obj.vector = other.vector; // immutable
-    //     obj.spriteoffset = { ...other.spriteoffset };
-    // }
-    
-    for (const tf of obj.transforms || []) {
-        tranfunc[tf[0]](context, obj.spriteoffset, cwd(tf[1]), tf[2]);
-    }
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
@@ -200,9 +160,10 @@ var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]
 var spriteImages;
 
 function createVectorSprite(name, vector) {
-    return vector.type === 'canvas' ? createCanvasSprite(name, vector)
+    const canvas = (vector.type === 'canvas') ? createCanvasSprite(name, vector)
         : vector.type === 'svg' ? createSvgSprite(name, vector)
         : null;
+    return canvas;
 }
 
 function regenSpriteImages() {
@@ -613,7 +574,8 @@ function redrawCellGrid(curlevel) {
             }; // globals
             const offs = { 
                 x: obj.spriteoffset.x, 
-                y: obj.spriteoffset.y + state.sprite_size - obj.spritematrix.length 
+                y: obj.spriteoffset.y + (obj.spritematrix.length == 0 ? 0 : state.sprite_size - obj.spritematrix.length)
+                //y: obj.spriteoffset.y + state.sprite_size - obj.spritematrix.length 
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
@@ -679,32 +641,25 @@ function redrawCellGrid(curlevel) {
                         //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = render.getDrawPos(posindex, obj);
-                        
-                        let params = {
+                        const vector = obj.vector;
+                        const params = {
                             x: 0, y: 0,
                             scalex: 1.0, scaley: 1.0,
-                            alpha: 1.0,                                
-                            angle: 0.0,                                
+                            alpha: 1.0,
+                            angle: vector ? vector.params.angle : 0.0,
                         };
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
                         // size of the sprite in pixels
-                        let spriteSize;
-                        const vector = obj.vector;
-                        if (vector) {
-                            spriteSize = {
-                                w: (vector.w || 1) * cellwidth,
-                                h: (vector.h || 1) * cellheight,
-                            };
-                            params.x = vector.x || 0;
-                            params.y = vector.y || 0;
-                        } else {
-                            spriteSize = {
-                                w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
-                                h: obj.spritematrix.length * pixelSize,
-                            };
-                        }
+                        const spriteSize = vector ? {
+                            w: (vector.w || 1) * cellwidth,
+                            h: (vector.h || 1) * cellheight,
+                        } : {
+                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                            h: obj.spritematrix.length * pixelSize,
+                        };
+
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 

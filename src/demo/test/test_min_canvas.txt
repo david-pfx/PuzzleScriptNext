@@ -6,6 +6,7 @@ homepage www.polyomino.com
 
 verbose_logging
 debug
+debug_switch obj
 
 sprite_size 7
 
@@ -14,9 +15,49 @@ OBJECTS
 ========
 //Background;grey
 
-q canvas:
-{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
-{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
+man z canvas:
+{"beginPath":[]}
+{"fillStyle":"blue"}
+{"arc":[0.5,0.5,0.3,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"red"}
+{"arc":[0.2,0.5,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"green"}
+{"arc":[0.8,0.5,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"yellow"}
+{"arc":[0.3,0.8,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"blue"}
+{"arc":[0.7,0.8,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#ffaaaa"}
+{"arc":[0.5,0.2,0.2,0,7]}
+{"fill":[]}
+rot:>:v translate:v:7 //flip:>
+
+//z canvas:4,4
+//{"beginPath":[]}   {"fillStyle":"magenta"}
+//{"arc":[0.75, 0.75, 0.50, 0.0,6.28]}
+//{"fill":[]}
+////{"moveTo":[0.110, 0.75]}
+//{"beginPath":[]} 
+//{"arc":[0.75, 0.75, 0.05, 0,3.14]}
+////{"moveTo":[0.65, 0.65]}
+////{"arc":[0.60, 0.65, 0.05, 0.0,6.28]}
+////{"moveTo":[0.95, 0.65]}
+////{"arc":[0.90, 0.65, 0.05, 0.0,6.28]}
+//{"stroke":[]}
+////rot:>:v translate:v:4 //flip:>
+
+
+
 
 Background
 grey darkgray lightgray
@@ -42,7 +83,7 @@ g;green
 y;yellow
 k;pink
 
-// 3 filled circles, one above the other
+// 3 filled circles, one after the other
 s canvas:2,1
 //
 // this is the first blob
@@ -59,20 +100,24 @@ s canvas:2,1
 {"arc":[0.5,0.5,0.4,0,6.28]}
 {"fill":[]}
 
-t canvas:2,1 translate:left:3 //offset:-1,0
-{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[1.0,0.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"black"}{"arc":[1.5,0.5,0.4,0,6.28]}{"fill":[]}
+t canvas:2,1 copy:s rot:right:down
 
-u canvas:1,2
-{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+//t canvas:2,1 translate:left:3 //offset:-1,0
+//{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+//{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[1.0,0.5,0.4,0,6.28]}{"fill":[]}
+//{"beginPath":[]}{"fillStyle":"black"}{"arc":[1.5,0.5,0.4,0,6.28]}{"fill":[]}
 
-w canvas:2,2 translate:down:4 //offset:0,-1
-{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
+u canvas:9,9 copy:s translate:down:4
+//u canvas:1,2
+//{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
+//{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
+//{"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+
+w canvas:9,9 copy:s flip:right
+//w canvas:2,2 translate:down:4 //offset:0,-1
+//{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+//{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
+//{"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
 
 m canvas:3,3
 {"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,6.28]}{"fill":[]}
@@ -89,6 +134,10 @@ o canvas:2,2
 {"beginPath":[]}{"fillStyle":"blue"} {"roundRect":[0.2,0.4,1.5,1.1,0.1]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"roundRect":[0.2,0.4,0.9,0.7,0.1]}{"fill":[]}
 
+q canvas:
+{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
+{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
+
 =======
 LEGEND
 =======
@@ -101,6 +150,8 @@ SOUNDS
 COLLISIONLAYERS
 ================
 Background
+--
+z
 y
 Player, R, B, G
 k
@@ -127,10 +178,10 @@ LEVELS
 .............
 .rbgykprbgyk.
 .............
-.s..u..t..w..
+.s..t..u..w..
 .............
 .m..n..o..q..
-.............
+...........z.
 .............
 
 message second level

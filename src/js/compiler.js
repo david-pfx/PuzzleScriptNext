@@ -223,45 +223,93 @@ function createObjectTagsAsProps(state, ident) {
 
 
 // generate a new sprite matrix based on transforms
+// translate: handled as spriteoffset, because it might go negative
 function applySpriteTransforms(obj) {
-    const cwd = dir => clockwiseDirections.indexOf(dir);
     const tranfunc = {
-        'flip': (mat,dir) => [
-            (mat => mat.reverse()),
-		    (mat => mat.map(row => row.reverse())),
-        ][dir % 2](mat),
-        'shift': (mat,dir,amt) => [ // up right down left
-            (mat => [ ...mat.slice(amt), ...mat.slice(0, amt) ]),
-            (mat => mat.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
-            (mat => [ ...mat.slice(-amt), ...mat.slice(0, -amt) ]),
-            (mat => mat.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
-        ][dir](mat),
-        'rot': (mat,dir1,dir2) => [
-            mat => mat, // 0°
-            mat => Array.from(mat[0], (ch,col) => mat.map( row => row[col] ).reverse()), // 90°
-            mat => Array.from(mat, l => l.reverse() ).reverse(), // 180°
-            mat => Array.from(mat[0], (ch,col) => mat.map( row => row[col] )).reverse() // 270°
-        ][(4 + cwd(dir2) - dir1) % 4](mat),
-        'translate': (mat,_,_) => mat,
-        // 'translate': (m,off,dir,amt) => {
-        //     off.x += [0,1,0,-1][dir] * amt;
-        //     off.y += [-1,0,1,0][dir] * amt;
-        //     return m;
-        // }
+        'flip': (obj,dir) => [
+            (m => m.reverse()),
+		    (m => m.map(row => row.reverse())),
+        ][dir % 2](obj.spritematrix),
+        'shift': (obj,dir,amt) => obj.spritematrix = [ // up right down left
+            (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
+            (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
+            (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
+            (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
+        ][dir](obj.spritematrix),
+        'rot': (obj,dir1,dir2) => obj.spritematrix = [
+            m => m, // 0°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
+            m => Array.from(m, l => l.reverse() ).reverse(), // 180°
+            m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
+        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.spritematrix),
+        'translate': (obj,dir,amt) => [
+            (s => s.y -= amt),
+            (s => s.x += amt),
+            (s => s.y += amt),
+            (s => s.x -= amt),
+        ][dir](obj.spriteoffset),
     };
 
     for (const tf of obj.transforms || []) {
-        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, cwd(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
     }
 }
 
-function applySpriteTranslates(obj) {
-    const cwd = dir => clockwiseDirections.indexOf(dir);
-    for (const tf of (obj.transforms || []).filter(tf[0] == 'translate')) {
-        obj.spriteoffset.x += [0,1,0,-1][cwd(tf[1])] * tf[2];
-        obj.spriteoffset.y += [-1,0,1,0][cwd(tf[1])] * tf[2];
+// generate a new sprite matrix based on transforms
+function applyVectorTransforms(obj) {
+    const tranfunc = {
+        'flip': (obj,dir) => [
+            (p => p.flipy = !p.flipy),
+            (p => p.flipx = !p.flipx),
+        ][dir % 2](obj.vector.params),
+        'rot': (prm,dir1,dir2) => [
+            p => p, // 0°
+            p => p.angle += 90,
+            p => p.angle += 180,
+            p => p.angle += 270,
+        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.vector.params),
+        'translate': (obj,dir,amt) => [
+            (s => s.y -= amt),
+            (s => s.x += amt),
+            (s => s.y += amt),
+            (s => s.x -= amt),
+        ][dir](obj.spriteoffset),
+        'shift': (prm) => prm,
+    };
+
+    for (const tf of obj.transforms || []) {
+        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
     }
 }
+
+// function applyVectorTransforms(params, transforms) {
+//     const tranfunc = {
+//         'flip': (prm,dir) => [
+//             (p => p.flipy = !p.flipy),
+//             (p => p.flipx = !p.flipx),
+//             // (p => p.scaley *= -1),
+// 		    // (p => p.scalex *= -1),
+//         ][dir % 2](prm),
+//         'rot': (prm,dir1,dir2) => [
+//             p => p, // 0°
+//             p => p.angle += 90,
+//             p => p.angle += 180,
+//             p => p.angle += 270,
+//         ][(4 + cwdIndexOf(dir2) - dir1) % 4](prm),
+//         'translate': (prm,dir,amt) => [ // up right down left
+//             (p => p.y += -amt),
+//             (p => p.x += amt),
+//             (p => p.y += amt),
+//             (p => p.x += -amt),
+//         ][dir](prm),
+//         'shift': (prm) => prm,
+//     };
+
+//     for (const tf of transforms || []) {
+//         tranfunc[tf[0]](params, cwdIndexOf(tf[1]), tf[2]);
+//     }
+// }
+
 
 // PS> check whether a name has been used and is not available
 function isAlreadyDeclared(state, ident) {
@@ -451,16 +499,23 @@ function generateExtraMembers(state) {
         }
     }
 
-    // fix up objects
+    // fix up what we can of sprite stuff here.
+    // spriteoffset is needed to handle translate with negative args
+    // transform on canvas has to be left until later
     for (const [key, obj] of Object.entries(state.objects)) {
-        obj.spriteoffset = { x: 0, y: 0 };
         if (obj.vector) {            
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
                 obj.vector = other.vector; // immutable
                 obj.spriteoffset = { ...other.spriteoffset };
             } 
-            applySpriteTranslates(obj);
+            obj.vector.params = {
+                x: 0, y: 0,
+                flipx: false, flipy: false,
+                angle: 0.0,                                
+            };
+            applyVectorTransforms(obj);
+
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
@@ -474,7 +529,6 @@ function generateExtraMembers(state) {
                 );
             }
             applySpriteTransforms(obj);
-            applySpriteTranslates(obj);
         }
     }
 
