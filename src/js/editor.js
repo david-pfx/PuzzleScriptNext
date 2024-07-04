@@ -15,27 +15,28 @@ if (storage_has('test_code')) {
 window.addEventListener('load', function () {
 	let file = null;
 	if (file = getParameterByName("demo")) {
-		code.value = "loading demo...";
+		editor.setValue("loading demo...");
 		tryLoadFile(`demo/${file}.txt`);
 	} else if (file = getParameterByName("url")) {
-		code.value = "loading url...";
+		editor.setValue("loading url...");
 		tryLoadFile(file);
 	} else if (file = getParameterByName("hack")) {
-		code.value = "loading gist...";
+		editor.setValue("loading gist...");
 		tryLoadGist(file.replace(/[\\\/]/,""));
-	} else if (code.value == '') {
-		code.value = "loading starter...";
-		tryLoadFile(`demo/${starterCodeFile}`, false);
-	}
-	try {
-		if (storage_has('saves')) {
+	} else if (storage_has('saves')) {
+		try {
 			let curSaveArray = JSON.parse(storage_get('saves'));
 			let sd = curSaveArray[curSaveArray.length-1];
-			code.value = sd.text;
+			editor.setValue(sd.text);
 			let loadDropdown = document.getElementById('loadDropDown');
 			loadDropdown.selectedIndex=0;
 		}
-	} catch(ex) { }
+		catch(ex) { }
+	} else {
+		editor.setValue("loading starter...");
+		tryLoadFile(`demo/${starterCodeFile}`, false);
+	}
+	setEditorClean();
 });
 
 CodeMirror.commands.swapLineUp = function(cm) {
