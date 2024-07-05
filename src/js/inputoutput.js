@@ -730,9 +730,9 @@ function onMouseUp(event, wasFiredByTouch = false) {
 }
 
 function onKeyDown(event) {
+	//console.log(`keycode ${event.keyCode}`);
 
 	ULBS();
-	
 	// Prevent arrows/space from scrolling page
 	if ((!IDE) && ([32, 37, 38, 39, 40].indexOf(event.keyCode) > -1)) {
 		if (event&&(event.ctrlKey || event.metaKey)){
@@ -777,7 +777,7 @@ function onKeyDown(event) {
             prevent(event);
             event.target.blur();
             canvas.focus();
-        }  else if (event.keyCode===82 && (event.ctrlKey||event.metaKey)) {//ctrl+r
+        }  else if (event.keyCode===88 && (event.ctrlKey||event.metaKey)) {//ctrl+x
             runClick();
             prevent(event);
             event.target.blur();
@@ -797,6 +797,8 @@ function onKeyDown(event) {
 				rebuildClick();
 			}
 			prevent(event);
+            event.target.blur();
+            canvas.focus();
 		}
 	}
 }
