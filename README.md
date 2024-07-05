@@ -14,8 +14,11 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24f26. 
+The latest version is Release v-24g05. 
 New fixes:
+* Gosub now works correctly when a return lands on another return.
+* The editor now correctly loads the last saved file on start up.
+* The documentation for directions has been improved.
 * Checkpoints are no longer lost when the program is interrupted or restarted at the title menu. 
 Note: this behaviour is widely expected, but is not documented.
 * A child object that defines no sprite and/or colour inherits them from its parent (hat tricks).

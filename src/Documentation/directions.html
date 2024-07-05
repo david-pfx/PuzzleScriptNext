@@ -61,8 +61,17 @@
 <p>
 
 
-<h1>Intermediate Directions and Movement</h1>
+<h1>Directions and Movement</h1>
+<p>Basic directions are all that are left after the compiler has finished processing rules.
+They are <b>Up</b>, <b>Down</b>, <b>Left</b>, <b>Right</b> and <b>Action</b>.
+During the movement phase (after all the non-late rules have been executed), the first four of these will cause the Player(s) to move.
+Then all movements are removed and the late rules are executed.</p>
+
+<h1>Intermediate Directions</h1>
+<p>There are two other kinds of directions: relative and shorthand.
+  Both kinds get compiled into basic directions.</p>
 <p>
+  The relative directions are <b>^ &gt; v &lt;</b>, <b>parallel</b> and <b>perpendicular</b>.
 Relative directions rotate along with their pattern. This:
 <p>
 <pre><code>[ > Player | Crate ] -> [ > Player | > Crate ]</code></pre>
@@ -100,9 +109,9 @@ would look for words in all four directions, so TAC would also match this rule. 
 <p>
 Huzzah!
 <hr>
-
+<p>The shortcut directions are <b>horizontal</b>, <b>vertical</b>, <b>orthogonal</b> and <b>stationary</b>. 
 <p>
-There are horizontal directons as well - if you want something that moves horizontally when you move horizontally, but ignores you otherwise, do this:
+If you want something that moves horizontally when you move horizontally, but ignores you otherwise, do this:
 <p>
 <pre><code>[ Horizontal  Player ] [ Crate ] -> [  Horizontal  Player ] [  Horizontal Crate  ]</code></pre>
 and get this:
@@ -120,7 +129,8 @@ There is, and it's this:
 <p>
 <pre><code>[ Perpendicular Player | Crate ] -> [ Perpendicular Player | Perpendicular Crate ]</code></pre>
 <p>
-Parallel is also a keyword, and means what you think it might. 😀
+Parallel means what you think it might.
+Orthogonal means all four directions, but not including <b>Action</b>.
 <p>
 Tip: if you don't know what something does in the examples (or in your own code 😆), it can be helpful to add the <b>debug</b> flag to the <a href="prelude.html#debug">prelude</a> to see how the compiler interprets it.
 Or you can just click on the debug button in the editor console.

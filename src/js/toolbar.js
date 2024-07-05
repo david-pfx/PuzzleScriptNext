@@ -94,7 +94,7 @@ function saveClick() {
 	setEditorClean();
 
 	var escapeHTMLTitle = title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-	consolePrint("saved file '"+escapeHTMLTitle+"' to local storage",true);
+	consolePrint(`Saved file '${escapeHTMLTitle}' to local storage."`,true);
 	if (window.location.href.indexOf("?hack")>=0){
 		var currURL= window.location.href; 
 		var afterDomain= currURL.substring(currURL.lastIndexOf('/') + 1);
