@@ -646,7 +646,7 @@ function redrawCellGrid(curlevel) {
                             x: 0, y: 0,
                             scalex: 1.0, scaley: 1.0,
                             alpha: 1.0,
-                            angle: vector ? vector.params.angle : 0.0,
+                            angle: vector ? vector.angle : 0.0,
                         };
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
@@ -669,13 +669,23 @@ function redrawCellGrid(curlevel) {
                         };
                         //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
                         ctx.globalAlpha = params.alpha;
-                        if (params.angle != 0) {
+                        if (vector) {
+                            // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
+                            const rcw = vector && vector.flipx ? -rc.w : rc.w;
+                            const rch = vector && vector.flipy ? -rc.h : rc.h;
+                            ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
+                            ctx.rotate(params.angle * Math.PI / 180);
+                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1); //@@
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                -rcw/2, -rch/2, rcw, rch);
+                        } else if (params.angle != 0) {
                             ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
                             ctx.rotate(params.angle * Math.PI / 180);
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 -rc.w/2, -rc.h/2, rc.w, rc.h);
-                        } else{
+                        } else {
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 rc.x, rc.y, rc.w, rc.h);

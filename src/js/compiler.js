@@ -261,13 +261,13 @@ function applyVectorTransforms(obj) {
         'flip': (obj,dir) => [
             (p => p.flipy = !p.flipy),
             (p => p.flipx = !p.flipx),
-        ][dir % 2](obj.vector.params),
+        ][dir % 2](obj.vector),
         'rot': (prm,dir1,dir2) => [
             p => p, // 0°
             p => p.angle += 90,
             p => p.angle += 180,
             p => p.angle += 270,
-        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.vector.params),
+        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.vector),
         'translate': (obj,dir,amt) => [
             (s => s.y -= amt),
             (s => s.x += amt),
@@ -503,17 +503,15 @@ function generateExtraMembers(state) {
     // spriteoffset is needed to handle translate with negative args
     // transform on canvas has to be left until later
     for (const [key, obj] of Object.entries(state.objects)) {
+        obj.spriteoffset = { x: 0, y: 0 };
         if (obj.vector) {            
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.vector = other.vector; // immutable
+                obj.vector = { ...other.vector };
                 obj.spriteoffset = { ...other.spriteoffset };
             } 
-            obj.vector.params = {
-                x: 0, y: 0,
-                flipx: false, flipy: false,
-                angle: 0.0,                                
-            };
+            obj.vector.flipx = obj.vector.flipy = false;
+            obj.vector.angle = 0.0;            
             applyVectorTransforms(obj);
 
         } else {
