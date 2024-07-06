@@ -2868,13 +2868,16 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 						break; 
 				}		
 
-				if (ruleGroupIndex == rules.length || subroutines.find(s => s.groupNumber == ruleGroupIndex)) {
+				while (ruleGroupIndex == rules.length || subroutines.find(s => s.groupNumber == ruleGroupIndex)) {
 					if (gosubStack.length > 0) {
 						ruleGroupIndex = gosubStack.pop();
 						if (verbose_logging)
 							consolePrint(`Gosub return to line ${rules[ruleGroupIndex][0].lineNumber}`);
 						//console.log(`return group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
-					} else break;
+					} else {
+						ruleGroupIndex = rules.length;	// force exit
+						break;
+					}
 				} 
 			}
 		}

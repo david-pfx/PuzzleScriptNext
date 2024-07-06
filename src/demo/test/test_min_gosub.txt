@@ -4,9 +4,11 @@ homepage www.polyomino.com
 
 // testing gosubs
 
-run_rules_on_level_start
+//run_rules_on_level_start
 verbose_logging
 debug
+debug_switch
+          
 ========
 OBJECTS
 ========
@@ -42,9 +44,11 @@ k
 RULES
 ======
 
+[ > p | r ] -> [ > p | > r ]
 [ g ] -> gosub the sub
 
-[ > p | r ] -> [ > p | > r ]
+subroutine never call this
+right [ ] -> [ k ]
 
 subroutine the sub
 right [ g | no g ] -> [ action g | ]

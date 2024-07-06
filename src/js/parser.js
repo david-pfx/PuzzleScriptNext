@@ -45,7 +45,9 @@ let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'act
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
-const clockwiseDirections = ['up', 'right', 'down', 'left', '>', 'v', '<', '^' ];
+const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<' ];
+
+const cwdIndexOf = dir => clockwiseDirections.indexOf(dir) % 4;
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);

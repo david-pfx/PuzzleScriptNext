@@ -6,17 +6,13 @@ homepage www.polyomino.com
 
 verbose_logging
 debug
+debug_switch obj
 
 sprite_size 7
 
 ========
 OBJECTS
 ========
-//Background;grey
-
-q canvas:
-{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
-{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
 
 Background
 grey darkgray lightgray
@@ -42,8 +38,8 @@ g;green
 y;yellow
 k;pink
 
-// 3 filled circles, one above the other
-s canvas:2,1
+// 3 filled circles, one after the other
+3 canvas:2,1
 //
 // this is the first blob
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}
@@ -59,35 +55,67 @@ s canvas:2,1
 {"arc":[0.5,0.5,0.4,0,6.28]}
 {"fill":[]}
 
-t canvas:2,1 translate:left:3 //offset:-1,0
-{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[1.0,0.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"black"}{"arc":[1.5,0.5,0.4,0,6.28]}{"fill":[]}
+man m canvas:
+{"beginPath":[]}
+{"fillStyle":"blue"}
+{"arc":[0.5,0.5,0.3,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"red"}
+{"arc":[0.2,0.5,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"green"}
+{"arc":[0.8,0.5,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"yellow"}
+{"arc":[0.3,0.8,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"blue"}
+{"arc":[0.7,0.8,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#ffaaaa"}
+{"arc":[0.5,0.2,0.2,0,7]}
+{"fill":[]}
+//rot:>:v translate:v:7 //flip:>
 
-u canvas:1,2
-{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+n canvas: 
+{"!include":"man"}
+{"beginPath":[]}
+{"fillStyle":"white"}
+{"arc":[0.5,0.5,0.1,0,7]}
+{"fill":[]}
+rot:right:down
 
-w canvas:2,2 translate:down:4 //offset:0,-1
-{"beginPath":[]}{"fillStyle":"#C0C0C0"}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"#404040"}{"arc":[0.5,1.0,0.4,0,6.28]}{"fill":[]}
-{"beginPath":[]}{"fillStyle":"black"}{"arc":[0.5,1.5,0.4,0,6.28]}{"fill":[]}
+o canvas: copy:man translate:down:4
 
-m canvas:3,3
+q canvas: copy:man flip:right
+
+s canvas: copy:man flip:up
+
+t canvas: copy:man rot:up:down
+
+w canvas:3,3
 {"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"blue"} {"arc":[1.5,1.5,0.7,0,6.28]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"arc":[1.5,1.5,0.35,0,6.28]}{"fill":[]}
 
-n canvas:3,3
+x canvas:3,3
 {"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,3]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"blue"} {"arc":[1.5,1.5,0.7,1,4]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"arc":[1.5,1.5,0.35,2,5]}{"fill":[]}
 
-o canvas:2,2
+z canvas:2,2
 {"beginPath":[]}{"fillStyle":"red"}  {"roundRect":[0.2,0.4,1.8,1.5,0.1]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"blue"} {"roundRect":[0.2,0.4,1.5,1.1,0.1]}{"fill":[]}
 {"beginPath":[]}{"fillStyle":"green"}{"roundRect":[0.2,0.4,0.9,0.7,0.1]}{"fill":[]}
+
+u canvas:
+{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
+{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
 
 =======
 LEGEND
@@ -101,11 +129,14 @@ SOUNDS
 COLLISIONLAYERS
 ================
 Background
+--
+3
+--
+m,n,o,q,s,t,u,w,x,z
+--
 y
 Player, R, B, G
 k
---
-s,t,u,w,m,n,o,q
 
 ======
 RULES
@@ -127,11 +158,11 @@ LEVELS
 .............
 .rbgykprbgyk.
 .............
-.s..u..t..w..
+.m.n.o.q.s.t.
 .............
-.m..n..o..q..
+.3..w..x..z..
 .............
-.............
+.u...........
 
 message second level
 

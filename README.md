@@ -48,6 +48,11 @@ For example: `late [ wall no wall:>:quarterTiles ] -> [ wall wall:>:fill ]`
 * Debug visualisation now works correctly from one level to another.
 * The pause screen now works on mobile and tablet devices.
 
+Also some new documentation:
+* [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
+* [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
+* [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
+
 ## Objects with vector based sprites
 This is an ALPHA release of vector-based sprite graphics, as an alternative to the more usual pixel graphics.
 Instead of colors and pixels, a stringified JSON object is used to specify a drawing.
@@ -76,11 +81,15 @@ blob b canvas:2,1
 {"fill":[]}
 ```
 
-In this release the object transform `translate:up:5` behaves as expected, with the distance defined in sprite pixels.
-Other transforms are not yet implemented.
+Alternatively the name may be `!include` in which case the argument is the name of another `canvas` object, and the JSON for that object is included.
+{"!include":"man"}
+{"beginPath":[]}
+{"fillStyle":"white"}
+{"arc":[0.5,0.5,0.1,0,7]}
+{"fill":[]}
 
-Also some new documentation:
-* [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
-* [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
-* [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
+The object transforms `copy:`, `translate`, `rot:` and `flip:` behave as expected, with distances defined in sprite pixels.
+The `shift:` transform is not implemented.
+
+The test program is `test/test_min_canvas`.
 
