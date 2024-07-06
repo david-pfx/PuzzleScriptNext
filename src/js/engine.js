@@ -44,7 +44,7 @@ function getPauseScreen(state) {
 	const lines = [
 		"",
 		"-< GAME PAUSED >-",
-		state.levels[curLevelNo].title,
+		state.levels[curLevelNo].title || "",
 		"",
 		"resume game",
 		!state.metadata.norestart ? "replay level from the start" : null,
@@ -283,9 +283,13 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 function selectPauseScreen(lineNo) { 
 	const options = [
 		() => {
-			textMode = false;
 			titleScreen = false;
-			canvasResize();
+			if (state.levels[curLevelNo].message) {
+				drawMessageScreen(state.levels[curLevelNo].message);
+			} else {
+				textMode = false;
+				canvasResize();
+			}
 		},
 		!state.metadata.norestart ? () => {
 			DoRestart(true);
@@ -319,6 +323,7 @@ function padToSize(textLines, width, height) {
 	return lines;
 }
 
+// return an array filled with integers from start to finish-1
 function fillRange(start, finish) {
 	return Array(finish - start).fill().map((item, index) => start + index);
 };

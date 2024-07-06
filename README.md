@@ -16,6 +16,7 @@ PuzzleScript Next is a combination of the work of many authors:
 ## New Features and Fixes
 The latest version is Release v-24g05. 
 New fixes:
+* Escape from message now works correctly.
 * Gosub now works correctly when a return lands on another return.
 * The editor now correctly loads the last saved file on start up.
 * The documentation for directions has been improved.
