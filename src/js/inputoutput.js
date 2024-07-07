@@ -745,9 +745,9 @@ function onKeyDown(event) {
 		toggleMute();		
 	}
 
-	
+	// discard duplicates, but don't pass them through either
     if (keybuffer.indexOf(event.keyCode)>=0) {
-    	return;
+    	return prevent(event);
     }
 
     if(lastDownTarget === canvas || (window.Mobile && (lastDownTarget === window.Mobile.focusIndicator) ) ){
@@ -1156,7 +1156,7 @@ function checkKey(e,justPressed) {
         case 80://p
         {
 			printLevel();
-        	break;
+			return prevent(e);
         }
         case 13://enter
         case 32://space
@@ -1167,12 +1167,12 @@ function checkKey(e,justPressed) {
 				ignoreNotJustPressedAction=false;
 			}
 			if (justPressed===false && ignoreNotJustPressedAction){
-				return;
+				return prevent(e);
 			}
 			if (norepeat_action===false || justPressed) {
 				inputdir = dirNames.indexOf('action');		// todo: reaction
             } else {
-            	return;
+            	return prevent(e);
             }
         break;
         }
@@ -1320,7 +1320,7 @@ function checkKey(e,justPressed) {
     if (debugSwitch.includes('input')) console.log('checkKey', prevTimestamp, throttle_movement, inputdir, input_throttle_timer, repeatinterval);
     if (throttle_movement && inputdir>=0&&inputdir<=3) {
     	if (lastinput==inputdir && input_throttle_timer<repeatinterval) {
-    		return;
+    		return prevent(e);
     	}else {
     		lastinput=inputdir;
     		input_throttle_timer=0;
@@ -1329,7 +1329,7 @@ function checkKey(e,justPressed) {
     if (textMode) {
 		if(!throttle_movement) { //If movement isn't throttled, then throttle it anyway
 			if (!titleScreen && lastinput==inputdir && input_throttle_timer < repeatinterval) { //Don't throttle on level select
-				return;
+				return prevent(e);
 			} else {
 				lastinput=inputdir;
 				input_throttle_timer=0;
@@ -1339,7 +1339,7 @@ function checkKey(e,justPressed) {
     	if (state.levels.length===0) {
     		//do nothing
     	} else if (titleScreen) {
-			if (isSitelocked()) {return;}
+			if (isSitelocked()) {return prevent(e);}
 			if (quittingTitleScreen===false){
 				if (titleMode===0) {
 					if (inputdir===4&&justPressed) {
@@ -1374,7 +1374,7 @@ function checkKey(e,justPressed) {
 					}
 					else if (inputdir===0||inputdir===2) {
 						if (quittingTitleScreen || titleSelected) {
-							return;
+							return prevent(e);
 						}
 						if(titleMode == 1) {
 							generateTitleScreen(-1, inputdir == 0 ? -1 : 1);
@@ -1390,7 +1390,7 @@ function checkKey(e,justPressed) {
     		if (inputdir==4&&justPressed) {    				
 				if (unitTesting) {
 					nextLevel();
-					return;
+					return prevent(e);
 				} else if (messageselected===false) {
 					//console.log(`CK TS=${prevTimestamp} Timer = ${timer} qms=${quittingMessageScreen}`);
     				messageselected=true;
@@ -1416,6 +1416,7 @@ function checkKey(e,justPressed) {
 	       	return prevent(e);
     	}
     }
+	return prevent(e);
 }
 
 // called on every clock tick
