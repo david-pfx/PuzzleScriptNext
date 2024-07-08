@@ -772,16 +772,17 @@ function onKeyDown(event) {
         }  else if (event.keyCode===83 && (event.ctrlKey||event.metaKey)) {//ctrl+s
             saveClick();
             prevent(event);
-        }  else if (event.keyCode===66 && (event.ctrlKey||event.metaKey)) {//ctrl+b
-            rebuildClick();
-            prevent(event);
-            event.target.blur();
-            canvas.focus();
-        }  else if (event.keyCode===88 && (event.ctrlKey||event.metaKey)) {//ctrl+x
-            runClick();
-            prevent(event);
-            event.target.blur();
-            canvas.focus();
+		// avoid conflicts with codemirror key bindings
+        // }  else if (event.keyCode===66 && (event.ctrlKey||event.metaKey)) {//ctrl+b
+        //     rebuildClick();
+        //     prevent(event);
+        //     event.target.blur();
+        //     canvas.focus();
+        // }  else if (event.keyCode===88 && (event.ctrlKey||event.metaKey)) {//ctrl+x
+        //     runClick();
+        //     prevent(event);
+        //     event.target.blur();
+        //     canvas.focus();
         }  else if (event.keyCode===120) { //f9
             prevent(event);
         	solve();
