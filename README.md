@@ -14,9 +14,11 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g05. 
+The latest version is Release v-24g07. 
 New fixes:
-* Escape from message now works correctly.
+* Ctrl+X and Ctrl+B are no longer used as shortcuts but are passed through to the editor.
+* Keys used by the game but discarded are no longer passed through to the editor.
+* Escape to pause in a message now works correctly.
 * Gosub now works correctly when a return lands on another return.
 * The editor now correctly loads the last saved file on start up.
 * The documentation for directions has been improved.
