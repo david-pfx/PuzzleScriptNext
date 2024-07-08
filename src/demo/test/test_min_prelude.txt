@@ -77,7 +77,7 @@ youtube asdf
 custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 // and another for testing
 //custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
-debug_switch various random strings obj
+debug_switch various random strings // obj
 //homepage
 text_controls This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...
 text_message_continue Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...Please continue at your leisure...
@@ -109,8 +109,8 @@ k
 m
 
 RULES
-[ left player ] -> message You just moved the player to the left!
-[ right player ] -> status You just moved the player to the right!
+[ up player ] -> message You just moved the player up!
+[ down player ] -> status You just moved the player down!
 [ action player ] -> win
 
 WINCONDITIONS
@@ -121,9 +121,11 @@ section Level 1
 
 message This is a rather long message designed to see the result of specifying a custom font with some strange single "✓ ☑ ☛ ⦿" and double characters "大 ⚐"
 
-.k...r.
-.y.p.g.
-.m...b.
+...........
+.k.......r.
+.y...p...g.
+.m.......b.
+...........
 
 section Level 2
 
