@@ -168,20 +168,15 @@ function expandObjectDef(state, objid, objvalue) {
 
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
-        const newvalue = {
-            lineNumber: objvalue.lineNumber,
-            colors: [ ...objvalue.colors ],
-            spritematrix: [ ...objvalue.spritematrix ],     // child inherits parent colours and matrix
-            canRedef: true,
-        };
+        const newvalue = { ...objvalue, canRedef: true };
         if (objvalue.cloneSprite) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
                 newvalue.cloneSprite = altspriteid;
+            // else will leave what was already there???
             // optional?
             //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
-        } else 
-            newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
+        } 
         
         if (objvalue.transforms) {
             newvalue.transforms = [];
@@ -475,14 +470,13 @@ function generateExtraMembers(state) {
     // transform on canvas has to be left until later
     for (const [key, obj] of Object.entries(state.objects)) {
         obj.spriteoffset = { x: 0, y: 0 };
-        if (obj.vector) {            
+        if (obj.vector) {
+            obj.vector.angle ||= 0;
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
                 obj.vector = { ...other.vector };
                 obj.spriteoffset = { ...other.spriteoffset };
             } 
-            obj.vector.flipx = obj.vector.flipy = false;
-            obj.vector.angle = 0.0;            
             applyVectorTransforms(obj);
 
         } else {

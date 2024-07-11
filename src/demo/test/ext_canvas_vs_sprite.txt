@@ -1,0 +1,172 @@
+Title PSNext pixel versus canvas transform test-page [new-parser]
+sprite_size 5
+run_rules_on_level_start
+// https://gist.github.com/angilbert/1190d678d00e5142b34e4bce325eb1e8
+//debug_switch obj
+========
+OBJECTS
+========
+
+Background
+#bbb #ccc #ddd
+22221
+20001
+20001
+20001
+11111
+
+wall
+transparent
+
+pix0 0 (for copy testing)
+red blue green
+.....
+.111.
+.020.
+.000.
+.....
+
+rect1 canvas:
+{"beginPath":[]} {"rect":[0.2,0.2,0.6,0.6]}
+
+rect2 canvas:
+{"beginPath":[]} {"rect":[0.2,0.2,0.6,0.2]}
+
+rect3 canvas:
+{"beginPath":[]} {"rect":[0.4,0.4,0.2,0.2]}
+
+cnv0 a canvas: (for copy testing)
+{"!include":"rect1"} {"fillStyle":"red"} {"fill":[]}
+{"!include":"rect2"} {"fillStyle":"blue"} {"fill":[]}
+{"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
+
+// PIXEL tests =======================
+
+// copy and translate a single pixel object
+pix1 1
+red blue green
+copy:pix0 translate:left:1 translate:up:1 rot:up:>
+
+// TAG/translate (without copy)
+pix2:directions
+red blue green
+.....
+.111.
+.020.
+.000.
+.....
+translate:directions:1
+
+// TAG/copy/rotate
+pix3:directions
+brown orange yellow
+copy:pix0 rot:up:>
+
+// TAG/copy/rotate/translate
+pix4:directions
+purple pink lightblue
+copy:pix0 rot:up:> translate:directions:1
+
+// CANVAS tests ======================
+
+// copy and translate a single canvas object
+cnv1 b canvas:
+copy:cnv0 translate:left:1 translate:up:1 rot:up:>
+
+// TAG/translate (without copy)
+cnv2:directions canvas:
+{"!include":"rect1"} {"fillStyle":"red"} {"fill":[]}
+{"!include":"rect2"} {"fillStyle":"blue"} {"fill":[]}
+{"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
+translate:directions:1
+
+// TAG/copy/rotate
+cnv3:directions canvas:
+copy:cnv0 rot:up:>
+
+// TAG/copy/rotate/translate
+cnv4:directions canvas:
+copy:cnv0 rot:up:> translate:directions:1
+
+// but this works...
+//cnv4:up canvas:
+//copy:cnv0 rot:up:^ translate:up:1
+//
+//cnv4:right canvas:
+//copy:cnv0 rot:up:> translate:right:1
+//
+//cnv4:down canvas:
+//copy:cnv0 rot:up:v translate:down:1
+//
+//cnv4:left canvas:
+//copy:cnv0 rot:up:< translate:left:1
+
+=======
+LEGEND
+=======
+
+. = background
+# = wall
+
+2 = pix2:up
+3 = pix3:up
+4 = pix4:up
+
+c = cnv2:up
+d = cnv3:up
+e = cnv4:up
+
+pixX = pix0 or pix1 or pix2:directions or pix3:directions or pix4:directions
+cnvX = cnv0 or cnv1 or cnv2:directions or cnv3:directions or cnv4:directions
+
+player = 0
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+background rect1 rect2 rect3
+wall
+pixX 
+cnvX
+
+======
+RULES
+======
+(init)
+right [ pix2:up | no pixX || ] -> [ pix2:up | pix2:right | pix2:down | pix2:left ]
+right [ pix3:up | no pixX || ] -> [ pix3:up | pix3:right | pix3:down | pix3:left ]
+right [ pix4:up | no pixX || ] -> [ pix4:up | pix4:right | pix4:down | pix4:left ]
+right [ cnv2:up | no cnvX || ] -> [ cnv2:up | cnv2:right | cnv2:down | cnv2:left ]
+right [ cnv3:up | no cnvX || ] -> [ cnv3:up | cnv3:right | cnv3:down | cnv3:left ]
+right [ cnv4:up | no cnvX || ] -> [ cnv4:up | cnv4:right | cnv4:down | cnv4:left ]
+
+[ > player | pixX ] -> [ > player | > pixX ]
+
+==============
+WINCONDITIONS
+==============
+
+no player
+
+=======
+LEVELS
+=======
+
+##########
+#........#
+#.01.....#
+#.2......#
+#.3......#
+#.4......#
+#........#
+#.ab.....#
+#.c......#
+#.d......#
+#.e......#
+#........#
+##########
