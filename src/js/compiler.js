@@ -168,15 +168,19 @@ function expandObjectDef(state, objid, objvalue) {
 
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
-        const newvalue = { ...objvalue, canRedef: true };
+        const newvalue = { 
+            ...objvalue, 
+            canRedef: true 
+        };
         if (objvalue.cloneSprite) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
                 newvalue.cloneSprite = altspriteid;
-            // else will leave what was already there???
             // optional?
             //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
-        } 
+        } else 
+            newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
+
         
         if (objvalue.transforms) {
             newvalue.transforms = [];
