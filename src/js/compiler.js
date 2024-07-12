@@ -169,7 +169,7 @@ function expandObjectDef(state, objid, objvalue) {
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
         const newvalue = { 
-            ...objvalue, 
+            ...deepClone(objvalue),
             canRedef: true 
         };
         if (objvalue.cloneSprite) {

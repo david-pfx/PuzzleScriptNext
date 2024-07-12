@@ -8,7 +8,7 @@ OBJECTS
 ========
 
 Background
-#bbb #ccc #ddd
+#d0d0d0 #d8d8d8 #dfdfdf
 22221
 20001
 20001
@@ -21,19 +21,19 @@ transparent
 pix0 0 (for copy testing)
 red blue green
 .....
+.221.
 .111.
-.020.
 .000.
 .....
 
 rect1 canvas:
-{"beginPath":[]} {"rect":[0.2,0.2,0.6,0.6]}
+{"beginPath":[]} {"rect":[0.2,0.4,0.6,0.4]}
 
 rect2 canvas:
-{"beginPath":[]} {"rect":[0.2,0.2,0.6,0.2]}
+{"beginPath":[]} {"rect":[0.2,0.2,0.6,0.4]}
 
 rect3 canvas:
-{"beginPath":[]} {"rect":[0.4,0.4,0.2,0.2]}
+{"beginPath":[]} {"rect":[0.2,0.2,0.4,0.2]}
 
 cnv0 a canvas: (for copy testing)
 {"!include":"rect1"} {"fillStyle":"red"} {"fill":[]}
@@ -43,35 +43,42 @@ cnv0 a canvas: (for copy testing)
 // PIXEL tests =======================
 
 // copy and translate a single pixel object
-pix1 1
+pix1a 1
 red blue green
-copy:pix0 translate:left:1 translate:up:1 rot:up:>
+copy:pix0 translate:left:1 translate:up:1 rot:up:> 
 
-// TAG/translate (without copy)
+pix1b 9
+red blue green
+copy:pix0 flip:left rot:up:> 
+
+// TAG/translate
 pix2:directions
 red blue green
-.....
-.111.
-.020.
-.000.
-.....
-translate:directions:1
+copy:pix0 translate:directions:1
 
-// TAG/copy/rotate
+// TAG/rotate
 pix3:directions
-brown orange yellow
-copy:pix0 rot:up:>
+orange brown lightbrown
+copy:pix0 rot:up:^
 
-// TAG/copy/rotate/translate
+// TAG/rotate/translate
 pix4:directions
-purple pink lightblue
-copy:pix0 rot:up:> translate:directions:1
+pink purple blue
+copy:pix0 rot:up:^ translate:directions:1
+
+// TAG/flip/translate-left
+pix5:directions
+lightgreen green yellow
+copy:pix0 flip:directions translate:left:3
 
 // CANVAS tests ======================
 
 // copy and translate a single canvas object
-cnv1 b canvas:
+cnv1a b canvas:
 copy:cnv0 translate:left:1 translate:up:1 rot:up:>
+
+cnv1b z canvas:
+copy:cnv0 flip:left rot:up:> 
 
 // TAG/translate (without copy)
 cnv2:directions canvas:
@@ -80,26 +87,20 @@ cnv2:directions canvas:
 {"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
 translate:directions:1
 
-// TAG/copy/rotate
+// TAG/rotate
 cnv3:directions canvas:
-copy:cnv0 rot:up:>
+copy:cnv0 rot:up:^
 
-// TAG/copy/rotate/translate
+// TAG/rotate/translate (awaiting fix)
 cnv4:directions canvas:
-copy:cnv0 rot:up:> translate:directions:1
+{"!include":"rect1"} {"fillStyle":"pink"} {"fill":[]}
+{"!include":"rect2"} {"fillStyle":"purple"} {"fill":[]}
+{"!include":"rect3"} {"fillStyle":"blue"} {"fill":[]}
+rot:up:^ translate:directions:1
 
-// but this works...
-//cnv4:up canvas:
-//copy:cnv0 rot:up:^ translate:up:1
-//
-//cnv4:right canvas:
-//copy:cnv0 rot:up:> translate:right:1
-//
-//cnv4:down canvas:
-//copy:cnv0 rot:up:v translate:down:1
-//
-//cnv4:left canvas:
-//copy:cnv0 rot:up:< translate:left:1
+// TAG/flip/translate-left
+cnv5:directions canvas:
+copy:cnv0 flip:directions translate:left:3
 
 =======
 LEGEND
@@ -111,13 +112,15 @@ LEGEND
 2 = pix2:up
 3 = pix3:up
 4 = pix4:up
+5 = pix5:up
 
 c = cnv2:up
 d = cnv3:up
 e = cnv4:up
+f = cnv5:up
 
-pixX = pix0 or pix1 or pix2:directions or pix3:directions or pix4:directions
-cnvX = cnv0 or cnv1 or cnv2:directions or cnv3:directions or cnv4:directions
+pixX = pix0 or pix1a or pix1b or pix2:directions or pix3:directions or pix4:directions or pix5:directions
+cnvX = cnv0 or cnv1a or cnv1b or cnv2:directions or cnv3:directions or cnv4:directions or cnv5:directions
 
 player = 0
 
@@ -141,9 +144,11 @@ RULES
 right [ pix2:up | no pixX || ] -> [ pix2:up | pix2:right | pix2:down | pix2:left ]
 right [ pix3:up | no pixX || ] -> [ pix3:up | pix3:right | pix3:down | pix3:left ]
 right [ pix4:up | no pixX || ] -> [ pix4:up | pix4:right | pix4:down | pix4:left ]
+right [ pix5:up | no pixX || ] -> [ pix5:up | pix5:right | pix5:down | pix5:left ]
 right [ cnv2:up | no cnvX || ] -> [ cnv2:up | cnv2:right | cnv2:down | cnv2:left ]
 right [ cnv3:up | no cnvX || ] -> [ cnv3:up | cnv3:right | cnv3:down | cnv3:left ]
 right [ cnv4:up | no cnvX || ] -> [ cnv4:up | cnv4:right | cnv4:down | cnv4:left ]
+right [ cnv5:up | no cnvX || ] -> [ cnv5:up | cnv5:right | cnv5:down | cnv5:left ]
 
 [ > player | pixX ] -> [ > player | > pixX ]
 
@@ -159,14 +164,16 @@ LEVELS
 
 ##########
 #........#
-#.01.....#
+#.019....#
 #.2......#
 #.3......#
 #.4......#
+#.5......#
 #........#
-#.ab.....#
+#.abz....#
 #.c......#
 #.d......#
 #.e......#
+#.f......#
 #........#
 ##########
