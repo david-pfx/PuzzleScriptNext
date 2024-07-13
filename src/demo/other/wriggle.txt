@@ -53,68 +53,25 @@ Live:W2 2 canvas:2,2 translate:left:5 translate:up:5
 {"!include":"circ"} {"fillStyle":"red"} {"fill":[]}
 
 Live:W3 3 canvas:2,2 translate:left:5 translate:up:5
-{"type":"canvas","w":2,"h":2,"x":-0.5,"y":-0.5}
 {"!include":"circ"} {"fillStyle":"green"} {"fill":[]}
 
 Live:W4 4 canvas:2,2 translate:left:5 translate:up:5
-{"type":"canvas","w":2,"h":2,"x":-0.5,"y":-0.5}
 {"!include":"circ"} {"fillStyle":"orange"} {"fill":[]}
 
-Body:W1 canvas:2,2 translate:left:5 translate:up:5
-{"type":"canvas","w":2,"h":2,"x":-0.5,"y":-0.5}
-{"!include":"circ"} {"fillStyle":"blue"} {"fill":[]}
+Body:W1 canvas: copy:Live:W1
 
-Body:W2 canvas:2,2 translate:left:5 translate:up:5
-{"type":"canvas","w":2,"h":2,"x":-0.5,"y":-0.5}
-{"!include":"circ"} {"fillStyle":"red"} {"fill":[]}
+Body:W2 canvas: copy:Live:W2
 
-Body:W3 canvas:2,2 translate:left:5 translate:up:5
-{"type":"canvas","w":2,"h":2,"x":-0.5,"y":-0.5}
-{"!include":"circ"} {"fillStyle":"green"} {"fill":[]}
+Body:W3 canvas: copy:Live:W3
 
-Body:W4 canvas:2,2 translate:left:5 translate:up:5
-{"type":"canvas","w":2,"h":2,"x":-0.5,"y":-0.5}
-{"!include":"circ"} {"fillStyle":"orange"} {"fill":[]}
+Body:W4 canvas: copy:Live:W4
 
 eyes:directions canvas:
 {"beginPath":[]} {"arc":[0.2, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
 {"beginPath":[]} {"arc":[0.25,0.15, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
 {"beginPath":[]} {"arc":[0.8, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
 {"beginPath":[]} {"arc":[0.75,0.15, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-rot:up:>
-
-(eyes:up i canvas:
-{"beginPath":[]} {"arc":[0.2, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.25,0.15, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.8, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.75,0.15, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-
-eyes:right j canvas: 
-copy:eyes:up rot:^:>
-
-eyes:down k canvas:
-copy:eyes:up rot:^:v
-
-eyes:left l canvas:
-copy:eyes:up rot:^:<)
-
-(eyes:right j canvas:
-{"beginPath":[]} {"arc":[0.8, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.85,0.25, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.8, 0.8,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.85,0.75, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-
-eyes:down k canvas:
-{"beginPath":[]} {"arc":[0.2, 0.8,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.25,0.85, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.8, 0.8,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.75,0.85, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-
-eyes:left l canvas:
-{"beginPath":[]} {"arc":[0.2, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.15,0.25, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.2, 0.8,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
-{"beginPath":[]} {"arc":[0.15,0.75, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]})
+rot:up:^
 
 player p
 transparent
@@ -165,6 +122,11 @@ mouse = xClick or xDrag
 
 obstacle = wall or liveX or o
 tmp = mark or xDrag or xClick
+
+a = eyes:up
+b = eyes:down
+c = eyes:right
+d = eyes:left
 
 =======
 SOUNDS

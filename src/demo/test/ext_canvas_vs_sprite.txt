@@ -40,6 +40,16 @@ cnv0 a canvas: (for copy testing)
 {"!include":"rect2"} {"fillStyle":"blue"} {"fill":[]}
 {"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
 
+
+// parsing tests - uncomment to test errors but no crash
+//zzt copy:wall translate: translate:aaa translate:up:aaa translate:up:3: translate:up:3:aaa
+
+//zzs copy:wall shift: shift:aaa shift:up:aaa shift:up:3: shift:up:3:aaa
+
+//zzr copy:wall rot: rot:aaa rot:up:aaa rot:up:3: rot:up:3:aaa
+
+//translate:directions:1
+
 // PIXEL tests =======================
 
 // copy and translate a single pixel object

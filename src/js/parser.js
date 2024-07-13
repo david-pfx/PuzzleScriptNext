@@ -1040,6 +1040,7 @@ var codeMirrorFn = function() {
     function parseObjectTransforms(stream, state) {
         const candname = state.objects_candname;
         const obj = state.objects[candname];
+        if (!obj) throw 'obj';
         const lexer = new Lexer(stream, state);
         const symbols = { transforms: [] };
         if (getTokens())
@@ -1118,13 +1119,13 @@ var codeMirrorFn = function() {
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
-                    const parts = token ? token.split(':') : [];
-                    const dir = isValidDirection(parts[0]);
-                    const arg = parts[1] ? +parts[1] : 1;
-                    if (!(parts.length <= 2 && dir && arg))
+                    const args = token ? token.split(':') : [];
+                    const dir = isValidDirection(args[0]);
+                    const amt = args[1] ? +args[1] : 1;
+                    if (!(args.length <= 2 && dir && amt))
                         logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'shift', dir, arg ]);
+                        symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1134,12 +1135,13 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
-                    const args = token ? token.split(':') : null;
-                    const dirs = args && isValidDirection(args[0]);
-                    if (dirs == null || args.length != 2)
-                        logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
+                    const args = token ? token.split(':') : [];
+                    const dir = isValidDirection(args[0]);
+                    const amt = args[1] ? +args[1] : null;
+                    if (!(args.length == 2 && dir && amt))
+                        logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'translate', dirs, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dir, +args[1] ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1149,13 +1151,14 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     token = lexer.match(/^[a-z:^<>]+/i,  true);
-                    const parts = token && token.split(':');
-                    const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
-                    if (dirs == null)
+                    const args = token ? token.split(':') : [];
+                    if (args.length == 1) args.unshift('up');
+                    const dir1 = isValidDirection(args[0]);
+                    const dir2 = isValidDirection(args[1]);
+                    if (!(args.length <= 2 && dir1 && dir2))
                         logError(`For rot: you need 1 or 2 direction or tag arguments, but you gave it ${token ? errorCase(token) : 'neither'}.`, state.lineNumber);
                     else {
-                        if (dirs.length == 1) dirs.unshift('up');
-                        symbols.transforms.push([ 'rot', ...dirs ]);
+                        symbols.transforms.push([ 'rot', dir1, dir2 ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1918,7 +1921,7 @@ var codeMirrorFn = function() {
 
                 case 'objects': {
                     if (sol) {  // start of line, no previous blank line, what to do?
-                        if (stream.match(reg_objmodi, false)) {
+                        if (state.objects_section >0 && stream.match(reg_objmodi, false)) {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
