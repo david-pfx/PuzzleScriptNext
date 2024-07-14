@@ -6822,44 +6822,54 @@ function createTextSprite(name, text, colors, scale) {
 }
 
 // Create and return a custom instructions sprite canvas
-function createJsonSprite(name, vector) {
+function createCanvasSprite(name, vector) {
     const canvas = makeSpriteCanvas(name);
     const context = canvas.getContext('2d');
 
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
-    const json = vector.data;
     context.scale(cellwidth, cellheight);
-    for (const instr of json) {
-        try {
-            for (const [key, value] of Object.entries(instr)) {
-                if (context[key] instanceof Function) {
-                    context[key].apply(context, value);
-                } else {
-                    context[key] = value;
+
+    function addInstr(json) {
+        for (const instr of json) {
+            try {
+                for (const [key, value] of Object.entries(instr)) {
+                    if (key === "!include") {
+                        const include = state.objects[value.toLowerCase()];
+                        if (include) {
+                            addInstr(include.vector.data);
+                        } else {
+                            logWarningNoLine("include object '" + value + "' not found");
+                        }
+                    } else if (context[key] instanceof Function) {
+                        context[key].apply(context, value);
+                    } else {
+                        context[key] = value;
+                    }
                 }
+            } catch (error) { // does this ever happen???
+                console.log(error);
+                logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
+                logErrorNoLine(`The system returned this error message: ${error}`, true);
             }
-        } catch (error) { // does this ever happen???
-            console.log(error);
-            logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
-            logErrorNoLine(`The system returned this error message: ${error}`, true);
-            return canvas;
         }
     }
+
+    addInstr(vector.data);
     return canvas;
 }
 
 // Create and return a SVG template sprite canvas
 function createSvgSprite(name, vector) {
-    var canvas = makeSpriteCanvas(name);
+    const canvas = makeSpriteCanvas(name);
     if (vector.w) canvas.width *= vector.w;
     if (vector.h) canvas.height *= vector.h;
-    var context = canvas.getContext('2d');
+    const context = canvas.getContext('2d');
     const body = vector.data.join("\n");
     const svg = body;
-    var blob = new Blob([svg], {type: 'image/svg+xml'});
-    var url = URL.createObjectURL(blob);
-    var image = document.createElement('img');
+    const blob = new Blob([svg], {type: 'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const image = document.createElement('img');
     image.src = url;
     image.addEventListener('load', function () {
         context.drawImage(image, 0, 0);
@@ -6942,9 +6952,10 @@ var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]
 var spriteImages;
 
 function createVectorSprite(name, vector) {
-    return vector.type === 'canvas' ? createJsonSprite(name, vector)
-    : vector.type === 'svg' ? createSvgSprite(name, vector)
-    : null;
+    const canvas = (vector.type === 'canvas') ? createCanvasSprite(name, vector)
+        : vector.type === 'svg' ? createSvgSprite(name, vector)
+        : null;
+    return canvas;
 }
 
 function regenSpriteImages() {
@@ -6966,9 +6977,9 @@ function regenSpriteImages() {
     objectSprites.forEach((s,i) => {
         if (s) {
             spriteImages[i] =
-                s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
+                    s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
                 : s.vector ? createVectorSprite('v' + i.toString(), s.vector)
-                : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
+            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
 
@@ -7355,7 +7366,7 @@ function redrawCellGrid(curlevel) {
             }; // globals
             const offs = { 
                 x: obj.spriteoffset.x, 
-                y: obj.spriteoffset.y + state.sprite_size - obj.spritematrix.length 
+                y: obj.spriteoffset.y + (obj.spritematrix.length == 0 ? 0 : state.sprite_size - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
@@ -7421,32 +7432,25 @@ function redrawCellGrid(curlevel) {
                         //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = render.getDrawPos(posindex, obj);
-                        
-                        let params = {
+                        const vector = obj.vector;
+                        const params = {
                             x: 0, y: 0,
                             scalex: 1.0, scaley: 1.0,
-                            alpha: 1.0,                                
-                            angle: 0.0,                                
+                            alpha: 1.0,
+                            angle: vector ? vector.angle : 0.0,
                         };
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
                         // size of the sprite in pixels
-                        let spriteSize;
-                        const vector = obj.vector;
-                        if (vector) {
-                            spriteSize = {
-                                w: (vector.w || 1) * cellwidth,
-                                h: (vector.h || 1) * cellheight,
-                            };
-                            params.x = vector.x || 0;
-                            params.y = vector.y || 0;
-                        } else {
-                            spriteSize = {
-                                w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
-                                h: obj.spritematrix.length * pixelSize,
-                            };
-                        }
+                        const spriteSize = vector ? {
+                            w: (vector.w || 1) * cellwidth,
+                            h: (vector.h || 1) * cellheight,
+                        } : {
+                            w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                            h: obj.spritematrix.length * pixelSize,
+                        };
+
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -7456,13 +7460,23 @@ function redrawCellGrid(curlevel) {
                         };
                         //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
                         ctx.globalAlpha = params.alpha;
-                        if (params.angle != 0) {
+                        if (vector) {
+                            // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
+                            const rcw = vector && vector.flipx ? -rc.w : rc.w;
+                            const rch = vector && vector.flipy ? -rc.h : rc.h;
+                            ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
+                            ctx.rotate(params.angle * Math.PI / 180);
+                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1); //@@
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                -rcw/2, -rch/2, rcw, rch);
+                        } else if (params.angle != 0) {
                             ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
                             ctx.rotate(params.angle * Math.PI / 180);
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 -rc.w/2, -rc.h/2, rc.w, rc.h);
-                        } else{
+                        } else {
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 rc.x, rc.y, rc.w, rc.h);
@@ -11876,7 +11890,7 @@ let caseSensitive = false;
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
-const reg_objmodi = /^[a-z]+:/i;
+const reg_objmodi = /^(canvas|copy|flip|rot|scale|shift|text|translate):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
@@ -11891,7 +11905,9 @@ let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'act
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
-const clockwiseDirections = ['up', 'right', 'down', 'left', '>', 'v', '<', '^' ];
+const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<' ];
+
+const cwdIndexOf = dir => clockwiseDirections.indexOf(dir) % 4;
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -12884,6 +12900,7 @@ var codeMirrorFn = function() {
     function parseObjectTransforms(stream, state) {
         const candname = state.objects_candname;
         const obj = state.objects[candname];
+        if (!obj) throw 'obj';
         const lexer = new Lexer(stream, state);
         const symbols = { transforms: [] };
         if (getTokens())
@@ -12936,7 +12953,7 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^flip:/)) {
+                } else if (token = lexer.match(/^flip:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
@@ -12962,13 +12979,13 @@ var codeMirrorFn = function() {
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
-                    const parts = token ? token.split(':') : [];
-                    const dir = isValidDirection(parts[0]);
-                    const arg = parts[1] ? +parts[1] : 1;
-                    if (!(parts.length <= 2 && dir && arg))
+                    const args = token ? token.split(':') : [];
+                    const dir = isValidDirection(args[0]);
+                    const amt = args[1] ? +args[1] : 1;
+                    if (!(args.length <= 2 && dir && amt))
                         logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'shift', dir, arg ]);
+                        symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -12978,12 +12995,13 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
-                    const args = token ? token.split(':') : null;
-                    const dirs = args && isValidDirection(args[0]);
-                    if (dirs == null || args.length != 2)
-                        logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
+                    const args = token ? token.split(':') : [];
+                    const dir = isValidDirection(args[0]);
+                    const amt = args[1] ? +args[1] : null;
+                    if (!(args.length == 2 && dir && amt))
+                        logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'translate', dirs, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dir, +args[1] ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -12993,25 +13011,26 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     token = lexer.match(/^[a-z:^<>]+/i,  true);
-                    const parts = token && token.split(':');
-                    const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
-                    if (dirs == null)
+                    const args = token ? token.split(':') : [];
+                    if (args.length == 1) args.unshift('up');
+                    const dir1 = isValidDirection(args[0]);
+                    const dir2 = isValidDirection(args[1]);
+                    if (!(args.length <= 2 && dir1 && dir2))
                         logError(`For rot: you need 1 or 2 direction or tag arguments, but you gave it ${token ? errorCase(token) : 'neither'}.`, state.lineNumber);
                     else {
-                        if (dirs.length == 1) dirs.unshift('up');
-                        symbols.transforms.push([ 'rot', ...dirs ]);
+                        symbols.transforms.push([ 'rot', dir1, dir2 ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^canvas:/)) {//@@
+                } else if (token = lexer.match(/^canvas:/i)) {//@@
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
                     symbols.vector = { 
                         type: 'canvas', 
                         data: [] 
                     };
-                    if (token = lexer.match(/^[0-9,]+/i,  true)) {
+                    if (token = lexer.match(/^[0-9,]+/,  true)) {
                         const parts = token && token.split(',');
                         if (!(parts.length >= 1 && parts.length <= 2))
                             logError(`Canvas size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
@@ -13762,7 +13781,7 @@ var codeMirrorFn = function() {
 
                 case 'objects': {
                     if (sol) {  // start of line, no previous blank line, what to do?
-                        if (stream.match(reg_objmodi, false)) {
+                        if (state.objects_section >0 && stream.match(reg_objmodi, false)) {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
@@ -14176,11 +14195,9 @@ function expandObjectDef(state, objid, objvalue) {
 
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
-        const newvalue = {
-            lineNumber: objvalue.lineNumber,
-            colors: [ ...objvalue.colors ],
-            spritematrix: [ ...objvalue.spritematrix ],     // child inherits parent colours and matrix
-            canRedef: true,
+        const newvalue = { 
+            ...deepClone(objvalue),
+            canRedef: true 
         };
         if (objvalue.cloneSprite) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
@@ -14190,6 +14207,7 @@ function expandObjectDef(state, objid, objvalue) {
             //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
+
         
         if (objvalue.transforms) {
             newvalue.transforms = [];
@@ -14231,46 +14249,62 @@ function createObjectTagsAsProps(state, ident) {
 
 
 // generate a new sprite matrix based on transforms
-function generateSpriteMatrix(state, obj) {
-    const cwd = dir => clockwiseDirections.indexOf(dir);
+// translate: handled as spriteoffset, because it might go negative
+function applySpriteTransforms(obj) {
     const tranfunc = {
-        'flip': (mat,_,dir) => [
+        'flip': (obj,dir) => [
             (m => m.reverse()),
 		    (m => m.map(row => row.reverse())),
-        ][dir % 2](mat),
-        'shift': (mat,_,dir,amt) => [ // up right down left
+        ][dir % 2](obj.spritematrix),
+        'shift': (obj,dir,amt) => obj.spritematrix = [ // up right down left
             (m => [ ...m.slice(amt), ...m.slice(0, amt) ]),
             (m => m.map(r => [ ...r.slice(-amt), ...r.slice(0, -amt) ])),
             (m => [ ...m.slice(-amt), ...m.slice(0, -amt) ]),
             (m => m.map(r => [ ...r.slice(amt), ...r.slice(0, amt) ])),
-        ][dir](mat),
-        'rot': (mat,_,dir1,dir2) => [
+        ][dir](obj.spritematrix),
+        'rot': (obj,dir1,dir2) => obj.spritematrix = [
             m => m, // 0°
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
             m => Array.from(m, l => l.reverse() ).reverse(), // 180°
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
-        ][(4 + cwd(dir2) - dir1) % 4](mat),
-        'translate': (m,off,dir,amt) => {
-            off.x += [0,1,0,-1][dir] * amt;
-            off.y += [-1,0,1,0][dir] * amt;
-            return m;
-        }
+        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.spritematrix),
+        'translate': (obj,dir,amt) => [
+            (s => s.y -= amt),
+            (s => s.x += amt),
+            (s => s.y += amt),
+            (s => s.x -= amt),
+        ][dir](obj.spriteoffset),
     };
 
-    obj.spriteoffset = { x: 0, y: 0 };
-    if (obj.cloneSprite) {
-        const other = state.objects[obj.cloneSprite];
-        obj.spritematrix = other.spritematrix.map(row => [ ...row ]);
-        obj.spriteoffset = { ...other.spriteoffset };
-    } else if (obj.spritematrix.length == 0) {
-        obj.spritematrix = Array.from( 
-            { length: state.sprite_size }, 
-            () => (new Array(state.sprite_size).fill(0)) 
-        );
-    }
-    
     for (const tf of obj.transforms || []) {
-        obj.spritematrix = tranfunc[tf[0]](obj.spritematrix, obj.spriteoffset, cwd(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
+    }
+}
+
+// generate a new sprite matrix based on transforms
+function applyVectorTransforms(obj) {
+    const tranfunc = {
+        'flip': (obj,dir) => [
+            (p => p.flipy = !p.flipy),
+            (p => p.flipx = !p.flipx),
+        ][dir % 2](obj.vector),
+        'rot': (prm,dir1,dir2) => [
+            p => p, // 0°
+            p => p.angle += 90,
+            p => p.angle += 180,
+            p => p.angle += 270,
+        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.vector),
+        'translate': (obj,dir,amt) => [
+            (s => s.y -= amt),
+            (s => s.x += amt),
+            (s => s.y += amt),
+            (s => s.x -= amt),
+        ][dir](obj.spriteoffset),
+        'shift': (prm) => prm,
+    };
+
+    for (const tf of obj.transforms || []) {
+        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
     }
 }
 
@@ -14462,14 +14496,36 @@ function generateExtraMembers(state) {
         }
     }
 
-    // fix up objects
-    for (const [key, value] of Object.entries(state.objects)) {
-        generateSpriteMatrix(state, value);
-        //createObjectTagsAsProps(state, key);  // does this now do anything?
-    }    
-    // for (const obj of Object.values(state.objects)) {
-    //     generateSpriteMatrix(state, obj);
-    // }
+    // fix up what we can of sprite stuff here.
+    // spriteoffset is needed to handle translate with negative args
+    // transform on canvas has to be left until later
+    for (const [key, obj] of Object.entries(state.objects)) {
+        obj.spriteoffset = { x: 0, y: 0 };
+        if (obj.vector) {
+            obj.vector.angle ||= 0;
+            if (obj.cloneSprite) {
+                const other = state.objects[obj.cloneSprite];
+                obj.vector = { ...other.vector };
+                obj.spriteoffset = { ...other.spriteoffset };
+            } 
+            applyVectorTransforms(obj);
+
+        } else {
+            if (obj.cloneSprite) {
+                const other = state.objects[obj.cloneSprite];
+                obj.spritematrix = other.spritematrix.map(row => [...row]);
+                obj.spriteoffset = { ...other.spriteoffset };
+            } 
+            if (obj.spritematrix.length == 0) {
+                obj.spritematrix = Array.from(
+                    { length: state.sprite_size },
+                    () => (new Array(state.sprite_size).fill(0))
+                );
+            }
+            applySpriteTransforms(obj);
+        }
+    }
+
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);

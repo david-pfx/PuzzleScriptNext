@@ -16,8 +16,8 @@ PuzzleScript Next is a combination of the work of many authors:
 
 ## New Features and Fixes
 The latest version is Release v-24g14. 
-It includes an alpha release of canvas sprites based on canvas API calls.
-See below.
+It includes a beta release of canvas sprites based on canvas API calls.
+See below. Please try.
 
 New fixes:
 * Using `rot:` or other transforms with no or bad arguments no longer causes a crash.
@@ -39,7 +39,7 @@ Note: this behaviour is widely expected, but is not documented.
 Recent new features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
 * A new debugging command `log`, which writes a message to the console.
-* The menus now more distinctively identify this is PuzzleScript Next.
+* The menus now more distinctively identify this as PuzzleScript Next.
 
 Several other bugs have already been fixed.
 * Inline expansion of rules referring to the absence of an object by a relative reference now works correctly.
