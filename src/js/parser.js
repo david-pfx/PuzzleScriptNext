@@ -30,7 +30,7 @@ let caseSensitive = false;
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
-const reg_objmodi = /^(copy|scale|shift|translate|rot|flip):/i;
+const reg_objmodi = /^(canvas|copy|flip|rot|scale|shift|text|translate):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
     'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
@@ -45,7 +45,9 @@ let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'act
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
-const clockwiseDirections = ['up', 'right', 'down', 'left', '>', 'v', '<', '^' ];
+const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<' ];
+
+const cwdIndexOf = dir => clockwiseDirections.indexOf(dir) % 4;
 
 function TooManyErrors(){
     consolePrint("Too many errors/warnings; aborting compilation.",true);
@@ -905,7 +907,7 @@ var codeMirrorFn = function() {
     function parseObjectColors(stream, state) {
         const lexer = new Lexer(stream, state);
         const colors = [];
-        
+
         if (getTokens())
             state.objects[state.objects_candname].colors = colors;
         return lexer.tokens;
@@ -922,6 +924,7 @@ var codeMirrorFn = function() {
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
+
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -951,8 +954,9 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds, and extract values
         function getTokens() {
-            let token = lexer.match(/^text:/i);
-            if (token) {
+            let kind = 'ERROR';
+            let token;
+            if (token = lexer.match(/^text:/i, false)) {
                 lexer.pushToken(token, 'LOGICWORD');
 
                 token = lexer.matchAll();
@@ -984,6 +988,51 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
+    // parse vector data for canvas or svg
+    function parseObjectVector(stream, state) {
+        const lexer = new Lexer(stream, state);
+        const values = [];
+        const obj = state.objects[state.objects_candname];
+        
+        if (getTokens()) 
+            obj.vector.data = (obj.vector.data || []).concat(values);
+        return lexer.tokens;
+
+        // build a list of tokens and kinds, and extract array of values
+        function getTokens() {
+            let kind = 'ERROR';
+            let token;
+            if (obj.vector.type == 'canvas') {
+                while (!lexer.matchEol()) {
+                    kind = 'ERROR';
+                    if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                        try {
+                            const json = JSON.parse(token);
+                            if (json) {
+                                values.push(json);
+                                kind = 'SPRITEMATRIX';
+                            }
+                        } catch (error) { }
+                    } else token = lexer.matchAll();   
+                }
+                lexer.pushToken(token, kind);
+                if (kind == 'ERROR') 
+                    logError(`I was looking for some valid JSON (in curly braces) but found this instead: "${token}."`, state.lineNumber);
+                return kind != `ERROR`;
+
+            } else if (obj.vector.type == 'svg') {
+                // TODO: check svg syntax
+                logError(`SVG is not yet implemented. Sorry.`, state.lineNumber);
+                //kind = 'SPRITEMATRIX';
+                token = lexer.matchAll();
+                values.push(token);
+                return true;
+
+            } else throw 'vector';
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // parse and store object transforms
     // transforms ::= { COPY: name | SCALE: number 
     //               | SHIFT: <dir> | TRANSLATE: <dir> : <amount> | ROT: <dir> : <dir> }...
@@ -991,6 +1040,7 @@ var codeMirrorFn = function() {
     function parseObjectTransforms(stream, state) {
         const candname = state.objects_candname;
         const obj = state.objects[candname];
+        if (!obj) throw 'obj';
         const lexer = new Lexer(stream, state);
         const symbols = { transforms: [] };
         if (getTokens())
@@ -1043,7 +1093,7 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^flip:/)) {
+                } else if (token = lexer.match(/^flip:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
@@ -1069,13 +1119,13 @@ var codeMirrorFn = function() {
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
                     //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
-                    const parts = token ? token.split(':') : [];
-                    const dir = isValidDirection(parts[0]);
-                    const arg = parts[1] ? +parts[1] : 1;
-                    if (!(parts.length <= 2 && dir && arg))
+                    const args = token ? token.split(':') : [];
+                    const dir = isValidDirection(args[0]);
+                    const amt = args[1] ? +args[1] : 1;
+                    if (!(args.length <= 2 && dir && amt))
                         logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'shift', dir, arg ]);
+                        symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1085,12 +1135,13 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
-                    const args = token ? token.split(':') : null;
-                    const dirs = args && isValidDirection(args[0]);
-                    if (dirs == null || args.length != 2)
-                        logError(`Translate requires two arguments, a direction or tag and an amount.`, state.lineNumber);
+                    const args = token ? token.split(':') : [];
+                    const dir = isValidDirection(args[0]);
+                    const amt = args[1] ? +args[1] : null;
+                    if (!(args.length == 2 && dir && amt))
+                        logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'translate', dirs, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dir, +args[1] ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1100,16 +1151,36 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     token = lexer.match(/^[a-z:^<>]+/i,  true);
-                    const parts = token && token.split(':');
-                    const dirs = parts && parts.length <= 2 && parts.map(p => isValidDirection(p));
-                    if (dirs == null)
+                    const args = token ? token.split(':') : [];
+                    if (args.length == 1) args.unshift('up');
+                    const dir1 = isValidDirection(args[0]);
+                    const dir2 = isValidDirection(args[1]);
+                    if (!(args.length <= 2 && dir1 && dir2))
                         logError(`For rot: you need 1 or 2 direction or tag arguments, but you gave it ${token ? errorCase(token) : 'neither'}.`, state.lineNumber);
                     else {
-                        if (dirs.length == 1) dirs.unshift('up');
-                        symbols.transforms.push([ 'rot', ...dirs ]);
+                        symbols.transforms.push([ 'rot', dir1, dir2 ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
+
+                } else if (token = lexer.match(/^canvas:/i)) {//@@
+                    lexer.pushToken(token, 'KEYWORD');
+                    lexer.matchComment();
+                    symbols.vector = { 
+                        type: 'canvas', 
+                        data: [] 
+                    };
+                    if (token = lexer.match(/^[0-9,]+/,  true)) {
+                        const parts = token && token.split(',');
+                        if (!(parts.length >= 1 && parts.length <= 2))
+                            logError(`Canvas size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
+                        else {
+                            symbols.vector.w = parts[0];
+                            symbols.vector.h = parts[1] || parts[0];
+                            kind = 'METADATATEXT';  //???
+                        }
+                        lexer.pushToken(token, kind);
+                    }
 
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid token in OBJECT modifier section: "${errorCase(token)}".`, state.lineNumber);
@@ -1124,6 +1195,7 @@ var codeMirrorFn = function() {
         function setState() {
             if (symbols.cloneSprite) obj.cloneSprite = symbols.cloneSprite;
             if (symbols.scale) obj.scale = symbols.scale;
+            if (symbols.vector) obj.vector = symbols.vector;
             if (symbols.transforms) obj.transforms.push( ...symbols.transforms );
         }
     }
@@ -1756,7 +1828,7 @@ var codeMirrorFn = function() {
             //console.log(`get token`, lastStream);
             //--- guard against looping?
 
-           	var mixedCase = stream.string;
+            var mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
@@ -1839,13 +1911,22 @@ var codeMirrorFn = function() {
                     }
                     return flushToken();
                 }
+
+                // Objects parsing is all LL(1):
+                // object alias* (prop : value?)*
+                // ( colour+ )?
+                // ( digit+ )*
+                // ( json )*
+                // ( prop+ )*
+
                 case 'objects': {
                     if (sol) {  // start of line, no previous blank line, what to do?
-                        if (stream.match(reg_objmodi, false)) {
+                        if (state.objects_section >0 && stream.match(reg_objmodi, false)) {
                             state.objects_section = 5;
                         } else if (state.objects_section == 3 || state.objects_section == 4) {
                             // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            if (state.objects[state.objects_candname].colors.length <= 10 && !stream.match(/^[.\d]/, false))
+                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector 
+                                && !stream.match(/^[.\d]/, false))
                                 state.objects_section = 0;
                         }
                     }
@@ -1873,15 +1954,22 @@ var codeMirrorFn = function() {
                             }
                             return flushToken();
                         }
-                    case 2: { 
+                    case 2: 
+                        if (stream.match(/^[#\w]+/, false)) {
                             state.current_line_wip_array.push(...parseObjectColors(stream, state));
                             state.objects_section++;
                             return flushToken();
+                        } else {
+                            state.objects_section++;
+                            // fall through
                         }
                     case 3: 
                     case 4: {
                             stream.string = mixedCase;
-                            state.current_line_wip_array.push(...parseObjectSprite(stream, state));
+                            const tokens = state.objects[state.objects_candname].vector 
+                                ? parseObjectVector(stream, state) 
+                                : parseObjectSprite(stream, state);
+                            state.current_line_wip_array.push(...tokens);
                             if (state.objects_section == 3)  // text:?
                                 state.objects_section++;
                             return flushToken();
@@ -1909,7 +1997,7 @@ var codeMirrorFn = function() {
                     state.current_line_wip_array = parseCollisionLayer(stream, state);
                     return flushToken();
                 }
-                case 'rules': {                    	
+                case 'rules': {
                         if (sol) {
                             var rule = reg_notcommentstart.exec(stream.string)[0];
                             state.rules.push([rule, state.lineNumber, mixedCase]);
@@ -1964,7 +2052,7 @@ var codeMirrorFn = function() {
                                 } else if (m.match(reg_commandwords)) {
                                     if (commandargs_table.includes(m) || twiddleable_params.includes(m)) {
                                         state.tokenIndex=-4;
-                                    }                                	
+                                    }
                                     return 'COMMAND';
                                 } else {
                                     logError('Name "' + m + '", referred to in a rule, does not exist.', state.lineNumber);

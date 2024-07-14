@@ -29,6 +29,64 @@ function createTextSprite(name, text, colors, scale) {
     return canvas;
 }
 
+// Create and return a custom instructions sprite canvas
+function createCanvasSprite(name, vector) {
+    const canvas = makeSpriteCanvas(name);
+    const context = canvas.getContext('2d');
+
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    context.scale(cellwidth, cellheight);
+
+    function addInstr(json) {
+        for (const instr of json) {
+            try {
+                for (const [key, value] of Object.entries(instr)) {
+                    if (key === "!include") {
+                        const include = state.objects[value.toLowerCase()];
+                        if (include) {
+                            addInstr(include.vector.data);
+                        } else {
+                            logWarningNoLine("include object '" + value + "' not found");
+                        }
+                    } else if (context[key] instanceof Function) {
+                        context[key].apply(context, value);
+                    } else {
+                        context[key] = value;
+                    }
+                }
+            } catch (error) { // does this ever happen???
+                console.log(error);
+                logErrorNoLine(`Oops! Looks like there's something wrong with this bit of JSON: "${JSON.stringify(instr)}"`, true);
+                logErrorNoLine(`The system returned this error message: ${error}`, true);
+            }
+        }
+    }
+
+    addInstr(vector.data);
+    return canvas;
+}
+
+// Create and return a SVG template sprite canvas
+function createSvgSprite(name, vector) {
+    const canvas = makeSpriteCanvas(name);
+    if (vector.w) canvas.width *= vector.w;
+    if (vector.h) canvas.height *= vector.h;
+    const context = canvas.getContext('2d');
+    const body = vector.data.join("\n");
+    const svg = body;
+    const blob = new Blob([svg], {type: 'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const image = document.createElement('img');
+    image.src = url;
+    image.addEventListener('load', function () {
+        context.drawImage(image, 0, 0);
+        URL.revokeObjectURL(url);
+        redraw();
+    }, false);
+    return canvas;
+}
+
 // draw the pixels of the sprite grid data into the context at a cell position, 
 function renderSprite(context, spritegrid, colors, padding, x, y, size) {
     colors ||= ['#00000000', state.fgcolor];
@@ -100,6 +158,14 @@ function regenText() {
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
 
 var spriteImages;
+
+function createVectorSprite(name, vector) {
+    const canvas = (vector.type === 'canvas') ? createCanvasSprite(name, vector)
+        : vector.type === 'svg' ? createSvgSprite(name, vector)
+        : null;
+    return canvas;
+}
+
 function regenSpriteImages() {
 	if (textMode) {
         spriteImages = [];
@@ -118,8 +184,10 @@ function regenSpriteImages() {
     
     objectSprites.forEach((s,i) => {
         if (s) {
-            spriteImages[i] = s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
-                : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
+            spriteImages[i] =
+                    s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
+                : s.vector ? createVectorSprite('v' + i.toString(), s.vector)
+            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
         }
     });
 
@@ -506,7 +574,7 @@ function redrawCellGrid(curlevel) {
             }; // globals
             const offs = { 
                 x: obj.spriteoffset.x, 
-                y: obj.spriteoffset.y + state.sprite_size - obj.spritematrix.length 
+                y: obj.spriteoffset.y + (obj.spritematrix.length == 0 ? 0 : state.sprite_size - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
@@ -572,21 +640,25 @@ function redrawCellGrid(curlevel) {
                         //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = render.getDrawPos(posindex, obj);
-                        
-                        let params = {
+                        const vector = obj.vector;
+                        const params = {
                             x: 0, y: 0,
                             scalex: 1.0, scaley: 1.0,
-                            alpha: 1.0,                                
-                            angle: 0.0,                                
+                            alpha: 1.0,
+                            angle: vector ? vector.angle : 0.0,
                         };
                         if (animate) 
                             params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
 
                         // size of the sprite in pixels
-                        const spriteSize = {
+                        const spriteSize = vector ? {
+                            w: (vector.w || 1) * cellwidth,
+                            h: (vector.h || 1) * cellheight,
+                        } : {
                             w: obj.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
                             h: obj.spritematrix.length * pixelSize,
                         };
+
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -596,13 +668,23 @@ function redrawCellGrid(curlevel) {
                         };
                         //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
                         ctx.globalAlpha = params.alpha;
-                        if (params.angle != 0) {
+                        if (vector) {
+                            // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
+                            const rcw = vector && vector.flipx ? -rc.w : rc.w;
+                            const rch = vector && vector.flipy ? -rc.h : rc.h;
+                            ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
+                            ctx.rotate(params.angle * Math.PI / 180);
+                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1); //@@
+                            ctx.drawImage(
+                                spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
+                                -rcw/2, -rch/2, rcw, rch);
+                        } else if (params.angle != 0) {
                             ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
                             ctx.rotate(params.angle * Math.PI / 180);
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 -rc.w/2, -rc.h/2, rc.w, rc.h);
-                        } else{
+                        } else {
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 rc.x, rc.y, rc.w, rc.h);
