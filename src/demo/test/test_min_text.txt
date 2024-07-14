@@ -3,12 +3,23 @@ author polyomino
 homepage www.polyomino.com
 
 // test program for TEXT sprites
+sprite_size 7
 
 verbose_logging
 debug
 ========
 OBJECTS
 ========
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
 
 Player P; Yellow Green Red Black
 ...........
@@ -23,7 +34,7 @@ Player P; Yellow Green Red Black
 ..333.333..
 ...........
 
-Background;grey
+//Background;grey
 R;RED
 B;BLUE
 g;green
@@ -33,6 +44,8 @@ k;pink
 s; purple; text: S
 t; orange; text: t
 u; pink;   text: Ab3
+f; red;    text: A
+e; blue;   text: A
 0         ; blue; text: 0
 1 scale:1  ; blue; text: 1
 2 scale:1.1; blue; text: 2
@@ -65,12 +78,13 @@ SOUNDS
 COLLISIONLAYERS
 ================
 Background
+--
 y
 Player, R, B, G
 k
 s
 t
-u
+u,f,e
 numbers
 ======
 RULES
@@ -89,9 +103,11 @@ LEVELS
 //message first level
 
 ............
+.....p......
 .0123456789.
-..p..r......
-..x.w.z.....
+.r.s.t.u.f..
+..x.w.z...e.
+............
 
 message second level
 

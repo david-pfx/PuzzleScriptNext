@@ -42,6 +42,9 @@ Background .;grey
 PLAYER P;yellow
 r; red
 
+obj:tagbool
+pink
+
 obj1
 white red
 00111
@@ -108,6 +111,7 @@ COLLISIONLAYERS
 Background
 Player, r
 --
+obj:tagbool
 objax, obj2:dirs, obj3:dirs
 dirs -> obj4:dirs, obj5:tag1:dirs
 obj6:tag1:dirs:tag2
@@ -122,8 +126,8 @@ RULES
 num4 [ objn4:num4 ] -> [ objn4:num4 ]
 num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:num4 ]
 num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:next4 ]
-num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:prev5 ]       // invalid
-num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:next5 ]
+//num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:prev5 ]       // invalid
+//num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:next5 ]
 
 // check props
 right [ ^ p | obj6:t12:up:tag2 ] -> [ p | ]

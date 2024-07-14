@@ -1,0 +1,189 @@
+Title PSNext pixel versus canvas transform test-page [new-parser]
+sprite_size 5
+run_rules_on_level_start
+// https://gist.github.com/angilbert/1190d678d00e5142b34e4bce325eb1e8
+//debug_switch obj
+========
+OBJECTS
+========
+
+Background
+#d0d0d0 #d8d8d8 #dfdfdf
+22221
+20001
+20001
+20001
+11111
+
+wall
+transparent
+
+pix0 0 (for copy testing)
+red blue green
+.....
+.221.
+.111.
+.000.
+.....
+
+rect1 canvas:
+{"beginPath":[]} {"rect":[0.2,0.4,0.6,0.4]}
+
+rect2 canvas:
+{"beginPath":[]} {"rect":[0.2,0.2,0.6,0.4]}
+
+rect3 canvas:
+{"beginPath":[]} {"rect":[0.2,0.2,0.4,0.2]}
+
+cnv0 a canvas: (for copy testing)
+{"!include":"rect1"} {"fillStyle":"red"} {"fill":[]}
+{"!include":"rect2"} {"fillStyle":"blue"} {"fill":[]}
+{"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
+
+
+// parsing tests - uncomment to test errors but no crash
+//zzt copy:wall translate: translate:aaa translate:up:aaa translate:up:3: translate:up:3:aaa
+
+//zzs copy:wall shift: shift:aaa shift:up:aaa shift:up:3: shift:up:3:aaa
+
+//zzr copy:wall rot: rot:aaa rot:up:aaa rot:up:3: rot:up:3:aaa
+
+//translate:directions:1
+
+// PIXEL tests =======================
+
+// copy and translate a single pixel object
+pix1a 1
+red blue green
+copy:pix0 translate:left:1 translate:up:1 rot:up:> 
+
+pix1b 9
+red blue green
+copy:pix0 flip:left rot:up:> 
+
+// TAG/translate
+pix2:directions
+red blue green
+copy:pix0 translate:directions:1
+
+// TAG/rotate
+pix3:directions
+orange brown lightbrown
+copy:pix0 rot:up:^
+
+// TAG/rotate/translate
+pix4:directions
+pink purple blue
+copy:pix0 rot:up:^ translate:directions:1
+
+// TAG/flip/translate-left
+pix5:directions
+lightgreen green yellow
+copy:pix0 flip:directions translate:left:3
+
+// CANVAS tests ======================
+
+// copy and translate a single canvas object
+cnv1a b canvas:
+copy:cnv0 translate:left:1 translate:up:1 rot:up:>
+
+cnv1b z canvas:
+copy:cnv0 flip:left rot:up:> 
+
+// TAG/translate (without copy)
+cnv2:directions canvas:
+{"!include":"rect1"} {"fillStyle":"red"} {"fill":[]}
+{"!include":"rect2"} {"fillStyle":"blue"} {"fill":[]}
+{"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
+translate:directions:1
+
+// TAG/rotate
+cnv3:directions canvas:
+copy:cnv0 rot:up:^
+
+// TAG/rotate/translate (awaiting fix)
+cnv4:directions canvas:
+{"!include":"rect1"} {"fillStyle":"pink"} {"fill":[]}
+{"!include":"rect2"} {"fillStyle":"purple"} {"fill":[]}
+{"!include":"rect3"} {"fillStyle":"blue"} {"fill":[]}
+rot:up:^ translate:directions:1
+
+// TAG/flip/translate-left
+cnv5:directions canvas:
+copy:cnv0 flip:directions translate:left:3
+
+=======
+LEGEND
+=======
+
+. = background
+# = wall
+
+2 = pix2:up
+3 = pix3:up
+4 = pix4:up
+5 = pix5:up
+
+c = cnv2:up
+d = cnv3:up
+e = cnv4:up
+f = cnv5:up
+
+pixX = pix0 or pix1a or pix1b or pix2:directions or pix3:directions or pix4:directions or pix5:directions
+cnvX = cnv0 or cnv1a or cnv1b or cnv2:directions or cnv3:directions or cnv4:directions or cnv5:directions
+
+player = 0
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+background rect1 rect2 rect3
+wall
+pixX 
+cnvX
+
+======
+RULES
+======
+(init)
+right [ pix2:up | no pixX || ] -> [ pix2:up | pix2:right | pix2:down | pix2:left ]
+right [ pix3:up | no pixX || ] -> [ pix3:up | pix3:right | pix3:down | pix3:left ]
+right [ pix4:up | no pixX || ] -> [ pix4:up | pix4:right | pix4:down | pix4:left ]
+right [ pix5:up | no pixX || ] -> [ pix5:up | pix5:right | pix5:down | pix5:left ]
+right [ cnv2:up | no cnvX || ] -> [ cnv2:up | cnv2:right | cnv2:down | cnv2:left ]
+right [ cnv3:up | no cnvX || ] -> [ cnv3:up | cnv3:right | cnv3:down | cnv3:left ]
+right [ cnv4:up | no cnvX || ] -> [ cnv4:up | cnv4:right | cnv4:down | cnv4:left ]
+right [ cnv5:up | no cnvX || ] -> [ cnv5:up | cnv5:right | cnv5:down | cnv5:left ]
+
+[ > player | pixX ] -> [ > player | > pixX ]
+
+==============
+WINCONDITIONS
+==============
+
+no player
+
+=======
+LEVELS
+=======
+
+##########
+#........#
+#.019....#
+#.2......#
+#.3......#
+#.4......#
+#.5......#
+#........#
+#.abz....#
+#.c......#
+#.d......#
+#.e......#
+#.f......#
+#........#
+##########

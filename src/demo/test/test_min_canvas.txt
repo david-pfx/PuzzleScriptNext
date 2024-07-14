@@ -1,0 +1,170 @@
+title test min canvas
+author polyomino
+homepage www.polyomino.com
+
+// test program canvas vector sprites
+
+verbose_logging
+debug
+debug_switch obj
+
+sprite_size 7
+
+========
+OBJECTS
+========
+
+Background
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+// 3 filled circles, one after the other
+3 canvas:2,1
+//
+// this is the first blob
+{"beginPath":[]}{"fillStyle":"#C0C0C0"}
+{"arc":[1.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+//
+( this is the second )
+{"beginPath":[]}
+{"fillStyle":"#404040"} ( blob goes here ) {"arc":[1.0,0.5,0.4,0,6.28]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"black"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+
+man m canvas:
+{"beginPath":[]}
+{"fillStyle":"blue"}
+{"arc":[0.5,0.5,0.3,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"red"}
+{"arc":[0.2,0.5,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"green"}
+{"arc":[0.8,0.5,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"yellow"}
+{"arc":[0.3,0.8,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"blue"}
+{"arc":[0.7,0.8,0.1,0,7]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#ffaaaa"}
+{"arc":[0.5,0.2,0.2,0,7]}
+{"fill":[]}
+//rot:>:v translate:v:7 //flip:>
+
+n canvas: 
+{"!include":"man"}
+{"beginPath":[]}
+{"fillStyle":"white"}
+{"arc":[0.5,0.5,0.1,0,7]}
+{"fill":[]}
+rot:right:down
+
+o canvas: copy:man translate:down:4
+
+q canvas: copy:man flip:right
+
+s canvas: copy:man flip:up
+
+t canvas: copy:man rot:up:down
+
+w canvas:3,3
+{"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,6.28]}{"fill":[]}
+{"beginPath":[]}{"fillStyle":"blue"} {"arc":[1.5,1.5,0.7,0,6.28]}{"fill":[]}
+{"beginPath":[]}{"fillStyle":"green"}{"arc":[1.5,1.5,0.35,0,6.28]}{"fill":[]}
+
+x canvas:3,3
+{"beginPath":[]}{"fillStyle":"red"}  {"arc":[1.5,1.5,1.4,0,3]}{"fill":[]}
+{"beginPath":[]}{"fillStyle":"blue"} {"arc":[1.5,1.5,0.7,1,4]}{"fill":[]}
+{"beginPath":[]}{"fillStyle":"green"}{"arc":[1.5,1.5,0.35,2,5]}{"fill":[]}
+
+z canvas:2,2
+{"beginPath":[]}{"fillStyle":"red"}  {"roundRect":[0.2,0.4,1.8,1.5,0.1]}{"fill":[]}
+{"beginPath":[]}{"fillStyle":"blue"} {"roundRect":[0.2,0.4,1.5,1.1,0.1]}{"fill":[]}
+{"beginPath":[]}{"fillStyle":"green"}{"roundRect":[0.2,0.4,0.9,0.7,0.1]}{"fill":[]}
+
+u canvas:
+{"beginPath":[]}{"lineWidth":"0.1"}{"fillStyle":"purple"}{"moveTo":[0.5,0]}{"lineTo":[1,0.5]}{"lineTo":[0.5,1]}{"lineTo":[0,0.5]}{"closePath":[]}{"fill":[]}
+{"beginPath":[]}{"lineWidth":"0.1"}{"strokeStyle":"orange"}{"moveTo":[0.5,0.2]}{"lineTo":[0.5,0.8]}{"stroke":[]}
+
+=======
+LEGEND
+=======
+. = Background
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+--
+3
+--
+m,n,o,q,s,t,u,w,x,z
+--
+y
+Player, R, B, G
+k
+
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+.............
+.rbgykprbgyk.
+.............
+.m.n.o.q.s.t.
+.............
+.3..w..x..z..
+.............
+.u...........
+
+message second level
+
+..........
+....pry...

@@ -1,0 +1,384 @@
+title Clickmazes no-left-turn mazes
+author Henri Manson
+homepage http://www.clickmazes.com/noleft/new-noleft.htm
+
+background_color white
+text_color black
+
+run_rules_on_level_start
+level_select
+
+debug
+//verbose_logging
+
+========
+OBJECTS
+========
+
+Background
+white
+
+wall
+#B200B2
+
+player_start
+{"type": "svg"}
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg version="1.0" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <defs>
+  <radialGradient id="radialGradient3141" cx="204.51" cy="264.19" r="53.316" gradientTransform="matrix(.38806 .10448 -.24057 .89355 188.7 6.7552)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <radialGradient id="radialGradient3157" cx="204.51" cy="264.19" r="56.124" gradientTransform="matrix(1 0 0 .92911 0 18.729)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fff" offset="0"/>
+   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <linearGradient id="linearGradient3169" x1="110.65" x2="134.37" y1="34.522" y2="121.75" gradientTransform="translate(8.6921 5.9376)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#fff" offset="0"/>
+   <stop stop-color="#fff" stop-opacity="0" offset="1"/>
+  </linearGradient>
+  <filter id="filter3182" x="-.16821" y="-.31785" width="1.3364" height="1.6357">
+   <feGaussianBlur stdDeviation="13.951612"/>
+  </filter>
+  <filter id="filter3202" x="-.39604" y="-.42798" width="1.7921" height="1.856">
+   <feGaussianBlur stdDeviation="16.425908"/>
+  </filter>
+ </defs>
+ <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#0f04b4"/>
+ <ellipse cx="148.01" cy="154.77" rx="132.1" ry="126.92" fill="#2400ff" opacity=".032222" stroke="#060000" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
+ <ellipse transform="matrix(1.3266 -.40124 .32993 .55721 -186.18 172.78)" cx="204.51" cy="264.19" rx="53.316" ry="49.337" fill="url(#radialGradient3157)" filter="url(#filter3202)" stroke="url(#radialGradient3141)" stroke-linecap="round" stroke-linejoin="round" stroke-width="5.617"/>
+ <path d="m118.51 44.134c-39.251 10.212-78.392 54.952-83.596 71.306-26.616 74.13 269.32-4.28 180.76-56.699-24.18-18.918-67.35-21.931-97.16-14.607z" fill="url(#linearGradient3169)" fill-rule="evenodd" filter="url(#filter3182)"/>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <cc:license rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/"/>
+    <dc:publisher>
+     <cc:Agent rdf:about="http://openclipart.org/">
+      <dc:title>Openclipart</dc:title>
+     </cc:Agent>
+    </dc:publisher>
+    <dc:date>2007-02-13T16:45:28</dc:date>
+    <dc:description>A blue circle. Inspired by Molumen's splashscreen submission, so I wanted to experiment with some shapes and shading.</dc:description>
+    <dc:source>https://openclipart.org/detail/3201/blue-circle-by-nlyl</dc:source>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>nlyl</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:subject>
+     <rdf:Bag>
+      <rdf:li>ball</rdf:li>
+      <rdf:li>blue</rdf:li>
+      <rdf:li>circle</rdf:li>
+      <rdf:li>round</rdf:li>
+      <rdf:li>shape</rdf:li>
+     </rdf:Bag>
+    </dc:subject>
+   </cc:Work>
+   <cc:License rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+    <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+    <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+    <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+   </cc:License>
+  </rdf:RDF>
+ </metadata>
+</svg>
+
+player_left
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[1,0.5,0.4,1.571,4.712]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"black"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+
+player_right
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[0,0.5,0.4,4.712,1.571]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"black"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+
+player_up
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[0.5,1,0.4,3.14,6.28]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"black"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+
+player_down
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[0.5,0,0.4,0,3.14]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"black"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+
+goal
+#ff0000
+.....
+.000.
+.000.
+.000.
+.....
+
+start
+#00ff00
+.....
+.000.
+.000.
+.000.
+.....
+
+trail_up
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#C0C0C0"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[0.5,0,0.4,0,3.14]}
+{"fill":[]}
+
+trail_down
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#C0C0C0"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[0.5,1,0.4,3.14,6.28]}
+{"fill":[]}
+
+trail_right
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#C0C0C0"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[1,0.5,0.4,1.571,4.712]}
+{"fill":[]}
+
+trail_left
+{"type": "canvas"}
+{"beginPath":[]}
+{"fillStyle":"#C0C0C0"}
+{"arc":[0.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+{"beginPath":[]}
+{"fillStyle":"#404040"}
+{"arc":[0,0.5,0.4,4.712,1.571]}
+{"fill":[]}
+
+block_left
+transparent
+
+block_right
+transparent
+
+block_up
+transparent
+
+block_down
+transparent
+
+bump_up
+#b200b2 #620062
+.....
+.....
+.....
+11111
+00000
+
+bump_down
+#b200b2 #620062
+00000
+11111
+.....
+.....
+.....
+
+bump_left
+#b200b2 #620062
+...10
+...10
+...10
+...10
+...10
+
+bump_right
+#b200b2 #620062
+01...
+01...
+01...
+01...
+01...
+
+=======
+LEGEND
+=======
+
+blocker = block_left or block_right or block_up or block_down
+trail = trail_up or trail_down or trail_right or trail_left
+bump = bump_up or bump_down or bump_left or bump_right
+player = player_start or player_left or player_right or player_up or player_down
+
+
+. = Background
+# = wall
+p = player_start and start
+g = goal
+=======
+SOUNDS
+=======
+
+
+================
+COLLISIONLAYERS
+================
+
+Background
+goal, start
+player, wall
+
+trail_up
+trail_down
+trail_right
+trail_left
+
+block_left
+block_down
+block_right
+block_up
+
+bump
+======
+RULES
+======
+
+[bump]->[]
+right [right player block_right | ]->[stationary player block_right | bump_right] nosave
+left  [left  player block_left  | ]->[stationary player block_left  | bump_left ] nosave
+down  [down  player block_down  | ]->[stationary player block_down  | bump_down ] nosave
+up    [up    player block_up    | ]->[stationary player block_up    | bump_up   ] nosave
+
+right [right player | wall ]->[stationary player | wall bump_right] nosave
+left  [left  player | wall ]->[stationary player | wall bump_left ] nosave
+down  [down  player | wall ]->[stationary player | wall bump_down ] nosave
+up    [up    player | wall ]->[stationary player | wall bump_up   ] nosave
+
+
+
+[> player | no wall ][trail]->[> player | no wall][]
+right [right player | no wall] -> [right player_right trail_right no blocker | block_up    block_left ]
+left  [left  player | no wall] -> [left  player_left trail_left  no blocker  | block_down  block_right]
+down  [down  player | no wall] -> [down  player_down trail_down  no blocker  | block_right block_up   ]
+up    [up    player | no wall] -> [up    player_up trail_up    no blocker    | block_left  block_down ]
+
+
+==============
+WINCONDITIONS
+==============
+
+all goal on player
+
+=======
+LEVELS
+=======
+
+message Move the black dot to the red square
+
+message Maze 1 of 4 - by Andrea (2000)
+#################
+#...........#...#
+#.#.###.###.#.#.#
+#...#...#.......#
+###.#.#.#.#.#.#.#
+#.........#.....#
+#.###.###.#.#.###
+#.........#.....#
+#.#.###.#.#.#.#.#
+#.#.........#...#
+#.#.#.#.###.#.#.#
+#.#.......#.....#
+#.#.#.#.#.#.###.#
+#.....#.......#g#
+#.#.#.###.###.###
+#...#..........p#
+#################
+
+message Maze 2 of 4 - by Andrea (2000)
+##############
+##.....#....##
+#....#.#.#...#
+p..#.....#...#
+#...#.....#..#
+##....##.....#
+#.....#..#.#.#
+#..#.........#
+#.#..#..#...##
+#......#.....#
+#.##......#..g
+#...#.#.##...#
+##..........##
+##############
+
+message Maze 3 of 4 - by Palmer (2005)
+#################
+p..........##...g
+#..#..####.#....#
+#............#..#
+##..#####.##.#.##
+#....#..#.#.....#
+#...........#...#
+##.##...###...###
+#..#...#...#....#
+#....#.....#....#
+#..#....#....#.##
+##..#.....#.....#
+#....#..#.#..#..#
+#..#....#.#.#..##
+#.#...#.........#
+#.........#...#.#
+#################
+
+message Maze 4 of 4 - by Palmer (2005)
+#################
+#...#..#.....#..#
+#..##.....#.....#
+#......#..#..#.##
+#..#..#.....##..#
+##.#.....#......#
+#.....#.....##.##
+##...#######....#
+#.......#..#....#
+##..#...#......##
+#..#.....#...#.##
+#..#..##....#...#
+#....#...###....#
+##..#..#.#....#.#
+#...#......#..#.#
+#..##..#.g..#...#
+##########p######

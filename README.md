@@ -1,7 +1,7 @@
 # PuzzleScript Next
 
 PuzzleScript Next is your next version of PuzzleScript, 100% upwardly compatible and with all the latest features needed by more advanced developers.
-[The stable release is here](https://puzzlescriptnext.polyomino.com/) and the [latest version for testing is here](https://david-pfx.github.io/PuzzleScriptNext/src/index.html).
+[The stable release is here](https://puzzlescriptnext.polyomino.com/) and the [dev version is here](https://david-pfx.github.io/PuzzleScriptNext/src/index.html).
 
 The [full merged documentation is here](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation).
 For the first time ever, all the features contributed by original PuzzleScript, PuzzleScriptPlus and Pattern:Script can be found in this one place.
@@ -11,11 +11,18 @@ PuzzleScript Next is a combination of the work of many authors:
 * the great features added in [Puzzlescript Plus by Auroriax](https://github.com/Auroriax/PuzzleScriptPlus)
 * more great features added in [Pattern:Script](https://clementsparrow.github.io/Pattern-Script)
 * a few contributions from my own [PuzzleFAB](https://github.com/david-pfx/PuzzleFAB)
+* the vector feature created by [hfmanson](https://github.com/hfmanson/PuzzleScriptNext)
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g05. 
+The latest version is Release v-24f28. 
+It includes an alpha release of canvas sprites based on canvas API calls.
+See below.
+
 New fixes:
+* The ctrl+shift+R shortcut for replace all now works correctly in CodeMirror.
+There are new ctrl+B and ctrl+X shortcuts.
+See [Keyboard Shortcuts](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/keyboard_shortcuts.html).
 * Escape from message now works correctly.
 * Gosub now works correctly when a return lands on another return.
 * The editor now correctly loads the last saved file on start up.
@@ -49,4 +56,44 @@ Also some new documentation:
 * [Tags and Mappings](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tags_and_mappings.html).
 * [Tips and Tricks](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/tips_and_tricks.html).
 * [Level Branching](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/levels.html#branching).
+
+## Objects with vector based sprites
+This is an ALPHA release of vector-based sprite graphics, as an alternative to the more usual pixel graphics.
+Instead of colors and pixels, a stringified JSON object is used to specify a drawing.
+Details of the syntax are subject to change in future releases.
+
+### Vector type `canvas`
+A canvas sprite is defined by adding `canvas:w,h` to the first line after any objects and aliases, like this. 
+The width and height are optional, and default to 1.
+
+`Player p canvas:2,2`
+
+This should be followed by lines of JSON objects, each with one name and one value. 
+The name should be one of the [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D) properties or functions. 
+If the name is a function it is invoked with the value, which is a (possibly empty) array containing the function arguments.
+Otherwise it is a property, and the value is assigned to that property. 
+
+Objects are scaled so that a size of 1.0 is one cell (or as defined by `w` and `h`).
+Angles are in radians.
+
+Example of an object that is a grey blob.
+```
+// this is a grey blob
+blob b canvas:2,1
+{"beginPath":[]}{"fillStyle":"#C0C0C0"}
+{"arc":[1.5,0.5,0.4,0,6.28]}
+{"fill":[]}
+```
+
+Alternatively the name may be `!include` in which case the argument is the name of another `canvas` object, and the JSON for that object is included.
+{"!include":"man"}
+{"beginPath":[]}
+{"fillStyle":"white"}
+{"arc":[0.5,0.5,0.1,0,7]}
+{"fill":[]}
+
+The object transforms `copy:`, `translate`, `rot:` and `flip:` behave as expected, with distances defined in sprite pixels.
+The `shift:` transform is not implemented.
+
+The test program is `test/test_min_canvas`.
 

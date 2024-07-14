@@ -1,0 +1,336 @@
+title [type:canvas] Original Puffball
+author Andrea Gilbert
+homepage https://www.clickmazes.com
+// adapted for canvas: by polyomino
+
+again_interval 0.05
+run_rules_on_level_start
+
+(puzzlescript-next)
+nokeyboard
+mouse_left click
+tween_length 0.05
+sprite_size 15
+level_select
+level_select_solve_symbol V
+
+========
+OBJECTS
+========
+
+Background
+#888
+
+(pixel puffballD
+transparent red white red red
+000000000000000
+000001111100000
+000111112111000
+001111111221100
+001111111112100
+011111141112110
+011111434111210
+011114333411110
+011111434111110
+011111141111110
+001111111111100
+001111111111100
+000111111111000
+000001111100000
+000000000000000)
+
+goalI canvas:
+{"beginPath":[]}
+{"rect":[0.001,0.001,0.998,0.998]}
+
+ballI canvas:
+{"beginPath":[]}
+{"arc":[0.5,0.5,0.45,0,7]}
+
+glintI canvas:
+{"beginPath":[]}
+{"arc":[0.5,0.5,0.4,-1.5,-0.5]}
+
+crossI canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"lineCap":"round"}
+{"moveTo":[0.4,0.5]}
+{"lineTo":[0.6,0.5]}
+{"moveTo":[0.5,0.4]}
+{"lineTo":[0.5,0.6]}
+
+jetI canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"lineCap":"round"}
+{"moveTo":[0.5,0.4]}
+{"lineTo":[0.4,0.5]}
+{"lineTo":[0.5,0.6]}
+{"lineTo":[0.6,0.5]}
+{"lineTo":[0.5,0.4]}
+
+puffballD (default) canvas:
+(transparent red white red red)
+{"fillStyle":"red"}   {"ps-include":"ballI"}  {"fill":[]}
+{"fillStyle":"white"} {"ps-include":"glintI"} {"fill":[]}
+{"strokeStyle":"red"} {"ps-include":"crossI"} {"stroke":[]}
+{"strokeStyle":"red"} {"ps-include":"jetI"}   {"stroke":[]}
+
+solid  canvas:
+(#333 #444 #555 #444 #444)
+{"fillStyle":"#333"}   {"ps-include":"goalI"}  {"fill":[]}
+{"fillStyle":"#444"}   {"ps-include":"ballI"}  {"fill":[]}
+{"fillStyle":"#555"}   {"ps-include":"glintI"} {"fill":[]}
+{"strokeStyle":"#444"} {"ps-include":"crossI"} {"stroke":[]}
+{"strokeStyle":"#444"} {"ps-include":"jetI"}   {"stroke":[]}
+
+Cell  canvas:
+(#EEE transparent transparent transparent transparent)
+{"fillStyle":"#eee"} {"ps-include":"goalI"}  {"fill":[]}
+
+goal  canvas:
+(#FCC transparent transparent transparent transparent)
+{"fillStyle":"#fcc"} {"ps-include":"goalI"} {"fill":[]}
+{"fillStyle":"#eee"} {"ps-include":"ballI"} {"fill":[]}
+
+puffballC (clicked) canvas:
+(transparent red white pink red)
+{"fillStyle":"red"}    {"ps-include":"ballI"}  {"fill":[]}
+{"fillStyle":"white"}  {"ps-include":"glintI"} {"fill":[]}
+{"strokeStyle":"pink"} {"ps-include":"crossI"} {"stroke":[]}
+{"strokeStyle":"red"}  {"ps-include":"jetI"}   {"stroke":[]}
+
+puffballM (moved) canvas:
+(transparent red white red pink)
+{"fillStyle":"red"}   {"ps-include":"ballI"}  {"fill":[]}
+{"fillStyle":"white"} {"ps-include":"glintI"} {"fill":[]}
+{"strokeStyle":"red"}  {"ps-include":"crossI"} {"stroke":[]}
+{"strokeStyle":"pink"} {"ps-include":"jetI"}   {"stroke":[]}
+
+puffballB (blocked) canvas:
+(transparent red white red red)
+{"fillStyle":"red"}   {"ps-include":"ballI"}  {"fill":[]}
+{"fillStyle":"white"} {"ps-include":"glintI"} {"fill":[]}
+{"strokeStyle":"red"} {"ps-include":"crossI"} {"stroke":[]}
+{"strokeStyle":"red"} {"ps-include":"jetI"}   {"stroke":[]}
+
+puffN  canvas:
+(transparent transparent transparent red transparent)
+{"strokeStyle":"red"} {"ps-include":"crossI"} {"stroke":[]}
+
+puffS  canvas:
+(transparent transparent transparent red transparent)
+{"strokeStyle":"red"} {"ps-include":"crossI"} {"stroke":[]}
+
+puffE  canvas:
+(transparent transparent transparent red transparent)
+{"strokeStyle":"red"} {"ps-include":"crossI"} {"stroke":[]}
+
+puffW  canvas:
+(transparent transparent transparent red transparent)
+{"strokeStyle":"red"} {"ps-include":"crossI"} {"stroke":[]}
+
+click
+transparent
+
+exhaust
+transparent
+
+=======
+LEGEND
+=======
+
+. = cell
+x = solid
+o = puffballD and cell
+g = goal and cell
+b = puffballD and goal and cell
+
+puffballCMB = puffballC or puffballM or puffballB
+puffball = puffBallD or puffballCMB
+
+puffAny = puffN or puffS or puffW or puffE
+puffAll = puffN and puffS and puffW and puffE
+blocker = solid or puffballB
+
+=======
+SOUNDS
+=======
+
+endlevel 37288303
+sfx0 18930307 (puff)
+
+================
+COLLISIONLAYERS
+================
+
+Background
+cell
+solid, goal
+click
+puffball
+puffN
+puffS
+puffE
+puffW
+exhaust
+goalI, ballI, glintI, crossI, jetI // only used for includes
+
+======
+RULES
+======
+
+(click triggers new puff and clears old markers)
+[ click ] [ puffballCMB ] -> [ click ] [ puffballD ] 
+[ click puffballD ] -> [ puffballC puffAll ] sfx0
+
+(start air puffs moving)
+up    [ stationary puffN ] -> [ > puffN ]
+down  [ stationary puffS ] -> [ > puffS ]
+left  [ stationary puffW ] -> [ > puffW ]
+right [ stationary puffE ] -> [ > puffE ]
+
+(puffs push one or more puffballs in a row - but are then exhausted)
+[ > puffAny   | stationary puffballD ] -> [ > puffAny   | > puffballM exhaust ] 
+[ > puffballM | stationary puffballD ] -> [ > puffballM | > puffballM ] 
+
+(deal with blocked movement)
+[ > puffballM | blocker ] -> [ puffballB | blocker ]
+[ stationary puffAny ] -> []
+
+(=== engine applies movement ===) 
+
+late [click] -> []
+late [ puffAny solid ] -> [ solid ]
+late [ cell puffAny exhaust ] -> [ cell ]
+
+late [ cell puffAny ] -> again
+
+==============
+WINCONDITIONS
+==============
+
+no puffAny
+all goal on puffball
+
+=======
+LEVELS
+=======
+
+Message ********************************** **       Original Puffball      ** **     Andrea Gilbert (2013)    ** **********************************
+
+Message Click on a red puffball to pump jets of air towards other puffballs. Cover every pale-pink target square to complete the puzzle.
+
+section Trainee #1
+
+xxxxxx
+x..b.x
+xboo.x
+x.g.bx
+x.g..x
+xxxxxx
+
+section Trainee #2
+
+xxxxxx
+xgoggx
+xooogx
+xgooox
+xggogx
+xxxxxx
+
+section Trainee #3
+
+xxxxxx
+x....x
+xg.ogx
+x.oo.x
+xgo.gx
+xxxxxx
+
+section Tricky #1
+
+xxxxxx
+x.g.gx
+x.oo.x
+x.oo.x
+xb.ggx
+xxxxxx
+
+section Tricky #2
+
+xxxxxx
+xg...x
+x.oogx
+xboogx
+xg...x
+xxxxxx
+
+section Tricky #3
+
+xxxxxx
+xgo.gx
+xogo.x
+x.o.bx
+xg.ogx
+xxxxxx
+
+section Troublesome #1
+
+xxxxxx
+xg.b.x
+x.oo.x
+xooo.x
+xggggx
+xxxxxx
+
+section Troublesome #2
+
+xxxxxx
+x.gggx
+x.oo.x
+xbooox
+x.g.gx
+xxxxxx
+
+section Troublesome #3
+
+xxxxxx
+xgobgx
+xogo.x
+xboo.x
+xg..gx
+xxxxxx
+
+section Torture #1
+
+xxxxxxx
+xg...gx
+xgo.o.x
+x.o.o.x
+x.ooogx
+xggg..x
+xxxxxxx
+
+section Torture #2
+
+xxxxxxx
+x.g...x
+xgoo.gx
+xgooogx
+x..oogx
+xg....x
+xxxxxxx
+
+section Torture #3
+
+xxxxxxx
+x...g.x
+xgoo..x
+x.ogobx
+x.oo.gx
+xg..g.x
+xxxxxxx
+
+Message Thank you for playing :)

@@ -1,0 +1,532 @@
+Title Fliptiles 2001-2024
+author Andrea Gilbert
+again_interval 0.05
+homepage https://www.clickmazes.com
+// adapted to canvas by polyomino
+
+background_color #ffffc0
+text_color black
+run_rules_on_level_start
+
+level_select
+level_select_solve_symbol V
+
+
+========
+OBJECTS
+========
+
+Background
+#ffffc0
+
+void
+transparent
+
+flip q canvas:2,2 translate:left:1 translate:up:1  //{"type":"canvas","w":1.04,"h":1.04, "x":-0.02, "y":-0.02}
+{"beginPath":[]}
+{"lineWidth":"0.02"}
+{"strokeStyle":"black"}
+{"rect":[0.02,0.02,1,1]}
+{"stroke":[]}
+
+pNS ! canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,1]}
+{"stroke":[]}
+
+pEW - canvas: 
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+pNEWS + canvas: 
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,1]}
+{"moveTo":[0,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+qNS $ (NS/EW flippable) canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,1]}
+{"stroke":[]}
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa66"}
+{"setLineDash":[[0.04,0.04]]}
+{"moveTo":[0,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+qEW ~ (EW/NS flippable) canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa66"}
+{"setLineDash":[[0.04,0.04]]}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,1]}
+{"stroke":[]}
+
+pWNE l canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,0.5]}
+{"moveTo":[0,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+pSWN k canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,1]}
+{"moveTo":[0.5,0.5]}
+{"lineTo":[0,0.5]}
+{"stroke":[]}
+
+pNES i canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,1]}
+{"moveTo":[0.5,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+pESW j canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,1]}
+{"lineTo":[0.5,0.5]}
+{"moveTo":[0,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+pNE e canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+pES f canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[1,0.5]}
+{"lineTo":[0.5,0.5]}
+{"lineTo":[0.5,1]}
+{"stroke":[]}
+
+pSW g canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0,0.5]}
+{"lineTo":[0.5,0.5]}
+{"lineTo":[0.5,1]}
+{"stroke":[]}
+
+pWN h canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0]}
+{"lineTo":[0.5,0.5]}
+{"lineTo":[0,0.5]}
+{"stroke":[]}
+
+pN a canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0.75]}
+{"lineTo":[0.5,0]}
+{"stroke":[]}
+
+pE b canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.25,0.5]}
+{"lineTo":[1,0.5]}
+{"stroke":[]}
+
+pS d canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.5,0.25]}
+{"lineTo":[0.5,1]}
+{"stroke":[]}
+
+pW c canvas:
+{"beginPath":[]}
+{"lineWidth":"0.5"}
+{"strokeStyle":"#aaaaaa"}
+{"moveTo":[0.75,0.5]}
+{"lineTo":[0,0.5]}
+{"stroke":[]}
+
+Player canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"lightgreen"}
+{"arc":[0.5,0.5,0.2,0,7]}
+{"stroke":[]}
+{"fill":[]}
+
+Goal1 canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"orange"}
+{"moveTo":[0.25,0.25]}
+{"lineTo":[0.25,0.75]}
+{"lineTo":[0.75,0.75]}
+{"lineTo":[0.75,0.25]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"white"}
+{"moveTo":[0.35,0.35]}
+{"lineTo":[0.65,0.35]}
+{"lineTo":[0.5,0.65]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+Puck1 canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"orange"}
+{"moveTo":[0.35,0.35]}
+{"lineTo":[0.65,0.35]}
+{"lineTo":[0.5,0.65]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+Goal2 canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"red"}
+{"moveTo":[0.25,0.25]}
+{"lineTo":[0.25,0.75]}
+{"lineTo":[0.75,0.75]}
+{"lineTo":[0.75,0.25]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"white"}
+{"moveTo":[0.35,0.35]}
+{"lineTo":[0.65,0.35]}
+{"lineTo":[0.5,0.65]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+Puck2 canvas:
+{"beginPath":[]}
+{"lineWidth":"0.03"}
+{"strokeStyle":"black"}
+{"fillStyle":"red"}
+{"moveTo":[0.35,0.35]}
+{"lineTo":[0.65,0.35]}
+{"lineTo":[0.5,0.65]}
+{"closePath":[]}
+{"stroke":[]}
+{"fill":[]}
+
+fH
+transparent
+fV
+transparent
+
+zflag (make all non-edge/non-dull tiles flippable)
+transparent
+
+yflag (all tiles in this row/col flippable)
+transparent
+
+xflag (bump to closest fliptile)
+transparent
+
+=======
+LEGEND
+=======
+
+. = void
+* = player and void
+0 = player and pNES
+1 = puck1 and void
+2 = goal1 and void
+3 = puck2 and void
+4 = goal2 and void
+5 = puck1 and pNEWS
+6 = puck2 and pNEWS
+7 = puck1 and qNS
+8 = puck2 and pSW
+9 = puck1 and pSWN
+z = zflag
+y = yflag
+x = xflag
+
+goal = goal1 or goal2
+puck = puck1 or puck2
+
+NS = pNS or qNS
+EW = pEW or qEW
+qAny = qNS or qEW (special)
+noW = pE or pN or pS or NS or pNE or pES or pNES or void
+noE = pN or pS or pW or NS or pWN or pSW or pSWN or void
+noS = pN or pE or pW or EW or pNE or pWN or pWNE or void
+noN = pE or pS or pW or EW or pES or pSW or pESW or void
+dull = pNEWS or pNS or pEW (flipping has no effect)
+
+path3 = pWNE or pSWN or pNES or pESW 
+path2 = pNE or pES or pSW or pWN or NS or EW 
+path1 = pN or pE or pS or pW
+path = pNEWS or path1 or path2 or path3 or qAny
+
+fX = fH or fV
+init = zflag or yflag or xflag
+item = player or puck
+
+=======
+SOUNDS
+=======
+
+Endlevel 65303103
+sfx0 78652900 (flip)
+sfx1 66918707 (push)
+sfx2 39028104 (blocked)
+
+================
+COLLISIONLAYERS
+================
+
+background
+fX init
+void path
+goal
+puck
+player
+--
+flip
+
+======
+RULES
+====== 
+(=== init ===)
+(add flippable flags)
+[ qAny no flip ] -> [ qAny flip ]
+[ yflag | ... | path no flip ] -> [ yflag | ... | path flip ]
+[ zflag ][ path no flip ] -> [ zflag ][ path zflag flip ]
+[ path zflag no qAny flip | void ] -> [ path | void ]
+[ dull flip ] -> [ dull ]
+(move players & pucks onto pathway)
+[xflag] [ puck void | ... | flip ] -> [xflag] [ void | ... | puck flip ]
+horizontal [ item void | path ] -> [ void | path item ]
+vertical   [ item void | path ] -> [ void | path item ]
+[ item void || path ] -> [ void || path item ]
+
+[goal void] -> [goal]
+[init] -> []
+(=== end of init ===)
+
+(check for illegal moves)
+right [ > player noE ] -> cancel sfx2
+left  [ > player noW ] -> cancel sfx2
+up    [ > player noN ] -> cancel sfx2
+down  [ > player noS ] -> cancel sfx2
+right [ > player | noW ] -> cancel sfx2
+left  [ > player | noE ] -> cancel sfx2
+up    [ > player | noS ] -> cancel sfx2
+down  [ > player | noN ] -> cancel sfx2
+
+(apply movement flags)
+[ > player | puck ] -> [ > player | > puck ] sfx1 //(player pushes puck)
+
+(block moves that are technically legal but are also failstate)
+(this speeds up the solver)
+[ > puck | puck ]              -> cancel sfx2
+[ > puck1 | no path no goal1 ] -> cancel sfx2
+[ > puck2 | no path no goal2 ] -> cancel sfx2
+
+(if the current tile is flippable set the flip direction)
+horizontal [ > player flip ] -> [ > player flip fH ] 
+vertical   [ > player flip ] -> [ > player flip fV ] 
+
+(===========  ENGINE applies movement =============)
+
+(flip rules for basic tiles)
+late [ flip fH pE ] -> [ flip pW ] sfx0
+late [ flip fH pW ] -> [ flip pE ] sfx0
+late [ flip fH pES ] -> [ flip pSW ] sfx0
+late [ flip fH pSW ] -> [ flip pES ] sfx0
+late [ flip fH pNE ] -> [ flip pWN ] sfx0
+late [ flip fH pWN ] -> [ flip pNE ] sfx0
+late [ flip fH pSWN ] -> [ flip pNES ] sfx0
+late [ flip fH pNES ] -> [ flip pSWN ] sfx0
+late [ flip fV pN ] -> [ flip pS ] sfx0
+late [ flip fV pS ] -> [ flip pN ] sfx0
+late [ flip fV pES ] -> [ flip pNE ] sfx0
+late [ flip fV pSW ] -> [ flip pWN ] sfx0
+late [ flip fV pNE ] -> [ flip pES ] sfx0
+late [ flip fV pWN ] -> [ flip pSW ] sfx0
+late [ flip fV pWNE ] -> [ flip pESW ] sfx0
+late [ flip fV pESW ] -> [ flip pWNE ] sfx0
+(flip rules for special tiles)
+late [ flip fX qNS ] -> [ flip qEW ] sfx0
+late [ flip fX qEW ] -> [ flip qNS ] sfx0
+
+==============
+WINCONDITIONS
+==============
+
+all puck1 on goal1
+all puck2 on goal2
+
+=======
+LEVELS
+=======
+
+Message Credit to...\n\nMaze of Rah (java applet)\nMarco Brenco [2001]\n\nFliptiles (JS/HTML5)\nGraham E. Rogers [2021]
+
+Message And thanks to...\n\nHenri Manson\nPSNext SVG-sprite support\n[April 2024]
+
+Message 10 Fliptile puzzles\n\nA PSNext SVG demo project
+
+
+Section No.1 (Marco 2001)
+
+.......
+...*...
+.yij...
+.ylhc4.
+...3...
+.......
+
+Section No.2 (Marco 2001)
+
+.....3..
+.yfggg4.
+..ellh..
+...*....
+
+Section No.3 (Marco 2001)
+
+..4....
+y.df-g.
+yflgfh.
+ye80h2.
+y.eh...
+....1..
+
+Section No.4 (Andrea 2022)
+(44)
+...... 
+.*fg4.
+.f5$g.
+.e$6h.
+.2eh..
+......
+
+Section No.5 (Andrea 2022)
+(oABU8NP28OMDn/b7Twm+6QY//PB5/PAAAAMAAJAGAAAAWENcA0gSTDLpIA==)
+(67)
+z......
+.2fjg4.
+.f6h5g.
+.ee+fh.
+..elh..
+...*...
+
+Section No.6 (Andrea 2001)
+.......
+*fgfg4.
+.i~+$g.
+.i6~9!.
+.e$+~k.
+.2eheh.
+.......
+
+Section No.7 (Andrea 2022)
+(oABV8NP31vDjBY8FtukOCR/+8GkHBbzw8Hl88AAAAKCgDpAAB6AAAABYAFxESCNMEukx)
+(106)
+z......
+..fjg2.
+.f$6$g.
+.i5hih.
+.e$jh*.
+.4eh...
+.......
+
+Section No.8 (Andrea 2001)
+x.....3..
+.fjgf-jg.
+.i$l~-$h.
+.e+-kf+g.
+.f~j$l~h.
+.!!!igig.
+*e~+$l$k.
+.4ehe-lh.
+.........
+
+Section No.9 (Andrea 2022)
+(oABm8PDw0/bw8PPHC77w8OsDHvrw8PpLDL7w8OsOPfzw8Pl88PDwAAAAAAsAADAAAAwAAOAAAAAASBJMQ1g1XCDpBA==)
+(132)
+....4..z
+*fj-jg..
+.eljgk1.
+.3ieljg.
+..el-lh.
+...2....
+
+Section No.10 (Andrea 2022)
+(oABl8NP31vDjBY8KtukNBgm+4wYJB77pCi8FvPB5/XzwAAAAoFANaQBpcAUKAAAAaSBMEkhCWATcVA==)
+(186)
+z.......
+.4fjjg2.
+.f~hi$g.
+.i5fh6k.
+.e$kf~h.
+..eheh..
+...*....
+
+Message Thank-you for playing :)
