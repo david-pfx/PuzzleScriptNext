@@ -29,7 +29,9 @@ let caseSensitive = false;
 
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
-const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
+const reg_name = /^[\p{L}\p{N}_$]+/u;
+const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
+const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
 const reg_objmodi = /^(canvas|copy|flip|rot|scale|shift|text|translate):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
@@ -318,6 +320,7 @@ var codeMirrorFn = function() {
             this.stream.pos = this.matchPos;
         }
 
+        // check for regex, return token or null if no match
         check(regex) {
             const token = this.stream.match(regex, false);
             return !token ? null : token[0];
@@ -372,14 +375,6 @@ var codeMirrorFn = function() {
 
         matchToken(tolower) {
             return this.match(/^\S+/, tolower);
-        }
-    
-        matchName(tolower) {
-            return this.match(/^[\p{L}\p{N}_$]+/u, tolower);
-        }
-    
-        matchObjectName(tolower) {
-            return this.match(/^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u, tolower);
         }
     
         matchObjectGlyph(tolower) {
@@ -622,7 +617,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.matchName(!state.case_sensitive)) {
+            if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.id = token;
                 if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
@@ -652,7 +647,7 @@ var codeMirrorFn = function() {
             symbols.members = [];
             while (true) {
                 // todo: handle recursive tag defs
-                if (token = lexer.matchName(!state.case_sensitive)) {
+                if (token = lexer.match(reg_name, !state.case_sensitive)) {
                     symbols.members.push(token);
                     lexer.pushToken(token, 'NAME');
                 } else {
@@ -698,7 +693,7 @@ var codeMirrorFn = function() {
             let token
             
             lexer.matchComment();
-            if (token = lexer.matchName(!state.case_sensitive)) {
+            if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.lhs = token;
                 if (!(isDeclaredAs(state, token) == 'tag')) {       // todo: propobj
                     logError(`Expected a TAG name but "${errorCase(token)}" is not one.`, state.lineNumber);
@@ -724,7 +719,7 @@ var codeMirrorFn = function() {
             }
 
             lexer.matchComment();
-            if (token = lexer.matchName(!state.case_sensitive)) {
+            if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.rhs = token;
                 if (isAlreadyDeclared(state, token)) {
                     logError(`You cannot define a mapping called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
@@ -771,7 +766,7 @@ var codeMirrorFn = function() {
             
             lexer.matchComment();
             symbols.lhs = [];
-            while (token = lexer.matchName(!state.case_sensitive)) {
+            while (token = lexer.match(reg_name, !state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
                     logError(`The name "${errorCase(token)}" needs to be defined by "${errorCase(mapping.fromKey)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -793,7 +788,7 @@ var codeMirrorFn = function() {
 
             lexer.matchComment();
             symbols.rhs = [];
-            while (token = lexer.matchName(!state.case_sensitive)) {
+            while (token = lexer.match(reg_name, !state.case_sensitive)) {
                 if (!token) {      // what do we not allow?
                     logError(`The name "${errorCase(token)}" is a very bad thing.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -849,7 +844,7 @@ var codeMirrorFn = function() {
                 if (symbols.candname && lexer.check(reg_objmodi)) {
                     break;
                 // first name must be an object, glyph allowed after that
-                } else if ((token = lexer.matchObjectName(!state.case_sensitive) 
+                } else if ((token = lexer.match(reg_objectname, !state.case_sensitive) 
                     || (symbols.candname && lexer.matchObjectGlyph(!state.case_sensitive)))) {
                     if (state.legend_synonyms.some(s => s[0] == token)) {
                         logError(`Name "${errorCase(token)}" already in use.`, state.lineNumber);
@@ -870,7 +865,7 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid object name in OBJECT section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                    lexer.matchNotComment();
+                    lexer.pushToken(lexer.matchAll(), 'ERROR');
                     break;
                 } else throw 'name';
             }
@@ -966,6 +961,13 @@ var codeMirrorFn = function() {
                 state.objects_section = 0;
                 return true;
             }    
+
+            if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                logError(`This ${token} looks rather like a piece of JSON. Did you maybe leave out "CANVAS:"?`, state.lineNumber);
+                lexer.pushToken(token, kind);
+                lexer.pushToken(lexer.matchAll(), kind);
+                return false;
+            }
 
             while (!stream.eol()) {
                 let token = lexer.next();
@@ -1067,7 +1069,7 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     kind = 'ERROR';
-                    if (!(token = lexer.matchObjectName(!state.case_sensitive)))      // ?? glyph too?
+                    if (!(token = lexer.match(reg_objectname, !state.case_sensitive)))      // ?? glyph too?
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
@@ -1097,8 +1099,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    //token = lexer.match(/^[a-z^<>]+/i,  true);
-                    token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
+                    token = lexer.match(/^[a-z^<>]+/i,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
@@ -1255,7 +1256,7 @@ var codeMirrorFn = function() {
                 } else {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
                 }
-            } else if (token = lexer.matchObjectName(!state.case_sensitive)) {
+            } else if (token = lexer.match(reg_objectname, !state.case_sensitive)) {
                 // player move [ up... ] 142315...
                 const tobjects = getObjectRefs(state, token);
                 if (!tobjects) {
@@ -1332,7 +1333,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+            if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 symbols.newname = token;
                 const defname = isAlreadyDeclared(state, token);
                 if (defname)
@@ -1354,7 +1355,7 @@ var codeMirrorFn = function() {
 
             while (true) {
                 let kind = 'ERROR';
-                if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+                if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     const tobjects = getObjectRefs(state, token);
                     if (!tobjects) {
                         const undef = getObjectUndefs(state, token);
@@ -1454,7 +1455,7 @@ var codeMirrorFn = function() {
                         prearrow = idents.length;
                         lexer.pushToken(token, 'LOGICWORD');
                     }
-                } else if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+                } else if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     let kind = 'ERROR';
                     const trefs = getObjectRefs(state, token);   // do we need this?
                     if (token == 'background' && idents.length != 0)
@@ -1640,7 +1641,7 @@ var codeMirrorFn = function() {
 
         function getIdent() {
             let token
-            if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+            if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
                 if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
                     logError(`Error in win condition: "${errorCase(token)}" is not a valid object name.`, state.lineNumber);
@@ -1687,7 +1688,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, `${errorCase(token)}_VERB`);
 
                 if (token == 'link') {
-                    if (!(token = lexer.matchObjectName())) 
+                    if (!(token = lexer.match(reg_objectname, !state.case_sensitive))) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
                     else if (!isAlreadyDeclared(state, token))
                         logError(`LINK object "${errorCase(token)}" not found, it needs to be already defined.`, state.lineNumber);
@@ -1833,6 +1834,7 @@ var codeMirrorFn = function() {
             var sol = stream.sol();
             if (sol) {
                 state.current_line_wip_array = [];
+                state.original_line = stream.string;
 
                 // PS+ leaves original text unchanged, which means a lot of checking in other places
                 if(!state.case_sensitive) {
@@ -1913,65 +1915,60 @@ var codeMirrorFn = function() {
                 }
 
                 // Objects parsing is all LL(1):
-                // object alias* (prop : value?)*
+                // object alias* ( prop: value? )*
                 // ( colour+ )?
-                // ( digit+ )*
-                // ( json )*
-                // ( prop+ )*
+                // ( digit+ )* | ( json )*
+                // ( prop: value? )*
 
                 case 'objects': {
-                    if (sol) {  // start of line, no previous blank line, what to do?
-                        if (state.objects_section >0 && stream.match(reg_objmodi, false)) {
-                            state.objects_section = 5;
-                        } else if (state.objects_section == 3 || state.objects_section == 4) {
-                            // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector 
-                                && !stream.match(/^[.\d]/, false))
-                                state.objects_section = 0;
-                        }
+                    // start of line, special for no blank line
+                    if (sol && (state.objects_section == 3 || state.objects_section == 4)) {
+                        // no blank line: criterion for end sprite: <= 10 colours, line matches object and not transform
+                        if (state.objects[state.objects_candname].colors.length <= 10 
+                          && !state.objects[state.objects_candname].vector 
+                          && !stream.match(/^[.\d]/, false)
+                          && !stream.match(reg_objmodi, false))
+                            state.objects_section = 0;
                     }
-                    if (state.objects_section == 0) {
+                    if (sol && state.objects_section == 0) {
                         expandLastObject(state);
                         state.objects_candname = null;
                         state.current_line_wip_array = [];
                         state.objects_section = 1;
                     }
 
-                    //if (sol) console.log(`${state.lineNumber}: (${state.section}:${state.objects_section}): ${stream.string}`);
-                    if (sol)
-                        state.current_line_wip_array['mixed'] = mixedCase;
-                    else mixedCase = state.current_line_wip_array['mixed'];
-                    if (!mixedCase) throw 'mix';
+                    // if (sol) ???
+                    //     state.current_line_wip_array['mixed'] = mixedCase;
+                    // else mixedCase = state.current_line_wip_array['mixed'];
+                    // if (!mixedCase) throw 'mix';
 
-                    //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
                     case 1: {
                             state.current_line_wip_array.push(...parseObjectName(stream, state, mixedCase));
                             if (state.objects_candname) {
                                 if (stream.match(reg_objmodi, false))
                                     state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
-                                state.objects_section++;
+                                state.objects_section = 2;
                             }
                             return flushToken();
                         }
                     case 2: 
-                        if (stream.match(/^[#\w]+/, false)) {
+                        state.objects_section = 3;
+                        if (stream.match(/^[#\w]+/, false) && !stream.match(reg_objmodi, false)) {
                             state.current_line_wip_array.push(...parseObjectColors(stream, state));
-                            state.objects_section++;
                             return flushToken();
-                        } else {
-                            state.objects_section++;
-                            // fall through
-                        }
+                        } // else fall through
                     case 3: 
-                    case 4: {
+                    case 4:
+                        if (stream.match(reg_objmodi, false)) {
+                            state.objects_section = 5; // fall through
+                        } else {
                             stream.string = mixedCase;
                             const tokens = state.objects[state.objects_candname].vector 
                                 ? parseObjectVector(stream, state) 
                                 : parseObjectSprite(stream, state);
                             state.current_line_wip_array.push(...tokens);
-                            if (state.objects_section == 3)  // text:?
-                                state.objects_section++;
+                            state.objects_section = 4;
                             return flushToken();
                         }
                     case 5: {
@@ -2042,7 +2039,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectname) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
+                                } else if (m.match(reg_objectnamerel) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
                                     return 'NAME';
                                 }
                                 

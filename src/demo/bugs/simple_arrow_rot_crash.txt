@@ -1,0 +1,263 @@
+title Simple arrow logic-maze [canvas/transforms/WIP]
+author Andrea Gilbert
+homepage https://www.clickmazes.com
+background_color black
+text_color white
+run_rules_on_level_start
+verbose_logging
+again_interval 0.1
+
+// ;
+
+========
+TAGS
+========
+
+dirs  = N E S W
+dags  = NE SE SW NW
+
+========
+OBJECTS
+========
+
+Background .
+black
+
+rect canvas:
+{"type":"canvas","subtype":"include"}
+{"beginPath":[]} {"rect":[0.01,0.01,0.98,0.98]}
+
+grid canvas:
+{"type":"canvas"}
+{"ps-include":"rect"} {"fillStyle":"white"} {"fill":[]}
+
+Wall x canvas:
+{"type":"canvas"}
+{"ps-include":"rect"} {"fillStyle":"#444444"} {"fill":[]}
+
+ArrowIncl canvas:
+{"type":"canvas","subtype":"include"}
+{"lineWidth":"0.12"}
+{"lineCap":"round"}
+{"beginPath":[]}
+{"moveTo":[-0.3,0.0]} {"lineTo":[0.3,0.0]}
+{"moveTo":[0.1,-0.2]} {"lineTo":[0.3,0.0]}
+{"moveTo":[0.1,0.2]} {"lineTo":[0.3,0.0]}
+{"stroke":[]}
+
+NNi
+{"type":"canvas","subtype":"include"}
+{"translate":[0.5,0.5]}
+{"rotate":[-1.57]}
+{"ps-include":"ArrowIncl"}
+
+NEi
+{"type":"canvas","subtype":"include"}
+{"translate":[0.5,0.5]}
+{"rotate":[-0.785]}
+{"ps-include":"ArrowIncl"}
+
+grey:dirs (orthogonals)
+{"type":"canvas"}
+{"strokeStyle":"#cccccc"} {"ps-include":"NNi"}
+rot:up:>
+
+grey:dags (diagonals)
+{"type":"canvas"}
+{"strokeStyle":"#cccccc"} {"ps-include":"NEi"}
+//rot:up:>
+
+red:dirs (orthogonals)
+{"type":"canvas"}
+{"strokeStyle":"red"} {"ps-include":"NNi"}
+rot:up:>
+
+red:dags (diagonals)
+{"type":"canvas"}
+{"strokeStyle":"red"} {"ps-include":"NEi"}
+rot:up:>
+
+goalB *
+{"type":"canvas"}
+{"lineWidth":"0.02"}
+{"strokeStyle":"blue"}
+{"setLineDash":[[0.05,0.05]]}
+{"strokeRect":[0.05,0.05,0.9,0.9]}
+
+goalR !
+{"type":"canvas"}
+{"lineWidth":"0.02"}
+{"strokeStyle":"red"}
+{"setLineDash":[[0.05,0.05]]}
+{"strokeRect":[0.1,0.1,0.8,0.8]}
+
+PlayerB
+{"type":"canvas"}
+{"lineWidth":"0.03"}
+{"strokeStyle":"blue"}
+{"strokeRect":[0.05,0.05,0.9,0.9]}
+
+PlayerR
+{"type":"canvas"}
+{"beginPath":[]} 
+{"arc":[0.5,0.5,0.05,0,7]}
+{"fillStyle":"red"} {"fill":[]}
+
+nudge
+transparent
+
+star % scale:0.6
+yellow; text:⭐
+
+=======
+LEGEND
+=======
+
+0 = grey:N 
+1 = grey:NE 
+2 = grey:E 
+3 = grey:SE
+4 = grey:S
+5 = grey:SW
+6 = grey:W
+7 = grey:NW
+
+a = PlayerB and wall
+b = PlayerR and wall
+c = PlayerR and PlayerB and wall
+d = goalB and wall
+e = goalR and wall
+f = goalB and goalR and wall
+
+player = playerB
+
+redO = red:dirs 
+redD = red:dags
+
+redxE = red:SE or red:NE
+redxW = red:SW or red:NW
+redNx = red:NE or red:NW
+redSx = red:SW or red:SE
+
+redE = red:SE or red:NE or red:E
+redW = red:SW or red:NW or red:W
+redN = red:NE or red:NW or red:N
+redS = red:SW or red:SE or red:S
+
+red  = red:dirs  or red:dags 
+grey = grey:dirs or grey:dags 
+
+anyN  = grey:N or grey:NE or grey:NW
+anyS  = grey:S or grey:SE or grey:SW
+anyW  = grey:W or grey:NW or grey:SW
+anyE  = grey:E or grey:NE or grey:SE
+
+goal   = goalB or goalR
+actor  = playerB or playerR
+
+noRed:N = redE or redS or redW or redSx
+noRed:E = redN or redS or redW or redxW
+noRed:S = redN or redE or redW or redNx
+noRed:W = redN or redS or redE or redxE
+
+=======
+SOUNDS
+=======
+
+EndLevel 8178103
+sfx0 79774904
+sfx1 62319508
+sfx2 27451109
+
+================
+COLLISIONLAYERS
+================
+
+Background
+grid
+nudge 
+wall 
+grey
+red
+goalR
+goalB
+playerR
+playerB
+star
+
+======
+RULES
+======
+(init) 
+[ background no wall ] -> [ grid ] 
+[ goal  wall | no wall ] -> [ wall | goal ] 
+[ actor wall | no wall ] -> [ wall | actor ] 
+
+[ action PlayerB grey no red ] [ PlayerR red ] -> [ PlayerB grey PlayerR ] []
+
+up    [ > Player ] [ red no anyN ] -> cancel sfx0
+down  [ > Player ] [ red no anyS ] -> cancel sfx0
+left  [ > Player ] [ red no anyW ] -> cancel sfx0
+right [ > Player ] [ red no anyE ] -> cancel sfx0
+
+[redN] [ stationary player no grey ] -> [redN] [ up player ] 
+[redE] [ stationary player no grey ] -> [redE] [ right player ] 
+[redS] [ stationary player no grey ] -> [redS] [ down player ] 
+[redW] [ stationary player no grey ] -> [redW] [ left player ] 
+
+(orthognal step)
+[ > player | ] [ redO ] -> [ | player ] [ redO ] 
+
+(diagonal step)
+vertical   [ > player no nudge | ] [ redxE ] -> [ | right Player nudge ] [ redxE ]
+vertical   [ > player no nudge | ] [ redxW ] -> [ | left  Player nudge ] [ redxW ]
+horizontal [ > player no nudge | ] [ redNx ] -> [ | up    Player nudge ] [ redNx ]
+horizontal [ > player no nudge | ] [ redSx ] -> [ | down  Player nudge ] [ redSx ]
+
+[ Player wall ] -> cancel
+
+late [ nudge ] -> []
+late [ red no PlayerR ] -> []
+late dirs [ PlayerR grey:dirs no red ] ->  [ PlayerR grey:dirs red:dirs ] 
+late dags [ PlayerR grey:dags no red ] ->  [ PlayerR grey:dags red:dags ] 
+
+late [ player no red no goal ] -> [ player ] again
+
+==============
+WINCONDITIONS
+==============
+
+Some playerB on goalB
+Some playerR on goalR
+no nudge
+
+=======
+LEVELS
+=======
+
+Message The blue square always moves in the direction indicated by the red arrow. Use ACTION to refocus the red arrow in the blue square.\n\nGOAL: find a route to the bottom-right corner
+
+
+xxcxxxx
+x.2.4.x
+x4.5.5x
+x.3.7.x
+x2.1.4x
+x.0.7.x
+xxxxxfx
+
+xcxxxxx
+x42555x
+x44765x
+x34217x
+x16255x
+x00124x
+xxxxxfx
+
+xcxxxxx
+x.....x
+x.....x
+x.....x
+x.....x
+x.....x
+xxxxxxx
