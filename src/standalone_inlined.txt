@@ -11889,7 +11889,9 @@ let caseSensitive = false;
 
 // used here and in compiler
 const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
-const reg_objectname = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u; // accepted by parser subject to later expansion
+const reg_name = /^[\p{L}\p{N}_$]+/u;
+const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
+const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
 const reg_objmodi = /^(canvas|copy|flip|rot|scale|shift|text|translate):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
@@ -11905,7 +11907,8 @@ let directions_only = ['>', '\<', '\^', 'v', 'up', 'down', 'left', 'right', 'act
     'stationary', 'no', 'randomdir', 'random', 'horizontal', 'vertical', 'orthogonal', 'perpendicular', 'parallel'];
 const mouse_clicks_table = ['lclick', 'rclick']; // gets appended
 
-const clockwiseDirections = ['up', 'right', 'down', 'left', '^', '>', 'v', '<' ];
+// Note: '^', '>', 'v', '<' seems more logical, but is not compatible
+const clockwiseDirections = ['up', 'right', 'down', 'left', '>', 'v', '<', '^' ];
 
 const cwdIndexOf = dir => clockwiseDirections.indexOf(dir) % 4;
 
@@ -12124,7 +12127,7 @@ var codeMirrorFn = function() {
         return [name];
     }
 
-    function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
+    function registerOriginalCaseName(state,candname,lineNumber){
         function escapeRegExp(str) {
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
         }
@@ -12132,7 +12135,7 @@ var codeMirrorFn = function() {
         const nameFinder = state.case_sensitive 
             ? new RegExp("\\b" + escapeRegExp(candname) + "\\b")
             : new RegExp("\\b" + escapeRegExp(candname) + "\\b", "i");
-        var match = mixedCase.match(nameFinder);
+        var match = state.mixedCase.match(nameFinder);
         if (match!=null){
             state.original_case_names[candname] = match[0];
             state.original_line_numbers[candname] = lineNumber;
@@ -12178,6 +12181,7 @@ var codeMirrorFn = function() {
             this.stream.pos = this.matchPos;
         }
 
+        // check for regex, return token or null if no match
         check(regex) {
             const token = this.stream.match(regex, false);
             return !token ? null : token[0];
@@ -12232,14 +12236,6 @@ var codeMirrorFn = function() {
 
         matchToken(tolower) {
             return this.match(/^\S+/, tolower);
-        }
-    
-        matchName(tolower) {
-            return this.match(/^[\p{L}\p{N}_$]+/u, tolower);
-        }
-    
-        matchObjectName(tolower) {
-            return this.match(/^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u, tolower);
         }
     
         matchObjectGlyph(tolower) {
@@ -12482,7 +12478,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.matchName(!state.case_sensitive)) {
+            if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.id = token;
                 if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
@@ -12512,7 +12508,7 @@ var codeMirrorFn = function() {
             symbols.members = [];
             while (true) {
                 // todo: handle recursive tag defs
-                if (token = lexer.matchName(!state.case_sensitive)) {
+                if (token = lexer.match(reg_name, !state.case_sensitive)) {
                     symbols.members.push(token);
                     lexer.pushToken(token, 'NAME');
                 } else {
@@ -12558,7 +12554,7 @@ var codeMirrorFn = function() {
             let token
             
             lexer.matchComment();
-            if (token = lexer.matchName(!state.case_sensitive)) {
+            if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.lhs = token;
                 if (!(isDeclaredAs(state, token) == 'tag')) {       // todo: propobj
                     logError(`Expected a TAG name but "${errorCase(token)}" is not one.`, state.lineNumber);
@@ -12584,7 +12580,7 @@ var codeMirrorFn = function() {
             }
 
             lexer.matchComment();
-            if (token = lexer.matchName(!state.case_sensitive)) {
+            if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.rhs = token;
                 if (isAlreadyDeclared(state, token)) {
                     logError(`You cannot define a mapping called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
@@ -12631,7 +12627,7 @@ var codeMirrorFn = function() {
             
             lexer.matchComment();
             symbols.lhs = [];
-            while (token = lexer.matchName(!state.case_sensitive)) {
+            while (token = lexer.match(reg_name, !state.case_sensitive)) {
                 if (!state.tags[mapping.fromKey].includes(token)) {      // todo: prop
                     logError(`The name "${errorCase(token)}" needs to be defined by "${errorCase(mapping.fromKey)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -12653,7 +12649,7 @@ var codeMirrorFn = function() {
 
             lexer.matchComment();
             symbols.rhs = [];
-            while (token = lexer.matchName(!state.case_sensitive)) {
+            while (token = lexer.match(reg_name, !state.case_sensitive)) {
                 if (!token) {      // what do we not allow?
                     logError(`The name "${errorCase(token)}" is a very bad thing.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
@@ -12687,7 +12683,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token list
     // nameline ::= symbol { symbol | glyph } transforms
-    function parseObjectName(stream, state, mixedCase) {
+    function parseObjectName(stream, state) {
         const lexer = new Lexer(stream, state);
         const symbols = {};
         const aliases = [];
@@ -12698,7 +12694,7 @@ var codeMirrorFn = function() {
         // build a list of tokens and kinds
         function getTokens() {
             if (state.case_sensitive)
-                stream.string = mixedCase;
+                stream.string = state.mixedCase;
             lexer.matchComment();
 
             while (true) {
@@ -12709,7 +12705,7 @@ var codeMirrorFn = function() {
                 if (symbols.candname && lexer.check(reg_objmodi)) {
                     break;
                 // first name must be an object, glyph allowed after that
-                } else if ((token = lexer.matchObjectName(!state.case_sensitive) 
+                } else if ((token = lexer.match(reg_objectname, !state.case_sensitive) 
                     || (symbols.candname && lexer.matchObjectGlyph(!state.case_sensitive)))) {
                     if (state.legend_synonyms.some(s => s[0] == token)) {
                         logError(`Name "${errorCase(token)}" already in use.`, state.lineNumber);
@@ -12730,7 +12726,7 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid object name in OBJECT section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                    lexer.matchNotComment();
+                    lexer.pushToken(lexer.matchAll(), 'ERROR');
                     break;
                 } else throw 'name';
             }
@@ -12739,7 +12735,7 @@ var codeMirrorFn = function() {
 
         function setState() {
             const candname = state.objects_candname = symbols.candname;
-            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            registerOriginalCaseName(state, candname, state.lineNumber);
 
             // use existing if there is one, to maintain the correct order of addition
             // preserve colors and sprite matrix, not transforms
@@ -12757,7 +12753,7 @@ var codeMirrorFn = function() {
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
                 createAlias(state, cnlc, candname, state.lineNumber);
             for (const alias of aliases) {
-                registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
+                registerOriginalCaseName(state, alias, state.lineNumber);
                 createAlias(state, alias, candname, state.lineNumber);
             }
         }
@@ -12826,6 +12822,13 @@ var codeMirrorFn = function() {
                 state.objects_section = 0;
                 return true;
             }    
+
+            if (token = lexer.match(/^\{[^}]*\}/, false)) {
+                logError(`This ${token} looks rather like a piece of JSON. Did you maybe leave out "CANVAS:"?`, state.lineNumber);
+                lexer.pushToken(token, kind);
+                lexer.pushToken(lexer.matchAll(), kind);
+                return false;
+            }
 
             while (!stream.eol()) {
                 let token = lexer.next();
@@ -12927,7 +12930,7 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
 
                     kind = 'ERROR';
-                    if (!(token = lexer.matchObjectName(!state.case_sensitive)))      // ?? glyph too?
+                    if (!(token = lexer.match(reg_objectname, !state.case_sensitive)))      // ?? glyph too?
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
@@ -12957,8 +12960,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    //token = lexer.match(/^[a-z^<>]+/i,  true);
-                    token = lexer.matchObjectName(true) || lexer.match(/^[<v>^]/);
+                    token = lexer.match(/^[a-z^<>]+/i,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
@@ -13069,8 +13071,10 @@ var codeMirrorFn = function() {
         if (newobjects) {
             // add new objects but do not overwrite existing
             for (const [newid, newvalue] of newobjects)
-                if (!Object.hasOwn(state.objects, newid))
+                if (!Object.hasOwn(state.objects, newid)) {
                     state.objects[newid] = newvalue;
+                    registerOriginalCaseName(state, newid, state.lineNumber);
+                }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
@@ -13115,7 +13119,7 @@ var codeMirrorFn = function() {
                 } else {
                     logError("Was expecting a sound seed here (a number like 123123, like you generate by pressing the buttons above the console panel), but found something else.", state.lineNumber);                                
                 }
-            } else if (token = lexer.matchObjectName(!state.case_sensitive)) {
+            } else if (token = lexer.match(reg_objectname, !state.case_sensitive)) {
                 // player move [ up... ] 142315...
                 const tobjects = getObjectRefs(state, token);
                 if (!tobjects) {
@@ -13179,7 +13183,7 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    function parseLegendLine(stream, state, mixedCase) {
+    function parseLegendLine(stream, state) {
         const lexer = new Lexer(stream, state);
         const names = [];
         const symbols = {};
@@ -13192,7 +13196,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+            if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 symbols.newname = token;
                 const defname = isAlreadyDeclared(state, token);
                 if (defname)
@@ -13214,7 +13218,7 @@ var codeMirrorFn = function() {
 
             while (true) {
                 let kind = 'ERROR';
-                if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+                if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     const tobjects = getObjectRefs(state, token);
                     if (!tobjects) {
                         const undef = getObjectUndefs(state, token);
@@ -13258,21 +13262,21 @@ var codeMirrorFn = function() {
 
         function setState() {
             if (names.length == 1) {
-                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);  // tofix:
+                registerOriginalCaseName(state, symbols.newname, state.lineNumber);  // tofix:
                 createAlias(state, symbols.newname, names[0], state.lineNumber);
             } else if (symbols.andor == 'and') {
                 const newlegend = [ symbols.newname, ...names
                     .flatMap(n => expandSymbol(state, n, true, 
                         () => logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber))) ];
                 newlegend.lineNumber = state.lineNumber;
-                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
+                registerOriginalCaseName(state, symbols.newname, state.lineNumber);
                 state.legend_aggregates.push(newlegend);
             } else { // == 'or'
                 const newlegend = [ symbols.newname, ...names
                     .flatMap(n => expandSymbol(state, n, false,
                         () => logError("Cannot define a property (something defined in terms of 'or') in terms of aggregates (something that uses 'and').", state.lineNumber))) ];
                 newlegend.lineNumber = state.lineNumber;
-                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
+                registerOriginalCaseName(state, symbols.newname, state.lineNumber);
                 state.legend_properties.push(newlegend);
             }
         }
@@ -13314,7 +13318,7 @@ var codeMirrorFn = function() {
                         prearrow = idents.length;
                         lexer.pushToken(token, 'LOGICWORD');
                     }
-                } else if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+                } else if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                     let kind = 'ERROR';
                     const trefs = getObjectRefs(state, token);   // do we need this?
                     if (token == 'background' && idents.length != 0)
@@ -13500,7 +13504,7 @@ var codeMirrorFn = function() {
 
         function getIdent() {
             let token
-            if (token = lexer.matchObjectName(!state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
+            if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
                 if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
                     logError(`Error in win condition: "${errorCase(token)}" is not a valid object name.`, state.lineNumber);
@@ -13547,7 +13551,7 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, `${errorCase(token)}_VERB`);
 
                 if (token == 'link') {
-                    if (!(token = lexer.matchObjectName())) 
+                    if (!(token = lexer.match(reg_objectname, !state.case_sensitive))) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
                     else if (!isAlreadyDeclared(state, token))
                         logError(`LINK object "${errorCase(token)}" not found, it needs to be already defined.`, state.lineNumber);
@@ -13688,11 +13692,12 @@ var codeMirrorFn = function() {
             //console.log(`get token`, lastStream);
             //--- guard against looping?
 
-            var mixedCase = stream.string;
+            state.mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
                 state.current_line_wip_array = [];
+                state.original_line = stream.string;
 
                 // PS+ leaves original text unchanged, which means a lot of checking in other places
                 if(!state.case_sensitive) {
@@ -13751,13 +13756,13 @@ var codeMirrorFn = function() {
             // per section specific parsing
             switch (state.section) {
                 case '': {
-                    stream.string = mixedCase;  // put it back, for now!
+                    stream.string = state.mixedCase;  // put it back, for now!
                     state.current_line_wip_array = parsePrelude(stream, state);
                     return flushToken();
 
                 }
                 case 'tags': {
-                    state.current_line_wip_array = parseTagsLine(stream, state, mixedCase);
+                    state.current_line_wip_array = parseTagsLine(stream, state);
                     return flushToken();
                 }
                 case 'mappings': {
@@ -13773,65 +13778,60 @@ var codeMirrorFn = function() {
                 }
 
                 // Objects parsing is all LL(1):
-                // object alias* (prop : value?)*
+                // object alias* ( prop: value? )*
                 // ( colour+ )?
-                // ( digit+ )*
-                // ( json )*
-                // ( prop+ )*
+                // ( digit+ )* | ( json )*
+                // ( prop: value? )*
 
                 case 'objects': {
-                    if (sol) {  // start of line, no previous blank line, what to do?
-                        if (state.objects_section >0 && stream.match(reg_objmodi, false)) {
-                            state.objects_section = 5;
-                        } else if (state.objects_section == 3 || state.objects_section == 4) {
-                            // no blank line: criterion for end sprite: <= 10 colours, first char not [.\d], match for object name
-                            if (state.objects[state.objects_candname].colors.length <= 10 && !state.objects[state.objects_candname].vector 
-                                && !stream.match(/^[.\d]/, false))
-                                state.objects_section = 0;
-                        }
+                    // start of line, special for no blank line
+                    if (sol && (state.objects_section == 3 || state.objects_section == 4)) {
+                        // no blank line: criterion for end sprite: <= 10 colours, line matches object and not transform
+                        if (state.objects[state.objects_candname].colors.length <= 10 
+                          && !state.objects[state.objects_candname].vector 
+                          && !stream.match(/^[.\d]/, false)
+                          && !stream.match(reg_objmodi, false))
+                            state.objects_section = 0;
                     }
-                    if (state.objects_section == 0) {
+                    if (sol && state.objects_section == 0) {
                         expandLastObject(state);
                         state.objects_candname = null;
                         state.current_line_wip_array = [];
                         state.objects_section = 1;
                     }
 
-                    //if (sol) console.log(`${state.lineNumber}: (${state.section}:${state.objects_section}): ${stream.string}`);
-                    if (sol)
-                        state.current_line_wip_array['mixed'] = mixedCase;
-                    else mixedCase = state.current_line_wip_array['mixed'];
-                    if (!mixedCase) throw 'mix';
+                    // if (sol) ???
+                    //     state.current_line_wip_array['mixed'] = mixedCase;
+                    // else mixedCase = state.current_line_wip_array['mixed'];
+                    // if (!mixedCase) throw 'mix';
 
-                    //console.log(`objects_section ${state.objects_section} at ${state.lineNumber}: ${mixedCase}`);
                     switch (state.objects_section) {
                     case 1: {
-                            state.current_line_wip_array.push(...parseObjectName(stream, state, mixedCase));
+                            state.current_line_wip_array.push(...parseObjectName(stream, state));
                             if (state.objects_candname) {
                                 if (stream.match(reg_objmodi, false))
                                     state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
-                                state.objects_section++;
+                                state.objects_section = 2;
                             }
                             return flushToken();
                         }
                     case 2: 
-                        if (stream.match(/^[#\w]+/, false)) {
+                        state.objects_section = 3;
+                        if (stream.match(/^[#\w]+/, false) && !stream.match(reg_objmodi, false)) {
                             state.current_line_wip_array.push(...parseObjectColors(stream, state));
-                            state.objects_section++;
                             return flushToken();
-                        } else {
-                            state.objects_section++;
-                            // fall through
-                        }
+                        } // else fall through
                     case 3: 
-                    case 4: {
-                            stream.string = mixedCase;
+                    case 4:
+                        if (stream.match(reg_objmodi, false)) {
+                            state.objects_section = 5; // fall through
+                        } else {
+                            stream.string = state.mixedCase;
                             const tokens = state.objects[state.objects_candname].vector 
                                 ? parseObjectVector(stream, state) 
                                 : parseObjectSprite(stream, state);
                             state.current_line_wip_array.push(...tokens);
-                            if (state.objects_section == 3)  // text:?
-                                state.objects_section++;
+                            state.objects_section = 4;
                             return flushToken();
                         }
                     case 5: {
@@ -13843,12 +13843,12 @@ var codeMirrorFn = function() {
                 }
 
                 case 'legend': {
-                    state.current_line_wip_array = parseLegendLine(stream, state, mixedCase);
+                    state.current_line_wip_array = parseLegendLine(stream, state);
                     return flushToken();
                 }
 
                 case 'sounds': {
-                    stream.string = mixedCase;
+                    stream.string = state.mixedCase;
                     state.current_line_wip_array = parseSoundLine(stream, state);
                     return flushToken();
                 }
@@ -13860,7 +13860,7 @@ var codeMirrorFn = function() {
                 case 'rules': {
                         if (sol) {
                             var rule = reg_notcommentstart.exec(stream.string)[0];
-                            state.rules.push([rule, state.lineNumber, mixedCase]);
+                            state.rules.push([rule, state.lineNumber, state.mixedCase]);
                             state.tokenIndex = 0;//in rules, records whether bracket has been found or not
                         }
 
@@ -13902,7 +13902,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectname) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
+                                } else if (m.match(reg_objectnamerel) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
                                     return 'NAME';
                                 }
                                 
@@ -13928,7 +13928,7 @@ var codeMirrorFn = function() {
                     return flushToken();
                 }
                 case 'levels': {
-                    stream.string = mixedCase;
+                    stream.string = state.mixedCase;
                     state.current_line_wip_array = parseLevel(stream, state);
                     return flushToken();
                 }

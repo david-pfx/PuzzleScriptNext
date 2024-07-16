@@ -15,14 +15,16 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g14. 
+The latest version is Release v-24g16. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
 New fixes:
+* Editing objects that contain tags in the LEGEND and elsewhere no longer causes a crash.
+* An error in the ordering of expanding relative directions (`<>^v`) introduced in the previous release has been reverted.
 * Using `rot:` or other transforms with no or bad arguments no longer causes a crash.
 * Ctrl+X and Ctrl+B are no longer used as shortcuts but are passed through to the editor.
-The ctrl+shift+R shortcut for replace all now works correctly in CodeMirror.
+The ctrl+shift+R shortcut for 'replace all' now works correctly in the editor.
 See [Keyboard Shortcuts](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/keyboard_shortcuts.html).
 * Keys used by the game but discarded are no longer passed through to the editor.
 * Escape to pause in a message now works correctly.
