@@ -42,6 +42,12 @@ cnv0 a canvas: (for copy testing)
 
 
 // parsing tests - uncomment to test errors but no crash
+//zzc //canvas:
+//{"!include":"rect1"} {"fillStyle":"red"} {"fill":[]}
+//{"!include":"rect2"} {"fillStyle":"blue"} {"fill":[]}
+//{"!include":"rect3"} {"fillStyle":"green"} {"fill":[]}
+//rot:up:>
+
 //zzt copy:wall translate: translate:aaa translate:up:aaa translate:up:3: translate:up:3:aaa
 
 //zzs copy:wall shift: shift:aaa shift:up:aaa shift:up:3: shift:up:3:aaa

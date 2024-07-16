@@ -339,8 +339,9 @@
                         // if (matchWord === curWord) continue;
                         if ((!curWord || matchWord.lastIndexOf(curWord, 0) == 0) && !Object.prototype.hasOwnProperty.call(seen, matchWord)) {
                             seen[matchWord] = true;
-                            var hint = state.original_case_names[w]; 
-                            list.push({text:hint,extra:"",tag:"NAME",render:renderHint});
+                            const hint = state.original_case_names[w]; 
+                            if (hint)       // no hint if object defined later than source line
+                                list.push({text:hint,extra:"",tag:"NAME",render:renderHint});
                         }
                     }
                 }
@@ -362,8 +363,9 @@
                         // if (matchWord === curWord) continue;
                         if ((!curWord || matchWord.lastIndexOf(curWord, 0) == 0) && !Object.prototype.hasOwnProperty.call(seen, matchWord)) {
                             seen[matchWord] = true;
-                            var hint = state.original_case_names[w]; 
-                            list.push({text:hint,extra:"",tag:"NAME",render:renderHint});
+                            const hint = state.original_case_names[w]; 
+                            if (hint)
+                                list.push({text:hint,extra:"",tag:"NAME",render:renderHint});
                         }
                     }
                 }
