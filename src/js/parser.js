@@ -1963,6 +1963,12 @@ var codeMirrorFn = function() {
                             return flushToken();
                         } // else fall through
                     case 3: 
+                        if (stream.match(/^text:/i, false)) {
+                            const tokens = parseObjectSprite(stream, state);
+                            state.current_line_wip_array.push(...tokens);
+                            state.objects_section = 0;
+                            return flushToken();
+                        } // else fall through
                     case 4:
                         if (stream.match(reg_objmodi, false)) {
                             state.objects_section = 5; // fall through

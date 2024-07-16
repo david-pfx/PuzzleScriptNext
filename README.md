@@ -15,29 +15,33 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24f28. 
-It includes an alpha release of canvas sprites based on canvas API calls.
-See below.
+The latest version is Release v-24g16. 
+It includes a beta release of canvas sprites based on canvas API calls.
+See below. Please try.
 
 New fixes:
-* The ctrl+shift+R shortcut for replace all now works correctly in CodeMirror.
-There are new ctrl+B and ctrl+X shortcuts.
+* Editing objects that contain tags in the LEGEND and elsewhere no longer causes a crash.
+* An error in the ordering of expanding relative directions (`<>^v`) introduced in the previous release has been reverted.
+* Using `rot:` or other transforms with no or bad arguments no longer causes a crash.
+* Ctrl+X and Ctrl+B are no longer used as shortcuts but are passed through to the editor.
+The ctrl+shift+R shortcut for 'replace all' now works correctly in the editor.
 See [Keyboard Shortcuts](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/keyboard_shortcuts.html).
-* Escape from message now works correctly.
+* Keys used by the game but discarded are no longer passed through to the editor.
+* Escape to pause in a message now works correctly.
 * Gosub now works correctly when a return lands on another return.
 * The editor now correctly loads the last saved file on start up.
 * The documentation for directions has been improved.
+See [Directions](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/directions.html).
 * Checkpoints are no longer lost when the program is interrupted or restarted at the title menu. 
 Note: this behaviour is widely expected, but is not documented.
 * A child object that defines no sprite and/or colour inherits them from its parent (hat tricks).
 * The `share` link now targets the correct URL wherever it is hosted.
-* Two text objects with same content no longer get the same colour.
-* Using `rot:` with no arguments no longer causes a crash.
+* Two text objects with the same content no longer get the same colour.
 
 Recent new features include the following. For detail see the documentation.
 * Level branching based on a LINK command, and a test program showing how it can be used.
 * A new debugging command `log`, which writes a message to the console.
-* The menus now more distinctively identify this is PuzzleScript Next.
+* The menus now more distinctively identify this as PuzzleScript Next.
 
 Several other bugs have already been fixed.
 * Inline expansion of rules referring to the absence of an object by a relative reference now works correctly.

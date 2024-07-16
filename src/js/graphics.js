@@ -641,7 +641,7 @@ function redrawCellGrid(curlevel) {
                         //if (obj.scale) spriteScale *= obj.scale;
                         const drawpos = render.getDrawPos(posindex, obj);
                         const vector = obj.vector;
-                        const params = {
+                        let params = {
                             x: 0, y: 0,
                             scalex: 1.0, scaley: 1.0,
                             alpha: 1.0,
