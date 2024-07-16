@@ -267,7 +267,7 @@ var codeMirrorFn = function() {
         return [name];
     }
 
-    function registerOriginalCaseName(state,candname,mixedCase,lineNumber){
+    function registerOriginalCaseName(state,candname,lineNumber){
         function escapeRegExp(str) {
             return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
         }
@@ -275,7 +275,7 @@ var codeMirrorFn = function() {
         const nameFinder = state.case_sensitive 
             ? new RegExp("\\b" + escapeRegExp(candname) + "\\b")
             : new RegExp("\\b" + escapeRegExp(candname) + "\\b", "i");
-        var match = mixedCase.match(nameFinder);
+        var match = state.mixedCase.match(nameFinder);
         if (match!=null){
             state.original_case_names[candname] = match[0];
             state.original_line_numbers[candname] = lineNumber;
@@ -823,7 +823,7 @@ var codeMirrorFn = function() {
     ////////////////////////////////////////////////////////////////////////////
     // parse and store an object name, return token list
     // nameline ::= symbol { symbol | glyph } transforms
-    function parseObjectName(stream, state, mixedCase) {
+    function parseObjectName(stream, state) {
         const lexer = new Lexer(stream, state);
         const symbols = {};
         const aliases = [];
@@ -834,7 +834,7 @@ var codeMirrorFn = function() {
         // build a list of tokens and kinds
         function getTokens() {
             if (state.case_sensitive)
-                stream.string = mixedCase;
+                stream.string = state.mixedCase;
             lexer.matchComment();
 
             while (true) {
@@ -875,7 +875,7 @@ var codeMirrorFn = function() {
 
         function setState() {
             const candname = state.objects_candname = symbols.candname;
-            registerOriginalCaseName(state, candname, mixedCase, state.lineNumber);
+            registerOriginalCaseName(state, candname, state.lineNumber);
 
             // use existing if there is one, to maintain the correct order of addition
             // preserve colors and sprite matrix, not transforms
@@ -893,7 +893,7 @@ var codeMirrorFn = function() {
             if (candname != cnlc && [ "background", "player" ].includes(cnlc))
                 createAlias(state, cnlc, candname, state.lineNumber);
             for (const alias of aliases) {
-                registerOriginalCaseName(state, alias, mixedCase, state.lineNumber);
+                registerOriginalCaseName(state, alias, state.lineNumber);
                 createAlias(state, alias, candname, state.lineNumber);
             }
         }
@@ -1211,8 +1211,10 @@ var codeMirrorFn = function() {
         if (newobjects) {
             // add new objects but do not overwrite existing
             for (const [newid, newvalue] of newobjects)
-                if (!Object.hasOwn(state.objects, newid))
+                if (!Object.hasOwn(state.objects, newid)) {
                     state.objects[newid] = newvalue;
+                    registerOriginalCaseName(state, newid, state.lineNumber);
+                }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
@@ -1321,7 +1323,7 @@ var codeMirrorFn = function() {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    function parseLegendLine(stream, state, mixedCase) {
+    function parseLegendLine(stream, state) {
         const lexer = new Lexer(stream, state);
         const names = [];
         const symbols = {};
@@ -1400,21 +1402,21 @@ var codeMirrorFn = function() {
 
         function setState() {
             if (names.length == 1) {
-                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);  // tofix:
+                registerOriginalCaseName(state, symbols.newname, state.lineNumber);  // tofix:
                 createAlias(state, symbols.newname, names[0], state.lineNumber);
             } else if (symbols.andor == 'and') {
                 const newlegend = [ symbols.newname, ...names
                     .flatMap(n => expandSymbol(state, n, true, 
                         () => logError("Cannot define an aggregate (using 'and') in terms of properties (something that uses 'or').", state.lineNumber))) ];
                 newlegend.lineNumber = state.lineNumber;
-                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
+                registerOriginalCaseName(state, symbols.newname, state.lineNumber);
                 state.legend_aggregates.push(newlegend);
             } else { // == 'or'
                 const newlegend = [ symbols.newname, ...names
                     .flatMap(n => expandSymbol(state, n, false,
                         () => logError("Cannot define a property (something defined in terms of 'or') in terms of aggregates (something that uses 'and').", state.lineNumber))) ];
                 newlegend.lineNumber = state.lineNumber;
-                registerOriginalCaseName(state, symbols.newname, mixedCase, state.lineNumber);
+                registerOriginalCaseName(state, symbols.newname, state.lineNumber);
                 state.legend_properties.push(newlegend);
             }
         }
@@ -1830,7 +1832,7 @@ var codeMirrorFn = function() {
             //console.log(`get token`, lastStream);
             //--- guard against looping?
 
-            var mixedCase = stream.string;
+            state.mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
@@ -1894,13 +1896,13 @@ var codeMirrorFn = function() {
             // per section specific parsing
             switch (state.section) {
                 case '': {
-                    stream.string = mixedCase;  // put it back, for now!
+                    stream.string = state.mixedCase;  // put it back, for now!
                     state.current_line_wip_array = parsePrelude(stream, state);
                     return flushToken();
 
                 }
                 case 'tags': {
-                    state.current_line_wip_array = parseTagsLine(stream, state, mixedCase);
+                    state.current_line_wip_array = parseTagsLine(stream, state);
                     return flushToken();
                 }
                 case 'mappings': {
@@ -1945,7 +1947,7 @@ var codeMirrorFn = function() {
 
                     switch (state.objects_section) {
                     case 1: {
-                            state.current_line_wip_array.push(...parseObjectName(stream, state, mixedCase));
+                            state.current_line_wip_array.push(...parseObjectName(stream, state));
                             if (state.objects_candname) {
                                 if (stream.match(reg_objmodi, false))
                                     state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
@@ -1964,7 +1966,7 @@ var codeMirrorFn = function() {
                         if (stream.match(reg_objmodi, false)) {
                             state.objects_section = 5; // fall through
                         } else {
-                            stream.string = mixedCase;
+                            stream.string = state.mixedCase;
                             const tokens = state.objects[state.objects_candname].vector 
                                 ? parseObjectVector(stream, state) 
                                 : parseObjectSprite(stream, state);
@@ -1981,12 +1983,12 @@ var codeMirrorFn = function() {
                 }
 
                 case 'legend': {
-                    state.current_line_wip_array = parseLegendLine(stream, state, mixedCase);
+                    state.current_line_wip_array = parseLegendLine(stream, state);
                     return flushToken();
                 }
 
                 case 'sounds': {
-                    stream.string = mixedCase;
+                    stream.string = state.mixedCase;
                     state.current_line_wip_array = parseSoundLine(stream, state);
                     return flushToken();
                 }
@@ -1998,7 +2000,7 @@ var codeMirrorFn = function() {
                 case 'rules': {
                         if (sol) {
                             var rule = reg_notcommentstart.exec(stream.string)[0];
-                            state.rules.push([rule, state.lineNumber, mixedCase]);
+                            state.rules.push([rule, state.lineNumber, state.mixedCase]);
                             state.tokenIndex = 0;//in rules, records whether bracket has been found or not
                         }
 
@@ -2066,7 +2068,7 @@ var codeMirrorFn = function() {
                     return flushToken();
                 }
                 case 'levels': {
-                    stream.string = mixedCase;
+                    stream.string = state.mixedCase;
                     state.current_line_wip_array = parseLevel(stream, state);
                     return flushToken();
                 }
