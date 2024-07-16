@@ -1780,6 +1780,7 @@ var codeMirrorFn = function() {
                 tokenIndex: state.tokenIndex,
                 // PS+ SECTION command argument if any
                 current_line_wip_array: state.current_line_wip_array.slice(),
+                mixedCase: state.mixedCase,
 
                 legend_synonyms: state.legend_synonyms.map(p => p.slice()),
                 legend_aggregates: state.legend_aggregates.map(p => p.slice()),
@@ -2123,6 +2124,7 @@ var codeMirrorFn = function() {
                 tokenIndex: 0,
 
                 current_line_wip_array: [],
+                mixedCase: '',
 
                 legend_synonyms: [],
                 legend_aggregates: [],
