@@ -1982,7 +1982,6 @@ var codeMirrorFn = function() {
                         }
                     case 5: {
                             state.current_line_wip_array.push(...parseObjectTransforms(stream, state));
-                            state.objects_section = 0;
                             return flushToken();
                         }
                     }
