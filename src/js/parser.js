@@ -1818,7 +1818,7 @@ var codeMirrorFn = function() {
             blankLineHandle(state);
         },
         // function is called to successively find tokens and return a token type in a source code line
-        // note: there is no end of line marker, the next line will follow immediately
+        // note: there is no end of line marker, the next line will follow immediately but with sol() set
         token: function(stream, state) {
             // these sections may have pre-loaded tokens, to be cleared before *anything* else
             if (state.current_line_wip_array.length > 0 && !['rules'].includes(state.section)) {
@@ -1833,10 +1833,11 @@ var codeMirrorFn = function() {
             //console.log(`get token`, lastStream);
             //--- guard against looping?
 
-            state.mixedCase = stream.string;
             //console.log(`Input line ${mixedCase}`)
             var sol = stream.sol();
             if (sol) {
+                // Note: used in case insensitive objects, levels, text and editor hints.
+                state.mixedCase = stream.string;
                 state.current_line_wip_array = [];
                 state.original_line = stream.string;
 
@@ -1941,11 +1942,6 @@ var codeMirrorFn = function() {
                         state.objects_section = 1;
                     }
 
-                    // if (sol) ???
-                    //     state.current_line_wip_array['mixed'] = mixedCase;
-                    // else mixedCase = state.current_line_wip_array['mixed'];
-                    // if (!mixedCase) throw 'mix';
-
                     switch (state.objects_section) {
                     case 1: {
                             state.current_line_wip_array.push(...parseObjectName(stream, state));
@@ -1964,6 +1960,7 @@ var codeMirrorFn = function() {
                         } // else fall through
                     case 3: 
                         if (stream.match(/^text:/i, false)) {
+                            stream.string = state.mixedCase;
                             const tokens = parseObjectSprite(stream, state);
                             state.current_line_wip_array.push(...tokens);
                             state.objects_section = 0;
