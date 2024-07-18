@@ -45,14 +45,25 @@ RULES
 ======
 
 [ > p | r ] -> [ > p | > r ]
-[ g ] -> gosub the sub
+[ right p ][ g ] -> gosub add green
+
+// bug: does not loop after gosub
+startloop
+    //right [ left p ][ g | g | no g ] -> [ left p ][ g | action g | no g ]
+    //right [ left p ][ g | action g ] -> [ left p ][ g | no g ]
+    [ left p ][ g ] -> gosub del green
+endloop
 
 subroutine never call this
-right [ ] -> [ k ]
+    right [ ] -> [ k ]
 
-subroutine the sub
-right [ g | no g ] -> [ action g | ]
-right [ action g | no g ] -> [ g | g ]
+subroutine add green
+    right [ g | no g ] -> [ action g | ]
+    right [ action g | no g ] -> [ g | g ]
+
+subroutine del green
+    right [ g | g | no g ] -> [ g | action g | no g ]
+    right [ g | action g ] -> [ g | no g ]
 
 ==============
 WINCONDITIONS
