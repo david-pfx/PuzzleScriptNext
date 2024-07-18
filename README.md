@@ -15,7 +15,7 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g16. 
+The latest version is Release v-24g18. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
