@@ -39,7 +39,7 @@ y;yellow
 k;pink
 
 // 3 filled circles, one after the other
-3 canvas:2,1
+blob:directions canvas:2,1
 //
 // this is the first blob
 {"beginPath":[]}{"fillStyle":"#C0C0C0"}
@@ -54,6 +54,7 @@ k;pink
 {"fillStyle":"black"}
 {"arc":[0.5,0.5,0.4,0,6.28]}
 {"fill":[]}
+rot:up:>
 
 man m canvas:
 {"beginPath":[]}
@@ -121,6 +122,10 @@ u canvas:
 LEGEND
 =======
 . = Background
+3 = blob:up
+4 = blob:right
+5 = blob:down
+6 = blob:left
 
 =======
 SOUNDS
@@ -130,7 +135,7 @@ COLLISIONLAYERS
 ================
 Background
 --
-3
+3,4,5,6
 --
 m,n,o,q,s,t,u,w,x,z
 --
@@ -160,7 +165,9 @@ LEVELS
 .............
 .m.n.o.q.s.t.
 .............
-.3..w..x..z..
+.3..4..5..6..
+.............
+....w..x..z..
 .............
 .u...........
 
