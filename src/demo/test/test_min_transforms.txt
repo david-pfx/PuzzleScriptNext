@@ -6,7 +6,7 @@ homepage www.polyomino.com
 
 verbose_logging
 debug
-
+debug_switch obj
 sprite_size 7
 
 ====
@@ -77,6 +77,10 @@ copy: f flip:right translate:right:3 shift:right rot:up:left
 b:t1;black red blue
 copy: a flip:t1
 
+u:dirs;blue yellow green
+copy:f flip:dirs translate:dirs:2 shift:dirs:1 rot:^:dirs
+
+w;purple
 r;red
 y;yellow
 
@@ -198,6 +202,8 @@ Player
 --
 a,b,c,d,e,f,g
 m,s,t,x
+u:dirs
+w
 h,i,j,k,l
 r
 y

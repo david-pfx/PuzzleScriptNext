@@ -623,9 +623,9 @@ var codeMirrorFn = function() {
                 if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                } else if (hasParts(token)) {
-                    logError(`You cannot use "${errorCase(token)}" to define a tag because it contains colons (":").`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
+                // } else if (hasParts(token)) {  // cannot happen
+                //     logError(`You cannot use "${errorCase(token)}" to define a tag because it contains colons (":").`, state.lineNumber);
+                //     lexer.pushToken(token, 'ERROR');
                 } else lexer.pushToken(token, 'NAME');
             } else {
                 token = lexer.matchNotComment();
@@ -1059,6 +1059,8 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
+            // same as reg_name plus : and reldirs
+            const reg_transform_args = /^[\p{L}\p{N}_$:<>^]+/u;
             while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
@@ -1100,7 +1102,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z^<>]+/i,  true);
+                    token = lexer.match(reg_transform_args,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
@@ -1119,8 +1121,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
-                    //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
+                    token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
                     const amt = args[1] ? +args[1] : 1;
@@ -1136,7 +1137,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
+                    token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
                     const amt = args[1] ? +args[1] : null;
@@ -1152,7 +1153,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z:^<>]+/i,  true);
+                    token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     if (args.length == 1) args.unshift('up');
                     const dir1 = isValidDirection(args[0]);
