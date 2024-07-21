@@ -265,7 +265,6 @@ function goToPauseScreen() {
 	generatePauseScreen();
 }
 
-let selectOption;
 function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 	if (debugSwitch.includes('menu')) console.log(`generatePauseScreen()`, hoverLine, scrollIncrement, selectLine);
 	const screen = getPauseScreen(state);
@@ -276,7 +275,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 		levelSelectScrollPos += scrollIncrement;
 
 	titleImage = fillAndHighlight(screen, levelSelectScrollPos, hoverLine, selectLine);
-	selectOption = selectLine - screen.options[0];
+	pauseSelection = (hoverLine >= 0 ? hoverLine : selectLine >= 0 ? selectLine : 0) - screen.options[0];
 	redraw();
 }
 
@@ -299,15 +298,14 @@ function selectPauseScreen(lineNo) {
 		} : null,
 		state.metadata.level_select ? () => {
 			gotoLevelSelectScreen();
-			//redraw();
 		} : null,
 		() => {
 			goToTitleScreen();
-			//redraw();
 		}
 	].filter(l => l != null);
 
-	options[selectOption]();
+	if (pauseSelection >= 0 && pauseSelection < options.length)
+		options[pauseSelection]();
 }
 
 function centerText(text, len, fill = " ") {
@@ -409,7 +407,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
 		levelSelectScrollPos++;
 
-	const solved_symbol = state.metadata.level_select_solve_symbol || "?";
+	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
 	titleSelection = selectLine == 0 ? 0 : null;
 	const lines = state.sections.map((section,i) => {
@@ -977,7 +975,6 @@ function setGameState(_state, command, randomseed) {
 			    timer=0;
 			    titleScreen=false;
 			    textMode=false;
-			    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 			    titleSelected=false;
 			    quittingMessageScreen=false;
 			    quittingTitleScreen=false;
@@ -997,7 +994,6 @@ function setGameState(_state, command, randomseed) {
 		    timer=0;
 		    titleScreen=false;
 		    textMode=false;
-		    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
@@ -1018,7 +1014,6 @@ function setGameState(_state, command, randomseed) {
 				    timer=0;
 				    titleScreen=false;
 				    textMode=false;
-				    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 				    titleSelected=false;
 				    quittingMessageScreen=false;
 				    quittingTitleScreen=false;
