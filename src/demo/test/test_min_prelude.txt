@@ -33,7 +33,7 @@ verbose_logging
 //--- param single
 color_palette amstrad
 //flickscreen 9x9
-level_select_solve_symbol ✓
+//level_select_solve_symbol ✓
 message_text_align asdf
 mouse_drag k
 mouse_left y

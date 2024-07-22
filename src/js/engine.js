@@ -120,7 +120,7 @@ function showContinueOptionOnTitleScreen(){
 }
 
 function hasStartedTheGame() {
-	return (curLevelNo>0||curlevelTarget!==null)&&(curLevelNo in state.levels);
+	return (curLevelNo>0 || curlevelTarget !== null || storage_has(document.URL+'_checkpoint')) && (curLevelNo in state.levels);
 }
 
 function hasFinishedTheGame() {
@@ -145,7 +145,7 @@ function unloadGame() {
 }
 
 function isContinueOptionSelected() {
-	return !state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE;
+	return state.metadata.skip_title_screen || (!state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE);
 }
 
 function isNewGameOptionSelected() {
@@ -418,14 +418,14 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
-			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24, "#");
+			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
 		}
 		return (solved ? solved_symbol : " ") + " " + name.padEnd(24);
 	});
 
 	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
 	const screen = getLevelSelectScreen(showLines);
-	console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	if (debugSwitch.includes('menu')) console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
 	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
 	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
@@ -3613,7 +3613,7 @@ function nextLevel() {
 			curlevelTarget=null;
 
 			if (state.metadata.level_select === undefined) {
-				clearLocalStorage();		//@@???
+				clearLocalStorage();
 			}
 
 			loadLevelFromStateOrTarget();
@@ -3728,6 +3728,7 @@ function resetFlickDat() {
 function updateLocalStorage() {
 	if (linkStack.length > 0)
 		return;
+	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, curlevelTarget);
 	try {
 		
 		storage_set(document.URL,curLevelNo);
@@ -3765,6 +3766,7 @@ function setSectionSolved(section) {
 }
 
 function clearLocalStorage() {
+	if (debugSwitch.includes('menu')) console.log(`clearLocalStorage`);
 	curLevelNo = 0;
 	curlevelTarget = null;
 	solvedSections = [];
