@@ -15,11 +15,18 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g18. 
+The latest version is Release v-24g24. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
-New fixes:
+New fixes/updates:
+* Title screen treats as continue if set checkpoint before winning first level
+* Highlight of selected level now less intrusive
+* `skip_title_screen` now working
+* Solve symbol default now "X" in code and docs
+* Fix parsing of non-alpha transform args
+* Fix menu click on level 1 to not go to title
+* Fix crash on menu click on non-menu lines
 * The display of upper case `text:` sprites has been corrected.
 * Deleting and replacing a script in the editor by cut and paste no longer causes a crash.
 * Editing objects that contain tags in the LEGEND and elsewhere no longer causes a crash.
