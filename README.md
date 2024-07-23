@@ -15,13 +15,15 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g16. 
+The latest version is Release v-24g18. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
 New fixes:
+* The display of upper case `text:` sprites has been corrected.
+* Deleting and replacing a script in the editor by cut and paste no longer causes a crash.
 * Editing objects that contain tags in the LEGEND and elsewhere no longer causes a crash.
-* An error in the ordering of expanding relative directions (`<>^v`) introduced in the previous release has been reverted.
+* The ordering of expanding relative directions (`<>^v`) has been corrected (Pattern:Script compatibility).
 * Using `rot:` or other transforms with no or bad arguments no longer causes a crash.
 * Ctrl+X and Ctrl+B are no longer used as shortcuts but are passed through to the editor.
 The ctrl+shift+R shortcut for 'replace all' now works correctly in the editor.
@@ -113,7 +115,7 @@ If you really need them to be same, use hex format colours (e.g. #FFA500) which 
 If you give sprites meaningful names and hover over a sprite to check its name before you click on it, this should help.
 
 4. Watch out for applying transforms to `copy:` objects that already have transforms applied.
-Likewise, applying multiple transforms to a single canvas sprite may not yield the same expected  result as the same list applied to a pixel sprite.
+Likewise, applying multiple transforms to a single canvas sprite may not yield the same expected result as the same list applied to a pixel sprite.
 Probably best to define a collection of transform-free base sprites and only apply transforms on the copies, but if in doubt, try it!
 
 5. As noted above, the `translate:` transform uses the `sprite_size` as the unit of measure. 
