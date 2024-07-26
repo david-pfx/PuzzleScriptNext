@@ -574,7 +574,9 @@ function redrawCellGrid(curlevel) {
             }; // globals
             const offs = { 
                 x: obj.spriteoffset.x, 
-                y: obj.spriteoffset.y + (obj.spritematrix.length == 0 ? 0 : state.sprite_size - obj.spritematrix.length)
+                y: obj.spriteoffset.y + (obj.vector 
+                    ? state.sprite_size * (1 - obj.vector.h)
+                    : state.sprite_size - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),

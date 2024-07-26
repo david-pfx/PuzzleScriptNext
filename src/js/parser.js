@@ -1171,15 +1171,16 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
                     symbols.vector = { 
                         type: 'canvas', 
-                        data: [] 
+                        data: [],
+                        h: 1, w: 1,
                     };
                     if (token = lexer.match(/^[0-9,]+/,  true)) {
                         const parts = token && token.split(',');
                         if (!(parts.length >= 1 && parts.length <= 2))
                             logError(`Canvas size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
                         else {
-                            symbols.vector.w = parts[0];
-                            symbols.vector.h = parts[1] || parts[0];
+                            symbols.vector.w = ~~parts[0];
+                            symbols.vector.h = ~~(parts[1] || parts[0]);
                             kind = 'METADATATEXT';  //???
                         }
                         lexer.pushToken(token, kind);
