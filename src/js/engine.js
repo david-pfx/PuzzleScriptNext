@@ -137,6 +137,7 @@ function unloadGame() {
 	state=introState;
 	curLevel = new Level(0, 5, 5, 2, null, null);
 	curLevel.objects = new Int32Array(0);
+	levelEditorOpened = false;
 	generateTitleScreen();
 	canvasResize();
 	//redraw();

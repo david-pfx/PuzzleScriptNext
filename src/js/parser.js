@@ -327,6 +327,7 @@ var codeMirrorFn = function() {
             return !token ? null : token[0];
         }
 
+        // skip over any comments but push them as tokens
         matchComment() {
             while (true) {
                 const token = matchComment(this.stream, this.state);
@@ -374,10 +375,12 @@ var codeMirrorFn = function() {
             return (this.match(reg_notcommentstart) || '').trim();
         }
 
+        // match a sequence of characters bounded by white space
         matchToken(tolower) {
             return this.match(/^\S+/, tolower);
         }
     
+        // match a single character that is not white space
         matchObjectGlyph(tolower) {
             return this.match(/^\S/, tolower);
         }
@@ -483,6 +486,7 @@ var codeMirrorFn = function() {
             state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
         }
 
+        // start new section
         state.section = section;
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
@@ -499,6 +503,8 @@ var codeMirrorFn = function() {
         
         if (value = getTokens()) 
             setState(state, value);
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // extract and validate tokens
@@ -532,19 +538,17 @@ var codeMirrorFn = function() {
                             args.push(token);
                         } else break;
                     }
-                } else logWarning(`Prelude option "${errorCase(token)}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
-            } 
-            if (ident) {
-                if (lexer.matchEol()) 
-                    return checkArguments(ident, args);
-                else {
-                    token = lexer.matchNotComment();
-                    logError(`Unrecognised stuff in the prelude: "${errorCase(token)}".`, state.lineNumber);
+                } else {
+                    logWarning(`Prelude option "${errorCase(token)}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
                 }
-            } else {
+            } 
+
+            if (token = lexer.matchToken()) {
+                logError(`Unrecognised stuff in the prelude: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
-                token = lexer.matchNotComment();
-                lexer.pushToken(token, 'ERROR');
+            } else if (ident) {
+                return checkArguments(ident, args);
             }
         }
 
@@ -612,6 +616,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -628,7 +634,7 @@ var codeMirrorFn = function() {
                 //     lexer.pushToken(token, 'ERROR');
                 } else lexer.pushToken(token, 'NAME');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected a name for a new tag, but found "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -638,7 +644,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^=/, true)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected an equals sign "=" after the tag name but got "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -652,7 +658,7 @@ var codeMirrorFn = function() {
                     symbols.members.push(token);
                     lexer.pushToken(token, 'NAME');
                 } else {
-                    token = lexer.matchNotComment();
+                    token = lexer.matchToken();
                     logError(`Expected a name for a new tag member, but found "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
@@ -687,6 +693,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEolSemi())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -703,7 +711,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                 }
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected a TAG name, but found "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -713,7 +721,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^=>/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected an arrow sign "=>" but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -729,8 +737,13 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                 }
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected a name for a mapping, but got "${errorCase(token)}" instead.`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+            if (token = lexer.matchToken()) {
+                logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -759,6 +772,8 @@ var codeMirrorFn = function() {
         if (getTokens())
             setState();
         else delete state.mappings[state.objects_candname];
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -781,7 +796,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^->/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected an arrow sign "->" but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -800,7 +815,7 @@ var codeMirrorFn = function() {
             }
 
             if (!lexer.matchEol()) {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -924,7 +939,7 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                    lexer.matchNotComment();
+                    lexer.matchToken();
                 } else throw 'obj-color';
                 lexer.pushToken(token, kind);
             }
@@ -946,6 +961,8 @@ var codeMirrorFn = function() {
                 obj.spritetext = values.text;
             else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds, and extract values
@@ -999,6 +1016,8 @@ var codeMirrorFn = function() {
         
         if (getTokens()) 
             obj.vector.data = (obj.vector.data || []).concat(values);
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds, and extract array of values
@@ -1188,8 +1207,6 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid token in OBJECT modifier section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                    lexer.matchNotComment();
-                    break;
                 } else throw 'obj-modi';
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
@@ -1241,6 +1258,8 @@ var codeMirrorFn = function() {
         
         if (getTokens()) 
             state.sounds.push(...rows);
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -1293,7 +1312,7 @@ var codeMirrorFn = function() {
                             tobjects.forEach(t => 
                                 rows.push(...tsounds.map(s => ['SOUND', t, tverb, tdirs, s, state.lineNumber])));
                             return true;
-                        } else if (token == lexer.matchNotComment()) {
+                        } else if (token == lexer.matchToken()) {
                             const dirok = soundverbs_directional.includes(tverb);
                             const msg = dirok ? "direction or sound seed" : "sound seed";
                             logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${errorCase(token)}".`, state.lineNumber);
@@ -1302,8 +1321,6 @@ var codeMirrorFn = function() {
                 }
             } else logError("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
 
-            if (token == lexer.matchNotComment())
-                lexer.pushToken(token, 'ERROR');
             return false;
         }
         
@@ -1316,8 +1333,9 @@ var codeMirrorFn = function() {
                 tsounds.push(token);
                 lexer.matchComment();
             }
-            if (token = lexer.matchNotComment()) {
+            if (token = lexer.matchToken()) {
                 logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${errorCase(token)}" here.`, state.lineNumber);
+                lexer.pushToken(token, 'SOUND');
                 return null;
             } else return tsounds;
         }
@@ -1331,6 +1349,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -1352,7 +1372,6 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
                 logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
-                lexer.matchNotComment();
                 return;
             }
             lexer.matchComment();
@@ -1376,8 +1395,8 @@ var codeMirrorFn = function() {
                 } 
                 lexer.pushToken(token, kind);
                 if (kind != 'NAME') {
-                    lexer.matchNotComment();
-                    logError(`Something bad's happening in the LEGEND`, state.lineNumber);
+                    token = lexer.matchToken();
+                    logError(`Something bad's happening in the LEGEND around ${token}`, state.lineNumber);
                     return;
                 }
 
@@ -1441,6 +1460,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -1603,6 +1624,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -1626,7 +1649,7 @@ var codeMirrorFn = function() {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
                 } else {
-                    token = lexer.matchNotComment();
+                    token = lexer.matchToken();
                     logError(`Expecting the word "ON" but got "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
@@ -1635,7 +1658,7 @@ var codeMirrorFn = function() {
                 lexer.matchComment();
                 getIdent();
                 if (!lexer.matchEol()) {
-                    token = lexer.matchNotComment();
+                    token = lexer.matchToken();
                     logError(`Error in win condition: I don't know what to do with "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 }
@@ -1655,7 +1678,7 @@ var codeMirrorFn = function() {
                 }
                 lexer.pushToken(token, kind);
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Object name expected, found ${errorCase(token)}`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -1681,7 +1704,9 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
-        return lexer.tokens;
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
+    return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
@@ -1912,7 +1937,7 @@ var codeMirrorFn = function() {
                     if (state.objects_section == 0) {
                         state.objects_candname = null;
                         state.current_line_wip_array = parseMappingsLine1(stream, state);
-                        state.objects_section = 1;
+                        state.objects_section = state.objects_candname ? 1 : 0;
                     } else {
                         state.current_line_wip_array = parseMappingsLine2(stream, state);
                         state.objects_section = 0;
