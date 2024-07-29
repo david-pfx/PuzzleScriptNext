@@ -743,14 +743,14 @@ function generateExtraMembers(state) {
             backgroundid = obj.id;
             backgroundlayer = obj.layer;
             var lineNumber = state.original_line_numbers['background'];
-            logError("background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').",lineNumber);
+            logError("Background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').",lineNumber);
         } else {
             var obj = state.objects[state.idDict[0]];
             if (obj!=null){
                 backgroundid = obj.id;
                 backgroundlayer = obj.layer;
             }
-            logError("you have to define something to be the background");
+            logError("You have to define something to be the background");
         }
     } else {
         backgroundid = state.objects.background.id;
@@ -815,7 +815,7 @@ function generateExtraMembersPart2(state) {
 
 Level.prototype.calcBackgroundMask = function(state) {
     if (state.backgroundlayer === undefined) {
-        logError("you have to have a background layer");
+        logError("You have to have a background layer");
     }
 
     var backgroundMask = state.layerMasks[state.backgroundlayer];

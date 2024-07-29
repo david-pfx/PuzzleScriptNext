@@ -1,0 +1,97 @@
+title test min
+author polyomino
+homepage www.polyomino.com
+
+// minimal program with every section
+
+verbose_logging
+debug
+
+========
+TAGS
+========
+dirs = up down left right
+
+========
+MAPPINGS
+========
+dirs => dirscw
+up down left right -> right left up down 
+
+========
+OBJECTS
+========
+Background
+grey darkgray lightgray
+22221
+20001
+20001
+20001
+11111
+
+Player p
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+R MOVE 76935307
+SFx0 52519108
+
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+//message first level
+
+...g......
+....p.r.y.
+...b......
+..........
+..........
+
+message second level
+
+..........
+....pry...
+..........
+

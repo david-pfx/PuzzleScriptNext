@@ -1,4 +1,4 @@
-title ABRACADABRA
+title ABRACADABRA 
 author Andrea Gilbert
 homepage clickmazes.com
 
@@ -8,6 +8,8 @@ mouse_clicks
 //level_select
 status_line
 noaction
+
+sprite_size 12
 
 ========
 OBJECTS
@@ -31,11 +33,11 @@ white transparent
 000000000000
 
 
-1 scale: 1; red;    text: A
-2 scale: 1; blue;   text: B
-3 scale: 1; pink;   text: C
-4 scale: 1; green;  text: D
-5 scale: 1; orange; text: R
+1 scale: 0.8; red;    text: A
+2 scale: 0.8; blue;   text: B
+3 scale: 0.8; pink;   text: C
+4 scale: 0.8; green;  text: D
+5 scale: 0.8; orange; text: R
 
 goal;   transparent
 firstA; transparent

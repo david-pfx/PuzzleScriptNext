@@ -518,19 +518,17 @@ function mouseAction(event,click,id) {
 					titleButtonSelected();
 			} else if (titleMode===2) { //Level select
 				generateLevelSelectScreen(-1, 0, mouseCoordY);
-				if (titleSelection == 0)
+				if (mouseCoordY == 0)			// dodgy but it works
 					goToTitleScreen();
-				else if (titleSelection) {
+				else if (titleSelection >= 0) {
 					titleSelected=true;
 					timer=0;
 					quittingTitleScreen=true;
 				}
 			} else if (titleMode == 3) { // pause screen select
-				generatePauseScreen(-1, 0, mouseCoordY);
-				//generatePauseScreen(-1, 0, hoverSelection);
+				generatePauseScreen(hoverSelection);
 				timer=0;
 				quittingTitleScreen = true;
-				redraw();
 			}
 		} else if (messageselected===false && (state.levels[curLevelNo].message || messagetext != "")) {
 			messageselected=true;

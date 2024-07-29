@@ -120,7 +120,7 @@ function showContinueOptionOnTitleScreen(){
 }
 
 function hasStartedTheGame() {
-	return (curLevelNo>0||curlevelTarget!==null)&&(curLevelNo in state.levels);
+	return (curLevelNo>0 || curlevelTarget !== null || storage_has(document.URL+'_checkpoint')) && (curLevelNo in state.levels);
 }
 
 function hasFinishedTheGame() {
@@ -137,6 +137,7 @@ function unloadGame() {
 	state=introState;
 	curLevel = new Level(0, 5, 5, 2, null, null);
 	curLevel.objects = new Int32Array(0);
+	levelEditorOpened = false;
 	generateTitleScreen();
 	canvasResize();
 	//redraw();
@@ -145,7 +146,7 @@ function unloadGame() {
 }
 
 function isContinueOptionSelected() {
-	return !state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE;
+	return state.metadata.skip_title_screen || (!state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE);
 }
 
 function isNewGameOptionSelected() {
@@ -265,7 +266,6 @@ function goToPauseScreen() {
 	generatePauseScreen();
 }
 
-let selectOption;
 function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 	if (debugSwitch.includes('menu')) console.log(`generatePauseScreen()`, hoverLine, scrollIncrement, selectLine);
 	const screen = getPauseScreen(state);
@@ -276,7 +276,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 		levelSelectScrollPos += scrollIncrement;
 
 	titleImage = fillAndHighlight(screen, levelSelectScrollPos, hoverLine, selectLine);
-	selectOption = selectLine - screen.options[0];
+	pauseSelection = (hoverLine >= 0 ? hoverLine : selectLine >= 0 ? selectLine : 0) - screen.options[0];
 	redraw();
 }
 
@@ -299,15 +299,14 @@ function selectPauseScreen(lineNo) {
 		} : null,
 		state.metadata.level_select ? () => {
 			gotoLevelSelectScreen();
-			//redraw();
 		} : null,
 		() => {
 			goToTitleScreen();
-			//redraw();
 		}
 	].filter(l => l != null);
 
-	options[selectOption]();
+	if (pauseSelection >= 0 && pauseSelection < options.length)
+		options[pauseSelection]();
 }
 
 function centerText(text, len, fill = " ") {
@@ -409,7 +408,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
 		levelSelectScrollPos++;
 
-	const solved_symbol = state.metadata.level_select_solve_symbol || "?";
+	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
 	titleSelection = selectLine == 0 ? 0 : null;
 	const lines = state.sections.map((section,i) => {
@@ -420,14 +419,14 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
-			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24, "#");
+			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
 		}
 		return (solved ? solved_symbol : " ") + " " + name.padEnd(24);
 	});
 
 	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
 	const screen = getLevelSelectScreen(showLines);
-	console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	if (debugSwitch.includes('menu')) console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
 	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
 	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
@@ -977,7 +976,6 @@ function setGameState(_state, command, randomseed) {
 			    timer=0;
 			    titleScreen=false;
 			    textMode=false;
-			    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 			    titleSelected=false;
 			    quittingMessageScreen=false;
 			    quittingTitleScreen=false;
@@ -997,7 +995,6 @@ function setGameState(_state, command, randomseed) {
 		    timer=0;
 		    titleScreen=false;
 		    textMode=false;
-		    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
@@ -1018,7 +1015,6 @@ function setGameState(_state, command, randomseed) {
 				    timer=0;
 				    titleScreen=false;
 				    textMode=false;
-				    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 				    titleSelected=false;
 				    quittingMessageScreen=false;
 				    quittingTitleScreen=false;
@@ -3618,7 +3614,7 @@ function nextLevel() {
 			curlevelTarget=null;
 
 			if (state.metadata.level_select === undefined) {
-				clearLocalStorage();		//@@???
+				clearLocalStorage();
 			}
 
 			loadLevelFromStateOrTarget();
@@ -3733,6 +3729,7 @@ function resetFlickDat() {
 function updateLocalStorage() {
 	if (linkStack.length > 0)
 		return;
+	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, curlevelTarget);
 	try {
 		
 		storage_set(document.URL,curLevelNo);
@@ -3770,6 +3767,7 @@ function setSectionSolved(section) {
 }
 
 function clearLocalStorage() {
+	if (debugSwitch.includes('menu')) console.log(`clearLocalStorage`);
 	curLevelNo = 0;
 	curlevelTarget = null;
 	solvedSections = [];
