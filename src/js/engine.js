@@ -2681,7 +2681,6 @@ Rule.prototype.queueCommands = function() {
 			
 			if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
 				twiddleMetaData(state, true);
-				canvasResize();
 			}
 
 			if (command[0] === "smoothscreen") {
@@ -2691,10 +2690,10 @@ Rule.prototype.queueCommands = function() {
 				} else {
 					smoothscreen = false;
 				}
-				canvasResize();
 			}
 
-			twiddleMetadataExtras()
+			twiddleMetadataExtras();
+			canvasResize();
 
 			if (state.metadata.runtime_metadata_twiddling_debug) {
 				var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
@@ -3403,7 +3402,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    			var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
 		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
 				}
-				restartTarget=level4Serialization();
+				restartTarget=backupLevel();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
 				storage_set(document.URL+'_checkpoint',backupStr);
@@ -3734,7 +3733,7 @@ function updateLocalStorage() {
 		
 		storage_set(document.URL,curLevelNo);
 		if (curlevelTarget!==null){
-			restartTarget=level4Serialization();
+			restartTarget=backupLevel();
 			var backupStr = JSON.stringify(restartTarget);
 			storage_set(document.URL+'_checkpoint',backupStr);
 		} else {
