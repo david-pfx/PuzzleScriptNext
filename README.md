@@ -15,11 +15,12 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g29. 
+The latest version is Release v-24g30. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
 New fixes/updates:
+* The title screen menu now works correctly on mobile
 * The editor no longer crashes when source code changes make the code invalid
 * The level editor no longer crashes when a new program is loaded
 * Title screen treats as continue if set checkpoint before winning first level

@@ -486,7 +486,7 @@ var x2 = 5;
 var y2 = 5;
 
 function mouseAction(event,click,id) {
-	if (debugSwitch.includes('input')) console.log('mouseAction', click, id);
+	if (debugSwitch.includes('input')) console.log('mouseAction', event, click, id);
 	if (textMode) {
 		// we only handle click actions -- not sure why this is here, but gets called by mouseMove()
 		if (!click) {
@@ -513,7 +513,7 @@ function mouseAction(event,click,id) {
 				generateTitleScreen(-1, 0, true);
 				titleButtonSelected();
 			} else if (titleMode == 1) {//Title with save data
-				generateTitleScreen(-1, 0, hoverSelection);
+				generateTitleScreen(-1, 0, mouseCoordY);
 				if (titleSelection)
 					titleButtonSelected();
 			} else if (titleMode===2) { //Level select
@@ -526,7 +526,7 @@ function mouseAction(event,click,id) {
 					quittingTitleScreen=true;
 				}
 			} else if (titleMode == 3) { // pause screen select
-				generatePauseScreen(hoverSelection);
+				generatePauseScreen(mouseCoordY);
 				timer=0;
 				quittingTitleScreen = true;
 			}
