@@ -8100,7 +8100,7 @@ function showContinueOptionOnTitleScreen(){
 }
 
 function hasStartedTheGame() {
-	return (curLevelNo>0||curlevelTarget!==null)&&(curLevelNo in state.levels);
+	return (curLevelNo>0 || curlevelTarget !== null || storage_has(document.URL+'_checkpoint')) && (curLevelNo in state.levels);
 }
 
 function hasFinishedTheGame() {
@@ -8117,6 +8117,7 @@ function unloadGame() {
 	state=introState;
 	curLevel = new Level(0, 5, 5, 2, null, null);
 	curLevel.objects = new Int32Array(0);
+	levelEditorOpened = false;
 	generateTitleScreen();
 	canvasResize();
 	//redraw();
@@ -8125,7 +8126,7 @@ function unloadGame() {
 }
 
 function isContinueOptionSelected() {
-	return !state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE;
+	return state.metadata.skip_title_screen || (!state.metadata.continue_is_level_select && titleSelection == MENUITEM_CONTINUE);
 }
 
 function isNewGameOptionSelected() {
@@ -8245,7 +8246,6 @@ function goToPauseScreen() {
 	generatePauseScreen();
 }
 
-let selectOption;
 function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 	if (debugSwitch.includes('menu')) console.log(`generatePauseScreen()`, hoverLine, scrollIncrement, selectLine);
 	const screen = getPauseScreen(state);
@@ -8256,7 +8256,7 @@ function generatePauseScreen(hoverLine, scrollIncrement, selectLine) {
 		levelSelectScrollPos += scrollIncrement;
 
 	titleImage = fillAndHighlight(screen, levelSelectScrollPos, hoverLine, selectLine);
-	selectOption = selectLine - screen.options[0];
+	pauseSelection = (hoverLine >= 0 ? hoverLine : selectLine >= 0 ? selectLine : 0) - screen.options[0];
 	redraw();
 }
 
@@ -8279,15 +8279,14 @@ function selectPauseScreen(lineNo) {
 		} : null,
 		state.metadata.level_select ? () => {
 			gotoLevelSelectScreen();
-			//redraw();
 		} : null,
 		() => {
 			goToTitleScreen();
-			//redraw();
 		}
 	].filter(l => l != null);
 
-	options[selectOption]();
+	if (pauseSelection >= 0 && pauseSelection < options.length)
+		options[pauseSelection]();
 }
 
 function centerText(text, len, fill = " ") {
@@ -8389,7 +8388,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
 		levelSelectScrollPos++;
 
-	const solved_symbol = state.metadata.level_select_solve_symbol || "?";
+	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
 	titleSelection = selectLine == 0 ? 0 : null;
 	const lines = state.sections.map((section,i) => {
@@ -8400,14 +8399,14 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
-			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24, "#");
+			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
 		}
 		return (solved ? solved_symbol : " ") + " " + name.padEnd(24);
 	});
 
 	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
 	const screen = getLevelSelectScreen(showLines);
-	console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	if (debugSwitch.includes('menu')) console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
 	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
 	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
@@ -8957,7 +8956,6 @@ function setGameState(_state, command, randomseed) {
 			    timer=0;
 			    titleScreen=false;
 			    textMode=false;
-			    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 			    titleSelected=false;
 			    quittingMessageScreen=false;
 			    quittingTitleScreen=false;
@@ -8977,7 +8975,6 @@ function setGameState(_state, command, randomseed) {
 		    timer=0;
 		    titleScreen=false;
 		    textMode=false;
-		    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 		    titleSelected=false;
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
@@ -8998,7 +8995,6 @@ function setGameState(_state, command, randomseed) {
 				    timer=0;
 				    titleScreen=false;
 				    textMode=false;
-				    //titleSelection=showContinueOptionOnTitleScreen()?1:0;
 				    titleSelected=false;
 				    quittingMessageScreen=false;
 				    quittingTitleScreen=false;
@@ -11598,7 +11594,7 @@ function nextLevel() {
 			curlevelTarget=null;
 
 			if (state.metadata.level_select === undefined) {
-				clearLocalStorage();		//@@???
+				clearLocalStorage();
 			}
 
 			loadLevelFromStateOrTarget();
@@ -11713,6 +11709,7 @@ function resetFlickDat() {
 function updateLocalStorage() {
 	if (linkStack.length > 0)
 		return;
+	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, curlevelTarget);
 	try {
 		
 		storage_set(document.URL,curLevelNo);
@@ -11750,6 +11747,7 @@ function setSectionSolved(section) {
 }
 
 function clearLocalStorage() {
+	if (debugSwitch.includes('menu')) console.log(`clearLocalStorage`);
 	curLevelNo = 0;
 	curlevelTarget = null;
 	solvedSections = [];
@@ -12187,6 +12185,7 @@ var codeMirrorFn = function() {
             return !token ? null : token[0];
         }
 
+        // skip over any comments but push them as tokens
         matchComment() {
             while (true) {
                 const token = matchComment(this.stream, this.state);
@@ -12234,10 +12233,12 @@ var codeMirrorFn = function() {
             return (this.match(reg_notcommentstart) || '').trim();
         }
 
+        // match a sequence of characters bounded by white space
         matchToken(tolower) {
             return this.match(/^\S+/, tolower);
         }
     
+        // match a single character that is not white space
         matchObjectGlyph(tolower) {
             return this.match(/^\S/, tolower);
         }
@@ -12343,6 +12344,7 @@ var codeMirrorFn = function() {
             state.abbrevNames.push(...state.legend_aggregates.map(s => s[0]));
         }
 
+        // start new section
         state.section = section;
         state.line_should_end = true;
         state.line_should_end_because = `a section name ("${state.section.toUpperCase()}")`;
@@ -12359,6 +12361,8 @@ var codeMirrorFn = function() {
         
         if (value = getTokens()) 
             setState(state, value);
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // extract and validate tokens
@@ -12392,19 +12396,17 @@ var codeMirrorFn = function() {
                             args.push(token);
                         } else break;
                     }
-                } else logWarning(`Prelude option "${errorCase(token)}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
-            } 
-            if (ident) {
-                if (lexer.matchEol()) 
-                    return checkArguments(ident, args);
-                else {
-                    token = lexer.matchNotComment();
-                    logError(`Unrecognised stuff in the prelude: "${errorCase(token)}".`, state.lineNumber);
+                } else {
+                    logWarning(`Prelude option "${errorCase(token)}" is not one I know, so I'm going to ignore it. Hope that works for you.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
                 }
-            } else {
+            } 
+
+            if (token = lexer.matchToken()) {
+                logError(`Unrecognised stuff in the prelude: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
-                token = lexer.matchNotComment();
-                lexer.pushToken(token, 'ERROR');
+            } else if (ident) {
+                return checkArguments(ident, args);
             }
         }
 
@@ -12472,6 +12474,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -12483,12 +12487,12 @@ var codeMirrorFn = function() {
                 if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                } else if (hasParts(token)) {
-                    logError(`You cannot use "${errorCase(token)}" to define a tag because it contains colons (":").`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
+                // } else if (hasParts(token)) {  // cannot happen
+                //     logError(`You cannot use "${errorCase(token)}" to define a tag because it contains colons (":").`, state.lineNumber);
+                //     lexer.pushToken(token, 'ERROR');
                 } else lexer.pushToken(token, 'NAME');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected a name for a new tag, but found "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -12498,7 +12502,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^=/, true)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected an equals sign "=" after the tag name but got "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -12512,7 +12516,7 @@ var codeMirrorFn = function() {
                     symbols.members.push(token);
                     lexer.pushToken(token, 'NAME');
                 } else {
-                    token = lexer.matchNotComment();
+                    token = lexer.matchToken();
                     logError(`Expected a name for a new tag member, but found "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
@@ -12547,6 +12551,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEolSemi())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -12563,7 +12569,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                 }
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected a TAG name, but found "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -12573,7 +12579,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^=>/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected an arrow sign "=>" but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -12589,8 +12595,13 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'NAME');
                 }
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected a name for a mapping, but got "${errorCase(token)}" instead.`, state.lineNumber);
+                lexer.pushToken(token, 'ERROR');
+                return;
+            }
+            if (token = lexer.matchToken()) {
+                logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
@@ -12619,6 +12630,8 @@ var codeMirrorFn = function() {
         if (getTokens())
             setState();
         else delete state.mappings[state.objects_candname];
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -12641,7 +12654,7 @@ var codeMirrorFn = function() {
             if (token = lexer.match(/^->/)) {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Expected an arrow sign "->" but got "${errorCase(token)}" instead.`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -12660,7 +12673,7 @@ var codeMirrorFn = function() {
             }
 
             if (!lexer.matchEol()) {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -12784,7 +12797,7 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                    lexer.matchNotComment();
+                    lexer.matchToken();
                 } else throw 'obj-color';
                 lexer.pushToken(token, kind);
             }
@@ -12806,6 +12819,8 @@ var codeMirrorFn = function() {
                 obj.spritetext = values.text;
             else obj.spritematrix = (obj.spritematrix || []).concat([values]);
         }
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds, and extract values
@@ -12859,6 +12874,8 @@ var codeMirrorFn = function() {
         
         if (getTokens()) 
             obj.vector.data = (obj.vector.data || []).concat(values);
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds, and extract array of values
@@ -12919,6 +12936,8 @@ var codeMirrorFn = function() {
 
         // build a list of tokens and kinds
         function getTokens() {
+            // same as reg_name plus : and reldirs
+            const reg_transform_args = /^[\p{L}\p{N}_$:<>^]+/u;
             while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
@@ -12960,7 +12979,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z^<>]+/i,  true);
+                    token = lexer.match(reg_transform_args,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
                         logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
@@ -12979,8 +12998,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
-                    //token = lexer.matchObjectName(true) || lexer.match(/^[>v<^]/);
+                    token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
                     const amt = args[1] ? +args[1] : 1;
@@ -12996,7 +13014,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z0-9:^<>]+/i,  true);
+                    token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
                     const amt = args[1] ? +args[1] : null;
@@ -13012,7 +13030,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[a-z:^<>]+/i,  true);
+                    token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     if (args.length == 1) args.unshift('up');
                     const dir1 = isValidDirection(args[0]);
@@ -13047,8 +13065,6 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.matchToken()) {
                     logError(`Invalid token in OBJECT modifier section: "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
-                    lexer.matchNotComment();
-                    break;
                 } else throw 'obj-modi';
             }
             return !lexer.tokens.some(t => t.kind == 'ERROR');
@@ -13100,6 +13116,8 @@ var codeMirrorFn = function() {
         
         if (getTokens()) 
             state.sounds.push(...rows);
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -13152,7 +13170,7 @@ var codeMirrorFn = function() {
                             tobjects.forEach(t => 
                                 rows.push(...tsounds.map(s => ['SOUND', t, tverb, tdirs, s, state.lineNumber])));
                             return true;
-                        } else if (token == lexer.matchNotComment()) {
+                        } else if (token == lexer.matchToken()) {
                             const dirok = soundverbs_directional.includes(tverb);
                             const msg = dirok ? "direction or sound seed" : "sound seed";
                             logError(`Ah I was expecting a ${msg} after ${tverb}, but I don't know what to make of "${errorCase(token)}".`, state.lineNumber);
@@ -13161,8 +13179,6 @@ var codeMirrorFn = function() {
                 }
             } else logError("Was expecting a sound event (like SFX3, or ENDLEVEL) or an object name, but didn't find either.", state.lineNumber);
 
-            if (token == lexer.matchNotComment())
-                lexer.pushToken(token, 'ERROR');
             return false;
         }
         
@@ -13175,8 +13191,9 @@ var codeMirrorFn = function() {
                 tsounds.push(token);
                 lexer.matchComment();
             }
-            if (token = lexer.matchNotComment()) {
+            if (token = lexer.matchToken()) {
                 logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${errorCase(token)}" here.`, state.lineNumber);
+                lexer.pushToken(token, 'SOUND');
                 return null;
             } else return tsounds;
         }
@@ -13190,6 +13207,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -13211,7 +13230,6 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ASSIGNMENT');
             } else {
                 logError(`In the legend, define new items using the equals symbol - declarations must look like "A = B", "A = B or C [ or D ...]", "A = B and C [ and D ...]".`, state.lineNumber);
-                lexer.matchNotComment();
                 return;
             }
             lexer.matchComment();
@@ -13235,8 +13253,8 @@ var codeMirrorFn = function() {
                 } 
                 lexer.pushToken(token, kind);
                 if (kind != 'NAME') {
-                    lexer.matchNotComment();
-                    logError(`Something bad's happening in the LEGEND`, state.lineNumber);
+                    token = lexer.matchToken();
+                    logError(`Something bad's happening in the LEGEND around ${token}`, state.lineNumber);
                     return;
                 }
 
@@ -13300,6 +13318,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -13462,6 +13482,8 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
         return lexer.tokens;
 
         // build a list of tokens and kinds
@@ -13485,7 +13507,7 @@ var codeMirrorFn = function() {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
                 } else {
-                    token = lexer.matchNotComment();
+                    token = lexer.matchToken();
                     logError(`Expecting the word "ON" but got "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                     return;
@@ -13494,7 +13516,7 @@ var codeMirrorFn = function() {
                 lexer.matchComment();
                 getIdent();
                 if (!lexer.matchEol()) {
-                    token = lexer.matchNotComment();
+                    token = lexer.matchToken();
                     logError(`Error in win condition: I don't know what to do with "${errorCase(token)}".`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 }
@@ -13514,7 +13536,7 @@ var codeMirrorFn = function() {
                 }
                 lexer.pushToken(token, kind);
             } else {
-                token = lexer.matchNotComment();
+                token = lexer.matchToken();
                 logError(`Object name expected, found ${errorCase(token)}`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
                 return;
@@ -13540,7 +13562,9 @@ var codeMirrorFn = function() {
 
         if (getTokens())
             setState();
-        return lexer.tokens;
+        if (!lexer.matchEol())
+            lexer.pushToken(lexer.matchAll(), 'ERROR');
+    return lexer.tokens;
 
         // build a list of tokens and kinds
         function getTokens() {
@@ -13771,7 +13795,7 @@ var codeMirrorFn = function() {
                     if (state.objects_section == 0) {
                         state.objects_candname = null;
                         state.current_line_wip_array = parseMappingsLine1(stream, state);
-                        state.objects_section = 1;
+                        state.objects_section = state.objects_candname ? 1 : 0;
                     } else {
                         state.current_line_wip_array = parseMappingsLine2(stream, state);
                         state.objects_section = 0;
@@ -14775,14 +14799,14 @@ function generateExtraMembers(state) {
             backgroundid = obj.id;
             backgroundlayer = obj.layer;
             var lineNumber = state.original_line_numbers['background'];
-            logError("background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').",lineNumber);
+            logError("Background cannot be an aggregate (declared with 'and'), it has to be a simple type, or property (declared in terms of others using 'or').",lineNumber);
         } else {
             var obj = state.objects[state.idDict[0]];
             if (obj!=null){
                 backgroundid = obj.id;
                 backgroundlayer = obj.layer;
             }
-            logError("you have to define something to be the background");
+            logError("You have to define something to be the background");
         }
     } else {
         backgroundid = state.objects.background.id;
@@ -14847,7 +14871,7 @@ function generateExtraMembersPart2(state) {
 
 Level.prototype.calcBackgroundMask = function(state) {
     if (state.backgroundlayer === undefined) {
-        logError("you have to have a background layer");
+        logError("You have to have a background layer");
     }
 
     var backgroundMask = state.layerMasks[state.backgroundlayer];
@@ -18311,7 +18335,7 @@ var x2 = 5;
 var y2 = 5;
 
 function mouseAction(event,click,id) {
-	if (debugSwitch.includes('input')) console.log('mouseAction', click, id);
+	if (debugSwitch.includes('input')) console.log('mouseAction', event, click, id);
 	if (textMode) {
 		// we only handle click actions -- not sure why this is here, but gets called by mouseMove()
 		if (!click) {
@@ -18338,24 +18362,22 @@ function mouseAction(event,click,id) {
 				generateTitleScreen(-1, 0, true);
 				titleButtonSelected();
 			} else if (titleMode == 1) {//Title with save data
-				generateTitleScreen(-1, 0, hoverSelection);
+				generateTitleScreen(-1, 0, mouseCoordY);
 				if (titleSelection)
 					titleButtonSelected();
 			} else if (titleMode===2) { //Level select
 				generateLevelSelectScreen(-1, 0, mouseCoordY);
-				if (titleSelection == 0)
+				if (mouseCoordY == 0)			// dodgy but it works
 					goToTitleScreen();
-				else if (titleSelection) {
+				else if (titleSelection >= 0) {
 					titleSelected=true;
 					timer=0;
 					quittingTitleScreen=true;
 				}
 			} else if (titleMode == 3) { // pause screen select
-				generatePauseScreen(-1, 0, mouseCoordY);
-				//generatePauseScreen(-1, 0, hoverSelection);
+				generatePauseScreen(mouseCoordY);
 				timer=0;
 				quittingTitleScreen = true;
-				redraw();
 			}
 		} else if (messageselected===false && (state.levels[curLevelNo].message || messagetext != "")) {
 			messageselected=true;
