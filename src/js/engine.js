@@ -1278,11 +1278,13 @@ function consolidateDiff(before,after){
 		dat : result,
 		width : before.width,
 		height : before.height,
-		oldflickscreendat: before.oldflickscreendat
+		oldflickscreendat: before.oldflickscreendat,
+		metadata: before.metadata,
 	}
 }
 
 function addUndoState(bak){
+	if (debugSwitch.includes('undo')) console.log(`addUndoState length=${backups.length} bak=`, bak);
 	backups.push(bak);
 	if(backups.length>2 && !backups[backups.length-1].hasOwnProperty("diff")){
 		backups[backups.length-3]=consolidateDiff(backups[backups.length-3],backups[backups.length-2]);
@@ -1355,6 +1357,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
 
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
+	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
     restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
@@ -2681,6 +2684,7 @@ Rule.prototype.queueCommands = function() {
 			
 			if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
 				twiddleMetaData(state, true);
+				canvasResize();
 			}
 
 			if (command[0] === "smoothscreen") {
@@ -2690,10 +2694,10 @@ Rule.prototype.queueCommands = function() {
 				} else {
 					smoothscreen = false;
 				}
+				canvasResize();
 			}
 
-			twiddleMetadataExtras();
-			canvasResize();
+			twiddleMetadataExtras()
 
 			if (state.metadata.runtime_metadata_twiddling_debug) {
 				var log = "Metadata twiddled: Flag "+command[0] + " set to " + value;
@@ -3402,7 +3406,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    			var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
 		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
 				}
-				restartTarget=backupLevel();
+				restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
 				storage_set(document.URL+'_checkpoint',backupStr);
@@ -3733,7 +3737,7 @@ function updateLocalStorage() {
 		
 		storage_set(document.URL,curLevelNo);
 		if (curlevelTarget!==null){
-			restartTarget=backupLevel();
+			restartTarget=level4Serialization();
 			var backupStr = JSON.stringify(restartTarget);
 			storage_set(document.URL+'_checkpoint',backupStr);
 		} else {
