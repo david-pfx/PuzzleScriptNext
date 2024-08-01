@@ -426,7 +426,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
 	const screen = getLevelSelectScreen(showLines);
-	if (debugSwitch.includes('menu')) console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	if (debugSwitch.includes('menu')) console.log(`generateLevelSelectScreen2 titleSelection=${titleSelection}`, `levelSelectScrollPos=${levelSelectScrollPos}`, screen);
 	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
 	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
@@ -1278,11 +1278,13 @@ function consolidateDiff(before,after){
 		dat : result,
 		width : before.width,
 		height : before.height,
-		oldflickscreendat: before.oldflickscreendat
+		oldflickscreendat: before.oldflickscreendat,
+		metadata: before.metadata,
 	}
 }
 
 function addUndoState(bak){
+	if (debugSwitch.includes('undo')) console.log(`addUndoState length=${backups.length} bak=`, bak);
 	backups.push(bak);
 	if(backups.length>2 && !backups[backups.length-1].hasOwnProperty("diff")){
 		backups[backups.length-3]=consolidateDiff(backups[backups.length-3],backups[backups.length-2]);
@@ -1355,6 +1357,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
 
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
+	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
     restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
