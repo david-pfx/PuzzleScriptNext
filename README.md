@@ -15,23 +15,27 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24g30. 
+The latest version is Release v-24h02. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
-New fixes/updates:
-* The title screen menu now works correctly on mobile
-* The editor no longer crashes when source code changes make the code invalid
-* The level editor no longer crashes when a new program is loaded
-* Title screen treats as continue if set checkpoint before winning first level
-* Highlight of selected level now less intrusive
-* `skip_title_screen` is now working
-* Solve symbol default now "X" in code and docs
-* Fix parsing of non-alpha transform args
-* Fix menu click on level 1 to not go to title
-* Fix crash on menu click on non-menu lines
+Recent fixes/updates:
+* The title screen and level select menus now work correctly with mouse and on mobile.
+* `runtime_metadata_twiddling` with a level of more than 1024 cells no longer triggers an error on undo.
+* Metadata twiddle values are now saved and restored by a checkpoint.
+* The editor no longer crashes when source code changes make the code invalid.
+* The level editor no longer crashes when a new program is loaded.
+* Title screen treats as continue if set checkpoint before winning first level.
+* Highlight of selected level now less intrusive.
+* `skip_title_screen` is now working.
+* Solve symbol default now "X" in code and docs.
+* Fix parsing of non-alpha transform args.
+* Fix menu click on level 1 to not go to title.
+* Fix crash on menu click on non-menu lines.
 * The display of upper case `text:` sprites has been corrected.
 * Deleting and replacing a script in the editor by cut and paste no longer causes a crash.
+
+Older fixes/updates:
 * Editing objects that contain tags in the LEGEND and elsewhere no longer causes a crash.
 * The ordering of expanding relative directions (`<>^v`) has been corrected (Pattern:Script compatibility).
 * Using `rot:` or other transforms with no or bad arguments no longer causes a crash.

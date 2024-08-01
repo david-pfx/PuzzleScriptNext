@@ -517,13 +517,29 @@ function mouseAction(event,click,id) {
 				if (titleSelection)
 					titleButtonSelected();
 			} else if (titleMode===2) { //Level select
-				generateLevelSelectScreen(-1, 0, mouseCoordY);
-				if (mouseCoordY == 0)			// dodgy but it works
+				generateLevelSelectScreen(mouseCoordY);
+				if (mouseCoordY == 0) {			// ESC back
 					goToTitleScreen();
-				else if (titleSelection >= 0) {
-					titleSelected=true;
-					timer=0;
-					quittingTitleScreen=true;
+					tryPlayTitleSound();
+				} else if (mouseCoordY == 2) {
+					if (levelSelectScrollPos != 0) {
+						levelSelectScroll(-3)
+					}
+				} else if (mouseCoordY == 12) {
+					if (state.sections.length - amountOfLevelsOnScreen > levelSelectScrollPos) {
+						levelSelectScroll(3)
+					}
+				} else if (mouseCoordY > 2 && mouseCoordY < 12) {
+					const clickedLevel = mouseCoordY - 3 + levelSelectScrollPos;
+					if (clickedLevel < state.sections.length) {
+						generateLevelSelectScreen(-1, 0, mouseCoordY);
+						if (titleSelection != null) {
+							titleSelected=true;
+							messageselected=false;
+							timer=0;
+							quittingTitleScreen=true;
+						}						
+					}
 				}
 			} else if (titleMode == 3) { // pause screen select
 				generatePauseScreen(mouseCoordY);

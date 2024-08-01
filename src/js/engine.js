@@ -426,7 +426,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
 	const screen = getLevelSelectScreen(showLines);
-	if (debugSwitch.includes('menu')) console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	if (debugSwitch.includes('menu')) console.log(`generateLevelSelectScreen2 titleSelection=${titleSelection}`, `levelSelectScrollPos=${levelSelectScrollPos}`, screen);
 	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
 	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
