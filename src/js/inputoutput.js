@@ -1141,6 +1141,8 @@ function checkKey(e,justPressed) {
 	if (e&&(e.ctrlKey || e.metaKey|| e.altKey)){
 		return;
 	}
+	if (e.keyCode >= 0x70 && e.keyCode <= 0x83) // function keys
+		return;
 	
     var inputdir=-1;
     switch(e.keyCode) {
