@@ -8406,7 +8406,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const showLines = lines.slice(levelSelectScrollPos,levelSelectScrollPos + amountOfLevelsOnScreen);
 	const screen = getLevelSelectScreen(showLines);
-	if (debugSwitch.includes('menu')) console.log(screen, levelSelectScrollPos, levelHighlightLine, hoverLine, selectLine, titleSelection);
+	if (debugSwitch.includes('menu')) console.log(`generateLevelSelectScreen2 titleSelection=${titleSelection}`, `levelSelectScrollPos=${levelSelectScrollPos}`, screen);
 	titleImage = fillAndHighlight(screen, levelHighlightLine, hoverLine, selectLine);
 
 	titleImage[0] = (hoverLine == 0 ? "[  ESC:Back  ]" : " [ ESC:Back ] ").padEnd(TITLE_WIDTH);
@@ -9258,11 +9258,13 @@ function consolidateDiff(before,after){
 		dat : result,
 		width : before.width,
 		height : before.height,
-		oldflickscreendat: before.oldflickscreendat
+		oldflickscreendat: before.oldflickscreendat,
+		metadata: before.metadata,
 	}
 }
 
 function addUndoState(bak){
+	if (debugSwitch.includes('undo')) console.log(`addUndoState length=${backups.length} bak=`, bak);
 	backups.push(bak);
 	if(backups.length>2 && !backups[backups.length-1].hasOwnProperty("diff")){
 		backups[backups.length-3]=consolidateDiff(backups[backups.length-3],backups[backups.length-2]);
@@ -9335,6 +9337,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
 
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
+	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
     restoreLevel(torestore, null, resetTween, resetAutoTick);
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
@@ -18366,13 +18369,29 @@ function mouseAction(event,click,id) {
 				if (titleSelection)
 					titleButtonSelected();
 			} else if (titleMode===2) { //Level select
-				generateLevelSelectScreen(-1, 0, mouseCoordY);
-				if (mouseCoordY == 0)			// dodgy but it works
+				generateLevelSelectScreen(mouseCoordY);
+				if (mouseCoordY == 0) {			// ESC back
 					goToTitleScreen();
-				else if (titleSelection >= 0) {
-					titleSelected=true;
-					timer=0;
-					quittingTitleScreen=true;
+					tryPlayTitleSound();
+				} else if (mouseCoordY == 2) {
+					if (levelSelectScrollPos != 0) {
+						levelSelectScroll(-3)
+					}
+				} else if (mouseCoordY == 12) {
+					if (state.sections.length - amountOfLevelsOnScreen > levelSelectScrollPos) {
+						levelSelectScroll(3)
+					}
+				} else if (mouseCoordY > 2 && mouseCoordY < 12) {
+					const clickedLevel = mouseCoordY - 3 + levelSelectScrollPos;
+					if (clickedLevel < state.sections.length) {
+						generateLevelSelectScreen(-1, 0, mouseCoordY);
+						if (titleSelection != null) {
+							titleSelected=true;
+							messageselected=false;
+							timer=0;
+							quittingTitleScreen=true;
+						}						
+					}
 				}
 			} else if (titleMode == 3) { // pause screen select
 				generatePauseScreen(mouseCoordY);
@@ -18974,6 +18993,8 @@ function checkKey(e,justPressed) {
 	if (e&&(e.ctrlKey || e.metaKey|| e.altKey)){
 		return;
 	}
+	if (e.keyCode >= 0x70 && e.keyCode <= 0x83) // function keys
+		return;
 	
     var inputdir=-1;
     switch(e.keyCode) {
