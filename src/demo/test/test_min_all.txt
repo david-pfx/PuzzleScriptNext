@@ -6,6 +6,7 @@ homepage www.polyomino.com
 
 verbose_logging
 debug
+debug_switch input
 
 ========
 TAGS
