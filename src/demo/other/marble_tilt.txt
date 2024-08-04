@@ -1,12 +1,11 @@
-title Marble-tilt
+Title [canvasy] Marble-tilt
 author Andrea Gilbert
 homepage https://www.clickmazes.com/mtilt/new-mtilt.htm
-// adapted to canvas polyomino
-
-again_interval 0.03
 run_rules_on_level_start
+again_interval 0.03
 background_color white
 text_color black
+// ;
 
 ========
 OBJECTS
@@ -21,74 +20,45 @@ black
 solid
 grey
 
-nWall canvas:
+nWall 6 canvas:
 {"beginPath":[]}
 {"lineWidth":"0.3"}
 {"lineCap":"round"}
 {"strokeStyle":"black"}
-{"moveTo":[0.5,0.5]}
-{"lineTo":[0.5,0]}
+{"moveTo":[0.5,0.5]} {"lineTo":[0.5,0]}
 {"stroke":[]}
 
-eWall canvas:
-{"beginPath":[]}
-{"lineWidth":"0.3"}
-{"lineCap":"round"}
-{"strokeStyle":"black"}
-{"moveTo":[0.5,0.5]}
-{"lineTo":[1,0.5]}
-{"stroke":[]}
+eWall 7 canvas:
+copy:nWall rot:^:>
 
-sWall canvas:
-{"beginPath":[]}
-{"lineWidth":"0.3"}
-{"lineCap":"round"}
-{"strokeStyle":"black"}
-{"moveTo":[0.5,0.5]}
-{"lineTo":[0.5,1]}
-{"stroke":[]}
+sWall 8 canvas:
+copy:nWall rot:^:v
 
-wWall canvas:
-{"beginPath":[]}
-{"lineWidth":"0.3"}
-{"lineCap":"round"}
-{"strokeStyle":"black"}
-{"moveTo":[0.5,0.5]}
-{"lineTo":[0,0.5]}
-{"stroke":[]}
+wWall 9 canvas:
+copy:nWall rot:^:<
 
 hBar - canvas:
 {"beginPath":[]}
 {"lineWidth":"0.1"}
 {"strokeStyle":"#eee"}
-{"moveTo":[0,0.5]}
-{"lineTo":[1,0.5]}
+{"moveTo":[0,0.5]} {"lineTo":[1,0.5]}
 {"stroke":[]}
 
 vBar ! canvas:
-{"beginPath":[]}
-{"lineWidth":"0.1"}
-{"strokeStyle":"#eee"}
-{"moveTo":[0.5,0]}
-{"lineTo":[0.5,1]}
-{"stroke":[]}
+copy:hBar rot:^:>
 
-ballR a canvas:4,4 translate:left:5 translate:up:5
-//{"type":"canvas","w":4,"h":4, "x":-1, "y":-1}
-{"beginPath":[]}
-{"fillStyle":"red"}
-{"arc":[2,2,1.3,0,7]}
-{"fill":[]}
+circ canvas:4,4
+{"beginPath":[]} {"arc":[2,2,1.3,0,7]}
 
-ballB b canvas:4,4 translate:left:5 translate:up:5
-//{"type":"canvas","w":4,"h":4, "x":-1, "y":-1}
-{"beginPath":[]}
-{"fillStyle":"black"}
-{"arc":[2,2,1.3,0,7]}
-{"fill":[]}
+ballR a canvas:4,4
+{"!include":"circ"} {"fillStyle":"red"} {"fill":[]}
+translate:left:5 translate:down:10
 
-vortex 1 canvas:2,2 
-//{"type":"canvas","w":2,"h":2}
+ballB b canvas:4,4
+{"!include":"circ"} {"fillStyle":"black"} {"fill":[]}
+translate:left:5 translate:down:10
+
+vortex 1 canvas:2,2
 {"beginPath":[]}
 {"fillStyle":"#aaa"}
 {"rect":[0,0,2,2]}
@@ -137,7 +107,7 @@ sfx0 20082503
 COLLISIONLAYERS
 ================
 
-Background
+Background circ
 lost
 roll
 fixed
@@ -196,8 +166,6 @@ LEVELS
 =======
 
 Message Drop all the red marbles into the grey box. It does not matter how many black marbles you lose in the process.
-
-Message Mazes 1 to 5 (of 15)
 
 (ururd ldrdl ururd lurul durdl ururd lurur d)
 xxxxxxxxxxxxxxxx
@@ -288,189 +256,3 @@ x--xxxxxxxxxx--x
 xb.!b.!a.!b.!b.x
 x..!..!..!..!..x
 xxxxxxxxxxxxxxxx
-
-Message Mazes 6 to 10 (of 15)
-
-(lurld rdlu)
-xxxxxxxxxxxxxxxx
-x..!..!..!..!..x
-x..!..!..!..!..x
-x--xxxx--+--x--x
-x..!..!..!..x..x
-x..!..!..!..x..x
-x--+--+--+--x--x
-x..!..!1.!..!..x
-x..!..!..!..!..x
-x--x--+--+--+--x
-xa.x..!..!..!a.x
-x..x..!..!..!..x
-x--x--+--xxxx--x
-xb.!a.!..!a.!b.x
-x..!..!..!..!..x
-xxxxxxxxxxxxxxxx
-
-(lurul dluru ldrul)
-xxxxxxxxxxxxxxxx
-x..!..!..!..!..x
-x..!..!..!..!..x
-x--+--+--xxxx--x
-x..!..!..!..x..x
-x..!..!..!..x..x
-xxxx--x--+--x--x
-x..!..x1.!..!..x
-x..!..x..!..!..x
-x--+--x--+--x--x
-x..!..!..!..x..x
-x..!..!..!..x..x
-x--xxxx--+--x--x
-x..!a.!b.!a.!..x
-x..!..!..!..!..x
-xxxxxxxxxxxxxxxx
-
-(ululu ruldu rdrul)
-xxxxxxxxxxxxxxxx
-x..!..!..!..!..x
-x..!..!..!..!..x
-x--x--+--xxxx--x
-x..x..!..!..!..x
-x..x..!..!..!..x
-x--x--+--+--+--x
-x..!..!1.!..!..x
-x..!..!..!..!..x
-x--x--xxxx--x--x
-xb.x..!..!..xb.x
-x..x..!..!..x..x
-xxxx--+--+--x--x
-xa.!a.!a.!a.!a.x
-x..!..!..!..!..x
-xxxxxxxxxxxxxxxx
-
-(urdru rdlur uld)
-xxxxxxxxxxxxxxxx
-x..!..!..x..!..x
-x..!..!..x..!..x
-xxxx--x--x--+--x
-x..!..x..!..!..x
-x..!..x..!..!..x
-x--+--x--+--x--x
-xb.!..!1.!..xa.x
-x..!..!..!..x..x
-xxxx--xxxx--x--x
-x..!..!..!..!..x
-x..!..!..!..!..x
-x--+--+--x--+--x
-x..!..!..x..!..x
-x..!..!..x..!..x
-xxxxxxxxxxxxxxxx
-
-(lurdu rdurd lurdu rdlur ululd)
-xxxxxxxxxxxxxxxx
-xa.!..!..!..!a.x
-x..!..!..!..!..x
-x--+--+--+--+--x
-xb.!..!..!..!b.x
-x..!..!..!..!..x
-x--+--x--x--+--x
-xa.!..x1.x..!a.x
-x..!..x..x..!..x
-x--+--xxxx--+--x
-xb.!..!..!..!b.x
-x..!..!..!..!..x
-x--+--+--+--+--x
-xa.!b.!a.!b.!a.x
-x..!..!..!..!..x
-xxxxxxxxxxxxxxxx
-
-Message Mazes 11 to 15 (of 15)
-
-(uluru ldrdr ululd rdldl d)
-xxxxxxxxxxxxxxxx
-x..x..x..!..!..x
-x..x..x..!..!..x
-x--x--xxxx--+--x
-x..x..!..!..!..x
-x..x..!..!..!..x
-x--xxxx--x--x--x
-x..!..!..x..xa.x
-x..!..!..x..x..x
-xxxxxxx--x--x--x
-x..!..!..x..xb.x
-x..!..!..x..x..x
-x--+--x--x--xxxx
-x1.!b.xb.xb.!b.x
-x..!..x..x..!..x
-xxxxxxxxxxxxxxxx
-
-(urdru rdldl dr)
-xxxxxxxxxxxxxxxx
-x..!..!..x..!..x
-x..!..!..x..!..x
-x--xxxx--x--x--x
-x..!..!..!..x..x
-x..!..!..!..x..x
-x--x--xxxx--x--x
-x..x..!..!..!..x
-x..x..!..!..!..x
-x--x--x--xxxx--x
-x..!b.x..!..!..x
-x..!..x..!..!..x
-xxxx--x--x--xxxx
-xb.!a.!b.x..!1.x
-x..!..!..x..!..x
-xxxxxxxxxxxxxxxx
-
-(ldrul dlurd ludru rdlur dlu)
-xxxxxxxxxxxxxxxx
-x..!..!a.x..!..x
-x..!..!..x..!..x
-x--+--+--x--+--x
-x..!..!a.xb.!..x
-x..!..!..x..!..x
-x--x--xxxxxxx--x
-x..x..!1.!..x..x
-x..x..!..!..x..x
-xxxx--+--+--x--x
-x..!..!..!..!..x
-x..!..!..!..!..x
-x--+--x--+--+--x
-x..!..x..!..!..x
-x..!..x..!..!..x
-xxxxxxxxxxxxxxxx
-
-(uldlu ldrur uluru r)
-xxxxxxxxxxxxxxxx
-x..!..x..!..!1.x
-x..!..x..!..!..x
-xxxx--xxxx--xxxx
-x..x..!..!..x..x
-x..x..!..!..x..x
-x--x--+--xxxx--x
-x..!..!..!..!..x
-x..!..!..!..!..x
-x--xxxx--+--x--x
-x..!..!..!..x..x
-x..!..!..!..x..x
-x--+--xxxx--x--x
-xb.!b.xa.!b.!b.x
-x..!..x..!..!..x
-xxxxxxxxxxxxxxxx
-
-(uldlu ldrur uluru r)
-xxxxxxxxxxxxxxxx
-x..!..!..x..!..x
-x..!..!..x..!..x
-x--xxxx--xxxx--x
-x..!..x..!..!..x
-x..!..x..!..!..x
-x--+--xxxx--+--x
-x..!..!..xa.!..x
-x..!..!..x..!..x
-x--xxxx--xxxx--x
-x..!..xb.!..xa.x
-x..!..x..!..x..x
-xxxx--xxxx--xxxx
-x..!..!..xb.!1.x
-x..!..!..x..!..x
-xxxxxxxxxxxxxxxx
-
-MESSAGE Thank you for playing! :)
