@@ -15,11 +15,18 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24h02. 
+The latest version is Release v-24h06. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
+Breaking change:
+* A `canvas:` sprite is now drawn to align with the bottom left corner, the same as for regular sprites.
+This will break some existing games. THe fix is to move the sprite offset using `translate:`.
+* Two canvas games have been added to the editor **Examples** dropdown.
+
 Recent fixes/updates:
+* A missing target for a sprite `copy:` no longer crashes, but provides a default blank icon.
+* Various combinations of errors that could cause a `TypeError` exception will now terminate the compile with 'Too Many Errors' instead.
 * The title screen and level select menus now work correctly with mouse and on mobile.
 * `runtime_metadata_twiddling` with a level of more than 1024 cells no longer triggers an error on undo.
 * Metadata twiddle values are now saved and restored by a checkpoint.
