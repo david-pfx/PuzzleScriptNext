@@ -15,11 +15,18 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24h02. 
+The latest version is Release v-24h06. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See below. Please try.
 
+Breaking change:
+* A `canvas:` sprite is now drawn to align with the bottom left corner, the same as for regular sprites.
+This will break some existing games. THe fix is to move the sprite offset using `translate:`.
+* Two canvas games have been added to the editor **Examples** dropdown.
+
 Recent fixes/updates:
+* A missing target for a sprite `copy:` no longer crashes, but provides a default blank icon.
+* Various combinations of errors that could cause a `TypeError` exception will now terminate the compile with 'Too Many Errors' instead.
 * The title screen and level select menus now work correctly with mouse and on mobile.
 * `runtime_metadata_twiddling` with a level of more than 1024 cells no longer triggers an error on undo.
 * Metadata twiddle values are now saved and restored by a checkpoint.
@@ -118,23 +125,28 @@ The `shift:` transform is not implemented.
 The test program is `test/test_min_canvas`.
 
 Notes.
-1. JSON syntax error detection and reporting is very limited. 
-If you see a magenta square, your JSON is badly formed, but often there is nothing to see except it doesn't work. 
-Ask for help or look for existing examples. 
+1. The canvas API uses named colours which are quite different from any of the PS pixel colours (eg `"red"` is not the same `red`).
+If you really need them to be the same, use hex format colours (e.g. `#FFA500`) which should always match.
 
-2. The canvas API uses named colours which are quite different from any of the PS pixel colours (eg `"red"` is not the same `red`).
-If you really need them to be same, use hex format colours (e.g. #FFA500) which should always match.
+1. Canvas size units are grid cells and drawing instructions have their origin at top-left. So `canvas:2,3` allows a sprite to be 6 grid cells, and `{"rect":[0.01,0.01,1.98,1.98]}` will draw a rectange just less than 2x2, relative to the top left corner.
+However, like pixel sprites the drawing is aligned with the bottom left corner, so that over-sized sprites extend up and right.
 
-3. The Level Editor sprite pick-list currently displays canvas sprites without their transforms, so it can be hard to pick the right one.
-If you give sprites meaningful names and hover over a sprite to check its name before you click on it, this should help.
+1. All transforms use the `sprite_size` as the unit of measure, so `translate:right:1` means 1 pixel to the right. 
+Use a larger `sprite_size` to achieve more fine-grained positioning.
 
-4. Watch out for applying transforms to `copy:` objects that already have transforms applied.
+1. Canvas sprites rotate around the centre of their canvas and are not realigned on the grid, while pixel sprites are realigned on the grid after rotation, anchored to the bottom-left corner. Use square canvas and sprite to minimise alignment issues. 
+
+1. Watch out for applying transforms to `copy:` objects that already have transforms applied.
 Likewise, applying multiple transforms to a single canvas sprite may not yield the same expected result as the same list applied to a pixel sprite.
 Probably best to define a collection of transform-free base sprites and only apply transforms on the copies, but if in doubt, try it!
 
-5. As noted above, the `translate:` transform uses the `sprite_size` as the unit of measure. 
-Use a larger `sprite_size` to achieve more fine-grained repositioning.
-
-6. All objects must be included in a collision layer, even partially-defined objects you only `"!include"` into later objects.
+1. All objects must be included in a collision layer, even partially-defined objects you only `"!include"` into later objects.
 Since these are never displayed, you can add all your include-only objects to the first (`Background`) layer. 
+
+1. The Level Editor sprite pick-list currently displays canvas sprites without their transforms, so it can be hard to pick the right one.
+If you give sprites meaningful names and hover over a sprite to check its name before you click on it, this should help.
+
+1. JSON syntax error detection and reporting is very limited. 
+If you see a magenta square, your JSON is badly formed, but often there is nothing to see except it doesn't work. 
+Ask for help or look for existing examples. 
 

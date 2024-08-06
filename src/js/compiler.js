@@ -486,8 +486,8 @@ function generateExtraMembers(state) {
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other.spritematrix.map(row => [...row]);
-                obj.spriteoffset = { ...other.spriteoffset };
+                obj.spritematrix = other ? other.spritematrix.map(row => [...row]) : [];
+                obj.spriteoffset = other ? { ...other.spriteoffset } : obj.spriteoffset;
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
@@ -697,6 +697,10 @@ function generateExtraMembers(state) {
     for (var key in propertiesDict) {
         if (propertiesDict.hasOwnProperty(key)) {
             var values = propertiesDict[key];
+            if (!values.every(v => state.objects[v])) {
+                console.log(`Properties not in state.objects:`, values);
+                TooManyErrors();
+            }
             var sameLayer = true;
             for (var i = 1; i < values.length; i++) {
                 // dies here if previous error

@@ -1,0 +1,258 @@
+Title [canvasy] Marble-tilt
+author Andrea Gilbert
+homepage https://www.clickmazes.com/mtilt/new-mtilt.htm
+run_rules_on_level_start
+again_interval 0.03
+background_color white
+text_color black
+// ;
+
+========
+OBJECTS
+========
+
+Background
+white
+
+Edge 
+black
+
+solid
+grey
+
+nWall 6 canvas:
+{"beginPath":[]}
+{"lineWidth":"0.3"}
+{"lineCap":"round"}
+{"strokeStyle":"black"}
+{"moveTo":[0.5,0.5]} {"lineTo":[0.5,0]}
+{"stroke":[]}
+
+eWall 7 canvas:
+copy:nWall rot:^:>
+
+sWall 8 canvas:
+copy:nWall rot:^:v
+
+wWall 9 canvas:
+copy:nWall rot:^:<
+
+hBar - canvas:
+{"beginPath":[]}
+{"lineWidth":"0.1"}
+{"strokeStyle":"#eee"}
+{"moveTo":[0,0.5]} {"lineTo":[1,0.5]}
+{"stroke":[]}
+
+vBar ! canvas:
+copy:hBar rot:^:>
+
+circ canvas:4,4
+{"beginPath":[]} {"arc":[2,2,1.3,0,7]}
+
+ballR a canvas:4,4
+{"!include":"circ"} {"fillStyle":"red"} {"fill":[]}
+translate:left:5 translate:down:10
+
+ballB b canvas:4,4
+{"!include":"circ"} {"fillStyle":"black"} {"fill":[]}
+translate:left:5 translate:down:10
+
+vortex 1 canvas:2,2
+{"beginPath":[]}
+{"fillStyle":"#aaa"}
+{"rect":[0,0,2,2]}
+{"fill":[]}
+
+rollR
+transparent
+rollL
+transparent
+rollU
+transparent
+rollD
+transparent
+lost
+transparent
+fixed
+transparent
+
+=======
+LEGEND
+=======
+
+. = Background
+x = solid
+e = edge
++ = vBar and hBar
+
+vWall = nWall and sWall
+hWall = eWall and wWall
+xWall = nWall or sWall or eWall or wWall
+
+Player = BallR or BallB 
+bar    = vBar or hBar
+wall   = solid or xWall
+grid   = wall or bar
+Roll   = rollR or rollL or RollU or rollD
+
+=======
+SOUNDS
+=======
+
+endlevel 35598103
+sfx0 20082503
+
+================
+COLLISIONLAYERS
+================
+
+Background circ
+lost
+roll
+fixed
+solid
+edge 
+hBar
+vBar
+eWall
+wWall
+nWall
+sWall
+--
+vortex
+BallR
+BallB
+
+======
+RULES
+======
+(init)
+right [ solid | solid ] -> [ solid eWall | solid ]
+left  [ solid | solid ] -> [ solid wWall | solid ]
+up    [ solid | solid ] -> [ solid nWall | solid ]
+down  [ solid | solid ] -> [ solid sWall | solid ]
+[ solid ] -> []
+
+(on repeat roll - re-apply movement)
+right [ Player rollR ] -> [ > Player ]
+left  [ Player rollL ] -> [ > Player ]
+up    [ Player rollU ] -> [ > Player ]
+down  [ Player rollD ] -> [ > Player ]
+
+(remove movement - if blocked)
+up   [ > Player | wall ] -> [ Player | wall ]
+left [ > Player | wall ] -> [ Player | wall ]
+down  [ > Player || wall ] -> [ Player || wall ]
+right [ > Player || wall ] -> [ Player || wall ]
+[ > Player ||| stationary Player ] -> [ Player ||| Player ]
+
+(apply repeat roll - if applicable)
+right [ > Player | ] -> [ > Player | rollR ] again
+left  [ > Player | ] -> [ > Player | rollL ] again
+up    [ > Player | ] -> [ > Player | rollU ] again
+down  [ > Player | ] -> [ > Player | rollD ] again
+
+late [ player vortex ] -> [ vortex ] sfx0
+
+==============
+WINCONDITIONS
+==============
+
+no BallR 
+
+=======
+LEVELS
+=======
+
+Message Drop all the red marbles into the grey box. It does not matter how many black marbles you lose in the process.
+
+(ururd ldrdl ururd lurul durdl ururd lurur d)
+xxxxxxxxxxxxxxxx
+x..!..!..!..!..x
+x..!..!..!..!..x
+x--xxxxxxx--x--x
+x..x..!..!..x..x
+x..x..!..!..x..x
+x--x--x--x--x--x
+x..x..x1.x..x..x
+x..x..x..x..x..x
+x--x--xxxx--x--x
+xb.xb.!b.!b.xb.x
+x..x..!..!..x..x
+x--x--xxxxxxx--x
+xa.!a.!a.!a.!a.x
+x..!..!..!..!..x
+xxxxxxxxxxxxxxxx
+
+(rulur druld rdlul drdru)
+xxxxxxxxxxxxxxxx
+x..!..x..!..!..x
+x..!..x..!..!..x
+x--+--xxxx--+--x
+x..!..!..!..!..x
+x..!..!..!..!..x
+x--+--+--+--+--x
+x..!..!1.!..!b.x
+x..!..!..!..!..x
+x--x--+--+--+--x
+xb.x..!..!..!a.x
+x..x..!..!..!..x
+x--x--+--+--xxxx
+xa.!..!..!..!..x
+x..!..!..!..!..x
+xxxxxxxxxxxxxxxx
+
+(rurul drurd lu)
+xxxxxxxxxxxxxxxx
+x..!..!..!..!..x
+x..!..!..!..!..x
+x--xxxx--+--x--x
+x..!..!..!..x..x
+x..!..!..!..x..x
+x--+--+--+--x--x
+x..!..!1.!..!..x
+x..!..!..!..!..x
+x--+--x--+--+--x
+x..!..xb.!..!..x
+x..!..x..!..!..x
+x--+--x--xxxx--x
+x..!a.!a.!a.!..x
+x..!..!..!..!..x
+xxxxxxxxxxxxxxxx
+
+(lruld urd)
+xxxxxxxxxxxxxxxx
+x..!..!..!..!..x
+x..!..!..!..!..x
+x--+--+--+--+--x
+x..!..!..!..!..x
+x..!..!..!..!..x
+x--+--+--+--+--x
+xa.!..!1.!..!a.x
+x..!..!..!..!..x
+x--+--+--+--+--x
+xb.!a.!..!a.!b.x
+x..!..!..!..!..x
+x--+--+--+--+--x
+xa.!b.!a.!b.!a.x
+x..!..!..!..!..x
+xxxxxxxxxxxxxxxx
+
+(uldul druld ruld)
+xxxxxxxxxxxxxxxx
+x..!..!..!..!..x
+x..!..!..!..!..x
+x--x--+--+--x--x
+x..x..!..!..x..x
+x..x..!..!..x..x
+x--x--x--x--x--x
+x..x..x1.x..x..x
+x..x..x..x..x..x
+x--x--xxxx--x--x
+x..xb.!a.!b.x..x
+x..x..!..!..x..x
+x--xxxxxxxxxx--x
+xb.!b.!a.!b.!b.x
+x..!..!..!..!..x
+xxxxxxxxxxxxxxxx

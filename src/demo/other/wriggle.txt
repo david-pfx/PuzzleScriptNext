@@ -1,27 +1,26 @@
-Title Wriggle [WIP/Canvas/new-parser]
+Title [canvasy] Wriggle [G80B]
 Author Andrea Gilbert
-Homepage https://www.clickmazes.com
+Homepage https://clickmazes.com/tjwrig/new-jwrig.htm
 norepeat_action
 again_interval 1
-// comment
-
 sprite_size 10
 
 run_rules_on_level_start
 background_color black
+nokeyboard
 
 level_select
 level_select_solve_symbol V
-
 mouse_left xClick
 mouse_drag xDrag
-verbose_logging
-//debug_switch obj
+mouse_up xUp
+//;
+
 ========
 TAGS
 ========
 
-WX = W1 W2 W3 W4
+WX = W1 W2 W3 W4 W5 W6
 
 ========
 OBJECTS
@@ -29,9 +28,6 @@ OBJECTS
 
 background .
 black
-
-goal *
-lightblue
 
 circ canvas:
 {"beginPath":[]} {"arc":[1,1,0.8,0,7]}
@@ -41,22 +37,28 @@ rect canvas:
 
 grid + canvas:2,2 
 {"!include":"rect"} {"fillStyle":"white"} {"fill":[]}
-translate:left:5 translate:up:5
+translate:left:5 translate:down:5
 
-Wall x canvas:2,2 translate:left:5 translate:up:5
+Wall x canvas:2,2 translate:left:5 translate:down:5
 {"!include":"rect"} {"fillStyle":"#333"} {"fill":[]}
 
-Live:W1 1 canvas:2,2 translate:left:5 translate:up:5
+Live:W1 1 canvas:2,2 translate:left:5 translate:down:5
 {"!include":"circ"} {"fillStyle":"blue"} {"fill":[]}
 
-Live:W2 2 canvas:2,2 translate:left:5 translate:up:5
+Live:W2 2 canvas:2,2 translate:left:5 translate:down:5
 {"!include":"circ"} {"fillStyle":"red"} {"fill":[]}
 
-Live:W3 3 canvas:2,2 translate:left:5 translate:up:5
+Live:W3 3 canvas:2,2 translate:left:5 translate:down:5
 {"!include":"circ"} {"fillStyle":"green"} {"fill":[]}
 
-Live:W4 4 canvas:2,2 translate:left:5 translate:up:5
+Live:W4 4 canvas:2,2 translate:left:5 translate:down:5
 {"!include":"circ"} {"fillStyle":"orange"} {"fill":[]}
+
+Live:W5 5 canvas:2,2 translate:left:5 translate:down:5
+{"!include":"circ"} {"fillStyle":"fuchsia"} {"fill":[]}
+
+Live:W6 6 canvas:2,2 translate:left:5 translate:down:5
+{"!include":"circ"} {"fillStyle":"turquoise"} {"fill":[]}
 
 Body:W1 canvas: copy:Live:W1
 
@@ -66,47 +68,75 @@ Body:W3 canvas: copy:Live:W3
 
 Body:W4 canvas: copy:Live:W4
 
+Body:W5 canvas: copy:Live:W5
+
+Body:W6 canvas: copy:Live:W6
+
 eyes:directions canvas:
 {"beginPath":[]} {"arc":[0.2, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
 {"beginPath":[]} {"arc":[0.25,0.15, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
 {"beginPath":[]} {"arc":[0.8, 0.2,  0.2,0,7]} {"fillStyle":"white"} {"fill":[]}
 {"beginPath":[]} {"arc":[0.75,0.15, 0.1,0,7]} {"fillStyle":"black"} {"fill":[]}
-rot:up:^
+rot:up:>
 
-player p
+cursor canvas:
+{"beginPath":[]} 
+{"lineWidth":"0.05"}
+{"moveTo":[0.1,0.3]} {"lineTo":[0.1,0.1]} {"lineTo":[0.3,0.1]}
+{"moveTo":[0.7,0.1]} {"lineTo":[0.9,0.1]} {"lineTo":[0.9,0.3]}
+{"moveTo":[0.1,0.7]} {"lineTo":[0.1,0.9]} {"lineTo":[0.3,0.9]}
+{"moveTo":[0.7,0.9]} {"lineTo":[0.9,0.9]} {"lineTo":[0.9,0.7]}
+{"strokeStyle":"#aaaaaa88"} {"stroke":[]}
+
+goal * canvas:2,2 translate:left:5 translate:down:5
+{"beginPath":[]} 
+{"moveTo":[0.6,0.2]} {"lineTo":[1.4,0.2]} {"lineTo":[1.4,1.0]}
+{"lineTo":[1.8,1.0]} {"lineTo":[1.0,1.8]} {"lineTo":[0.2,1.0]}
+{"lineTo":[0.6,1.0]} {"closepath":[]}
+{"fillStyle":"#0000ff44"} {"fill":[]}
+
+o canvas:
+{"beginPath":[]} 
+{"rect":[0.2,0.2,0.6,0.6]}
+{"fillStyle":"grey"} {"fill":[]}
+
+e canvas:
+{"!include":"o"} 
+{"fillStyle":"pink"} {"fill":[]}
+
+player
 transparent
-(grey
-.....
-.....
-..0..
-.....
-.....)
-
-o 
-pink
-.....
-.000.
-.000.
-.000.
-.....
-
-e (eyes/head)
-lightgreen
-copy:o
 
 tail 
 transparent
 
-xClick
-brown
-copy:o
-
-xDrag
-orange
-copy:o
-
-mark
+xClick 
 transparent
+
+xDrag 
+transparent
+
+xUp 
+transparent
+
+grown
+transparent
+
+shrink
+transparent
+
+pin
+transparent
+
+trace
+transparent
+
+(pin canvas:2,2 translate:left:5 translate:up:5
+{"!include":"rect"} {"fillStyle":"#ffaaaa88"} {"fill":[]}
+slime canvas:2,2 translate:left:5 translate:up:5
+{"!include":"rect"} {"fillStyle":"#aaffff88"} {"fill":[]}
+player canvas:2,2 translate:left:5 translate:up:5
+{"!include":"rect"} {"fillStyle":"#ddd"} {"fill":[]})
 
 =======
 LEGEND
@@ -116,12 +146,10 @@ liveX = Live:WX
 bodyX = Body:WX
 eyesX = eyes:directions or e
 
-init = p or e
+init = e
 endX = tail or eyesX
-mouse = xClick or xDrag
-
-obstacle = wall or liveX or o
-tmp = mark or xDrag or xClick
+xAny = xClick or xDrag or xUp
+obj = wall or liveX or o
 
 a = eyes:up
 b = eyes:down
@@ -133,8 +161,9 @@ SOUNDS
 =======
 
 EndLevel 8178103
-sfx0 64218504
+sfx0 33281904
 sfx1 27451109
+sfx2 6742507
 
 ================
 COLLISIONLAYERS
@@ -142,59 +171,74 @@ COLLISIONLAYERS
 
 background circ rect
 o e
-mark
 xClick
+xUp
 xDrag
 tail
 --
 grid
 goal
+player
+grown shrink 
+pin
 --
-liveX
---
-bodyX 
+trace
+cursor
 --
 Wall
 --
+liveX
+bodyX 
+--
 eyes:directions
-player
 
 ======
 RULES
 ======
 (init)
-[ e | Live:W1 ]    -> [ e | Live:W1 player ] 
 [ e | liveX ]      -> [ | eyes:up liveX ]
 [ liveX no eyesX ] -> [ liveX tail ]
+(draw the mock double-size grid)
 [ grid | | no Wall no grid ] -> [ grid | | grid ] 
 [ wall | wall | wall ] -> [ wall | | wall ] 
 
-(respond to mouse events)
-[ mouse liveX no player ] [ player no mouse ] -> [ liveX player ] []
-[ LiveX no player | xClick | no obstacle ] [ player no xClick ] -> [ LiveX player | | ] []
-(a drag event will be detected up to two cells ahead)
-[ player live:WX endX no mark | no o no obstacle xDrag | no obstacle ] -> [ o | o | player live:WX endX mark ] sfx1
-[ player live:WX endX no mark | no o no obstacle | xDrag no obstacle ] -> [ o | o | player live:WX endX mark ] sfx1
+(mouse down - add player and pin)
+[ xClick liveX no player ] -> [ pin liveX player ] // sfx2
+[ xClick | liveX no player ] -> [ | pin liveX player ]
+
+(mouse up - remove player and pin)
+[ xUp ] [ pin ] [ player ] -> [ xUp ][][] nosave
+
+(mouse-drag)
+(grid is double-size so detect drag up to two cells ahead)
+[ player live:WX endX | no obj | xDrag no obj ] -> [ o|o| player live:WX endX grown ] sfx1
+[ player live:WX endX | xDrag no obj | no obj ] -> [ o|o| player live:WX endX grown ] sfx1
+
 [ player goal no Live:W1 ] -> cancel sfx0
 
-WX [ live:WX mark ] [ live:WX endX no mark | o | o ] -> [ live:WX mark ] [ | | endX live:WX mark ]
+WX [ live:WX grown ] [ live:WX no grown ] -> [ live:WX ] [ live:WX shrink ] 
+WX [ live:WX endX shrink |o|o ] -> [ trace | trace | trace live:WX endX ]
 
-[ > player ] -> cancel  
+(=== all movement complete ===)
 
-WX [ live:WX no bodyX ]     -> [ live:WX body:WX ]
-WX [ body:WX | o no bodyX ] -> [ body:WX | o body:WX ]
-[ bodyX no o ] -> []
+late WX [ live:WX no bodyX ]     -> [ live:WX body:WX ]
+late WX [ body:WX | o no bodyX ] -> [ body:WX | o body:WX ]
+late [ bodyX no o ] -> []
 
-(fix the orientation of the eyes)
-up    [ bodyX | liveX eyesX ] -> [ bodyX | liveX eyes:up    ] 
-down  [ bodyX | liveX eyesX ] -> [ bodyX | liveX eyes:down  ] 
-left  [ bodyX | liveX eyesX ] -> [ bodyX | liveX eyes:left  ] 
-right [ bodyX | liveX eyesX ] -> [ bodyX | liveX eyes:right ]
+(re-orientate eyes)
+late [ bodyX | liveX eyesX ] -> [ bodyX | liveX eyes:> ]
 
-([eyesX] -> [e]
-dirs [ bodyX | liveX e ] -> [ bodyX | liveX eyes:dirs ])
+(display cursor to aid drag)
+late [ cursor no xDrag ] -> []
+late [pin][ xDrag grid no cursor ] -> [pin][ grid cursor ]
 
-[ tmp ] -> []
+(tidy-up)
+late [ xUp ] [ trace ] -> [ xUp ] [] 
+late [ xAny ] -> []
+
+(don't save state while a wriggle is in progress)
+(this means undo will rewind the whole wriggle)
+late [ trace ] -> [ trace ] nosave
 
 ==============
 WINCONDITIONS
@@ -205,8 +249,6 @@ some player on goal
 =======
 LEVELS
 =======
-
-Message Puzzles 1-5 (of 1-20)
 
 Section No.1
 ...............
@@ -232,12 +274,12 @@ Section No.2
 .x.x.x.x.x.x.x.
 ...............
 .x.+.x.+.+.x.x.
-...........e...
+...............
 .x.+.x.ooo.1.x.
 .......o.o.o...
 .x.+.x.o.ooo.x.
 .......o.......
-.x.+.1oo.x.x.x.
+.x.+e1oo.x.x.x.
 ...............
 .x.x.x.+.+.+.x.
 ...............
@@ -303,300 +345,83 @@ Section No.5
 .x.x.x.x.x.x.x.
 ...............
 
-Message Puzzles 21-25 (of 21-40)
-
-Section No.21
+Section No.6
 ...............
 .x.x.x.x.x.x.x.
-...............
-.x.+.x.+.x.+.x.
-...............
-.x.+.x.+.x.+.x.
-.....e.....e...
-.x.4o4.1ooo1.x.
-...............
-.x.xxxxxxx.+.x.
-.....e.....e...
-.x.3o3.2ooo2.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.22
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.x.+.+.x.x.x.
-...............
-.x.x.x.ooooo.x.
-.......o...o...
-.x.x.+.1.x.1ex.
-...............
-.x.x.xe2.x.2.x.
-.......o...o...
-.x.+.+.ooooo.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.23
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.+.+.2.x.x.x.
-.......o.e.....
-.x.x.x.o.1o1.x.
-.......o.......
-.x.+.+.o.x.x.x.
-.......o.e.....
-.x.x.x.2.3o3.x.
-.......e.......
-.x.x.x.x.x.+.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.24
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.ooo.+.+.+.x.
-...o.o.........
-.x.1.ooooo.x.x.
-.........o.....
-.x.x.ooooo.+.x.
-.....o.........
-.x.+.o.+.x.+.x.
-.....o.........
-.x.+.1.+.x.+.x.
-.....e.........
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.25
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.x.x.+.1o1ex.
-...............
-.x.oooo3ex.x.x.
-...o...........
-.x.3.x.2ooo2ex.
-...............
-.x.4ooo4ex.x.x.
-...............
-.x.x.x.+.+.+.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Message Puzzles 41-45 (of 41-60)
-
-Section No.41
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.+.+.2.+.+.x.
-.......o.......
-.x.+.x.o.x.3.x.
-.......o...o...
-.x.+.+.o.x.o.x.
-.......o...o...
-.x.x.x.o.x.o.x.
-.......o...o...
-.xe1o1.2.x.3ex.
-.......e.......
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.42
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.x.x.2.x.+.x.
-.....e.o.......
-.x.+.1.ooooo.x.
-.....o.....o...
-.x.x.o.x.x.o.x.
-.....o.....o...
-.x.1oo.+.+.2ex.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.43
-...............
-.x.x.x.x.x.x.x.
-...............
-.xe1oo.+.ooo.x.
-.....o...o.o...
-.x.1oo.+.2.2ex.
-...............
-.xe3oooooo.3.x.
-.........o.o...
-.x.ooooooo.o.x.
-...o.......o...
-.x.ooooooooo.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.44
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.oooo3ex.+.x.
-...o...........
-.x.o.x.1.x.+.x.
-...o...o.......
-.x.o.x.o.+.+.x.
-...o...o.......
-.x.3.x.1ex.x.x.
-...............
-.xe2ooooo2.+.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.45
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.oooo2ex.3.x.
-...o.......o...
-.x.2.x.+.x.o.x.
-...........o...
-.x.+.+.4o4.3ex.
-.........e.....
-.x.+.x.x.x.+.x.
-.....e.........
-.x.+.1o1.x.+.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Message Puzzles 61-65 (of 61-80)
-
-Section No.61
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.+.xe1o1.x.x.
-...e...........
-.x.2.+.+.x.x.x.
-...o...........
-.x.o.x.+.+.3.x.
-...o.......o...
-.x.2.x.+.x.o.x.
-...........o...
-.x.x.4o4ex.3.x.
 ...........e...
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.62
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.3oooooooo.x.
+.x.+.+.+.+.2.x.
 ...........o...
-.x.+.x.x.xe3.x.
-...............
-.x.+.2oo.1oo.x.
-.......o...o...
-.x.x.x.o.x.o.x.
-.......o.e.o...
-.x.xe2oo.1oo.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section No.63
-...............
-.x.x.x.x.x.x.x.
-...e...........
-.x.3.oooooo1ex.
-...o.o.........
-.x.o.o.+.x.2.x.
-...o.o.....o...
-.x.o.1.+.+.o.x.
-...o.......o...
-.x.oooooo3.o.x.
+.x.1.x.+.x.o.x.
+...o...e...o...
+.x.oooo1.x.o.x.
 ...........o...
-.x.2oooooooo.x.
-...e...........
+.x.x.x.+.x.o.x.
+...........o...
+.x.x.x.+.x.2.x.
+...............
 .x.x.x.x.x.*.x.
 ...............
 .x.x.x.x.x.x.x.
 ...............
 
-Section No.64
+Section No.7 
 ...............
 .x.x.x.x.x.x.x.
 ...............
-.x.ooo.ooo.+.x.
-...o.o.o.o.....
-.x.o.ooo.o.3.x.
-...o.....o.o...
-.x.ooo.2.1.3.x.
-.....o.o.e.e...
-.x.x.o.o.x.x.x.
-.....o.o.......
-.x.x.1.2.+.+.x.
+.x.x.x.x.x.x.x.
 .......e.......
+.x.oooo1.x.x.x.
+...o...........
+.x.o.x.ooooo.x.
+...o...o...o...
+.x.oo1.o.x.2ex.
+.......o.......
+.x.x.x.oo2.+.x.
+...............
 .x.x.x.x.x.*.x.
 ...............
 .x.x.x.x.x.x.x.
 ...............
 
-Section No.65
+Section No.8
 ...............
 .x.x.x.x.x.x.x.
 ...............
-.x.oooo1e+.x.x.
-...o...........
-.x.oe2oooo.x.x.
+.x.ooooooo.x.x.
 ...o.....o.....
-.x.oooo1.o.x.x.
-.........o.....
-.x.+.2oooo.3.x.
-...........o...
-.x.+.x.x.x.3.x.
-...........e...
+.x.1.x.xe1.x.x.
+...............
+.x.+.ooo.2.x.x.
+.....o.o.o.....
+.x.+.o.2.o.x.x.
+.....o.e.o.....
+.x.+.ooooo.+.x.
+...............
 .x.x.x.x.x.*.x.
 ...............
 .x.x.x.x.x.x.x.
 ...............
 
-Message Misc puzzles
+Section No.9
+...............
+.x.x.x.x.x.x.x.
+...............
+.x.x.x.2ex.x.x.
+.......o.......
+.xe1.x.2.x.x.x.
+...o...........
+.x.o.x.3ex.+.x.
+...o...o.......
+.x.1.x.o.x.+.x.
+.......o.......
+.x.+.+.3.+.+.x.
+...............
+.x.x.x.x.x.*.x.
+...............
+.x.x.x.x.x.x.x.
+...............
 
-Section Misc No.10
+Section No.10
 ...............
 .x.x.x.x.x.x.x.
 .....e.........
@@ -609,63 +434,6 @@ Section Misc No.10
 .x.+.+.o.x.o.x.
 .......o.e.o...
 .x.+.x.oo1.3.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section Misc No.20
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.x.+.+.x.x.x.
-...............
-.x.x.x.+.ooo.x.
-.....e.e.o.o...
-.x.oo1.2oo.o.x.
-...o.......o...
-.x.o.x.+.+.o.x.
-...o.......o...
-.x.oo1.x.x.2.x.
-...............
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section Misc No.72
-...............
-.x.x.x.x.x.x.x.
-...............
-.x.+.+.+.x.x.x.
-...e.......e...
-.x.1.x.+.+.3.x.
-...o.......o...
-.x.o.+.2.x.o.x.
-...o...o...o...
-.x.o.x.o.x.o.x.
-...o...o...o...
-.x.1.x.2.x.3.x.
-.......e.......
-.x.x.x.x.x.*.x.
-...............
-.x.x.x.x.x.x.x.
-...............
-
-Section Misc No.78
-...............
-.x.x.x.x.x.x.x.
-.....e.........
-.x.oo1.+.2oo.x.
-...o.......o...
-.x.o.x.+.x.o.x.
-...o.....e.o...
-.x.1.oo3.2oo.x.
-.....o.........
-.x.x.o.xe3.x.x.
-.....o...o.....
-.x.+.ooooo.+.x.
 ...............
 .x.x.x.x.x.*.x.
 ...............

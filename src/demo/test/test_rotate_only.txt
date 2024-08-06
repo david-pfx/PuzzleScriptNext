@@ -1,0 +1,189 @@
+title [test] Rotate only size:1xN [pixel v canvas]
+author Andrea Gilbert
+homepage https://www.clickmazes.com
+//;
+
+background_color lightgrey
+text_color black
+
+run_rules_on_level_start
+sprite_size 5
+
+========
+TAGS
+========
+
+list = 1 2 3 4
+
+// these align with the inbuilt directions
+dirs = up right down left
+NESW = N E S W
+
+========
+OBJECTS
+========
+
+Background . 
+#eee white 
+00000
+01110
+01110
+01110
+00000
+
+
+x
+blue red black
+..2..
+..0..
+..0..
+..0..
+.101.
+.101.
+.111.
+.....
+
+pix:1:directions
+blue red black
+copy: x rot:up:>   
+
+pix:2:NESW
+pink red black
+copy: x rot:>
+
+pix:3:dirs
+green red black
+copy: x rot:up:dirs 
+
+pix:4:directions
+brown red black
+copy: x rot:directions  
+
+y canvas:1,2
+{"beginPath":[]} 
+{"rect":[0.2,1.2,0.6,0.6]} {"fillStyle":"red"} {"fill":[]}
+{"beginPath":[]} 
+{"rect":[0.4,0.6,0.2,1.0]} {"fillStyle":"blue"} {"fill":[]}
+{"beginPath":[]} 
+{"rect":[0.4,0.4,0.2,0.2]} {"fillStyle":"black"} {"fill":[]}
+
+cnv:1:directions canvas:1,2
+copy:y rot:up:>
+
+cnv:2:NESW canvas:1,2
+copy:y rot:>
+
+cnv:3:dirs canvas:1,2
+copy:y rot:up:dirs
+
+cnv:4:directions canvas:1,2
+{"!include":"y"}		
+rot:directions
+
+start :
+transparent
+
+origin
+yellow
+
+=======
+LEGEND
+=======
+
+player = x
+
+1 = pix:1:right
+2 = pix:2:E
+3 = pix:3:right
+4 = pix:4:right
+
+a = cnv:1:right
+b = cnv:2:E
+c = cnv:3:right
+d = cnv:4:right
+
+pixX = pix:1:directions or pix:2:NESW or pix:3:dirs or pix:4:directions or x
+cnvX = cnv:1:directions or cnv:2:NESW or cnv:3:dirs or cnv:4:directions or y
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background :
+origin
+--
+x y
+--
+pix:1:directions
+pix:2:NESW
+pix:3:dirs
+pix:4:directions
+--
+cnv:1:directions
+cnv:2:NESW
+cnv:3:dirs
+cnv:4:directions
+
+======
+RULES
+======
+
+right [ :|x||pix:1:right |||||| ] -> [ :|x||pix:1:right || pix:1:down || pix:1:left || pix:1:up ]
+right [ :|x||pix:2:E     |||||| ] -> [ :|x||pix:2:E     || pix:2:S    || pix:2:W    || pix:2:N ]
+right [ :|x||pix:3:right |||||| ] -> [ :|x||pix:3:right || pix:3:down || pix:3:left || pix:3:up ]
+right [ :|x||pix:4:right |||||| ] -> [ :|x||pix:4:right || pix:4:down || pix:4:left || pix:4:up ]
+
+right [ :|y||cnv:1:right |||||| ] -> [ :|y||cnv:1:right || cnv:1:down || cnv:1:left || cnv:1:up ]
+right [ :|y||cnv:2:E     |||||| ] -> [ :|y||cnv:2:E     || cnv:2:S    || cnv:2:W    || cnv:2:N ]
+right [ :|y||cnv:3:right |||||| ] -> [ :|y||cnv:3:right || cnv:3:down || cnv:3:left || cnv:3:up ]
+right [ :|y||cnv:4:right |||||| ] -> [ :|y||cnv:4:right || cnv:4:down || cnv:4:left || cnv:4:up ]
+
+[ pixX no origin ] -> [ pixX origin ] 
+[ cnvX no origin ] -> [ cnvX origin ] 
+
+=======
+WINCONDITIONS
+=======
+
+no player
+
+=======
+LEVELS
+=======
+
+Message This is a test of different rot:X:Y expansions for visually identical pixel and canvas objects. See the source for an explanation of the observed differences.
+
+// Differences:
+// 1] Canvas origin is top-left (over-sized sprites extend down and right) 
+//    pixel origin is bottom-left (over-sized sprites extend up and right) 
+// 2] Canvas sprites are sized in grid cells, thus [canvas:2,3] covers 6 grid cells 
+//    pixel sprites are sized in pixels, thus the 5x8 sprite here extends 3 pixels up
+// 3] Canvas sprites rotate around the centre of their canvas and are not realigned on the grid
+//    pixel sprites rotate and then realigned on the grid, anchored to the bottom-left corner
+// 4] the canvas colour palette does not match the default PS palette ("red" is not the same red)
+// 5] canvas does not support change of colour on copy
+
+
+
+..............
+:x.1..........
+..............
+:x.2..........
+..............
+:x.3..........
+..............
+:x.4..........
+..............
+..............
+:y.a..........
+..............
+:y.b..........
+..............
+:y.c..........
+..............
+:y.d..........
+..............
