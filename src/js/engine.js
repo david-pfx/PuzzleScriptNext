@@ -1878,7 +1878,8 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		var fn = "var result = [];\n"
 		fn += "if(cellRow[0].matches(i, objects, movements)";
 		var cellIndex=1;
-		for (;cellRow[cellIndex]!==ellipsisPattern;cellIndex++) {
+		// fix for prior error leaves no ellipsis
+		for ( ; cellRow[cellIndex] !== ellipsisPattern && cellIndex < cr_l; cellIndex++) {
 			fn+="&&cellRow["+cellIndex+"].matches(i+"+cellIndex+"*d, objects, movements)";
 		}
 		cellIndex++;

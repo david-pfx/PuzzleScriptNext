@@ -905,7 +905,7 @@ var codeMirrorFn = function() {
             state.objects[candname] = newobj;
 
             const cnlc = candname.toLowerCase();
-            if (candname != cnlc && [ "background", "player" ].includes(cnlc))
+            if (candname != cnlc && [ 'background', 'player' ].includes(cnlc))
                 createAlias(state, cnlc, candname, state.lineNumber);
             for (const alias of aliases) {
                 registerOriginalCaseName(state, alias, state.lineNumber);

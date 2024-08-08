@@ -532,7 +532,7 @@ function generateExtraMembers(state) {
                 glyphDict[key] = glyphDict[val];
                 glyphOrder.push([dat.lineNumber,key]);
             } 
-            }
+        }
 
         //then, aggregates
         for (var i = 0; i < state.legend_aggregates.length; i++) {
@@ -561,6 +561,7 @@ function generateExtraMembers(state) {
                     } else {
                         if (obj.layer === undefined) {
                             logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', dat.lineNumber);
+                            obj.layer = 0;  // safety
                         } else {
                             var n1 = n.toUpperCase();
                             var n2 = state.idDict[mask[obj.layer]].toUpperCase();
@@ -820,6 +821,7 @@ function generateExtraMembersPart2(state) {
 Level.prototype.calcBackgroundMask = function(state) {
     if (state.backgroundlayer === undefined) {
         logError("You have to have a background layer");
+        TooManyErrors();
     }
 
     var backgroundMask = state.layerMasks[state.backgroundlayer];
