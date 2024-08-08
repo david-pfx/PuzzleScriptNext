@@ -7254,12 +7254,17 @@ function redrawCellGrid(curlevel) {
         y: 0
     };
 
-    if (flickscreen) {
+    if (levelEditorOpened) {
+        const glyphcount = glyphCount();
+        editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
+        minMaxIJ[2] -= 2;
+        minMaxIJ[3] -= 2 + editorRowCount;
+    } else if (flickscreen) {
         var playerPositions = getPlayerPositions();
         if (playerPositions.length>0) {
-            var playerPosition=playerPositions[0];
-            var px = (playerPosition/(curlevel.height))|0;
-            var py = (playerPosition%curlevel.height)|0;
+            const playerPosition = playerPositions[0];
+            const px = (playerPosition / (curlevel.height))|0;
+            const py = (playerPosition % curlevel.height)|0;
 
             const screenx = (px / screenwidth) | 0;
             const screeny = (py / screenheight) | 0;
@@ -7837,6 +7842,11 @@ function canvasResize(level) {
     if (textMode) {
         screenwidth = TITLE_WIDTH;
         screenheight = TITLE_HEIGHT;
+    } else if (levelEditorOpened) {
+        screenwidth += 2;
+        const glyphcount = glyphCount();
+        editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
+        screenheight += 2 + editorRowCount;
     } else if (flickscreen) {
         screenwidth=state.metadata.flickscreen[0];
         screenheight=state.metadata.flickscreen[1];
