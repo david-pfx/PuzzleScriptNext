@@ -78,6 +78,8 @@
     </div><!-- /.container -->
 
 
+<script type="text/javascript" src="../games_dat.js"></script>
+<script type="text/javascript" src="../games_dat_plus.js"></script>
 <script type="text/javascript" src="../games_dat_next.js"></script>
 
 
@@ -95,13 +97,14 @@ function escapeHtml(unsafe) {
 
 
 function replaceContent() {
+  const games_gallery = [ ...games_gallery_next, ...games_gallery_plus, ...games_gallery_,  ];
   var columns = document.getElementById('gallerycontainer');
 
   var rowStart = '<div class="row">';
   var rowEnd = '</div>'
   var gamesPerRow = 3;
 
-  games_gallery.reverse();
+  //games_gallery.reverse();
   var data = [];
   data.push(rowStart);
   for (var i=0;i<games_gallery.length;i++) {

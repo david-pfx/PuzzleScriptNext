@@ -1,4 +1,4 @@
-var games_gallery = [
+var games_gallery_plus = [
   {
     "url": "https://auroriax.itch.io/gridblocked",
     "thumb": "plus_gridblocked.png",
