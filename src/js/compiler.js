@@ -1202,11 +1202,10 @@ function processRuleString(rule, state, curRules) {
                         if (groupNumber === lineNumber) {
                             if (curRules.length == 0) {
                                 logError('The "+" symbol, for joining a rule with the group of the previous rule, needs a previous rule to be applied to.', lineNumber);
-                            }
-                            if (i !== 0) {
+                            } else if (i !== 0) {
                                 logError('The "+" symbol, for joining a rule with the group of the previous rule, must be the first symbol on the line ', lineNumber);
-                            }
-                            groupNumber = curRules[curRules.length - 1].groupNumber;
+                            } else
+                                groupNumber = curRules[curRules.length - 1].groupNumber;
                         } else {
                             logError('Two "+"s (the "append to previous rule group" symbol) applied to the same rule.', lineNumber);
                         }
@@ -1666,6 +1665,8 @@ function rewriteUpLeftRules(rule) {
     if (containsEllipsis(rule)) {
         return;
     }
+    if (rule.rhs.length > 0 && rule.rhs.length != rule.lhs.length) // safe: can happen with prior error
+        return;
 
     if (rule.direction == 'up') {
         rule.direction = 'down';
