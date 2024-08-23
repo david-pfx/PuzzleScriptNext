@@ -180,7 +180,7 @@ PINK YELLOW #000000
 <h3>Text Sprites  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
 
 <p>Instead of a sprite matrix, you can create an object that displays as a string of text.
-  You can see it working in <a href="https://david-pfx.github.io/PuzzleScriptNext/src/editor.html?demo=next/333">333</a>.
+  You can see it working in <a href="../editor.html?demo=next/333">333</a>.
   Use it like this. 
 </p>
 <pre><code>s; purple; text: S
@@ -200,6 +200,73 @@ number8 scale: 0.5; green; text: 8
   <dt>scale: 0.8</dt>
   <dd>The text is scaled, relative to 1.0. </dd>
 </dl>
+
+<h3>Canvas Sprites  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
+
+<p>For advanced users, a canvas sprite lets you draw just about anything. 
+  A canvas sprite consists of a sequence of instructions expressed as JSON, which can be vector drawing, text or symbols, shading and so on.
+  You can see it working in <a href="../editor.html?demo=other/wriggle">Wriggle</a>.
+    
+<p>A canvas sprite is defined by adding <code>canvas:w,h</code> to the first line after any objects and aliases. 
+The width and height are optional, and default to 1.
+Here is an example of an object that is a grey blob.</p>
+
+<pre><code><span class="hljs-comment">// this is a grey blob</span>
+blob <span class="hljs-selector-tag">b</span> <span class="hljs-selector-tag">canvas</span>:<span class="hljs-number">2</span>,<span class="hljs-number">1</span>
+{<span class="hljs-string">"beginPath"</span>:[]}{<span class="hljs-string">"fillStyle"</span>:<span class="hljs-string">"#C0C0C0"</span>}
+{<span class="hljs-string">"arc"</span>:[<span class="hljs-number">1.5</span>,<span class="hljs-number">0.5</span>,<span class="hljs-number">0.4</span>,<span class="hljs-number">0</span>,<span class="hljs-number">6.28</span>]}
+{<span class="hljs-string">"fill"</span>:[]}
+</code></pre><p>
+
+  <p>This should be followed by lines of JSON objects, each with one name and one value. 
+    The name should be one of the <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">CanvasRenderingContext2D</a> 
+    properties or functions. 
+    If the name is a function it is invoked with the value, which is a (possibly empty) array containing the function arguments.
+    Otherwise it is a property, and the value is assigned to that property. </p>
+    
+Alternatively the name may be <code>!include</code> in which case the argument is the name of another <code>canvas</code> object, and the JSON for that object is included.
+<pre><code><span class="hljs-comment">// this canvas object includes another</span>
+{"!include":"man"}
+{"beginPath":[]}
+{"fillStyle":"white"}
+{"arc":[0.5,0.5,0.1,0,7]}
+{"fill":[]}
+</code></pre><p>
+
+  <p>Objects are scaled so that a size of 1.0 is one cell (or as defined by <code>w</code> and <code>h</code>).
+    Angles are in radians.</p>
+<p>The object transforms <code>copy:</code>, <code>translate</code>, <code>rot:</code> and <code>flip:</code> behave as expected, with distances defined in sprite pixels.
+The <code>shift:</code> transform is not implemented.</p>
+<p>The test program is <code>test/test_min_canvas</code>.</p>
+<p>Notes.</p>
+<ol>
+<li><p>The canvas API uses named colours which are quite different from any of the PS pixel colours (eg <code>&quot;red&quot;</code> is not the same <code>red</code>).
+If you really need them to be the same, use hex format colours (e.g. <code>#FFA500</code>) which should always match.</p>
+</li>
+<li><p>Canvas size units are grid cells and drawing instructions have their origin at top-left. So <code>canvas:2,3</code> allows a sprite to be 6 grid cells, and <code>{&quot;rect&quot;:[0.01,0.01,1.98,1.98]}</code> will draw a rectange just less than 2x2, relative to the top left corner.
+However, like pixel sprites the drawing is aligned with the bottom left corner, so that over-sized sprites extend up and right.</p>
+</li>
+<li><p>All transforms use the <code>sprite_size</code> as the unit of measure, so <code>translate:right:1</code> means 1 pixel to the right. 
+Use a larger <code>sprite_size</code> to achieve more fine-grained positioning.</p>
+</li>
+<li><p>Canvas sprites rotate around the centre of their canvas and are not realigned on the grid, while pixel sprites are realigned on the grid after rotation, anchored to the bottom-left corner. Use square canvas and sprite to minimise alignment issues. </p>
+</li>
+<li><p>Watch out for applying transforms to <code>copy:</code> objects that already have transforms applied.
+Likewise, applying multiple transforms to a single canvas sprite may not yield the same expected result as the same list applied to a pixel sprite.
+Probably best to define a collection of transform-free base sprites and only apply transforms on the copies, but if in doubt, try it!</p>
+</li>
+<li><p>All objects must be included in a collision layer, even partially-defined objects you only <code>&quot;!include&quot;</code> into later objects.
+Since these are never displayed, you can add all your include-only objects to the first (<code>Background</code>) layer. </p>
+</li>
+<li><p>The Level Editor sprite pick-list currently displays canvas sprites without their transforms, so it can be hard to pick the right one.
+If you give sprites meaningful names and hover over a sprite to check its name before you click on it, this should help.</p>
+</li>
+<li><p>JSON syntax error detection and reporting is very limited. 
+If you see a magenta square, your JSON is badly formed, but often there is nothing to see except it doesn&#39;t work. 
+Ask for help or look for existing examples. </p>
+</li>
+</ol>
+
 
     </div><!-- /.container -->
 

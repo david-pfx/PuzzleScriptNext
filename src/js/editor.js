@@ -7,14 +7,14 @@ var code = document.getElementById('code');
 var _editorDirty = false;
 var _editorCleanState = "";
 
-if (storage_has('test_code')) {
-	code.textContent = storage_get('test_code') + '';
-	storage_remove('test_code');
-} else code.textContent = '';
-
 window.addEventListener('load', function () {
-	let file = null;
-	if (file = getParameterByName("demo")) {
+	let file;
+
+	if (storage_has('test_code')) {
+		code = storage_get('test_code') + '';
+		storage_remove('test_code');
+		loadGame(code);
+	} else if (file = getParameterByName("demo")) {
 		editor.setValue("loading demo...");
 		tryLoadFile(`demo/${file}.txt`);
 	} else if (file = getParameterByName("url")) {
@@ -207,13 +207,7 @@ function tryLoadGist(id) {
 		} else if (githubHTTPClient.status!==200&&githubHTTPClient.status!==201) {
 			consoleError("HTTP Error "+ githubHTTPClient.status + ' - ' + githubHTTPClient.statusText);
 		} else {
-			var code=result["files"]["script.txt"]["content"];
-			editor.setValue(code);
-			editor.clearHistory();
-			clearConsole();
-			setEditorClean();
-			unloadGame();
-			compile(["restart"],code);
+			loadGame(result["files"]["script.txt"]["content"]);
 		}
 	}
 	// if (storage_has('oauth_access_token')) {
@@ -235,17 +229,20 @@ function tryLoadFile(fileName, docompile = true) {
   			return;
 		if (fileOpenClient.status != 200 && fileOpenClient.status != 201) {
 			consoleError("HTTP Error "+ fileOpenClient.status + ' - ' + fileOpenClient.statusText);
-		} else {
-			editor.setValue(fileOpenClient.responseText);
-			setEditorClean();
-			unloadGame();
-			if (docompile) {
-				clearConsole();
-				compile(["restart"]);
-			}
-		}
+		} else 
+			loadGame(fileOpenClient.responseText, docompile)
 	}
 	fileOpenClient.send();
+}
+
+function loadGame(text, docompile = true) {
+	editor.setValue(text);
+	setEditorClean();
+	unloadGame();
+	if (docompile) {
+		clearConsole();
+		compile(["restart"]);
+	}
 }
 
 function canExit() {
