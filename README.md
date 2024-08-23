@@ -15,7 +15,7 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24h08. 
+The latest version is Release v-24h23. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See [Objects](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/objects.html).
 Please try the gallery and examples.
@@ -25,6 +25,9 @@ Breaking change:
 This will break some existing games. The fix is to move the sprite offset using `translate:`.
 
 Recent fixes/updates:
+* Fix sokolink game so player does not disappear.
+* Fix level select screen to start by selecting current level.
+* More fixes to stop compile errors from causing exceptions and crashes.
 * Gallery updated to include `canvas:` games as well as all PS and PS plus (175 total).
 * Level edit reverted to ignore zoomscreen etc.
 * Two canvas games have been added to the editor **Examples** dropdown.

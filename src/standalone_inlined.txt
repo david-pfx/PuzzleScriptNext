@@ -8290,6 +8290,7 @@ function selectPauseScreen(lineNo) {
 			canvasResize();
 		} : null,
 		state.metadata.level_select ? () => {
+			titleSelection = false;
 			gotoLevelSelectScreen();
 		} : null,
 		() => {
@@ -8353,6 +8354,7 @@ function gotoLevelSelectScreen() {
 		for(var i = 0; i < state.sections.length; i++) {
 			if(state.sections[i].firstLevel > curLevelNo) {
 				titleSelection = Math.max(0,i-1);
+				if (debugSwitch.includes('menu')) console.log(`gotoLevelSelect curLevelNo=${curLevelNo} titleSelection=${titleSelection}`);
 				break;
 			}
 		}
@@ -8367,6 +8369,14 @@ function gotoLevelSelectScreen() {
 function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
 	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
+
+	// set initial highlight to current level
+	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	if(titleSelection < levelSelectScrollPos) { //Up
+		levelSelectScrollPos = titleSelection;
+	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) { //Down
+		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
+	}
 
 	var unlockedUntil = -1;
 	if (state.metadata.level_select_lock) {
@@ -8388,9 +8398,9 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		}
 	}
 
-	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	//console.log(`levelHighlightLine=${levelHighlightLine} titleSelection=${titleSelection} levelSelectScrollPos=${levelSelectScrollPos}`)
 	if (levelHighlightLine == 0)
-		levelHighlightLine = 3;
+		levelHighlightLine = 3 + titleSelection - levelSelectScrollPos;
 	else if (levelHighlightLine > 3 && scrollIncrement < 0)
 		levelHighlightLine--;
 	else if (levelHighlightLine < 3 + amountOfLevelsOnScreen - 1 && scrollIncrement > 0)
@@ -8402,10 +8412,8 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
-	titleSelection = selectLine == 0 ? 0 : null;
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
-		//const selected = (i == titleSelection);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
 		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
@@ -9870,7 +9878,8 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		var fn = "var result = [];\n"
 		fn += "if(cellRow[0].matches(i, objects, movements)";
 		var cellIndex=1;
-		for (;cellRow[cellIndex]!==ellipsisPattern;cellIndex++) {
+		// fix for prior error leaves no ellipsis
+		for ( ; cellRow[cellIndex] !== ellipsisPattern && cellIndex < cr_l; cellIndex++) {
 			fn+="&&cellRow["+cellIndex+"].matches(i+"+cellIndex+"*d, objects, movements)";
 		}
 		cellIndex++;
@@ -11614,13 +11623,11 @@ function nextLevel() {
 
 			loadLevelFromStateOrTarget();
 		} else if(isLevelSelectOptionSelected()) {
-			// level select
-			titleSelection = 0;
+			titleSelection = null;
 			gotoLevelSelectScreen();
 		} else {
 			throw "next level";
-			// settings
-			// TODO
+			// settings -- TODO
 		}
 	} else {
 		if (hasUsedCheckpoint){
@@ -12778,7 +12785,7 @@ var codeMirrorFn = function() {
             state.objects[candname] = newobj;
 
             const cnlc = candname.toLowerCase();
-            if (candname != cnlc && [ "background", "player" ].includes(cnlc))
+            if (candname != cnlc && [ 'background', 'player' ].includes(cnlc))
                 createAlias(state, cnlc, candname, state.lineNumber);
             for (const alias of aliases) {
                 registerOriginalCaseName(state, alias, state.lineNumber);
@@ -14604,7 +14611,7 @@ function generateExtraMembers(state) {
                 glyphDict[key] = glyphDict[val];
                 glyphOrder.push([dat.lineNumber,key]);
             } 
-            }
+        }
 
         //then, aggregates
         for (var i = 0; i < state.legend_aggregates.length; i++) {
@@ -14633,6 +14640,7 @@ function generateExtraMembers(state) {
                     } else {
                         if (obj.layer === undefined) {
                             logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', dat.lineNumber);
+                            obj.layer = 0;  // safety
                         } else {
                             var n1 = n.toUpperCase();
                             var n2 = state.idDict[mask[obj.layer]].toUpperCase();
@@ -14892,6 +14900,7 @@ function generateExtraMembersPart2(state) {
 Level.prototype.calcBackgroundMask = function(state) {
     if (state.backgroundlayer === undefined) {
         logError("You have to have a background layer");
+        TooManyErrors();
     }
 
     var backgroundMask = state.layerMasks[state.backgroundlayer];
@@ -15272,11 +15281,10 @@ function processRuleString(rule, state, curRules) {
                         if (groupNumber === lineNumber) {
                             if (curRules.length == 0) {
                                 logError('The "+" symbol, for joining a rule with the group of the previous rule, needs a previous rule to be applied to.', lineNumber);
-                            }
-                            if (i !== 0) {
+                            } else if (i !== 0) {
                                 logError('The "+" symbol, for joining a rule with the group of the previous rule, must be the first symbol on the line ', lineNumber);
-                            }
-                            groupNumber = curRules[curRules.length - 1].groupNumber;
+                            } else
+                                groupNumber = curRules[curRules.length - 1].groupNumber;
                         } else {
                             logError('Two "+"s (the "append to previous rule group" symbol) applied to the same rule.', lineNumber);
                         }
@@ -15736,6 +15744,8 @@ function rewriteUpLeftRules(rule) {
     if (containsEllipsis(rule)) {
         return;
     }
+    if (rule.rhs.length > 0 && rule.rhs.length != rule.lhs.length) // safe: can happen with prior error
+        return;
 
     if (rule.direction == 'up') {
         rule.direction = 'down';
