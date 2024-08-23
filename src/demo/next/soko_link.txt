@@ -94,7 +94,7 @@ RULES
 ======
 
 [ Player links ] -> [ Player ] checkpoint     // must have been a win
-[ t ] -> [ t crate ]
+[ t no player ] -> [ t crate ]
 [ links ][ crate ] -> [ links ][ ]
 [ crate ][ t ] -> [ crate ][ ]
 

@@ -118,7 +118,7 @@ WINCONDITIONS
 
 LEVELS
 
-section Level 1
+section S1
 
 message This is a rather long message designed to see the result of specifying a custom font with some strange single "✓ ☑ ☛ ⦿" and double characters "大 ⚐"
 
@@ -128,15 +128,96 @@ message This is a rather long message designed to see the result of specifying a
 .m.......b.
 ...........
 
-section Level 2
+section S2
 
 .....
 .pww.
 .....
 
-section Level 3
+section S3
 
 ...w.
 .p.w.
 ...w.
+
+section S4
+
+...w.
+.p.w.
+...w.
+...w.
+
+section S5
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+
+section S6
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+
+section S7
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+...w.
+
+section S8
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+...w.
+...w.
+
+section S9
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+...w.
+...w.
+...w.
+
+section S10
+
+...w.w.
+.p.w.w.
+...w.w.
+
+section S11
+
+...w.w.w.
+.p.w.w.w.
+...w.w.w.
+
+section S12
+
+...w.w.w.w.
+.p.w.w.w.w.
+...w.w.w.w.
+
+section S13
+
+...w.w.w.w.w.
+.p.w.w.w.w.w.
+...w.w.w.w.w.
 

@@ -298,6 +298,7 @@ function selectPauseScreen(lineNo) {
 			canvasResize();
 		} : null,
 		state.metadata.level_select ? () => {
+			titleSelection = false;
 			gotoLevelSelectScreen();
 		} : null,
 		() => {
@@ -361,6 +362,7 @@ function gotoLevelSelectScreen() {
 		for(var i = 0; i < state.sections.length; i++) {
 			if(state.sections[i].firstLevel > curLevelNo) {
 				titleSelection = Math.max(0,i-1);
+				if (debugSwitch.includes('menu')) console.log(`gotoLevelSelect curLevelNo=${curLevelNo} titleSelection=${titleSelection}`);
 				break;
 			}
 		}
@@ -375,6 +377,14 @@ function gotoLevelSelectScreen() {
 function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
 	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
+
+	// set initial highlight to current level
+	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	if(titleSelection < levelSelectScrollPos) { //Up
+		levelSelectScrollPos = titleSelection;
+	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) { //Down
+		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
+	}
 
 	var unlockedUntil = -1;
 	if (state.metadata.level_select_lock) {
@@ -396,9 +406,9 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		}
 	}
 
-	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	//console.log(`levelHighlightLine=${levelHighlightLine} titleSelection=${titleSelection} levelSelectScrollPos=${levelSelectScrollPos}`)
 	if (levelHighlightLine == 0)
-		levelHighlightLine = 3;
+		levelHighlightLine = 3 + titleSelection - levelSelectScrollPos;
 	else if (levelHighlightLine > 3 && scrollIncrement < 0)
 		levelHighlightLine--;
 	else if (levelHighlightLine < 3 + amountOfLevelsOnScreen - 1 && scrollIncrement > 0)
@@ -410,10 +420,8 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
-	titleSelection = selectLine == 0 ? 0 : null;
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
-		//const selected = (i == titleSelection);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
 		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
@@ -3623,13 +3631,11 @@ function nextLevel() {
 
 			loadLevelFromStateOrTarget();
 		} else if(isLevelSelectOptionSelected()) {
-			// level select
-			titleSelection = 0;
+			titleSelection = null;
 			gotoLevelSelectScreen();
 		} else {
 			throw "next level";
-			// settings
-			// TODO
+			// settings -- TODO
 		}
 	} else {
 		if (hasUsedCheckpoint){
