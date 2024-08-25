@@ -506,8 +506,8 @@ function redrawCellGrid(curlevel) {
                     return;
                 } else if (Math.abs(cameraTargetVector) < (0.5 / cellwidth)) {
                     // Canvas doesn't actually render subpixels, but when the camera is less than half a subpixel away from target, snap to target
-                    cameraPosition[coord] = cameraPositionTarget[coord]
-                    return
+                    cameraPosition[coord] = cameraPositionTarget[coord];
+                    return;
                 }
 
                 cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
@@ -524,6 +524,7 @@ function redrawCellGrid(curlevel) {
 
     }
     
+    if (debugSwitch.includes('redraw')) console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight}`, minMaxIJ);
     // used in function isInside
     screenOffsetX = minMaxIJ[0];
     screenOffsetY = minMaxIJ[1];
@@ -949,65 +950,74 @@ function setClip(tween) {
 }
 
 function drawEditorIcons(mini,minj) {
-    // major rework using objects
-    const inRect = (pt,rc) => pt.x >= rc.x && pt.x < rc.x + rc.w && pt.y >= rc.y && pt.y < rc.y + rc.h;
-    const cellSize = { w: cellwidth, h: cellheight };
-    // glyph panel rectangle in cells, origin same as main board
-    const panelRect = { x: 0, y: -editorRowCount - 1, w: screenwidth + 1, h: editorRowCount };
-    // mouse position rebased to within panel
-    const mousePos = { x: mouseCoordX, y: mouseCoordY };
-    const mousePanelPos = inRect(mousePos, panelRect) ? { x: mousePos.x - panelRect.x, y: mousePos.y - panelRect.y } : { x: NaN, y: NaN };
-    // index into glyphs
-    const mouseIndex = mousePanelPos.x + mousePanelPos.y * panelRect.w;
-    const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
-    const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
-    const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
+	var glyphCount = glyphImages.length;
+	var glyphStartIndex=0;
+	var glyphEndIndex = glyphImages.length;/*Math.min(
+							glyphStartIndex+10,
+							screenwidth-2,
+							glyphStartIndex+Math.max(glyphCount-glyphStartIndex,0)
+							);*/
+	var glyphsToDisplay = glyphEndIndex-glyphStartIndex;
 
-    let dp0 = drawPos(0)
-    dp0.x -= cellSize.w;  // special
-	ctx.drawImage(glyphPrintButton, dp0.x, dp0.y);
-	if (mousePos.x == panelRect.x - 1 && mousePos.y == panelRect.y) 
-		ctx.drawImage(glyphMouseOver, dp0.x, dp0.y);
+	ctx.drawImage(glyphPrintButton,xoffset-cellwidth,yoffset-cellheight*(1+editorRowCount));
+	if (mouseCoordY===(-1-editorRowCount)&&mouseCoordX===-1) {
+			ctx.drawImage(glyphMouseOver,xoffset-cellwidth,yoffset-cellheight*(1+editorRowCount));								
+	}
 
-    glyphImages.forEach((glyph,index) => {
-		ctx.drawImage(glyph, drawPos(index).x, drawPos(index).y);
-		if (index == mouseIndex)
-			ctx.drawImage(glyphMouseOver, drawPos(index).x, drawPos(index).y);
-		if (index == glyphSelectedIndex) 
-			ctx.drawImage(glyphHighlight, drawPos(index).x, drawPos(index).y);
-	});
+	var ypos = editorRowCount-(-mouseCoordY-2)-1;
+	var mouseIndex=mouseCoordX+(screenwidth-1)*ypos;
 
-    let tooltip_string = '';
-    let tooltip_objects = null;
-    if (mouseIndex >= 0 && mouseIndex < glyphImagesCorrespondance.length) {
-        // prepare tooltip: legend for highlighted editor icon
-        const identifier_index = glyphImagesCorrespondance[mouseIndex]
+	for (var i=0;i<glyphsToDisplay;i++) {
+		var glyphIndex = glyphStartIndex+i;
+		var sprite = glyphImages[glyphIndex];
+        var xpos=i%(screenwidth-1);
+        var ypos=(i/(screenwidth-1))|0;
+		ctx.drawImage(sprite,xoffset+(xpos)*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));
+		if (mouseCoordX>=0&&mouseCoordX<(screenwidth-1)&&mouseIndex===i) {
+			ctx.drawImage(glyphMouseOver,xoffset+xpos*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));						
+		}
+		if (i===glyphSelectedIndex) {
+			ctx.drawImage(glyphHighlight,xoffset+xpos*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));
+		} 		
+	}
+
+    //filched from https://raw.githubusercontent.com/ClementSparrow/Pattern-Script/master/src/js/graphics.js
+    var tooltip_string = ''
+    var tooltip_objects = null
+    // prepare tooltip: legend for highlighted editor icon
+    if ( (mouseCoordX >= 0) && (mouseCoordX < screenwidth) && (mouseIndex >= 0) && (mouseIndex < glyphsToDisplay) )
+    {
+        const glyphIndex = glyphStartIndex + mouseIndex
+        const identifier_index = glyphImagesCorrespondance[glyphIndex]
         tooltip_string = identifier_index 
         if (identifier_index in state.synonymsDict){
             tooltip_string += " = " + state.synonymsDict[identifier_index];
         } else if (identifier_index in state.aggregatesDict){
             tooltip_string += " = " + state.aggregatesDict[identifier_index].join(" and ");
         }
-    } else if (mousePos.x >= 0 && mousePos.x < screenwidth && mousePos.y >= 0 && mousePos.y < screenheight) {
-        // prepare tooltip: content of a level's cell
-        const posMask = curLevel.getCellInto((mousePos.y + minj) + (mousePos.x + mini) * curLevel.height, _o12); //???
+    }
+    // prepare tooltip: content of a level's cell
+    else if ( (mouseCoordX >= 0) && (mouseCoordY >= 0) && (mouseCoordX < screenwidth) && (mouseCoordY < screenheight-editorRowCount-2) )
+    {
+        const posMask = curLevel.getCellInto((mouseCoordY+minj) + (mouseCoordX+mini)*curLevel.height, _o12);
         tooltip_objects = state.idDict.filter( (x,k) => (posMask.get(k) != 0) )
-        // prepare tooltip: object names
-        tooltip_string = tooltip_objects ? tooltip_objects.join(', ') : '';
+            // prepare tooltip: object names
+        if (tooltip_objects !== null)
+        {
+            tooltip_string = tooltip_objects.join(', ')
+        }
     }
 
     // show tooltip
-    if (tooltip_string) {
+    if (tooltip_string.length > 0)
+    {
         ctx.fillStyle = state.fgcolor;
-        ctx.font = `${cellheight/2}px Monospace`;
-        ctx.textAlign = "center";
-        ctx.fillText(tooltip_string, xoffset + screenwidth * cellwidth / 2, yoffset-0.3*cellheight);
+        ctx.font = `16px "Source Sans Pro", Helvetica, Arial, sans-serif`;
+        ctx.fillText(tooltip_string, xoffset, yoffset-0.4*cellheight);
     }
 
-
-
-    if (mouseCoordX >= -1 && mouseCoordY >= -1 && mouseCoordX <= screenwidth && mouseCoordY <= screenheight) {
-        if (mouseCoordX == -1 || mouseCoordY == -1 || mouseCoordX == screenwidth || mouseCoordY === screenheight) {
+	if (mouseCoordX>=-1&&mouseCoordY>=-1&&mouseCoordX<screenwidth-1&&mouseCoordY<screenheight-1-editorRowCount) {
+		if (mouseCoordX==-1||mouseCoordY==-1||mouseCoordX==screenwidth-2||mouseCoordY===screenheight-2-editorRowCount) {
 			ctx.drawImage(glyphHighlightResize,
 				xoffset+mouseCoordX*cellwidth,
 				yoffset+mouseCoordY*cellheight
@@ -1066,18 +1076,11 @@ function canvasResize(level) {
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
 
+    cellwidth = canvas.width / screenwidth;
+    cellheight = (canvas.height - statusLineHeight) / screenheight;
+
     // If we need a status line, this will reduce the cell height to allow room
     statusLineHeight = state.metadata.status_line ? canvas.height / TITLE_HEIGHT : 0;
-    if (levelEditorOpened) {
-        // glyph display is level width + 1
-        editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
-        //editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
-        cellwidth = canvas.width / (screenwidth + 2);
-        cellheight = (canvas.height - statusLineHeight) / (screenheight + 2 + editorRowCount);
-    } else {
-        cellwidth = canvas.width / screenwidth;
-        cellheight = (canvas.height - statusLineHeight) / screenheight;
-    }
 
     // round the cell size as a multiple of sprite size
     let w = h = state.sprite_size || 5;
@@ -1097,16 +1100,11 @@ function canvasResize(level) {
     pixelSize = cellheight / h;
     
     // calculate an XY offset to position the board on the screen
-    xoffset = 0;
-    yoffset = 0;
+    xoffset = (canvas.width - cellwidth * screenwidth) / 2;
+    yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     if (levelEditorOpened && !textMode) {
-        xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
-        yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
     	xoffset+=cellwidth;
     	yoffset+=cellheight*(1+editorRowCount);
-    } else {
-        xoffset = (canvas.width - cellwidth * screenwidth) / 2;
-        yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     }
 
     // tidy up for export to globals

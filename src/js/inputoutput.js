@@ -232,22 +232,22 @@ function printLevel() {
 }
 
 function levelEditorClick(event,click) {
-	// note: screenwidth and screenheight are correct, not inflated by glyph panel
-	const glyphPanelRect = { x: 0, y: -1 - editorRowCount, w: screenwidth + 1, h: editorRowCount };
-	if (mouseCoordY >= glyphPanelRect.y && mouseCoordY < glyphPanelRect.y + glyphPanelRect.h) {
-		var newindex = mouseCoordX + glyphPanelRect.w * (mouseCoordY - glyphPanelRect.y);
+	if (mouseCoordY<=-2) {
+		var ypos = editorRowCount-(-mouseCoordY-2)-1;
+		var newindex=mouseCoordX+(screenwidth-1)*ypos;
 		if (mouseCoordX===-1) {
 			printLevel();
-		} else if (mouseCoordX >= 0 && newindex < glyphImages.length) {
-			glyphSelectedIndex = newindex;
+		} else if (mouseCoordX>=0&&newindex<glyphImages.length) {
+			glyphSelectedIndex=newindex;
 			redraw();
 		}
 
-	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
+	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-2&&mouseCoordY<screenheight-2-editorRowCount	) {
 		var glyphname = glyphImagesCorrespondance[glyphSelectedIndex];
 		var glyph = state.glyphDict[glyphname];
 		var glyphmask = new BitVec(STRIDE_OBJ);
-		for (var i=0;i<glyph.length;i++) {
+		for (var i=0;i<glyph.length;i++)
+		{
 			var id = glyph[i];
 			if (id>=0) {
 				glyphmask.ibitset(id);
@@ -273,18 +273,20 @@ function levelEditorClick(event,click) {
 			curLevel.setCell(coordIndex, glyphmask);
 			redraw();
 		}
-	} else {
-		if (mouseCoordX == -1) {
+	}
+	else if (click) {
+		if (mouseCoordX===-1) {
+			//add a left row to the map
 			addLeftColumn();			
 			canvasResize();
-		} else if (mouseCoordX == screenwidth) {
+		} else if (mouseCoordX===screenwidth-2) {
 			addRightColumn();
 			canvasResize();
 		} 
-		if (mouseCoordY == -1) {
+		if (mouseCoordY===-1) {
 			addTopRow();
 			canvasResize();
-		} else if (mouseCoordY == screenheight) {
+		} else if (mouseCoordY===screenheight-2-editorRowCount) {
 			addBottomRow();
 			canvasResize();
 		}
@@ -297,25 +299,26 @@ function levelEditorRightClick(event,click) {
 			glyphSelectedIndex=mouseCoordX;
 			redraw();
 		}
-	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
+	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-2&&mouseCoordY<screenheight-2-editorRowCount	) {
 		var coordIndex = mouseCoordY + mouseCoordX*curLevel.height;
 		var glyphmask = new BitVec(STRIDE_OBJ);
 		glyphmask.ibitset(state.backgroundid);
 		curLevel.setCell(coordIndex, glyphmask);
 		redraw();
 	}
-	else {
-		if (mouseCoordX == -1) {
+	else if (click) {
+		if (mouseCoordX===-1) {
+			//add a left row to the map
 			removeLeftColumn();			
 			canvasResize();
-		} else if (mouseCoordX == screenwidth) {
+		} else if (mouseCoordX===screenwidth-2) {
 			removeRightColumn();
 			canvasResize();
 		} 
-		if (mouseCoordY == -1) {
+		if (mouseCoordY===-1) {
 			removeTopRow();
 			canvasResize();
-		} else if (mouseCoordY == screenheight) {
+		} else if (mouseCoordY===screenheight-2-editorRowCount) {
 			removeBottomRow();
 			canvasResize();
 		}
@@ -323,18 +326,6 @@ function levelEditorRightClick(event,click) {
 }
 
 function getTilesTraversingPoints(x1, y1, x2, y2) {
-	// these branches should never be hit, but we want to be defensive to avoid infinite loops:
-	if (isNaN(x2)) {
-		console.warn("getTilesTraversingPoints() got NaN (second coord)")
-		x2 = -100
-		y2 = -100
-	}
-	if (isNaN(x1)) {
-		console.warn("getTilesTraversingPoints() got NaN (first coord)")
-		x1 = x2
-		y1 = y2
-	}
-	
 	if (cellwidth !== cellheight) {
 		throw "Error: Cell is not square.";
 	}

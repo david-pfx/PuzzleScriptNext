@@ -1224,7 +1224,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 var zoomscreen=false;
 var flickscreen=false;
 var smoothscreen=false;
-var screenwidth=0;
+var screenwidth=0;		// size of displayed area in cells
 var screenheight=0;
 
 //compresses 'before' into diff
