@@ -516,8 +516,12 @@ var codeMirrorFn = function() {
                 if (state.metadata_lines[ident]) {
                     var otherline = state.metadata_lines[token];
                     logWarning(`You've already defined a "${errorCase(token)}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
                 } else if (prelude_not_implemented.includes(token)) {
                     logWarning(`Option ${errorCase(token)} is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
                 } else if (prelude_param_text.includes(token)) {
                     ident = token;
                     lexer.pushToken(token, 'METADATA');
@@ -1134,7 +1138,8 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.match(/^[|-]/)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
-                    symbols.transforms.push([ 'flip', token == '|' ? '>' : 'v']);  
+                    // P:S compat: "- and | for horizontal and vertical mirrors"
+                    symbols.transforms.push([ 'flip', token == '-' ? '>' : 'v']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');

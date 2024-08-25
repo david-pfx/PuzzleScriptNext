@@ -1,43 +1,72 @@
-title ABRACADABRA 
+title ABRACADABRA maze
 author Andrea Gilbert
-homepage clickmazes.com
+homepage https://www.clickmazes.com
+run_rules_on_level_start
+//;
 
-background_color lightgrey
-text_color darkblue
+flickscreen 6x6
+background_color black
+text_color white
 mouse_clicks
-//level_select
-status_line
 noaction
-
-sprite_size 12
+nokeyboard
 
 ========
 OBJECTS
 ========
 
-Background .; lightgrey
+// Background and Filler are slightly smaller than full cell squares
+// This is an easy way to create a grid-line effect
 
-player
-white transparent
-000000000000
-011111111110
-011111111110
-011111111110
-011111111110
-011111111110
-011111111110
-011111111110
-011111111110
-011111111110
-011111111110
-000000000000
+Background . canvas:
+{"beginPath":[]}
+{"rect":[0.02,0.02,0.96,0.96]}
+{"fillStyle":"#ddd"} {"fill":[]}
 
+Filler x canvas:
+{"beginPath":[]}
+{"rect":[0.02,0.02,0.96,0.96]}
+{"fillStyle":"#666"} {"fill":[]}
 
-1 scale: 0.8; red;    text: A
-2 scale: 0.8; blue;   text: B
-3 scale: 0.8; pink;   text: C
-4 scale: 0.8; green;  text: D
-5 scale: 0.8; orange; text: R
+clickHere @ canvas:
+{"beginPath":[]}
+{"font":"0.2px serif"} {"textAlign":"center"}
+{"fillStyle":"white"} {"fillText":["Click ->",0.5,0.5]}
+
+FinishHere ! canvas:
+{"beginPath":[]}
+{"font":"0.2px serif"} {"textAlign":"center"}
+{"fillStyle":"white"} {"fillText":["<- Finish",0.5,0.5]}
+
+player canvas:
+{"beginPath":[]}
+{"arc":[0.5,0.5,0.42,0,7]}
+{"fillStyle":"white"} {"fill":[]}
+
+char canvas:
+{"beginPath":[]}
+{"font":"0.8px bold serif"} 
+{"textAlign":"center"} 
+
+1 canvas:
+{"!include":"char"} 
+{"fillStyle":"red"} {"fillText":["A",0.5,0.76]}
+
+2 canvas:
+{"!include":"char"} 
+{"fillStyle":"blue"} {"fillText":["B",0.5,0.76]}
+
+3 canvas:
+{"!include":"char"}
+{"fillStyle":"purple"} {"fillText":["C",0.5,0.76]}
+
+4 canvas:
+{"!include":"char"}
+{"fillStyle":"green"} {"fillText":["D",0.5,0.76]}
+
+5 canvas:
+{"!include":"char"}
+{"fillStyle":"orange"} {"fillText":["R",0.5,0.76]}
 
 goal;   transparent
 firstA; transparent
@@ -62,8 +91,8 @@ q = goal   and 1
 * = lastA  and a
 spell = a or b or c or d or r
 tile = 1 or 2 or 3 or 4 or 5
-//clickable = tile
 keyA = firstA or lastA
+occupied = spell or tile
 
 =======
 SOUNDS
@@ -76,8 +105,10 @@ sfx2 9766906
 COLLISIONLAYERS
 ================
 
-Background
+Background char
+Filler 
 checkme
+clickHere FinishHere
 player step
 goal keyA
 spell tile 
@@ -85,6 +116,10 @@ spell tile
 ======
 RULES
 ======
+(init)
+[ Background no occupied ] -> [ Background filler ]
+
+right [ clickHere | lclick 1 ] -> [ | 1 player ] sfx1
 
 [ > player ] -> cancel 
 
@@ -98,8 +133,6 @@ right [ step | D ] [ checkme 4 ] [ player ] ->  [ | step D ] [ 4 player ] [ ] sf
 right [ step | R ] [ checkme 5 ] [ player ] ->  [ | step R ] [ 5 player ] [ ] sfx1
 [ checkme ] -> cancel sfx2
 
-//[ player q ][ step lastA ] -> status Congratulations!
-
 =======
 WINCONDITIONS
 =======
@@ -111,13 +144,15 @@ all step on lastA
 LEVELS
 =======
 
-Message Spell the word ABRACADABRA \n\nStart on the top A \nFinish on the bottom A \nClick to move \n(any distance in a straight line)
+Message Spell the word ABRACADABRA \n\nStart on the top A \nFinish on the bottom A \nRook jump between letters
 
+.@1........
+.1243......
+.3412......
+.4252......
+.3551......
+...q!......
 ...........
-....p......
-...1243....
-...3412....
-...4252....
-...3551....
-.....q.....
 +bracadabr*
+
+Message That's Magic!
