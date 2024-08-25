@@ -15,17 +15,25 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24h23. 
+The latest version is Release v-24h26. 
 It includes a beta release of canvas sprites based on canvas API calls.
 See [Objects](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/objects.html).
-Please try the gallery and examples.
+
+This is a candidate for stable release.
+Please try the gallery and examples, and notify any bugs.
 
 Breaking change:
 * A `canvas:` sprite is now drawn to align with the bottom left corner, the same as for regular sprites.
 This will break some existing games. The fix is to move the sprite offset using `translate:`.
 
 Recent fixes/updates:
+* The flip shorthands "-" and "|" are now compatible with Pattern:Script (see Tapaban).
+* Problems with the level editor mouse position and behaviour have been corrected.
+* Sample programs `wriggle` and `abracadabra` have been updated.
+* Upper case filename `abracadabra.txt` has been replaced by lower case.
 * Fix sokolink game so player does not disappear.
+
+Older fixes/updates:
 * Fix level select screen to start by selecting current level.
 * More fixes to stop compile errors from causing exceptions and crashes.
 * Gallery updated to include `canvas:` games as well as all PS and PS plus (175 total).
