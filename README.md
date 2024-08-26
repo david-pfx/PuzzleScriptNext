@@ -27,7 +27,7 @@ Breaking change:
 This will break some existing games. The fix is to move the sprite offset using `translate:`.
 
 Recent fixes/updates:
-* The flip shorthands "-" and "|" are now compatible with Pattern:Script (see Tapaban).
+* The flip shorthands "\-" and "\|" are now compatible with Pattern:Script (see Tapaban).
 * Problems with the level editor mouse position and behaviour have been corrected.
 * Sample programs `wriggle` and `abracadabra` have been updated.
 * Upper case filename `abracadabra.txt` has been replaced by lower case.
