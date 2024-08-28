@@ -66,7 +66,18 @@
             ["text_message_continue", "[x] or [space] to continue!", "Overwrite the text below messages that normally says 'X to continue'."],
             ["level_select_unlocked_rollover", "3", "An alternative to LEVEL_SELECT_UNLOCKED_AHEAD, which applies a strict maximum number of unsolved levels."],
             ["sitelock_origin_whitelist", "https://auroriax.github.io:1234","Exported versions of the game will only run on sites with this origin."],
-            ["sitelock_hostname_whitelist", "auroriax.github.io","Exported versions of the game will only run on sites with this hostname."]
+            ["sitelock_hostname_whitelist", "polyomino.com","Exported versions of the game will only run on sites with this hostname."],
+            ["allow_undo_level", "", "Allows a player to go back to just before where a link came from."],
+            //["auto_level_titles", "", ""],
+            ["mouse_clicks", "", "Enables mouse clicks to be treated as movements in rules."],
+            ["status_line", "", "Enables a status line at the bottom of the screen."],
+            //["debug_switch", "", ""],
+            ["animate_interval", "0.25", "Sets the running time for animations."],
+            ["keyhint_color", "blue", "Controls the font color of lines giving hints about the keys to use."],
+            ["author_color", "red", "Controls the font color of the author name in the title screen."],
+            ["title_color", "", "Controls the font color of titles in the title screen and pause menu."],
+            //["puzzlescript", "", ""],
+            //["youtube", "", ""],
         ];
 
         var COLOR_WORDS = [
@@ -195,7 +206,7 @@
             switch (state.section) {
                 case 'objects':
                     {
-                        if (state.objects_section==2){
+                        if (state.objects_section==3){      // not sure quite why 3 instead of 2
                             candlists.push(COLOR_WORDS);
                         }
                         break;

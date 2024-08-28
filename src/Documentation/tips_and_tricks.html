@@ -298,7 +298,7 @@ For example, here’s some code to make objects that move against the border imm
 <p>Like any alias defined in the legend, a symbol can also stand for a combination of objects on different collision layers: </p>
 <pre><code>a = crate and target</code></pre>
 
-<p>However, groups of objects using <code>or</code> <code>codeb = crate1 or crate2</code> cannot be used in the levels section.</p>
+<p>However, groups of objects using <code>or</code> (as for example <code>codeb = crate1 or crate2</code>) cannot be used in the levels section.</p>
 <p>The background object will be behind every object or group of objects automatically and never needs to be included when defining symbols. 
   The top-left-most background tile (scanning the first column from top to bottom, then the second column, etc.) will be placed behind all objects without an explicit background. 
   Keep in mind that custom, varying backgrounds can complicate the legend section and levels, requiring many additional and combinations.</p>
@@ -325,7 +325,7 @@ For example, here’s some code to make objects that move against the border imm
 </p>
 <p>Sharing PuzzleScript code in a text file works even with these special symbols, when the encoding is set to UTF-8 (Unicode). </p>
 
-<p>There is a <code>case_sensitive prelude</code> <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"> prelude option that recognizes a and A as different symbols, but will also do the same for object names themselves.
+<p>There is a <code>case_sensitive</code> <img src="../images/psplus.png" alt="PuzzleScript Plus" height="16"> prelude option that recognizes a and A as different symbols, but will also do the same for object names themselves.
 Even without case sensitivity, you will likely not run out of usable characters any time soon. </p>
   
 <p>PuzzleScript uses the default browser monospace font. 
@@ -336,12 +336,12 @@ Even without case sensitivity, you will likely not run out of usable characters 
 
   <h3>Using the Level Editor</h3>
 
-<p>An interactive Level Editor can be toggled via its button in the top toolbar or by pressing E when the game is focused. </p>
+<p>The interactive Level Editor can be toggled via its button in the top toolbar or by pressing E when the game is focused. </p>
 <p>The tile palette at the top is generated using all the defined symbols available in the whole game, starting with numbers, symbols and then letters.</p>
-<p>When exiting the editor or clicking on the S next to the tiles the engine will attempt to express the level in code that can be selected with a 
+<p>On exiting the editor or clicking on the S (top left) the engine will attempt to express the level in code that can be selected with a 
   single left click and copied into the code. 
   It might not be able to do so fully because an object or a combination of objects on a tile don’t have a single symbol assigned, 
-  in which case it will try to match it as best as possible or will just leave a background tile instead if it isn’t possible.</p>
+  in which case it will try to match it as well as possible or will just leave a background tile instead if it isn’t possible.</p>
 
 <h3>Generating parts of the levels within rules</h3>
 
@@ -360,6 +360,59 @@ making for an easier level making experience.
   If that effect is unwanted, a checkpoint could be set after the rules generate details:
   </p>
   <pre><code>[Init] -> [] checkpoint</code></pre>
+
+<h2>Using TAGS</h2>
+
+  <h3>Using Less Aliases in the Legends Section</h3>
+
+  <p>From time to time, your game may contain objects having two tags.</p>
+<pre><code>TAGS
+  ID = 1 2 3 4 5 6 7 8 9
+  ID2 = 1 2 3 4 5 6 7 8 9
+  OBJECTS
+  Obj:ID:ID2 canvas: …
+</code></pre>
+  
+  <p>If every object can appear in a level, then in the legends section you will need to define many aliases for these objects.
+    However, there is a clever way to significantly reduce the number of aliases from xy to x+y (from 9x9 = 81 to 9+9 = 18 in this case).
+  </p>
+
+<ul>  
+  <li>Step 1: In the legends section, define two sets of aliases, one has x aliases and another has y aliases.</li>
+  <li>Step 2: Place them in corresponding positions in a map, as if the map had two different layers. 
+    <code>Flickscreen</code> (size depends on the map size) is used to make sure that only one set of objects will be seen, and another set will be hiding outside the flickscreen.</li>
+  <li>Step 3: In the rules section, combine the two sets of objects back into one.</li>
+</ul>  
+  <p>Here is a minimal example.</p>
+<pre><code>  flickscreen 5x5
+  run_rules_on_level_start
+  OBJECTS
+  Setup:ID2; transparent
+  LEGENDS
+  # = Wall
+  x = Background
+  1 = Obj:1:1
+  2 = Obj:2:1
+  etc
+  a = Setup:1
+  b = Setup:2
+  etc
+  RULES
+  right ID ID2 [ Obj:ID:1 | | | | Setup:ID2 ] -> [ Obj:ID:ID2 | | | | Setup:ID2 ]
+  LEVELS
+  (use walls to separate the two layers so player does not enter the setup layer)
+  #########
+  #9xx#fxx#
+  #xxx#xxx#
+  #xxx#xxx#
+  #########
+</code></pre>  
+  <p>When the game runs, the object <code>Obj:9:1</code> will become <code>Obj:9:6</code> as desired.</p>
+  <p>Notes:</p>
+  <ul>
+  <li>Note 1: If your objects have three tags, just make three layers in the levels section and two setup objects in the objects section.</li>
+  <li>Note 2: This rule only needs to be applied once per level, so best to apply it when initialising your level.</li>
+  </ul>
   
   <p><i>This document was adapted from an original authored by @ThatScar and others.</i></p>
     </div><!-- /.container -->
