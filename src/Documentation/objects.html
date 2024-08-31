@@ -125,9 +125,13 @@ PINK YELLOW #000000
         and <b>#8888</b> is semi-transparent <span style="color: #8888">grey</span>.</li>
     </ul></p>
 
-  <h3>The Grid</h3>
+  <h3>The Grid <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></h3>
   <p>The third and following lines are rows of numeric digits making up the sprite grid (or they can be omitted, and then you just get a square). 
     The dots represent transparency, and the numbers 0..9 index the colors in the second line, for as many colors as there are.</p>
+
+    <p>If ten colors really aren't enough, or perhaps you have an automated tool doing subtle shades, then you can use letters for up to another 26 colors. 
+      The letter 'a' or 'A' is color index 10, and so on. 
+    </p>
 
     <p>In the simple case each line is <b>sprite_size</b> in length and there are <b>sprite_size</b> of them.
     This defaults to 5x5, but you can set it set to a different value in the <a href="prelude.html">prelude</a>.</p>
@@ -193,7 +197,7 @@ number8 scale: 0.5; green; text: 8
 <p>These are the things you can do.</p>
 
 <dl>
-  <dt>text: 2048</dt>
+  <dt>text: tea for two</dt>
   <dd>The string of characters is trimmed and centred to fit in the cell. 
     Text objects use the custom font, or Monospace fallback, rather than the built-in font.
   </dd>

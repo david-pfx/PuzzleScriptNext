@@ -746,6 +746,8 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
+
+            lexer.matchComment();
             if (token = lexer.matchToken()) {
                 logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
