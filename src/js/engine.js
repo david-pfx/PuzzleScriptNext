@@ -298,7 +298,7 @@ function selectPauseScreen(lineNo) {
 			canvasResize();
 		} : null,
 		state.metadata.level_select ? () => {
-			titleSelection = false;
+			titleSelection = null;
 			gotoLevelSelectScreen();
 		} : null,
 		() => {
@@ -358,7 +358,7 @@ function gotoLevelSelectScreen() {
 	messagetext = "";
 	statusText = "";
 
-	if (titleSelection == false) {
+	if (titleSelection == null) {
 		for(var i = 0; i < state.sections.length; i++) {
 			if(state.sections[i].firstLevel > curLevelNo) {
 				titleSelection = Math.max(0,i-1);
@@ -413,10 +413,12 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		levelHighlightLine--;
 	else if (levelHighlightLine < 3 + amountOfLevelsOnScreen - 1 && scrollIncrement > 0)
 		levelHighlightLine++;
-	else if (levelSelectScrollPos > 0 && (selectLine == 2 || scrollIncrement < 0))
+	else if (levelSelectScrollPos > 0 && (levelHighlightLine == 3 || scrollIncrement < 0))
 		levelSelectScrollPos--;
-	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (levelHighlightLine == 11 || scrollIncrement > 0))
 		levelSelectScrollPos++;
+
+	titleSelection = levelHighlightLine - 3 + levelSelectScrollPos;
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
