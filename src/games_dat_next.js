@@ -154,13 +154,6 @@ var games_gallery_next = [
     "homepage": "https://www.youtube.com/c/IcelyPuzzles"
   },
   {
-    "url": "play.html?demo=patt/level",
-    "thumb": "patt_level.gif",
-    "title": "Level",
-    "author": "Toombler",
-    "homepage": "https://toombler.itch.io"
-  },
-  {
     "url": "play.html?demo=patt/magicians_have_long_handkerchiefs",
     "thumb": "patt_magicians_have_long_handkerchiefs.gif",
     "title": "Magicians Have Long Handkerchiefs",

@@ -41,8 +41,13 @@ g;green
 y;yellow
 k;pink
 
-s; purple; text: S
-t; orange; text: t
+s
+purple
+text: S
+
+t; orange
+text: t
+
 u; pink;   text: Ab3
 f; red;    text: A
 e; blue;   text: A

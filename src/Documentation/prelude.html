@@ -299,6 +299,11 @@ Rule Assembly : (4 rules)
       <dd>For many games, you don't want holding the action key down to retrigger it - games where you're toggling a switch, say.  
         For these games, set this option and the action button will only respond to individual presses.</dd>
 
+      <dt>nokeyboard</dt>
+      <dd>Allows the game to run without a Player object and movement.
+        This is intended for mouse-only games, so things don't move when you didn't intend them to.
+      </dd>
+
       <dt>norestart</dt>
       <dd>Disables the restart key (R). Not sure why you would want to do this, but it's there.</dd>
         
@@ -400,9 +405,13 @@ late [ Temp ] -> [ ]</code></pre>
         Tweens are enabled for for LEFT, RIGHT, UP, and DOWN object movement, and for ACTION (will fade in that object), and will take the duration you specify in seconds. 
         An object must execute its movement for this animation to play, currently there is no way to play an animation without moving.
         <br><br>Note that if the next turn starts before this tween is completed, the previous tween instantly completes. 
-        For this reason, you should set the tween_length very low, somewhere between 0.05 and 0.075 seconds, but at least lower than the AGAIN_INTERVAL and KEY_REPEAT_INTERVAL, and to avoid using it in games that use REALTIME_INTERVAL.
-        Additionally, late rules can tamped with this system, so it's not recommended to use these rules in games that use LATE rules.
-        <br><br>Note that it has a number of limitations, and while it works well for simple games, it might not be powerful enough for complex games.</p>
+        For this reason, you should set the tween_length very low, somewhere between 0.05 and 0.075 seconds, 
+        but at least lower than the AGAIN_INTERVAL and KEY_REPEAT_INTERVAL, and to avoid using it in games that use REALTIME_INTERVAL.
+        <br><br>Note that it has a number of limitations, and while it works well for simple games, it might not be powerful enough for complex ones.
+        Additionally, LATE rules can interfere with this system, so it's not recommended to use these rules in games that use them.
+        And for now tween animation is a PS+ feature, incompatible with all but the most basic sprites. 
+        You can't use it with oversize sprites, transforms, animations, render groups or canvas.      
+      </p>
       </dd>
 
       <dt>tween_easing easeInQuad <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
