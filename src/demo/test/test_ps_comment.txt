@@ -67,6 +67,16 @@ crateshadowtop
 .....
 ....0
 ...01
+..012
+
+crateshadowbot
+#2DB34E#66CC52#567353
+.....
+.....
+.....
+....0
+...01
+..012
 
 ziehend_nördlich
 pink
@@ -98,6 +108,7 @@ Player, Wall, Crate
 ziehend_nördlich
 StopPlay 
 crateshadowtop
+crateshadowbot
 
 ======
 RULES

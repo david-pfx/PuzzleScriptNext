@@ -3070,7 +3070,7 @@ function twiddleMetaData(state, update = false) {
     }
 
     if (newmetadata.tween_snap) {
-        const snap = Math.max(parseInt(state.metadata.tween_snap), 1);
+        const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
         if (snap) newmetadata.tween_snap = snap;
         else {
             logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);

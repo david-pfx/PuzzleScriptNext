@@ -934,18 +934,18 @@ var codeMirrorFn = function() {
             while (!lexer.matchEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = lexer.match(/^[#\w]+/, true)) {
-                    if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                if (token = lexer.match(/^[\w]+/, true)) {
+                    if (color_names.includes(token)) {
                         colors.push(token);
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
-
+                } else if (token = lexer.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                    colors.push(token);
+                    kind = `MULTICOLOR${token}`;
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
-                    lexer.matchToken();
                 } else throw 'obj-color';
                 lexer.pushToken(token, kind);
             }
