@@ -1,0 +1,407 @@
+title pipe twist
+author minotalen
+run_rules_on_level_start
+sprite_size 6
+
+again_interval 0.08
+realtime_interval 0.08
+text_color #CF7188
+norepeat_action
+mouse_left makeTurn
+mouse_drag placer
+mouse_right makeStraight
+
+runtime_metadata_twiddling
+runtime_metadata_twiddling_debug
+
+========
+OBJECTS
+========
+actionMouse
+transparent
+
+BLtoTL
+#AF6073 #CF7188
+10....
+100...
+.100..
+.100..
+100...
+10....
+
+TLtoTR
+#AF6073 #CF7188
+10..10
+101110
+.1000.
+..00..
+......
+......
+
+TRtoBR
+#AF6073 #CF7188
+....10
+...100
+..100.
+..100.
+...100
+....10
+
+BRtoBL
+#AF6073 #CF7188
+......
+......
+..11..
+.1001.
+100001
+10..10
+
+
+BottomLeft
+#AF6073 #CF7188
+......
+......
+111...
+0000..
+..10..
+..10..
+
+TopLeft
+#AF6073 #CF7188
+..10..
+..10..
+1100..
+000...
+......
+......
+
+TopRight
+#AF6073 #CF7188
+..10..
+..10..
+..1011
+...000
+......
+......
+
+BottomRight
+#AF6073 #CF7188
+......
+......
+...111
+..1000
+..10..
+..10..
+
+straightV
+#AF6073 #CF7188
+..10..
+..10..
+..10..
+..10..
+..10..
+..10..
+
+straightTweenHtoV
+#AF6073 #CF7188
+01....
+001...
+.001..
+..001.
+...001
+....00
+
+straightTweenVtoH
+#AF6073 #CF7188
+....00
+...001
+..001.
+.001..
+001...
+01....
+
+straightH
+#AF6073 #CF7188
+......
+......
+111111
+000000
+......
+......
+
+
+mark
+#2f2f2f
+......
+..00..
+.0000.
+.0000.
+..00..
+......
+
+player
+transparent
+
+turn
+transparent
+
+spread
+#ffffff55
+......
+..00..
+.0000.
+.0000.
+..00..
+......
+
+spread2
+#ffffff3f
+......
+..00..
+.0000.
+.0000.
+..00..
+......
+
+fast
+green
+..00..
+.0000.
+.00...
+.0000.
+0000..
+.00...
+
+0
+orange
+......
+......
+..00..
+..00..
+......
+......
+
+1
+orange
+......
+......
+..00..
+..00..
+......
+......
+
+2
+orange
+......
+......
+..00..
+..00..
+......
+......
+
+3
+orange
+......
+......
+..00..
+..00..
+......
+......
+
+4
+orange
+......
+......
+..00..
+..00..
+......
+......
+
+
+slow
+red
+.000..
+00....
+.000..
+..000.
+0000..
+.00...
+
+
+active
+orange transparent
+......
+.0000.
+.0110.
+.0110.
+.0000.
+......
+
+background
+#050505
+
+makeStraight
+transparent
+
+placer
+#CF7188 #EF8198
+......
+.0000.
+.0110.
+.0110.
+.0000.
+......
+
+noPlacer
+transparent
+
+makeTurn
+transparent
+
+=======
+LEGEND
+=======
+
+. = background
+P = player
+
+curve = TopLeft or TopRight or BottomLeft or BottomRight
+straight = straightV or straightH
+tween = straightTweenVtoH or straightTweenHtoV or BLtoTL or TLtoTR or TRtoBR or BRtoBL
+
+
+pipe = curve or straight
+pipeSpawn = curve
+spreadX = spread or spread2
+upOpen = TopLeft or TopRight or straightV
+downOpen = BottomLeft or BottomRight or straightV
+leftOpen = TopLeft or BottomLeft or straightH
+rightOpen = TopRight or BottomRight or straightH
+
+f = fast
+" = 2 and active
+s = slow
+
+UI = fast or 0 or 1 or 2 or 3 or 4 or slow
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+background
+mark
+turn
+spread, spread2
+actionMouse
+makeStraight
+pipe
+tween
+active
+UI
+player
+placer, noPlacer
+makeTurn
+
+======
+RULES
+======
+( ##### MOUSE AND UI ##### )
+
+(left click)
+[ makeTurn ] [ mark ] -> [ makeTurn ] [  ] (remove markers)
+[ makeTurn ] -> [ turn ]
+( dragging )
+random [  ] -> [ noPlacer ]
+[ placer ] [ noPlacer ] -> [ placer ] [  ]
+[ placer ] -> [ turn ]
+(right click)
+[ makeStraight pipe ] -> [ random straight ]
+
+( regulate tick speed)
+[ active no 0 ] [ 0 turn ] -> again_interval 0.24
+[ active no 0 ] [ 0 turn ] -> [ ] [ 0 active ] realtime_interval 0.24
+[ active no 1 ] [ 1 turn ] -> again_interval 0.13 
+[ active no 1 ] [ 1 turn ] -> [ ] [ 1 active ] realtime_interval 0.13 
+[ active no 2 ] [ 2 turn ] -> realtime_interval default 
+[ active no 2 ] [ 2 turn ] -> [ ] [ 2 active ] realtime_interval default 
+[ active no 3 ] [ 3 turn ] -> again_interval 0.05 
+[ active no 3 ] [ 3 turn ] -> [ ] [ 3 active ] realtime_interval 0.05 
+[ active no 4 ] [ 4 turn ] -> again_interval 0.02
+[ active no 4 ] [ 4 turn ] -> [ ] [ 4 active ] realtime_interval 0.02
+
+( ##### TURNING PIPES ##### )
+
+( spawn pipes at start )
+[ no pipe no UI ] -> [ random pipeSpawn ]
+( markers cycle: turn -> spread -> mark )
+[ noPlacer ][ spread2 ] -> [ noPlacer ][ mark    ]
+[ noPlacer ][ spread  ] -> [ noPlacer ][ spread2 ]
+
+(tweening)
+[ noPlacer ][ BLtoTL ] -> [ noPlacer ][ spread TopLeft     ] (corners)
+[ noPlacer ][ TLtoTR ] -> [ noPlacer ][ spread TopRight    ]
+[ noPlacer ][ TRtoBR ] -> [ noPlacer ][ spread BottomRight ]
+[ noPlacer ][ BRtoBL ] -> [ noPlacer ][ spread BottomLeft  ]
+[ noPlacer ][ straightTweenVtoH ] -> [ noPlacer ][ spread straightH ] (straights)
+[ noPlacer ][ straightTweenHtoV ] -> [ noPlacer ][ spread straightV ]
+
+( turn active pipes )
+[ noPlacer ][ turn BottomLeft    ] -> [ noPlacer ][ BLtoTL ] (corners)
+[ noPlacer ][ turn TopLeft       ] -> [ noPlacer ][ TLtoTR ]
+[ noPlacer ][ turn TopRight      ] -> [ noPlacer ][ TRtoBR ]
+[ noPlacer ][ turn BottomRight   ] -> [ noPlacer ][ BRtoBL ]
+[ noPlacer ][ turn straightV ] -> [ noPlacer ][ straightTweenVtoH ] (straights)
+[ noPlacer ][ turn straightH ] -> [ noPlacer ][ straightTweenHtoV ]
+
+( spread the turn to connected pipes )
+right [ rightOpen spread |  leftOpen ] -> [ rightOpen spread |   leftOpen turn ]
+left  [  leftOpen spread | rightOpen ] -> [  leftOpen spread |  rightOpen turn ]
+up    [    upOpen spread |  downOpen ] -> [    upOpen spread |   downOpen turn ]
+down  [  downOpen spread |    upOpen ] -> [  downOpen spread |     upOpen turn ]
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+message left click to turn pipes, right click to create straight pipe
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+.............................P................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+..............................................................
+s01"34f.......................................................
