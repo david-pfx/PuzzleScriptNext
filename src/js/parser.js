@@ -28,7 +28,7 @@ let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/i;
 const reg_name = /^[\p{L}\p{N}_$]+/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
 const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
@@ -941,7 +941,7 @@ var codeMirrorFn = function() {
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
-                } else if (token = lexer.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                } else if (token = lexer.match(/^#(([0-9a-f]{2}){3,4}|[0-9a-f]{3,4})/i)) {
                     colors.push(token);
                     kind = `MULTICOLOR${token}`;
                 } else if (token = lexer.matchToken()) {
@@ -1343,7 +1343,7 @@ var codeMirrorFn = function() {
             }
             if (token = lexer.matchToken()) {
                 logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${errorCase(token)}" here.`, state.lineNumber);
-                lexer.pushToken(token, 'SOUND');
+                lexer.pushToken(token, 'ERROR');
                 return null;
             } else return tsounds;
         }
@@ -1653,7 +1653,7 @@ var codeMirrorFn = function() {
             lexer.matchComment();
             getIdent();
             if (!lexer.matchEol()) {
-                if (token = lexer.match(/^(on)\b/u, true)) {
+                if (token = lexer.match(/^(on)\b/i, true)) {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
                 } else {
