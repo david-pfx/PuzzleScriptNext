@@ -597,11 +597,19 @@ function redrawCellGrid(curlevel) {
     isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
     const render = new RenderOrder(minMaxIJ);
-    if (!levelEditorOpened)
+    if (!levelEditorOpened && !showLayers)
+    //if (!levelEditorOpened)
         setClip(render);
     if (tweening) 
         drawObjectsTweening(render.getIter());
     else drawObjects(render);
+
+    // show layer no
+    if (showLayers) {
+        ctx.fillStyle = state.fgcolor;
+        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
+        ctx.fillText(`Layer ${showLayerNo}`, 0, yoffset * 2);
+    }
 
     if (state.metadata.status_line)
         drawTextWithFont(ctx, statusText, state.fgcolor, 

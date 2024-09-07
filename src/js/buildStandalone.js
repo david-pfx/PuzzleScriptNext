@@ -44,7 +44,7 @@ function buildStandalone(sourceCode) {
 	}
 
 	var htmlString = standalone_HTML_String.concat("");
-	var title = state.metadata.title ? state.metadata.title : "PuzzleScript Game";
+	var title = state.metadata.title ? state.metadata.title : "PuzzleScript Next Game";
 
 	var homepage = state.metadata.homepage ? state.metadata.homepage : "https://www.puzzlescript.net";
 	if (!homepage.match(/^https?:\/\//)) {

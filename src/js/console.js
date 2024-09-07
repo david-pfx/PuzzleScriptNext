@@ -202,9 +202,9 @@ debugLoggingClick.addEventListener("click", debugToggle, false);
 
 function showLayersToggle() {
 	showLayers = !showLayers;
-	if (showLayers) showLayersNo = 0;
-	consolePrint(`Show layers is now ${showLayers ? "ON" : "OFF"}`, true);
-	redraw();
+	consolePrint(`Show layers is now ${showLayers ? "ON. Use PgUp/PgDn to change layers." : "OFF."}`, true);
+	canvasResize();
+    document.getElementById('gameCanvas').focus(); //?? why does this not work
 }
 
 const showLayersClick = document.getElementById("showLayersClick");
