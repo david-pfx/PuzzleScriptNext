@@ -7389,11 +7389,19 @@ function redrawCellGrid(curlevel) {
     isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
     const render = new RenderOrder(minMaxIJ);
-    if (!levelEditorOpened)
+    if (!levelEditorOpened && !showLayers)
+    //if (!levelEditorOpened)
         setClip(render);
     if (tweening) 
         drawObjectsTweening(render.getIter());
     else drawObjects(render);
+
+    // show layer no
+    if (showLayers) {
+        ctx.fillStyle = state.fgcolor;
+        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
+        ctx.fillText(`Layer ${showLayerNo}`, 0, yoffset * 2);
+    }
 
     if (state.metadata.status_line)
         drawTextWithFont(ctx, statusText, state.fgcolor, 
@@ -11908,7 +11916,7 @@ let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/i;
 const reg_name = /^[\p{L}\p{N}_$]+/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
 const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
@@ -12814,18 +12822,19 @@ var codeMirrorFn = function() {
             while (!lexer.matchEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = lexer.match(/^[#\w]+/, true)) {
-                    if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                if (token = lexer.match(/^[\w]+/, true)) {
+                    if (color_names.includes(token)) {
                         colors.push(token);
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
-
+                } else if (token = lexer.match(/^#(([0-9a-f]{2}){3,4}|[0-9a-f]{3,4})/i)) {
+                //} else if (token = lexer.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                    colors.push(token);
+                    kind = `MULTICOLOR${token}`;
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
-                    lexer.matchToken();
                 } else throw 'obj-color';
                 lexer.pushToken(token, kind);
             }
@@ -13223,7 +13232,7 @@ var codeMirrorFn = function() {
             }
             if (token = lexer.matchToken()) {
                 logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${errorCase(token)}" here.`, state.lineNumber);
-                lexer.pushToken(token, 'SOUND');
+                lexer.pushToken(token, 'ERROR');
                 return null;
             } else return tsounds;
         }
@@ -13533,7 +13542,7 @@ var codeMirrorFn = function() {
             lexer.matchComment();
             getIdent();
             if (!lexer.matchEol()) {
-                if (token = lexer.match(/^(on)\b/u, true)) {
+                if (token = lexer.match(/^(on)\b/i, true)) {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
                 } else {
@@ -17156,7 +17165,7 @@ function twiddleMetaData(state, update = false) {
     }
 
     if (newmetadata.tween_snap) {
-        const snap = Math.max(parseInt(state.metadata.tween_snap), 1);
+        const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
         if (snap) newmetadata.tween_snap = snap;
         else {
             logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
