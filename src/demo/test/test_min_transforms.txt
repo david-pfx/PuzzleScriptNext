@@ -4,6 +4,7 @@ homepage www.polyomino.com
 
 // test program showing sprite transforms
 
+run_rules_on_level_start
 verbose_logging
 debug
 debug_switch obj
@@ -20,6 +21,11 @@ t2 = up left down right
 t3 = red green blue
 // hat tricks
 AX = A1 A2 A3 A4 A5
+elevation = 0 1 2
+
+MAPPINGS
+elevation => prevElevation
+0 1 2 -> 2 0 1
 
 ========
 OBJECTS
@@ -179,6 +185,43 @@ purple purple blue blue
 pair:A5 l
 lightblue pink lightblue black
 
+// build object by combo of tags and mapping
+Thing:0:right
+Black Orange White Blue
+...0.
+...1.
+...22
+...3.
+...3.
+
+Thing:0:left
+Black Orange White Blue
+.0...
+.1...
+22...
+.3...
+.3...
+
+Thing:0:up
+Black Orange White Blue
+.000.
+.111.
+.....
+.....
+.....
+
+Thing:0:down
+Black Orange White Blue
+.....
+.....
+.....
+.333.
+.3.3.
+
+Thing:elevation:directions
+black orange white blue
+copy: Thing:prevElevation:directions translate:up:1
+
 =======
 LEGEND
 =======
@@ -213,10 +256,12 @@ dirs -> con:dirs
 dirs -> cut:dirs
 vs_active_under:dirs
 x1,x2,x3
+Thing:elevation:directions
 ======
 RULES
 ======
 
+right [ a | a | a | a | a | a | a | a | a | a | a | a ] -> [ Thing:0:up | Thing:0:right | Thing:0:down | Thing:0:left | Thing:1:up | Thing:1:right | Thing:1:down | Thing:1:left | Thing:2:up | Thing:2:right | Thing:2:down | Thing:2:left ]
 [ > p | r ] -> [ > p | > r ]
 
 =======
@@ -230,8 +275,10 @@ LEVELS
 .................
 .1.2.3.4.5.6.7.8.
 .................
-.h.i.j.k.l.......
+.h.i.j.k.l.m.n...
 .................
-.m.n.............
+.aaaaaaaaaaaa....
+.................
+.b.b.b.b.b.b.b.b.
 .................
 

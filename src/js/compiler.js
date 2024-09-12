@@ -42,24 +42,24 @@ function getMapping(state, m) {
     return Object.hasOwn(state.mappings, m) && state.mappings[m];
 }
 
-function isMappedTo(state, key, target) {
-    return Object.hasOwn(state.mappings, key) && state.mappings[key].fromKey == target;
+function isMappedTo(state, m, from) {
+    return getMapping(state, m) && state.mappings[m].fromKey == from;
 }
 
-// is there a mapping fomr => key?
-function canMapValue(state, key, from) {
-    const map = state.mappings[key];
+// is there a mapping: from => m?
+function canMapValue(state, m, from) {
+    const map = state.mappings[m];
     return map && map.fromKey == from;
 }
 
-function getMappedValue(state, key, value) {
-    const map = state.mappings[key];
+function getMappedValue(state, m, value) {
+    const map = state.mappings[m];
     const index = map.fromValues.indexOf(value);
     return map.values[index];
 }
 
-function getMappedValues(state, key) {
-    const map = state.mappings[key];
+function getMappedValues(state, m) {
+    const map = state.mappings[m];
     return map.values.map(v => getTag(state, v) || v).flat();
 }
 
@@ -77,6 +77,7 @@ function cartesianProduct(...arrays) {
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
     constructor(state, ident, usedirs = false, delim = ':') {
+        this.state = state;
         this.ident = ident;
         this.delim = delim;
         [ this.stem, ...this.tail ] = ident.split(delim);
@@ -111,6 +112,7 @@ class TagExpander {
     }
 
     // get array of base idents, one for each expansion
+    // con:dirs => [ con:up, con:right, con:down, con:left ]
     getExpandedIdents() {
         if (this.keys.length == 0)
             return [ this.ident ];
@@ -122,6 +124,7 @@ class TagExpander {
     }
 
     // get an expanded ident based on a single expansion
+    // con:dirs => con:up
     getExpandedIdent(exp) {
         return [ this.stem, ...this.tail.map(p => 
             this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
@@ -129,7 +132,8 @@ class TagExpander {
     }
 
     // return alternate join key with substitutions based on a specific expansion
-    getExpandedAlt(exp, ident) {
+    // con:dirs,other => other:up
+    getExpandedAltOld(exp, ident) {
         const [ stem, ...tail ] = ident.split(':');
         return (tail.length == 0) ? stem
             : [ stem, ...tail.map(p => 
@@ -137,21 +141,36 @@ class TagExpander {
             ].join(this.delim);
     }
 
+    // return alternate join key with substitutions based on a specific expansion and possible mapping
+    // con:dirs,other => other:up
+    // con:dirs:rot,other => other:up:right
+    getExpandedAlt(exp, ident) {
+        const [ stem, ...tail ] = ident.split(':');
+
+        const tagged = v => this.keys.includes(v) ? exp[this.keys.indexOf(v)] : null;
+        const maps = tail.filter((p,x) => isMappedTo(this.state, p, this.tail[x]));
+        const mapped = (p,x) => {
+            const map = maps.find(m => canMapValue(this.state, m, this.tail[x]));
+            return map ? getMappedValue(this.state, map, exp[x]) : null;
+        }
+
+        return (tail.length == 0) ? stem
+            : [ stem, ...tail.map((p,x) => tagged(p) || mapped(p,x) || p) ].join(this.delim);
+    }
+
     // return ident with substitution if available based on a specific expansion
+    // con:dirs,other,1 => other:right
     getSubstitutedIdent(exp, ident, index) {
         const newident = this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
         return simpleRelativeDirections.includes(ident) ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] : newident;
     }
 
     // return array of (possibly expanded) idents, one for each expansion
+    // con:dirs,other => [ other:up, other:right, other:down, other:left ]
     getExpandedAltIdents(ident) {
-        const [ stem, ...tail ] = ident.split(':');
-        return this.expansion.map(e =>
-            (tail.length == 0) ? stem
-            : [ stem, ...tail.map(p => 
-                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
-            ].join(this.delim) );
+        return this.expansion.map(e => this.getExpandedAlt(e, ident));
     }
+
 }
 
 // expand a reference to an object from legend, layers and rules (rel dirs no expanded)
@@ -168,10 +187,17 @@ function expandObjectDef(state, objid, objvalue) {
 
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
+
+        // if it exists just return it otherwise create it
+        if (Object.hasOwn(state.objects, newid))
+            return [ newid, state.objects[newid] ];
+
         const newvalue = { 
             ...deepClone(objvalue),
             canRedef: true 
         };
+        state.objects[newid] = newvalue;
+
         if (objvalue.cloneSprite) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
@@ -180,7 +206,6 @@ function expandObjectDef(state, objid, objvalue) {
             //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
-
         
         if (objvalue.transforms) {
             newvalue.transforms = [];
@@ -191,7 +216,7 @@ function expandObjectDef(state, objid, objvalue) {
                     (op == 'rot') ? expander.getSubstitutedIdent(exp, xform[2], index) : xform[2] ]);
             })
         }
-        return [newid, newvalue];
+        return [ newid, newvalue ];
     });
     
     return newobjects;

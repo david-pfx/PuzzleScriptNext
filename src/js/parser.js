@@ -451,7 +451,6 @@ var codeMirrorFn = function() {
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
-            expandLastObject(state);
             state.objects_section = 0;
         }
     }
@@ -471,15 +470,20 @@ var codeMirrorFn = function() {
         // finalise previous section
         if (state.section === '') {
             state.commentStyle ||= '()';
-        } else if (state.section === 'objects') {
+        } else if (state.section == 'objects') {
             expandLastObject(state);
-        } else if (state.section === 'legend') {
+        } else if (state.section == 'legend') {
             state.names = [];
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
             state.names.push(...state.legend_aggregates.map(s => s[0]));
             state.names.push(...state.legend_properties.map(s => s[0]));
-        } else if (section === 'levels') {
+        } else if (state.section == 'mappings' && state.objects_section == 1) {
+            logError(`Unexpected end of section, MAPPING definition incomplete.`, state.lineNumber);
+            //delete state.mappings['$tmp$'];
+            state.objects_candname = null;            
+        }
+        if (section == 'levels') {
             state.abbrevNames = [];
             state.abbrevNames.push(...Object.keys(state.objects));
             state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
@@ -757,7 +761,7 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            state.mappings[symbols.rhs] = { 
+            state.mappings['$tmp$'] = { 
                 fromKey: symbols.lhs,
                 lineNumber: state.lineNumber,
              };
@@ -772,7 +776,7 @@ var codeMirrorFn = function() {
     //
     function parseMappingsLine2(stream, state) {
         const lexer = new Lexer(stream, state);
-        const mapping = state.mappings[state.objects_candname];
+        const mapping = state.mappings['$tmp$'];
         const symbols = {};
 
         if (getTokens())
@@ -837,6 +841,7 @@ var codeMirrorFn = function() {
             else {
                 mapping.fromValues = symbols.lhs;
                 mapping.values = symbols.rhs;
+                state.mappings[state.objects_candname] = mapping;
             }
         }
     }
@@ -1101,8 +1106,8 @@ var codeMirrorFn = function() {
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
-                    else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
-                        logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
+                    // else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
+                    //     logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
                     else {
                         kind = 'NAME';
                         symbols.cloneSprite = token;
@@ -1235,12 +1240,13 @@ var codeMirrorFn = function() {
         const obj = state.objects[candname];
         const newobjects = expandObjectDef(state, candname, obj);
         if (newobjects) {
-            // add new objects but do not overwrite existing
-            for (const [newid, newvalue] of newobjects)
-                if (!Object.hasOwn(state.objects, newid)) {
-                    state.objects[newid] = newvalue;
-                    registerOriginalCaseName(state, newid, state.lineNumber);
-                }
+            // they will have been created
+            for (const [newid, newvalue] of newobjects) {
+                registerOriginalCaseName(state, newid, state.lineNumber);
+                const clone = newvalue.cloneSprite;
+                if (clone && !(isAlreadyDeclared(state, clone)))
+                    logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+            }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
