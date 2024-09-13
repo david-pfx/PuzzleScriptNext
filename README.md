@@ -15,17 +15,17 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24i08. 
-This is a candidate for stable release.
+The latest version is Release v-24i13. 
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
+* Fix handling of tags and mappings in sprite building #102 #103
+
+Older fixes/updates:
 * Fixed parsing of SOUNDS line to detect bad characters in a seed (#101).
 * The 'show layers' button now provides help about using PgUp/PgDn, and shows the level number (#93).
 * Gallery programs have been filtered, keeping only those that work with this release, and have a 'hack' link.
 * Fixed compiler errors for `tween_snap` and sprite colours with no space, like `#111#111`, in gallery programs (#).
-
-Older fixes/updates:
 * Editor hint prompting for colours is fixed, and a few of the newer prelude settings have been added (#87).
 * Documentation has been updated for: more than 10 sprite colours, metadata twiddling, tween_length, nokeyboard (#78, #91).
 * Level select keyboard scrolling now works for multiple pages (#94).

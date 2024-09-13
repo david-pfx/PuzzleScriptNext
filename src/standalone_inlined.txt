@@ -12830,7 +12830,6 @@ var codeMirrorFn = function() {
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
                 } else if (token = lexer.match(/^#(([0-9a-f]{2}){3,4}|[0-9a-f]{3,4})/i)) {
-                //} else if (token = lexer.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
                     colors.push(token);
                     kind = `MULTICOLOR${token}`;
                 } else if (token = lexer.matchToken()) {
