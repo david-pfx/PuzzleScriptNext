@@ -34,10 +34,12 @@ var tagDirections = [
     { keys: [ 'vertical' ], values: [ 'up', 'down' ] },
 ];
 
+// returns [ tag values ]
 function getTag(state, t) {
     return Object.hasOwn(state.tags, t) && state.tags[t];
 }
 
+// returns { values:[], fromKey:, fromValues:[] }
 function getMapping(state, m) {
     return Object.hasOwn(state.mappings, m) && state.mappings[m];
 }
@@ -161,8 +163,12 @@ class TagExpander {
     // return ident with substitution if available based on a specific expansion
     // con:dirs,other,1 => other:right
     getSubstitutedIdent(exp, ident, index) {
-        const newident = this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
-        return simpleRelativeDirections.includes(ident) ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] : newident;
+        const newident = this.keys.includes(ident) 
+            ? exp[this.keys.indexOf(ident)] 
+            : ident;
+        return simpleRelativeDirections.includes(ident) 
+            ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] 
+            : newident;
     }
 
     // return array of (possibly expanded) idents, one for each expansion
@@ -213,7 +219,7 @@ function expandObjectDef(state, objid, objvalue) {
                 const op = xform[0];
                 newvalue.transforms.push([ op, 
                     expander.getSubstitutedIdent(exp, xform[1], index),
-                    (op == 'rot') ? expander.getSubstitutedIdent(exp, xform[2], index) : xform[2] ]);
+                    expander.getSubstitutedIdent(exp, xform[2], index) ]);
             })
         }
         return [ newid, newvalue ];
@@ -265,7 +271,7 @@ function applySpriteTransforms(obj) {
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
             m => Array.from(m, l => l.reverse() ).reverse(), // 180°
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
-        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.spritematrix),
+        ][(4 + dir2 - dir1) % 4](obj.spritematrix),
         'translate': (obj,dir,amt) => [
             (s => s.y -= amt),
             (s => s.x += amt),
@@ -275,7 +281,11 @@ function applySpriteTransforms(obj) {
     };
 
     for (const tf of obj.transforms || []) {
-        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, 
+            cwdIndexOf(tf[1]), 
+            ['rot','flip'].includes(tf[0])
+                ? cwdIndexOf(tf[2])
+                : +tf[2]);
     }
 }
 

@@ -451,6 +451,7 @@ var codeMirrorFn = function() {
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
+            expandLastObject(state);  // otherwise error message could be on later line
             state.objects_section = 0;
         }
     }
@@ -1081,10 +1082,19 @@ var codeMirrorFn = function() {
         return lexer.tokens;
 
         function isValidDirection(arg) {
-            if (Object.hasOwn(state.tags, arg)) {
-                return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
-            }
-            return clockwiseDirections.includes(arg) ? arg : null;
+            const tagvalues = getTag(state, arg);
+            const mappings = getMapping(state, arg);
+            return tagvalues && tagvalues.every(v => clockwiseDirections.includes(v)) ? arg 
+                : mappings && mappings.values && mappings.values.every(v => clockwiseDirections.includes(v)) ? arg 
+                : clockwiseDirections.includes(arg) ? arg : null;    
+        }
+
+        function isValidNumeric(arg) {
+            const tagvalues = getTag(state, arg);
+            const mappings = getMapping(state, arg);
+            return tagvalues && tagvalues.every(v => parseFloat(arg) != NaN) ? arg 
+                : mappings && mappings.values && mappings.values.every(v => parseFloat(arg) != NaN) ? arg 
+                : parseFloat(arg) != NaN ? arg : null;    
         }
 
         // build a list of tokens and kinds
@@ -1118,9 +1128,8 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[0-9.]+/);
-                    const arg = parseFloat(token);
-                    if (arg == NaN)
+                    token = lexer.matchToken(true);
+                    if (!isValidNumeric(token))
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
                         symbols.scale = arg;
@@ -1135,7 +1144,7 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
-                        logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`Flip requires a direction argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'flip', dir ]);
                         kind = 'METADATATEXT';  //???
@@ -1155,9 +1164,9 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = args[1] ? +args[1] : 1;
+                    const amt = isValidNumeric(args[1]) || 1;
                     if (!(args.length <= 2 && dir && amt))
-                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`Shift requires a direction argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
@@ -1171,11 +1180,11 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = args[1] ? +args[1] : null;
+                    const amt = isValidNumeric(args[1]) || 1;
                     if (!(args.length == 2 && dir && amt))
                         logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'translate', dir, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dir, amt ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1236,6 +1245,7 @@ var codeMirrorFn = function() {
     // if the last object has tags, expand it, delete original name and add property
     function expandLastObject(state) {
         const candname = state.objects_candname;
+        state.objects_candname = null;
         if (!candname || !hasParts(candname)) return;
         const obj = state.objects[candname];
         const newobjects = expandObjectDef(state, candname, obj);
@@ -1251,7 +1261,6 @@ var codeMirrorFn = function() {
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
             delete state.objects[candname];
-            state.objects_candname = '';
             state.legend_properties.push(newlegend);
         }
     }
