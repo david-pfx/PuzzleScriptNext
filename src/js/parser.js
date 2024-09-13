@@ -451,7 +451,7 @@ var codeMirrorFn = function() {
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
-            expandLastObject(state);
+            expandLastObject(state);  // otherwise error message could be on later line
             state.objects_section = 0;
         }
     }
@@ -471,15 +471,20 @@ var codeMirrorFn = function() {
         // finalise previous section
         if (state.section === '') {
             state.commentStyle ||= '()';
-        } else if (state.section === 'objects') {
+        } else if (state.section == 'objects') {
             expandLastObject(state);
-        } else if (state.section === 'legend') {
+        } else if (state.section == 'legend') {
             state.names = [];
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
             state.names.push(...state.legend_aggregates.map(s => s[0]));
             state.names.push(...state.legend_properties.map(s => s[0]));
-        } else if (section === 'levels') {
+        } else if (state.section == 'mappings' && state.objects_section == 1) {
+            logError(`Unexpected end of section, MAPPING definition incomplete.`, state.lineNumber);
+            //delete state.mappings['$tmp$'];
+            state.objects_candname = null;            
+        }
+        if (section == 'levels') {
             state.abbrevNames = [];
             state.abbrevNames.push(...Object.keys(state.objects));
             state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
@@ -757,7 +762,7 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            state.mappings[symbols.rhs] = { 
+            state.mappings['$tmp$'] = { 
                 fromKey: symbols.lhs,
                 lineNumber: state.lineNumber,
              };
@@ -772,7 +777,7 @@ var codeMirrorFn = function() {
     //
     function parseMappingsLine2(stream, state) {
         const lexer = new Lexer(stream, state);
-        const mapping = state.mappings[state.objects_candname];
+        const mapping = state.mappings['$tmp$'];
         const symbols = {};
 
         if (getTokens())
@@ -837,6 +842,7 @@ var codeMirrorFn = function() {
             else {
                 mapping.fromValues = symbols.lhs;
                 mapping.values = symbols.rhs;
+                state.mappings[state.objects_candname] = mapping;
             }
         }
     }
@@ -1076,10 +1082,19 @@ var codeMirrorFn = function() {
         return lexer.tokens;
 
         function isValidDirection(arg) {
-            if (Object.hasOwn(state.tags, arg)) {
-                return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
-            }
-            return clockwiseDirections.includes(arg) ? arg : null;
+            const tagvalues = getTag(state, arg);
+            const mappings = getMapping(state, arg);
+            return tagvalues && tagvalues.every(v => clockwiseDirections.includes(v)) ? arg 
+                : mappings && mappings.values && mappings.values.every(v => clockwiseDirections.includes(v)) ? arg 
+                : clockwiseDirections.includes(arg) ? arg : null;    
+        }
+
+        function isValidNumeric(arg) {
+            const tagvalues = getTag(state, arg);
+            const mappings = getMapping(state, arg);
+            return tagvalues && tagvalues.every(v => parseFloat(arg) != NaN) ? arg 
+                : mappings && mappings.values && mappings.values.every(v => parseFloat(arg) != NaN) ? arg 
+                : parseFloat(arg) != NaN ? arg : null;    
         }
 
         // build a list of tokens and kinds
@@ -1101,8 +1116,8 @@ var codeMirrorFn = function() {
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
-                    else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
-                        logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
+                    // else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
+                    //     logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
                     else {
                         kind = 'NAME';
                         symbols.cloneSprite = token;
@@ -1113,9 +1128,8 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[0-9.]+/);
-                    const arg = parseFloat(token);
-                    if (arg == NaN)
+                    token = lexer.matchToken(true);
+                    if (!isValidNumeric(token))
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
                         symbols.scale = arg;
@@ -1130,7 +1144,7 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
-                        logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`Flip requires a direction argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'flip', dir ]);
                         kind = 'METADATATEXT';  //???
@@ -1150,9 +1164,9 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = args[1] ? +args[1] : 1;
+                    const amt = isValidNumeric(args[1]) || 1;
                     if (!(args.length <= 2 && dir && amt))
-                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`Shift requires a direction argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
@@ -1166,11 +1180,11 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = args[1] ? +args[1] : null;
+                    const amt = isValidNumeric(args[1]) || 1;
                     if (!(args.length == 2 && dir && amt))
                         logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'translate', dir, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dir, amt ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -1231,21 +1245,22 @@ var codeMirrorFn = function() {
     // if the last object has tags, expand it, delete original name and add property
     function expandLastObject(state) {
         const candname = state.objects_candname;
+        state.objects_candname = null;
         if (!candname || !hasParts(candname)) return;
         const obj = state.objects[candname];
         const newobjects = expandObjectDef(state, candname, obj);
         if (newobjects) {
-            // add new objects but do not overwrite existing
-            for (const [newid, newvalue] of newobjects)
-                if (!Object.hasOwn(state.objects, newid)) {
-                    state.objects[newid] = newvalue;
-                    registerOriginalCaseName(state, newid, state.lineNumber);
-                }
+            // they will have been created
+            for (const [newid, newvalue] of newobjects) {
+                registerOriginalCaseName(state, newid, state.lineNumber);
+                const clone = newvalue.cloneSprite;
+                if (clone && !(isAlreadyDeclared(state, clone)))
+                    logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+            }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
             delete state.objects[candname];
-            state.objects_candname = '';
             state.legend_properties.push(newlegend);
         }
     }
