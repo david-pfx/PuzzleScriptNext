@@ -31,6 +31,12 @@ elevation => prevElevation
 X5 => prevX5
 1 2 3 4 5 -> 5 1 2 3 4
 
+X5 => translation
+1 2 3 4 5 -> 1 1 2 2 3
+
+X5 => otherDirection
+1 2 3 4 5 -> up down up down up
+
 ========
 OBJECTS
 ========
@@ -53,6 +59,30 @@ black orange white blue
 .333.
 .3.3.
 
+////// mapping applied to transform numeric #102
+Line:1
+red
+.....
+.....
+.....
+.....
+.000.
+
+Line:X5
+red
+copy: Line:prevX5 translate:up:X5
+
+// mapping applied to #105
+(first copy option does work in ps>, the other 3 don't)
+
+Line2:X5
+black
+(copy: Line:1 translate:up:X5)
+copy: Line:1 translate:up:translation
+(copy: Line:1 translate:otherDirection:1)
+(copy: Line:1 translate:otherDirection:translation)
+/////
+
 a;black red blue
 2222222
 2011002
@@ -65,7 +95,7 @@ a;black red blue
 b;black red blue
 copy: a |
 
-x;black red blue
+q;black red blue
 copy: a -
 
 c;black red blue
@@ -92,7 +122,10 @@ copy:f flip:dirs translate:dirs:2 shift:dirs:1 rot:^:dirs
 
 w;purple
 r;red
-y;yellow
+o;orange
+x;transparent
+y;transparent
+z;transparent
 
 con:dirs
 #036965 orange red
@@ -226,18 +259,28 @@ Thing:elevation:directions
 black orange white blue
 copy: Thing:prevElevation:directions translate:up:1
 
-// mapping applied to transform numeric #102
-Line:1
-red
-.....
-.....
-.....
-.....
-.000.
-
-Line:X5
-red
-copy: Line:prevX5 translate:up:X5
+//// mapping applied to transform numeric #102
+//Line:1
+//red
+//.....
+//.....
+//.....
+//.....
+//.000.
+//
+//Line:X5
+//red
+//copy: Line:prevX5 translate:up:X5
+//
+//// mapping applied to #105
+//(first copy option does work in ps>, the other 3 don't)
+//
+//Line2:X5
+//black
+//(copy: Line:1 translate:up:X5)
+//copy: Line:1 translate:up:translation
+//(copy: Line:1 translate:otherDirection:1)
+//(copy: Line:1 translate:otherDirection:translation)
 
 =======
 LEGEND
@@ -261,12 +304,11 @@ Background
 Player
 --
 a,b,c,d,e,f,g
-m,s,t,x
+m,s,t,q
 u:dirs
-w
+w,r,o
 h,i,j,k,l
-r
-y
+x,y,z
 b:t1
 --
 dirs -> con:dirs
@@ -275,20 +317,27 @@ vs_active_under:dirs
 x1,x2,x3
 Thing:elevation:directions
 Line:X5
+Line2:X5
 
 ======
 RULES
 ======
 
-right [ a | a | a | a | a | a | a | a | a | a | a | a ] -> [ Thing:0:up | Thing:0:right | Thing:0:down | Thing:0:left | Thing:1:up | Thing:1:right | Thing:1:down | Thing:1:left | Thing:2:up | Thing:2:right | Thing:2:down | Thing:2:left ]
+right elevation directions [ x | x | no x ] -> [ Thing:elevation:directions | x | x ]
+
+//right [ x | x | x | x | x | x | x | x | x | x | x | x ] -> 
+//[ Thing:0:up | Thing:0:right | Thing:0:down | Thing:0:left | Thing:1:up | Thing:1:right | Thing:1:down | Thing:1:left | Thing:2:up | Thing:2:right | Thing:2:down | Thing:2:left ]
+
+right [ y | y | y | y | y ] -> [ Line2:1 | Line2:2 | Line2:3 | Line2:4 | Line2:5 ]
+right [ z | z | z | z | z ] -> [ Line:1 | Line:2 | Line:3 | Line:4 | Line:5 ]
+
 [ > p | r ] -> [ > p | > r ]
-right [ b | b | b | b | b ] -> [ Line:1 | Line:2 | Line:3 | Line:4 | Line:5 ]
 
 =======
 LEVELS
 =======
 .................
-.p.r.y...........
+.p.r.o...........
 .........s..t....
 .................
 .a.b.c.d.e.f.g...
@@ -297,8 +346,8 @@ LEVELS
 .................
 .h.i.j.k.l.m.n...
 .................
-.aaaaaaaaaaaa....
+.xx..............
 .................
-...........bbbbb.
+.yyyyy....zzzzz..
 .................
 

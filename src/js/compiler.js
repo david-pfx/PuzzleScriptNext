@@ -316,14 +316,14 @@ function applyVectorTransforms(obj) {
     }
 }
 
-// PS> check whether a name has been used and is not available
-function isAlreadyDeclared(state, ident) {
-    return Object.hasOwn(state.objects, ident)
-        || state.legend_synonyms.find(s => s[0] == ident)
+// PS> check whether a name has been used and is not available, return its def
+function wordAlreadyDeclared(state, ident) {
+    return Object.hasOwn(state.objects, ident) ? state.objects[ident]
+        : Object.hasOwn(state.tags, ident) ? state.tags[ident]
+        : Object.hasOwn(state.mappings, ident) ? state.mappings[ident]
+        : (state.legend_synonyms.find(s => s[0] == ident)
         || state.legend_aggregates.find(s => s[0] == ident)
-        || state.legend_properties.find(s => s[0] == ident)
-        || Object.hasOwn(state.tags, ident)
-        || Object.hasOwn(state.mappings, ident)
+        || state.legend_properties.find(s => s[0] == ident));
 }
 
 // PS> check how a name has been used if at all
@@ -339,16 +339,16 @@ function isDeclaredAs(state, ident) {
 
 // get the object(s) referred to if declared, or null otherwise
 function getObjectRefs(state, ident) {
-    if (isAlreadyDeclared(state, ident)) return [ ident ];
+    if (wordAlreadyDeclared(state, ident)) return [ ident ];
     const idents = expandObjectRef(state, ident, true);
-    return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
+    return idents.every(i => wordAlreadyDeclared(state, i)) ? idents : null;
 }
 
 // get the undefined object(s) referred to
 function getObjectUndefs(state, ident) {
-    if (isAlreadyDeclared(state, ident)) return [ ];
+    if (wordAlreadyDeclared(state, ident)) return [ ];
     const idents = expandObjectRef(state, ident, true);
-    return idents.filter(i => !isAlreadyDeclared(state, i));
+    return idents.filter(i => !wordAlreadyDeclared(state, i));
 }
 
 // create a property object for an ident with parts, if possible and not already there
@@ -538,6 +538,8 @@ function generateExtraMembers(state) {
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);
     if (debugSwitch.includes('obj')) console.log('Synonyms', state.legend_synonyms);
+    if (debugSwitch.includes('obj')) console.log('Tags', state.tags);
+    if (debugSwitch.includes('obj')) console.log('Mappings', state.mappings);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -925,6 +927,46 @@ function levelFromString(state,level) {
 	}
 	return o;
 }
+
+////
+function levelAllObjects(state) {
+	const backgroundlayer = state.backgroundlayer;
+	const backgroundLayerMask = state.layerMasks[backgroundlayer];
+    const count = state.objects.length;
+    const width = ~~Math.ceil(Math.sqrt(count));
+    const height = ~~(Math.ceil(count/width));
+    const level = new Level(0, width, height, state.collisionLayers.length, new Int32Array(width * height * STRIDE_OBJ), '');
+
+	for (let i = 0; i < level.width; i++) {
+		for (let j = 0; j < level.height; j++) {
+            const objid = state.idDict[i * height + j];
+			const mask = state.glyphDict[objid];
+			const maskint = new BitVec(STRIDE_OBJ);
+
+			mask = mask.concat([]);					
+			for (let z = 0; z < level.layerCount; z++) {
+				if (mask[z]>=0) {
+					maskint.ibitset(mask[z]);
+				}
+			}
+			for (let w = 0; w < STRIDE_OBJ; ++w) {
+				level.objects[STRIDE_OBJ * (i * level.height + j) + w] = maskint.data[w];
+			}
+		}
+	}
+
+	const levelBackgroundMask = level.calcBackgroundMask(state);
+	for (let i=0;i<level.n_tiles;i++) {
+		const cell = level.getCell(i);
+		if (!backgroundLayerMask.anyBitsInCommon(cell)) {
+			cell.ior(levelBackgroundMask);
+			level.setCell(i, cell);
+		}
+	}
+	return level;
+}
+
+////
 //also assigns glyphDict
 function levelsToArray(state) {
 	const levels = [];
@@ -1345,7 +1387,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (isAlreadyDeclared(state, token) || createObjectRef(state, token)) { // @@
+            } else if (wordAlreadyDeclared(state, token) || createObjectRef(state, token)) {
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -1569,7 +1611,7 @@ function expandRuleWithTags(state, rule) {
     rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
         row.forEach((cell, cellx) => {     // between bars [ | ]
             cell.forEach((atom, atomx) => {
-                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !isAlreadyDeclared(state, atom)) {
+                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
                     todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
                 }
             });
@@ -1633,7 +1675,7 @@ function checkRuleObjects(state, rules) {
             .filter(o => o != '...')
             .flat();
         for (const obj of objs) {
-            if (!isAlreadyDeclared(state, obj))
+            if (!wordAlreadyDeclared(state, obj))
                 console.log(`Not declared`, rule.lineNumber, obj);
         }
     }

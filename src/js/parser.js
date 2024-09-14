@@ -635,7 +635,7 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.id = token;
-                if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
+                if (wordAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 // } else if (hasParts(token)) {  // cannot happen
@@ -679,6 +679,7 @@ var codeMirrorFn = function() {
 
         function setState() {
             state.tags[symbols.id] = symbols.members.map(m => expandTag(m)).flat();
+            state.tags[symbols.id].lineNumber = state.lineNumber;
         }
 
         // tags that reference other tags are expanded to the lowest level here rather than when used
@@ -739,7 +740,7 @@ var codeMirrorFn = function() {
             lexer.matchComment();
             if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.rhs = token;
-                if (isAlreadyDeclared(state, token)) {
+                if (wordAlreadyDeclared(state, token)) {
                     logError(`You cannot define a mapping called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
@@ -1092,9 +1093,11 @@ var codeMirrorFn = function() {
         function isValidNumeric(arg) {
             const tagvalues = getTag(state, arg);
             const mappings = getMapping(state, arg);
-            return tagvalues && tagvalues.every(v => parseFloat(arg) != NaN) ? arg 
-                : mappings && mappings.values && mappings.values.every(v => parseFloat(arg) != NaN) ? arg 
-                : parseFloat(arg) != NaN ? arg : null;    
+            //console.log(tagvalues, tagvalues.map(v => Number(v)));
+            if (tagvalues && tagvalues.every(v => !isNaN(parseFloat(v)))) return arg;
+            if (mappings && mappings.values && mappings.values.every(v => !isNaN(parseFloat(v)))) return arg ;
+            if (!isNaN(parseFloat(arg))) return arg;
+            return null;    
         }
 
         // build a list of tokens and kinds
@@ -1164,9 +1167,9 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = isValidNumeric(args[1]) || 1;
-                    if (!(args.length <= 2 && dir && amt))
-                        logError(`Shift requires a direction argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                    const amt = isValidNumeric(args[1] || 1);
+                    if (!(args.length <= 2 && dir != null && amt != null))
+                        logError(`Shift requires a direction argument and optionally an amount, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
@@ -1180,9 +1183,9 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = isValidNumeric(args[1]) || 1;
-                    if (!(args.length == 2 && dir && amt))
-                        logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
+                    const amt = isValidNumeric(args[1]);
+                    if (!(args.length == 2 && dir != null && amt != null))
+                        logError(`Translate requires two arguments, a direction and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'translate', dir, amt ]);
                         kind = 'METADATATEXT';  //???
@@ -1254,7 +1257,7 @@ var codeMirrorFn = function() {
             for (const [newid, newvalue] of newobjects) {
                 registerOriginalCaseName(state, newid, state.lineNumber);
                 const clone = newvalue.cloneSprite;
-                if (clone && !(isAlreadyDeclared(state, clone)))
+                if (clone && !(wordAlreadyDeclared(state, clone)))
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
@@ -1382,9 +1385,9 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 symbols.newname = token;
-                const defname = isAlreadyDeclared(state, token);
+                const defname = wordAlreadyDeclared(state, token);
                 if (defname)
-                    logError(`Name "${errorCase(token)}" already in use (on line ${htmlJump(defname.lineNumber, 'errorTextLineNumber')}`);
+                    logError(`Name "${errorCase(token)}" already in use (on line ${htmlJump(defname.lineNumber)})`, state.lineNumber);
                 else if (keyword_array.includes(token))
                     logWarning(`You named an object "${errorCase(token)}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
@@ -1693,7 +1696,7 @@ var codeMirrorFn = function() {
             let token
             if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
-                if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
+                if (!(wordAlreadyDeclared(state, token) || createObjectRef(state, token)))
                     logError(`Error in win condition: "${errorCase(token)}" is not a valid object name.`, state.lineNumber);
                 else {
                     names.push(token);
@@ -1742,7 +1745,7 @@ var codeMirrorFn = function() {
                 if (token == 'link') {
                     if (!(token = lexer.match(reg_objectname, !state.case_sensitive))) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
-                    else if (!isAlreadyDeclared(state, token))
+                    else if (!wordAlreadyDeclared(state, token))
                         logError(`LINK object "${errorCase(token)}" not found, it needs to be already defined.`, state.lineNumber);
                     else {      // @@
                         const objects = expandSymbol(state, token, false, () => {});
@@ -2095,7 +2098,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectnamerel) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
+                                } else if (m.match(reg_objectnamerel) && (wordAlreadyDeclared(state, m) || createObjectRef(state, m))) {
                                     return 'NAME';
                                 }
                                 

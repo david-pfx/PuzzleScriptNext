@@ -183,7 +183,7 @@ clearConsoleClick.addEventListener("click", clearConsole, false);
 function verboseToggle() {
 	defaultVerboseLogging = !defaultVerboseLogging;
 	consolePrint(`Default verbose logging is now ${defaultVerboseLogging ? 'ENABLED' : 'DISABLED'}`, true);
-	compile(["rebuild"]);
+	verbose_logging = cache_console_messages = defaultVerboseLogging;
 }
 
 const verboseLoggingClick = document.getElementById("verboseLoggingClick");
