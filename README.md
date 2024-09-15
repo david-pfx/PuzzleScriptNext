@@ -15,10 +15,15 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24i13. 
+The latest version is Release v-24i15. 
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
+* Add new Show All Objects (checkerboard on toolbar) - for beta testing
+* Fix transform numeric tags and mapping #105
+* Fix transform numeric parsing
+* Fix error message and line number for when object already defined
+* Fix verbose logging
 * Fix handling of tags and mappings in sprite building #102 #103
 
 Older fixes/updates:
