@@ -1413,7 +1413,10 @@ function checkKey(e,justPressed) {
 		return prevent(e);
     } else {
 	    if (!againing && inputdir>=0) {
-            if (inputdir===4 && ('noaction' in state.metadata)) {
+			if (suppressInput) {
+				//suppressInput = false;
+				//goToPauseScreen();
+			} else if (inputdir===4 && ('noaction' in state.metadata)) {
 
             } else {
                 pushInput(inputdir);

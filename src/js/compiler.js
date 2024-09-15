@@ -918,32 +918,29 @@ function levelFromString(state,level) {
 }
 
 ////
-function levelAllObjects(state) {
+function levelAllObjects(state) { //@@
 	const backgroundlayer = state.backgroundlayer;
 	const backgroundLayerMask = state.layerMasks[backgroundlayer];
-    const count = state.objects.length;
+    const count = state.objectCount;
     const width = ~~Math.ceil(Math.sqrt(count));
     const height = ~~(Math.ceil(count/width));
     const level = new Level(0, width, height, state.collisionLayers.length, new Int32Array(width * height * STRIDE_OBJ), '');
 
-	for (let i = 0; i < level.width; i++) {
-		for (let j = 0; j < level.height; j++) {
-            const objid = state.idDict[i * height + j];
-			const mask = state.glyphDict[objid];
-			const maskint = new BitVec(STRIDE_OBJ);
+	for (let i = 0; i < count; i++) {
+        const objid = state.idDict[i];
+        const maskint = new BitVec(STRIDE_OBJ);
+        let mask = [ ...state.glyphDict[objid] ];
 
-			mask = mask.concat([]);					
-			for (let z = 0; z < level.layerCount; z++) {
-				if (mask[z]>=0) {
-					maskint.ibitset(mask[z]);
-				}
-			}
-			for (let w = 0; w < STRIDE_OBJ; ++w) {
-				level.objects[STRIDE_OBJ * (i * level.height + j) + w] = maskint.data[w];
-			}
-		}
+        for (let z = 0; z < level.layerCount; z++) {
+            if (mask[z]>=0) {
+                maskint.ibitset(mask[z]);
+            }
+        }
+        for (let w = 0; w < STRIDE_OBJ; ++w) {
+            level.objects[STRIDE_OBJ * i + w] = maskint.data[w];
+        }
 	}
-
+    
 	const levelBackgroundMask = level.calcBackgroundMask(state);
 	for (let i=0;i<level.n_tiles;i++) {
 		const cell = level.getCell(i);
@@ -952,6 +949,8 @@ function levelAllObjects(state) {
 			level.setCell(i, cell);
 		}
 	}
+    //RebuildLevelArrays();
+    suppressInput = true;
 	return level;
 }
 

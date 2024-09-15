@@ -44,4 +44,4 @@ var messageselected=false;
 var textImages = {};
 var initLevel = {};
 var curLevel = initLevel;
-
+var suppressInput = false;

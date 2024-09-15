@@ -229,3 +229,14 @@ function callMakeGifClick() {
 const makeGifClick = document.getElementById("makeGifClick");
 makeGifClick.addEventListener("click", callMakeGifClick, false);
 makeGifClick.addEventListener("click", callMakeGifClick, false);
+
+function callGotoLevelAllClick() {
+	if (!textMode) {
+		consolePrint(`Showing all objects, Escape to exit.`, true);
+		gotoLevel('levelall');
+	}
+}
+
+const gotoLevelAllClick = document.getElementById("gotoLevelAllClick");
+gotoLevelAllClick.addEventListener("click", callGotoLevelAllClick, false);
+gotoLevelAllClick.addEventListener("click", callGotoLevelAllClick, false);
