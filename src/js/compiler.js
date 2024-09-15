@@ -44,6 +44,7 @@ function getMapping(state, m) {
     return Object.hasOwn(state.mappings, m) && state.mappings[m];
 }
 
+// is this a mapping from this key?
 function isMappedTo(state, m, from) {
     return getMapping(state, m) && state.mappings[m].fromKey == from;
 }
@@ -106,41 +107,37 @@ class TagExpander {
         this.expansion = cartesianProduct(...this.values);
     }
 
-    get expKeys() {
-        return this.keys;
+    // for a known key return the expansion column index, or -1 if not known
+    getPartIndex(part) {
+        return this.keys.indexOf(part);
     }
-    get expValues() {
-        return this.expansion;
+
+    // for a known key return the expansion subsitute value, or null if not known
+    getPartSubstitute(part, exp) {
+        return this.keys.includes(part) ? exp[this.keys.indexOf(part)] : null;
+    }
+
+    // for a known key and mapping return the mapped expansion subsitute value, or null if not known
+    getPartMapped(part, exp) {
+        const mapping = getMapping(this.state, part);
+        if (!(mapping && this.keys.includes(mapping.fromKey))) return null;
+        const value = this.getPartSubstitute(mapping.fromKey, exp);
+        return getMappedValue(this.state, part, value);
     }
 
     // get array of base idents, one for each expansion
     // con:dirs => [ con:up, con:right, con:down, con:left ]
     getExpandedIdents() {
-        if (this.keys.length == 0)
-            return [ this.ident ];
-        return this.expansion.map(e => [ 
-            this.stem, 
-            ...this.tail.map(p => 
-                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
-        ].join(this.delim));
+        return this.expansion.map(e => this.getExpandedIdent(e));
     }
 
     // get an expanded ident based on a single expansion
     // con:dirs => con:up
     getExpandedIdent(exp) {
-        return [ this.stem, ...this.tail.map(p => 
-            this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
-            ].join(this.delim);
-    }
-
-    // return alternate join key with substitutions based on a specific expansion
-    // con:dirs,other => other:up
-    getExpandedAltOld(exp, ident) {
-        const [ stem, ...tail ] = ident.split(':');
-        return (tail.length == 0) ? stem
-            : [ stem, ...tail.map(p => 
-                this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
-            ].join(this.delim);
+        return [ 
+            this.stem, 
+            ...this.tail.map(p => this.getPartSubstitute(p, exp) || p)
+        ].join(this.delim);
     }
 
     // return alternate join key with substitutions based on a specific expansion and possible mapping
@@ -149,23 +146,16 @@ class TagExpander {
     getExpandedAlt(exp, ident) {
         const [ stem, ...tail ] = ident.split(':');
 
-        const tagged = v => this.keys.includes(v) ? exp[this.keys.indexOf(v)] : null;
-        const maps = tail.filter((p,x) => isMappedTo(this.state, p, this.tail[x]));
-        const mapped = (p,x) => {
-            const map = maps.find(m => canMapValue(this.state, m, this.tail[x]));
-            return map ? getMappedValue(this.state, map, exp[x]) : null;
-        }
-
-        return (tail.length == 0) ? stem
-            : [ stem, ...tail.map((p,x) => tagged(p) || mapped(p,x) || p) ].join(this.delim);
+        return (tail.length == 0) ? stem : [ 
+            stem, 
+            ...tail.map((p,x) => this.getPartSubstitute(p, exp) || this.getPartMapped(p, exp) || p) 
+        ].join(this.delim);
     }
 
     // return ident with substitution if available based on a specific expansion
     // con:dirs,other,1 => other:right
     getSubstitutedIdent(exp, ident, index) {
-        const newident = this.keys.includes(ident) 
-            ? exp[this.keys.indexOf(ident)] 
-            : ident;
+        const newident = this.getPartSubstitute(ident, exp) || this.getPartMapped(ident, exp) || ident;
         return simpleRelativeDirections.includes(ident) 
             ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] 
             : newident;
@@ -176,7 +166,6 @@ class TagExpander {
     getExpandedAltIdents(ident) {
         return this.expansion.map(e => this.getExpandedAlt(e, ident));
     }
-
 }
 
 // expand a reference to an object from legend, layers and rules (rel dirs no expanded)
@@ -316,14 +305,14 @@ function applyVectorTransforms(obj) {
     }
 }
 
-// PS> check whether a name has been used and is not available
-function isAlreadyDeclared(state, ident) {
-    return Object.hasOwn(state.objects, ident)
-        || state.legend_synonyms.find(s => s[0] == ident)
+// PS> check whether a name has been used and is not available, return its def
+function wordAlreadyDeclared(state, ident) {
+    return Object.hasOwn(state.objects, ident) ? state.objects[ident]
+        : Object.hasOwn(state.tags, ident) ? state.tags[ident]
+        : Object.hasOwn(state.mappings, ident) ? state.mappings[ident]
+        : (state.legend_synonyms.find(s => s[0] == ident)
         || state.legend_aggregates.find(s => s[0] == ident)
-        || state.legend_properties.find(s => s[0] == ident)
-        || Object.hasOwn(state.tags, ident)
-        || Object.hasOwn(state.mappings, ident)
+        || state.legend_properties.find(s => s[0] == ident));
 }
 
 // PS> check how a name has been used if at all
@@ -339,16 +328,16 @@ function isDeclaredAs(state, ident) {
 
 // get the object(s) referred to if declared, or null otherwise
 function getObjectRefs(state, ident) {
-    if (isAlreadyDeclared(state, ident)) return [ ident ];
+    if (wordAlreadyDeclared(state, ident)) return [ ident ];
     const idents = expandObjectRef(state, ident, true);
-    return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
+    return idents.every(i => wordAlreadyDeclared(state, i)) ? idents : null;
 }
 
 // get the undefined object(s) referred to
 function getObjectUndefs(state, ident) {
-    if (isAlreadyDeclared(state, ident)) return [ ];
+    if (wordAlreadyDeclared(state, ident)) return [ ];
     const idents = expandObjectRef(state, ident, true);
-    return idents.filter(i => !isAlreadyDeclared(state, i));
+    return idents.filter(i => !wordAlreadyDeclared(state, i));
 }
 
 // create a property object for an ident with parts, if possible and not already there
@@ -538,6 +527,8 @@ function generateExtraMembers(state) {
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);
     if (debugSwitch.includes('obj')) console.log('Synonyms', state.legend_synonyms);
+    if (debugSwitch.includes('obj')) console.log('Tags', state.tags);
+    if (debugSwitch.includes('obj')) console.log('Mappings', state.mappings);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -925,6 +916,45 @@ function levelFromString(state,level) {
 	}
 	return o;
 }
+
+////
+function levelAllObjects(state) { //@@
+	const backgroundlayer = state.backgroundlayer;
+	const backgroundLayerMask = state.layerMasks[backgroundlayer];
+    const count = state.objectCount;
+    const width = ~~Math.ceil(Math.sqrt(count));
+    const height = ~~(Math.ceil(count/width));
+    const level = new Level(0, width, height, state.collisionLayers.length, new Int32Array(width * height * STRIDE_OBJ), '');
+
+	for (let i = 0; i < count; i++) {
+        const objid = state.idDict[i];
+        const maskint = new BitVec(STRIDE_OBJ);
+        let mask = [ ...state.glyphDict[objid] ];
+
+        for (let z = 0; z < level.layerCount; z++) {
+            if (mask[z]>=0) {
+                maskint.ibitset(mask[z]);
+            }
+        }
+        for (let w = 0; w < STRIDE_OBJ; ++w) {
+            level.objects[STRIDE_OBJ * i + w] = maskint.data[w];
+        }
+	}
+    
+	const levelBackgroundMask = level.calcBackgroundMask(state);
+	for (let i=0;i<level.n_tiles;i++) {
+		const cell = level.getCell(i);
+		if (!backgroundLayerMask.anyBitsInCommon(cell)) {
+			cell.ior(levelBackgroundMask);
+			level.setCell(i, cell);
+		}
+	}
+    //RebuildLevelArrays();
+    suppressInput = true;
+	return level;
+}
+
+////
 //also assigns glyphDict
 function levelsToArray(state) {
 	const levels = [];
@@ -1345,7 +1375,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (isAlreadyDeclared(state, token) || createObjectRef(state, token)) { // @@
+            } else if (wordAlreadyDeclared(state, token) || createObjectRef(state, token)) {
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -1569,7 +1599,7 @@ function expandRuleWithTags(state, rule) {
     rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
         row.forEach((cell, cellx) => {     // between bars [ | ]
             cell.forEach((atom, atomx) => {
-                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !isAlreadyDeclared(state, atom)) {
+                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
                     todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
                 }
             });
@@ -1633,7 +1663,7 @@ function checkRuleObjects(state, rules) {
             .filter(o => o != '...')
             .flat();
         for (const obj of objs) {
-            if (!isAlreadyDeclared(state, obj))
+            if (!wordAlreadyDeclared(state, obj))
                 console.log(`Not declared`, rule.lineNumber, obj);
         }
     }

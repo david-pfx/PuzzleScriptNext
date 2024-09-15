@@ -183,7 +183,7 @@ clearConsoleClick.addEventListener("click", clearConsole, false);
 function verboseToggle() {
 	defaultVerboseLogging = !defaultVerboseLogging;
 	consolePrint(`Default verbose logging is now ${defaultVerboseLogging ? 'ENABLED' : 'DISABLED'}`, true);
-	compile(["rebuild"]);
+	verbose_logging = cache_console_messages = defaultVerboseLogging;
 }
 
 const verboseLoggingClick = document.getElementById("verboseLoggingClick");
@@ -229,3 +229,14 @@ function callMakeGifClick() {
 const makeGifClick = document.getElementById("makeGifClick");
 makeGifClick.addEventListener("click", callMakeGifClick, false);
 makeGifClick.addEventListener("click", callMakeGifClick, false);
+
+function callGotoLevelAllClick() {
+	if (!textMode) {
+		consolePrint(`Showing all objects, Escape to exit.`, true);
+		gotoLevel('levelall');
+	}
+}
+
+const gotoLevelAllClick = document.getElementById("gotoLevelAllClick");
+gotoLevelAllClick.addEventListener("click", callGotoLevelAllClick, false);
+gotoLevelAllClick.addEventListener("click", callGotoLevelAllClick, false);

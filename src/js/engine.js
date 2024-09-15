@@ -457,10 +457,13 @@ function gotoLevel(index) {
 	messagetext = "";
 	statusText = "";
 
-	curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
-
-	loadLevelFromStateOrTarget();
-
+	if (index == 'levelall') {
+		//curLevelNo = -1; //???
+		curLevel = levelAllObjects(state);
+	} else {
+		curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+		loadLevelFromStateOrTarget();
+	}
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
@@ -647,6 +650,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
   	rightdragging = false;
   	state.metadata = deepClone(state.default_metadata);
     againing=false;
+	suppressInput = false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
 		goToTitleScreen();
