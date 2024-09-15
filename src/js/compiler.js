@@ -44,6 +44,7 @@ function getMapping(state, m) {
     return Object.hasOwn(state.mappings, m) && state.mappings[m];
 }
 
+// is this a mapping from this key?
 function isMappedTo(state, m, from) {
     return getMapping(state, m) && state.mappings[m].fromKey == from;
 }
@@ -106,41 +107,37 @@ class TagExpander {
         this.expansion = cartesianProduct(...this.values);
     }
 
-    get expKeys() {
-        return this.keys;
+    // for a known key return the expansion column index, or -1 if not known
+    getPartIndex(part) {
+        return this.keys.indexOf(part);
     }
-    get expValues() {
-        return this.expansion;
+
+    // for a known key return the expansion subsitute value, or null if not known
+    getPartSubstitute(part, exp) {
+        return this.keys.includes(part) ? exp[this.keys.indexOf(part)] : null;
+    }
+
+    // for a known key and mapping return the mapped expansion subsitute value, or null if not known
+    getPartMapped(part, exp) {
+        const mapping = getMapping(this.state, part);
+        if (!(mapping && this.keys.includes(mapping.fromKey))) return null;
+        const value = this.getPartSubstitute(mapping.fromKey, exp);
+        return getMappedValue(this.state, part, value);
     }
 
     // get array of base idents, one for each expansion
     // con:dirs => [ con:up, con:right, con:down, con:left ]
     getExpandedIdents() {
-        if (this.keys.length == 0)
-            return [ this.ident ];
-        return this.expansion.map(e => [ 
-            this.stem, 
-            ...this.tail.map(p => 
-                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
-        ].join(this.delim));
+        return this.expansion.map(e => this.getExpandedIdent(e));
     }
 
     // get an expanded ident based on a single expansion
     // con:dirs => con:up
     getExpandedIdent(exp) {
-        return [ this.stem, ...this.tail.map(p => 
-            this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
-            ].join(this.delim);
-    }
-
-    // return alternate join key with substitutions based on a specific expansion
-    // con:dirs,other => other:up
-    getExpandedAltOld(exp, ident) {
-        const [ stem, ...tail ] = ident.split(':');
-        return (tail.length == 0) ? stem
-            : [ stem, ...tail.map(p => 
-                this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
-            ].join(this.delim);
+        return [ 
+            this.stem, 
+            ...this.tail.map(p => this.getPartSubstitute(p, exp) || p)
+        ].join(this.delim);
     }
 
     // return alternate join key with substitutions based on a specific expansion and possible mapping
@@ -149,23 +146,16 @@ class TagExpander {
     getExpandedAlt(exp, ident) {
         const [ stem, ...tail ] = ident.split(':');
 
-        const tagged = v => this.keys.includes(v) ? exp[this.keys.indexOf(v)] : null;
-        const maps = tail.filter((p,x) => isMappedTo(this.state, p, this.tail[x]));
-        const mapped = (p,x) => {
-            const map = maps.find(m => canMapValue(this.state, m, this.tail[x]));
-            return map ? getMappedValue(this.state, map, exp[x]) : null;
-        }
-
-        return (tail.length == 0) ? stem
-            : [ stem, ...tail.map((p,x) => tagged(p) || mapped(p,x) || p) ].join(this.delim);
+        return (tail.length == 0) ? stem : [ 
+            stem, 
+            ...tail.map((p,x) => this.getPartSubstitute(p, exp) || this.getPartMapped(p, exp) || p) 
+        ].join(this.delim);
     }
 
     // return ident with substitution if available based on a specific expansion
     // con:dirs,other,1 => other:right
     getSubstitutedIdent(exp, ident, index) {
-        const newident = this.keys.includes(ident) 
-            ? exp[this.keys.indexOf(ident)] 
-            : ident;
+        const newident = this.getPartSubstitute(ident, exp) || this.getPartMapped(ident, exp) || ident;
         return simpleRelativeDirections.includes(ident) 
             ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] 
             : newident;
@@ -176,7 +166,6 @@ class TagExpander {
     getExpandedAltIdents(ident) {
         return this.expansion.map(e => this.getExpandedAlt(e, ident));
     }
-
 }
 
 // expand a reference to an object from legend, layers and rules (rel dirs no expanded)

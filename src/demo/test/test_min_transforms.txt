@@ -59,30 +59,6 @@ black orange white blue
 .333.
 .3.3.
 
-////// mapping applied to transform numeric #102
-Line:1
-red
-.....
-.....
-.....
-.....
-.000.
-
-Line:X5
-red
-copy: Line:prevX5 translate:up:X5
-
-// mapping applied to #105
-(first copy option does work in ps>, the other 3 don't)
-
-Line2:X5
-black
-(copy: Line:1 translate:up:X5)
-copy: Line:1 translate:up:translation
-(copy: Line:1 translate:otherDirection:1)
-(copy: Line:1 translate:otherDirection:translation)
-/////
-
 a;black red blue
 2222222
 2011002
@@ -259,28 +235,37 @@ Thing:elevation:directions
 black orange white blue
 copy: Thing:prevElevation:directions translate:up:1
 
-//// mapping applied to transform numeric #102
-//Line:1
-//red
-//.....
-//.....
-//.....
-//.....
-//.000.
-//
-//Line:X5
-//red
-//copy: Line:prevX5 translate:up:X5
-//
-//// mapping applied to #105
-//(first copy option does work in ps>, the other 3 don't)
-//
-//Line2:X5
-//black
-//(copy: Line:1 translate:up:X5)
-//copy: Line:1 translate:up:translation
-//(copy: Line:1 translate:otherDirection:1)
-//(copy: Line:1 translate:otherDirection:translation)
+// mapping applied to transform numeric #102
+Line:1
+red
+.....
+.....
+.....
+.....
+.000.
+
+Line:X5
+red
+copy: Line:prevX5 translate:up:X5
+
+// mapping applied to #105
+(first copy option does work in ps>, the other 3 don't)
+
+Line2:X5
+black
+copy: Line:1 translate:up:X5
+
+Line3:X5
+blue
+copy: Line:1 translate:up:translation
+
+Line4:X5
+green
+copy: Line:1 translate:otherDirection:1
+
+Line5:X5
+orange
+copy: Line:1 translate:otherDirection:translation
 
 =======
 LEGEND
@@ -318,6 +303,9 @@ x1,x2,x3
 Thing:elevation:directions
 Line:X5
 Line2:X5
+Line3:X5
+Line4:X5
+Line5:X5
 
 ======
 RULES
@@ -330,6 +318,9 @@ right elevation directions [ x | x | no x ] -> [ Thing:elevation:directions | x 
 
 right [ y | y | y | y | y ] -> [ Line2:1 | Line2:2 | Line2:3 | Line2:4 | Line2:5 ]
 right [ z | z | z | z | z ] -> [ Line:1 | Line:2 | Line:3 | Line:4 | Line:5 ]
+right [ y | z | z | z | z ] -> [ Line3:1 | Line3:2 | Line3:3 | Line3:4 | Line3:5 ]
+right [ y | y | z | z | z ] -> [ Line4:1 | Line4:2 | Line4:3 | Line4:4 | Line4:5 ]
+right [ y | y | y | z | z ] -> [ Line5:1 | Line5:2 | Line5:3 | Line5:4 | Line5:5 ]
 
 [ > p | r ] -> [ > p | > r ]
 
@@ -348,6 +339,7 @@ LEVELS
 .................
 .xx..............
 .................
-.yyyyy....zzzzz..
+.yyyzz....zzzzz..
+.yzzzz....yyzzz..
 .................
 
