@@ -1,0 +1,99 @@
+title PuzzleScriptNext subroutine late repro
+author rolopogo
+homepage www.polyomino.com
+
+//
+verbose_logging
+debug_switch rules
+========
+OBJECTS
+========
+
+Background; LIGHTGRAY
+
+Player; #00f8
+
+=======
+LEGEND
+=======
+
+. = Background
+P = Player
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player
+
+======
+RULES
+======
+
+[] -> gosub subA
+[] -> gosub subB
+[] -> gosub subC
+
+late [] -> gosub subA
+late [] -> gosub subB
+late [] -> gosub subC
+
+[] -> log M1
+[] -> log M2
+[] -> log M3
+
+// only runs to m3
+late [] -> log M1L
+late [] -> log M2L
+late [] -> log M3L
+late [] -> log M4L
+late [] -> log M5L
+
+subroutine subA
+// only non-late
+[]-> log A1
+[]-> log A2
+[]-> log A3
+[]-> log A4
+[]-> log A5
+
+subroutine subB
+// equal late and non late
+[]-> log B1
+[]-> log B2
+[]-> log B3
+[]-> log B4
+[]-> log B5
+
+late []-> log B1L
+late []-> log B2L
+late []-> log B3L
+late []-> log B4L
+late []-> log B5L
+
+subroutine subC
+
+[]->[] // won't copmule without at least one non-late rule
+late []-> log C1L
+late []-> log C2L
+late []-> log C3L
+late []-> log C4L
+late []-> log C5L
+
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+section Level 1
+
+P

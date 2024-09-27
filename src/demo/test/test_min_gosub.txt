@@ -7,7 +7,7 @@ homepage www.polyomino.com
 //run_rules_on_level_start
 verbose_logging
 debug
-debug_switch
+debug_switch rules
           
 ========
 OBJECTS
@@ -46,6 +46,8 @@ RULES
 
 [ > p | r ] -> [ > p | > r ]
 [ right p ][ g ] -> gosub add green
+[ action p ] -> gosub sub1
+late [ ] -> gosub sub1 late
 
 // bug: does not loop after gosub
 startloop
@@ -55,15 +57,24 @@ startloop
 endloop
 
 subroutine never call this
+    [] -> log subroutine never call this
     right [ ] -> [ k ]
 
 subroutine add green
+    [] -> log add green
     right [ g | no g ] -> [ action g | ]
     right [ action g | no g ] -> [ g | g ]
 
 subroutine del green
+    [] -> log del green
     right [ g | g | no g ] -> [ g | action g | no g ]
     right [ g | action g ] -> [ g | no g ]
+
+subroutine sub1
+    [] -> log sub1
+
+subroutine sub1 late
+    late [] -> log sub1
 
 ==============
 WINCONDITIONS
