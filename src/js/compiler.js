@@ -527,8 +527,6 @@ function generateExtraMembers(state) {
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);
     if (debugSwitch.includes('obj')) console.log('Synonyms', state.legend_synonyms);
-    if (debugSwitch.includes('obj')) console.log('Tags', state.tags);
-    if (debugSwitch.includes('obj')) console.log('Mappings', state.mappings);
 
     var glyphOrder = [];
     //calculate glyph dictionary
@@ -1108,26 +1106,22 @@ function convertSectionNamesToIndices(state) {
 }
 
 // fix gosubs and subroutines to use group number (so must be after created groups)
-function fixUpGosubs(state) { // PS>
-    const subroutines = state.subroutines;
-    const rules = state.rules;
-    // first fixup subroutines so we know which group to gosub to
-    let rulex = 0;
-    for (const subroutine of subroutines) {
-        while (rules[rulex][0].lineNumber < subroutine.lineNumber)
-            rulex++;
-        subroutine.groupNumber = rulex;
-    }
-
+// will be called twice, for main and late rules
+function fixUpGosubs(rules, subroutines) { //@@
     // rules are now groups. Go figure.
-    for (const group of state.rules) {
+    for (const group of rules) {
         for (const rule of group) {
             for (const cmd of rule.commands) {
+                // replace name by linenumber
                 if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
-                    const subroutine = state.subroutines.find(s => s.label == cmd[1].toLowerCase());
-                    if (!subroutine) 
+                    const subroutine = subroutines.find(s => s.label == cmd[1].toLowerCase());
+                    if (!subroutine) {
                         logError(`Invalid GOSUB command - there is no subroutine named "${cmd[1]}".`, rule.lineNumber);
-                    else cmd[1] = subroutine.groupNumber;   // replace name by linenumber
+                    } else {
+                        cmd[1] = rules.findIndex(r => r[0].lineNumber >= subroutine.lineNumber);
+                        if (cmd[1] == -1)
+                            logWarning(`GOSUB to an empty subroutine -- or a late/non-late mixup?`, rule.lineNumber);
+                    }
                 }
             }
         }
@@ -1517,7 +1511,7 @@ function rulesToArray(state) {
 }
 
 // find and filter out start and end loop, subroutines PS>
-function parseRulesToArray(state) {
+function parseRulesToArray(state) { //@@
     const oldrules = state.rules;
     var newrules = [];
     var loops = [];
@@ -1525,7 +1519,7 @@ function parseRulesToArray(state) {
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
         var newrule = processRuleString(oldrules[i], state, newrules);
-        if (newrule.bracket) {
+        if (newrule.bracket) {  // start=1 end=-1
             loops.push([lineNumber, newrule.bracket]);
         } else if (newrule.label) {      // PS>
             const other = subroutines.find(s => s.label == newrule.label);
@@ -2772,6 +2766,7 @@ function ruleGroupDiscardOverlappingTest(ruleGroup) {
     }
 }
 
+// split rules into late and non-late, replace 1x[rules] by 2x[groups][rules]
 function arrangeRulesByGroupNumber(state) {
     var aggregates = {};
     var aggregates_late = {};
@@ -3282,7 +3277,9 @@ function printRules(state) {
         var rule = state.rules[i];
         // print subroutine - could be more than one, must come before any startloop and after any endloop!
         let subrtext = '';
-        for (let subroutine = state.subroutines[subroutineIndex]; subroutine && subroutine.lineNumber < rule.lineNumber; subroutine = state.subroutines[++subroutineIndex]) {
+        for (let subroutine = state.subroutines[subroutineIndex]; 
+              subroutine && subroutine.lineNumber < rule.lineNumber; 
+              subroutine = state.subroutines[++subroutineIndex]) {
             subrtext += `SUBROUTINE ${subroutine.label}<br>`;
         }
         if (loopIndex < state.loops.length) {
@@ -3624,7 +3621,7 @@ function loadFile(str) {
 	}
 
     if (debugSwitch.includes('tag')) console.log('Tags', state.tags);
-    if (debugSwitch.includes('map')) console.log('Mappings', state.mappings);
+    if (debugSwitch.includes('tag')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
@@ -3657,6 +3654,9 @@ function loadFile(str) {
 	arrangeRulesByGroupNumber(state);
 	collapseRules(state.rules);
 	collapseRules(state.lateRules);
+    if (debugSwitch.includes('rules')) console.log('Rules', state.rules);
+    if (debugSwitch.includes('rules')) console.log('Late Rules', state.lateRules);
+    if (debugSwitch.includes('rules')) console.log('Subroutines', state.subroutines);
 
     generateRigidGroupList(state);
 
@@ -3669,7 +3669,9 @@ function loadFile(str) {
 
 	generateLoopPoints(state);
 
-    fixUpGosubs(state);  //
+    fixUpGosubs(state.rules, state.subroutines);  //@@
+    fixUpGosubs(state.lateRules, state.subroutines);  //@@
+    //fixUpGosubs(state);  //@@
 
     generateSoundData(state);
 

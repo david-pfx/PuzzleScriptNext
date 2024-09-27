@@ -2847,6 +2847,19 @@ function applyRuleGroup(ruleGroup) {
 
 function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGroup){
 	//console.log(`Apply rules rules:${rules.length} objects:${level.objects}`);
+
+	// find the end of this block of rule groups
+	function findEnd(start) {
+		let result = -1;
+		// find the subroutine after the one we are in, if any
+		// note: trouble if it's an ==
+		let x = subroutines.findIndex(s => s.lineNumber > rules[start][0].lineNumber);
+		// find the rule group for that line number
+		if (x != -1)
+			result = rules.findIndex(r => r[0].lineNumber >= subroutines[x].lineNumber) 
+		return (result == -1) ? rules.length : result;
+	}
+
 	perfCounters.tries++;
     //for each rule
     //try to match it
@@ -2859,7 +2872,8 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
     //when we're going back in, let's loop, to be sure to be sure
     let loopPropagated = startRuleGroupindex > 0;
     let loopCount = 0;
-    for (let ruleGroupIndex = startRuleGroupindex; ruleGroupIndex<rules.length; ) {
+	let endIndex = findEnd(startRuleGroupindex);
+    for (let ruleGroupIndex = startRuleGroupindex; ruleGroupIndex < endIndex; ) {
 		// first process the rule and check for endloop
 		if (bannedGroup && bannedGroup[ruleGroupIndex]) {
 			//do nothing
@@ -2874,30 +2888,26 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 		} else {
 			if (gosubTarget >= 0) {
 				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
-				ruleGroupIndex = gosubTarget;
-				gosubTarget = -1;
 				if (verbose_logging)
-					consolePrint(`Gosub to line ${rules[ruleGroupIndex][0].lineNumber}`);
+					consolePrint(`Gosub to ${htmlJump(rules[gosubTarget][0].lineNumber)}`, true, rules[ruleGroupIndex][0].lineNumber);
+				ruleGroupIndex = gosubTarget;
+				endIndex = findEnd(ruleGroupIndex);
+				gosubTarget = -1;
 				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
 			} else {
 				ruleGroupIndex++;
 				// note special for loops and gosubs that end after the last rule
-				if (ruleGroupIndex == rules.length && loopPropagated && loopPoint[ruleGroupIndex] >= 0) {
+				if (ruleGroupIndex == endIndex && loopPropagated && loopPoint[ruleGroupIndex] >= 0) {
 					if (checkLoop())
 						break; 
 				}		
 
-				while (ruleGroupIndex == rules.length || subroutines.find(s => s.groupNumber == ruleGroupIndex)) {
-					if (gosubStack.length > 0) {
-						ruleGroupIndex = gosubStack.pop();
-						if (verbose_logging)
-							consolePrint(`Gosub return to line ${rules[ruleGroupIndex][0].lineNumber}`);
-						//console.log(`return group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
-					} else {
-						ruleGroupIndex = rules.length;	// force exit
-						break;
-					}
-				} 
+				if (ruleGroupIndex == endIndex && gosubStack.length > 0) {
+					if (verbose_logging)
+						consolePrint(`Return to ${htmlJump(rules[gosubStack.at(-1)][0].lineNumber)}`, true);
+					ruleGroupIndex = gosubStack.pop();
+					endIndex = findEnd(ruleGroupIndex);
+				}
 			}
 		}
 
