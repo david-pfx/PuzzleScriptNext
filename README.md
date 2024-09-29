@@ -15,18 +15,20 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24i15. 
+The latest version is Release v-24i29. 
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
+* Fix GOSUB interactions with late rules (#107).
+* Add verbose logging of GOSUB/return.
 * Add new Show All Objects (checkerboard on toolbar) - for beta testing
-* Fix transform numeric tags and mapping #105
+
+Older fixes/updates:
+* Fix transform numeric tags and mapping (#105)
 * Fix transform numeric parsing
 * Fix error message and line number for when object already defined
 * Fix verbose logging
-* Fix handling of tags and mappings in sprite building #102 #103
-
-Older fixes/updates:
+* Fix handling of tags and mappings in sprite building (#102 #103)
 * Fixed parsing of SOUNDS line to detect bad characters in a seed (#101).
 * The 'show layers' button now provides help about using PgUp/PgDn, and shows the level number (#93).
 * Gallery programs have been filtered, keeping only those that work with this release, and have a 'hack' link.
