@@ -301,7 +301,11 @@ function applyVectorTransforms(obj) {
     };
 
     for (const tf of obj.transforms || []) {
-        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, 
+            cwdIndexOf(tf[1]), 
+            ['rot','flip'].includes(tf[0])
+                ? cwdIndexOf(tf[2])
+                : +tf[2]);
     }
 }
 
