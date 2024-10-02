@@ -15,10 +15,11 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24i29. 
+The latest version is Release v-24j02. 
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
+* Fix `canvas: transform: rot:` regression (#109).
 * Fix GOSUB interactions with late rules (#107).
 * Add verbose logging of GOSUB/return.
 * Add new Show All Objects (checkerboard on toolbar) - for beta testing

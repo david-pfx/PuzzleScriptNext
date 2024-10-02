@@ -14420,7 +14420,7 @@ function applyVectorTransforms(obj) {
             p => p.angle += 90,
             p => p.angle += 180,
             p => p.angle += 270,
-        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.vector),
+        ][(4 + dir2 - dir1) % 4](obj.vector),
         'translate': (obj,dir,amt) => [
             (s => s.y -= amt),
             (s => s.x += amt),
@@ -14431,7 +14431,11 @@ function applyVectorTransforms(obj) {
     };
 
     for (const tf of obj.transforms || []) {
-        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, 
+            cwdIndexOf(tf[1]), 
+            ['rot','flip'].includes(tf[0])
+                ? cwdIndexOf(tf[2])
+                : +tf[2]);
     }
 }
 
