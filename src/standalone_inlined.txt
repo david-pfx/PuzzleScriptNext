@@ -534,7 +534,7 @@ var messageselected=false;
 var textImages = {};
 var initLevel = {};
 var curLevel = initLevel;
-
+var suppressInput = false;
 
 </script>
 <script>
@@ -7254,12 +7254,17 @@ function redrawCellGrid(curlevel) {
         y: 0
     };
 
-    if (flickscreen) {
+    if (levelEditorOpened) {
+        const glyphcount = glyphCount();
+        editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
+        minMaxIJ[2] -= 2;
+        minMaxIJ[3] -= 2 + editorRowCount;
+    } else if (flickscreen) {
         var playerPositions = getPlayerPositions();
         if (playerPositions.length>0) {
-            var playerPosition=playerPositions[0];
-            var px = (playerPosition/(curlevel.height))|0;
-            var py = (playerPosition%curlevel.height)|0;
+            const playerPosition = playerPositions[0];
+            const px = (playerPosition / (curlevel.height))|0;
+            const py = (playerPosition % curlevel.height)|0;
 
             const screenx = (px / screenwidth) | 0;
             const screeny = (py / screenheight) | 0;
@@ -7293,8 +7298,8 @@ function redrawCellGrid(curlevel) {
                     return;
                 } else if (Math.abs(cameraTargetVector) < (0.5 / cellwidth)) {
                     // Canvas doesn't actually render subpixels, but when the camera is less than half a subpixel away from target, snap to target
-                    cameraPosition[coord] = cameraPositionTarget[coord]
-                    return
+                    cameraPosition[coord] = cameraPositionTarget[coord];
+                    return;
                 }
 
                 cameraPosition[coord] += cameraTargetVector * state.metadata.smoothscreen.cameraSpeed;
@@ -7311,6 +7316,7 @@ function redrawCellGrid(curlevel) {
 
     }
     
+    if (debugSwitch.includes('redraw')) console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight}`, minMaxIJ);
     // used in function isInside
     screenOffsetX = minMaxIJ[0];
     screenOffsetY = minMaxIJ[1];
@@ -7366,7 +7372,9 @@ function redrawCellGrid(curlevel) {
             }; // globals
             const offs = { 
                 x: obj.spriteoffset.x, 
-                y: obj.spriteoffset.y + (obj.spritematrix.length == 0 ? 0 : state.sprite_size - obj.spritematrix.length)
+                y: obj.spriteoffset.y + (obj.vector 
+                    ? state.sprite_size * (1 - obj.vector.h)
+                    : state.sprite_size - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
@@ -7381,11 +7389,19 @@ function redrawCellGrid(curlevel) {
     isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
 
     const render = new RenderOrder(minMaxIJ);
-    if (!levelEditorOpened)
+    if (!levelEditorOpened && !showLayers)
+    //if (!levelEditorOpened)
         setClip(render);
     if (tweening) 
         drawObjectsTweening(render.getIter());
     else drawObjects(render);
+
+    // show layer no
+    if (showLayers) {
+        ctx.fillStyle = state.fgcolor;
+        ctx.font = `24px "Source Sans Pro", Helvetica, Arial, sans-serif`;
+        ctx.fillText(`Layer ${showLayerNo}`, 0, yoffset * 2);
+    }
 
     if (state.metadata.status_line)
         drawTextWithFont(ctx, statusText, state.fgcolor, 
@@ -7734,65 +7750,74 @@ function setClip(tween) {
 }
 
 function drawEditorIcons(mini,minj) {
-    // major rework using objects
-    const inRect = (pt,rc) => pt.x >= rc.x && pt.x < rc.x + rc.w && pt.y >= rc.y && pt.y < rc.y + rc.h;
-    const cellSize = { w: cellwidth, h: cellheight };
-    // glyph panel rectangle in cells, origin same as main board
-    const panelRect = { x: 0, y: -editorRowCount - 1, w: screenwidth + 1, h: editorRowCount };
-    // mouse position rebased to within panel
-    const mousePos = { x: mouseCoordX, y: mouseCoordY };
-    const mousePanelPos = inRect(mousePos, panelRect) ? { x: mousePos.x - panelRect.x, y: mousePos.y - panelRect.y } : { x: NaN, y: NaN };
-    // index into glyphs
-    const mouseIndex = mousePanelPos.x + mousePanelPos.y * panelRect.w;
-    const drawOffset = { x: xoffset, y: yoffset - cellSize.h * (1 + panelRect.h) };
-    const cellPos = (n) => ({ x: n % panelRect.w, y: ~~(n / panelRect.w) });
-    const drawPos = (n) => ({ x: drawOffset.x + cellPos(n).x * cellSize.w, y: drawOffset.y + cellPos(n).y * cellSize.h });
+	var glyphCount = glyphImages.length;
+	var glyphStartIndex=0;
+	var glyphEndIndex = glyphImages.length;/*Math.min(
+							glyphStartIndex+10,
+							screenwidth-2,
+							glyphStartIndex+Math.max(glyphCount-glyphStartIndex,0)
+							);*/
+	var glyphsToDisplay = glyphEndIndex-glyphStartIndex;
 
-    let dp0 = drawPos(0)
-    dp0.x -= cellSize.w;  // special
-	ctx.drawImage(glyphPrintButton, dp0.x, dp0.y);
-	if (mousePos.x == panelRect.x - 1 && mousePos.y == panelRect.y) 
-		ctx.drawImage(glyphMouseOver, dp0.x, dp0.y);
+	ctx.drawImage(glyphPrintButton,xoffset-cellwidth,yoffset-cellheight*(1+editorRowCount));
+	if (mouseCoordY===(-1-editorRowCount)&&mouseCoordX===-1) {
+			ctx.drawImage(glyphMouseOver,xoffset-cellwidth,yoffset-cellheight*(1+editorRowCount));								
+	}
 
-    glyphImages.forEach((glyph,index) => {
-		ctx.drawImage(glyph, drawPos(index).x, drawPos(index).y);
-		if (index == mouseIndex)
-			ctx.drawImage(glyphMouseOver, drawPos(index).x, drawPos(index).y);
-		if (index == glyphSelectedIndex) 
-			ctx.drawImage(glyphHighlight, drawPos(index).x, drawPos(index).y);
-	});
+	var ypos = editorRowCount-(-mouseCoordY-2)-1;
+	var mouseIndex=mouseCoordX+(screenwidth-1)*ypos;
 
-    let tooltip_string = '';
-    let tooltip_objects = null;
-    if (mouseIndex >= 0 && mouseIndex < glyphImagesCorrespondance.length) {
-        // prepare tooltip: legend for highlighted editor icon
-        const identifier_index = glyphImagesCorrespondance[mouseIndex]
+	for (var i=0;i<glyphsToDisplay;i++) {
+		var glyphIndex = glyphStartIndex+i;
+		var sprite = glyphImages[glyphIndex];
+        var xpos=i%(screenwidth-1);
+        var ypos=(i/(screenwidth-1))|0;
+		ctx.drawImage(sprite,xoffset+(xpos)*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));
+		if (mouseCoordX>=0&&mouseCoordX<(screenwidth-1)&&mouseIndex===i) {
+			ctx.drawImage(glyphMouseOver,xoffset+xpos*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));						
+		}
+		if (i===glyphSelectedIndex) {
+			ctx.drawImage(glyphHighlight,xoffset+xpos*cellwidth,yoffset+ypos*cellheight-cellheight*(1+editorRowCount));
+		} 		
+	}
+
+    //filched from https://raw.githubusercontent.com/ClementSparrow/Pattern-Script/master/src/js/graphics.js
+    var tooltip_string = ''
+    var tooltip_objects = null
+    // prepare tooltip: legend for highlighted editor icon
+    if ( (mouseCoordX >= 0) && (mouseCoordX < screenwidth) && (mouseIndex >= 0) && (mouseIndex < glyphsToDisplay) )
+    {
+        const glyphIndex = glyphStartIndex + mouseIndex
+        const identifier_index = glyphImagesCorrespondance[glyphIndex]
         tooltip_string = identifier_index 
         if (identifier_index in state.synonymsDict){
             tooltip_string += " = " + state.synonymsDict[identifier_index];
         } else if (identifier_index in state.aggregatesDict){
             tooltip_string += " = " + state.aggregatesDict[identifier_index].join(" and ");
         }
-    } else if (mousePos.x >= 0 && mousePos.x < screenwidth && mousePos.y >= 0 && mousePos.y < screenheight) {
-        // prepare tooltip: content of a level's cell
-        const posMask = curLevel.getCellInto((mousePos.y + minj) + (mousePos.x + mini) * curLevel.height, _o12); //???
+    }
+    // prepare tooltip: content of a level's cell
+    else if ( (mouseCoordX >= 0) && (mouseCoordY >= 0) && (mouseCoordX < screenwidth) && (mouseCoordY < screenheight-editorRowCount-2) )
+    {
+        const posMask = curLevel.getCellInto((mouseCoordY+minj) + (mouseCoordX+mini)*curLevel.height, _o12);
         tooltip_objects = state.idDict.filter( (x,k) => (posMask.get(k) != 0) )
-        // prepare tooltip: object names
-        tooltip_string = tooltip_objects ? tooltip_objects.join(', ') : '';
+            // prepare tooltip: object names
+        if (tooltip_objects !== null)
+        {
+            tooltip_string = tooltip_objects.join(', ')
+        }
     }
 
     // show tooltip
-    if (tooltip_string) {
+    if (tooltip_string.length > 0)
+    {
         ctx.fillStyle = state.fgcolor;
-        ctx.font = `${cellheight/2}px Monospace`;
-        ctx.textAlign = "center";
-        ctx.fillText(tooltip_string, xoffset + screenwidth * cellwidth / 2, yoffset-0.3*cellheight);
+        ctx.font = `16px "Source Sans Pro", Helvetica, Arial, sans-serif`;
+        ctx.fillText(tooltip_string, xoffset, yoffset-0.4*cellheight);
     }
 
-
-
-    if (mouseCoordX >= -1 && mouseCoordY >= -1 && mouseCoordX <= screenwidth && mouseCoordY <= screenheight) {
-        if (mouseCoordX == -1 || mouseCoordY == -1 || mouseCoordX == screenwidth || mouseCoordY === screenheight) {
+	if (mouseCoordX>=-1&&mouseCoordY>=-1&&mouseCoordX<screenwidth-1&&mouseCoordY<screenheight-1-editorRowCount) {
+		if (mouseCoordX==-1||mouseCoordY==-1||mouseCoordX==screenwidth-2||mouseCoordY===screenheight-2-editorRowCount) {
 			ctx.drawImage(glyphHighlightResize,
 				xoffset+mouseCoordX*cellwidth,
 				yoffset+mouseCoordY*cellheight
@@ -7835,6 +7860,11 @@ function canvasResize(level) {
     if (textMode) {
         screenwidth = TITLE_WIDTH;
         screenheight = TITLE_HEIGHT;
+    } else if (levelEditorOpened) {
+        screenwidth += 2;
+        const glyphcount = glyphCount();
+        editorRowCount = Math.ceil(glyphcount/(screenwidth-1));
+        screenheight += 2 + editorRowCount;
     } else if (flickscreen) {
         screenwidth=state.metadata.flickscreen[0];
         screenheight=state.metadata.flickscreen[1];
@@ -7846,18 +7876,11 @@ function canvasResize(level) {
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
 
+    cellwidth = canvas.width / screenwidth;
+    cellheight = (canvas.height - statusLineHeight) / screenheight;
+
     // If we need a status line, this will reduce the cell height to allow room
     statusLineHeight = state.metadata.status_line ? canvas.height / TITLE_HEIGHT : 0;
-    if (levelEditorOpened) {
-        // glyph display is level width + 1
-        editorRowCount = Math.ceil(glyphCount()/(screenwidth + 1));
-        //editorRowCount = Math.ceil(glyphImages.length/(screenwidth + 1));
-        cellwidth = canvas.width / (screenwidth + 2);
-        cellheight = (canvas.height - statusLineHeight) / (screenheight + 2 + editorRowCount);
-    } else {
-        cellwidth = canvas.width / screenwidth;
-        cellheight = (canvas.height - statusLineHeight) / screenheight;
-    }
 
     // round the cell size as a multiple of sprite size
     let w = h = state.sprite_size || 5;
@@ -7877,16 +7900,11 @@ function canvasResize(level) {
     pixelSize = cellheight / h;
     
     // calculate an XY offset to position the board on the screen
-    xoffset = 0;
-    yoffset = 0;
+    xoffset = (canvas.width - cellwidth * screenwidth) / 2;
+    yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     if (levelEditorOpened && !textMode) {
-        xoffset = (canvas.width - cellwidth * (screenwidth + 2)) / 2;
-        yoffset = (canvas.height - statusLineHeight - cellheight * (screenheight + 2 + editorRowCount)) / 2;
     	xoffset+=cellwidth;
     	yoffset+=cellheight*(1+editorRowCount);
-    } else {
-        xoffset = (canvas.width - cellwidth * screenwidth) / 2;
-        yoffset = (canvas.height - statusLineHeight - cellheight * screenheight) / 2;
     }
 
     // tidy up for export to globals
@@ -8278,6 +8296,7 @@ function selectPauseScreen(lineNo) {
 			canvasResize();
 		} : null,
 		state.metadata.level_select ? () => {
+			titleSelection = null;
 			gotoLevelSelectScreen();
 		} : null,
 		() => {
@@ -8337,10 +8356,11 @@ function gotoLevelSelectScreen() {
 	messagetext = "";
 	statusText = "";
 
-	if (titleSelection == false) {
+	if (titleSelection == null) {
 		for(var i = 0; i < state.sections.length; i++) {
 			if(state.sections[i].firstLevel > curLevelNo) {
 				titleSelection = Math.max(0,i-1);
+				if (debugSwitch.includes('menu')) console.log(`gotoLevelSelect curLevelNo=${curLevelNo} titleSelection=${titleSelection}`);
 				break;
 			}
 		}
@@ -8355,6 +8375,14 @@ function gotoLevelSelectScreen() {
 function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
 	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
 	lineColorOverride = [];
+
+	// set initial highlight to current level
+	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	if(titleSelection < levelSelectScrollPos) { //Up
+		levelSelectScrollPos = titleSelection;
+	} else if(titleSelection >= levelSelectScrollPos + amountOfLevelsOnScreen) { //Down
+		levelSelectScrollPos = titleSelection - amountOfLevelsOnScreen + 1;
+	}
 
 	var unlockedUntil = -1;
 	if (state.metadata.level_select_lock) {
@@ -8376,24 +8404,24 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		}
 	}
 
-	amountOfLevelsOnScreen = Math.min(9, state.sections.length);
+	//console.log(`levelHighlightLine=${levelHighlightLine} titleSelection=${titleSelection} levelSelectScrollPos=${levelSelectScrollPos}`)
 	if (levelHighlightLine == 0)
-		levelHighlightLine = 3;
+		levelHighlightLine = 3 + titleSelection - levelSelectScrollPos;
 	else if (levelHighlightLine > 3 && scrollIncrement < 0)
 		levelHighlightLine--;
 	else if (levelHighlightLine < 3 + amountOfLevelsOnScreen - 1 && scrollIncrement > 0)
 		levelHighlightLine++;
-	else if (levelSelectScrollPos > 0 && (selectLine == 2 || scrollIncrement < 0))
+	else if (levelSelectScrollPos > 0 && (levelHighlightLine == 3 || scrollIncrement < 0))
 		levelSelectScrollPos--;
-	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (selectLine == 12 || scrollIncrement > 0))
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (levelHighlightLine == 11 || scrollIncrement > 0))
 		levelSelectScrollPos++;
+
+	titleSelection = levelHighlightLine - 3 + levelSelectScrollPos;
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
-	titleSelection = selectLine == 0 ? 0 : null;
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
-		//const selected = (i == titleSelection);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
 		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
@@ -8427,10 +8455,13 @@ function gotoLevel(index) {
 	messagetext = "";
 	statusText = "";
 
-	curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
-
-	loadLevelFromStateOrTarget();
-
+	if (index == 'levelall') {
+		//curLevelNo = -1; //???
+		curLevel = levelAllObjects(state);
+	} else {
+		curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+		loadLevelFromStateOrTarget();
+	}
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
@@ -8617,6 +8648,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
   	rightdragging = false;
   	state.metadata = deepClone(state.default_metadata);
     againing=false;
+	suppressInput = false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
 		goToTitleScreen();
@@ -9196,7 +9228,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 var zoomscreen=false;
 var flickscreen=false;
 var smoothscreen=false;
-var screenwidth=0;
+var screenwidth=0;		// size of displayed area in cells
 var screenheight=0;
 
 //compresses 'before' into diff
@@ -9858,7 +9890,8 @@ Rule.prototype.generateCellRowMatchesFunction = function(cellRow,ellipsisCount) 
 		var fn = "var result = [];\n"
 		fn += "if(cellRow[0].matches(i, objects, movements)";
 		var cellIndex=1;
-		for (;cellRow[cellIndex]!==ellipsisPattern;cellIndex++) {
+		// fix for prior error leaves no ellipsis
+		for ( ; cellRow[cellIndex] !== ellipsisPattern && cellIndex < cr_l; cellIndex++) {
 			fn+="&&cellRow["+cellIndex+"].matches(i+"+cellIndex+"*d, objects, movements)";
 		}
 		cellIndex++;
@@ -10812,6 +10845,21 @@ function applyRuleGroup(ruleGroup) {
 
 function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGroup){
 	//console.log(`Apply rules rules:${rules.length} objects:${level.objects}`);
+
+	// find the end of this block of rule groups
+	function findEnd(start) {
+		let result = -1;
+		if (start < rules.length) {
+			// find the subroutine after the one we are in, if any
+			// note: trouble if it's an ==
+			let x = subroutines.findIndex(s => s.lineNumber > rules[start][0].lineNumber);
+			// find the rule group for that line number
+			if (x != -1)
+				result = rules.findIndex(r => r[0].lineNumber >= subroutines[x].lineNumber) 
+		}
+		return (result == -1) ? rules.length : result;
+	}
+
 	perfCounters.tries++;
     //for each rule
     //try to match it
@@ -10824,7 +10872,8 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
     //when we're going back in, let's loop, to be sure to be sure
     let loopPropagated = startRuleGroupindex > 0;
     let loopCount = 0;
-    for (let ruleGroupIndex = startRuleGroupindex; ruleGroupIndex<rules.length; ) {
+	let endIndex = findEnd(startRuleGroupindex);
+    for (let ruleGroupIndex = startRuleGroupindex; ruleGroupIndex < endIndex; ) {
 		// first process the rule and check for endloop
 		if (bannedGroup && bannedGroup[ruleGroupIndex]) {
 			//do nothing
@@ -10838,31 +10887,29 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 				break; 
 		} else {
 			if (gosubTarget >= 0) {
-				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
-				ruleGroupIndex = gosubTarget;
-				gosubTarget = -1;
+				// push current location so on return we can check if at end
+				gosubStack.push(ruleGroupIndex);  // todo: push loop point
 				if (verbose_logging)
-					consolePrint(`Gosub to line ${rules[ruleGroupIndex][0].lineNumber}`);
+					consolePrint(`Gosub to ${htmlJump(rules[gosubTarget][0].lineNumber)}`, true, rules[ruleGroupIndex][0].lineNumber);
+				ruleGroupIndex = gosubTarget;
+				endIndex = findEnd(ruleGroupIndex);
+				gosubTarget = -1;
 				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
 			} else {
 				ruleGroupIndex++;
 				// note special for loops and gosubs that end after the last rule
-				if (ruleGroupIndex == rules.length && loopPropagated && loopPoint[ruleGroupIndex] >= 0) {
+				if (ruleGroupIndex == endIndex && loopPropagated && loopPoint[ruleGroupIndex] >= 0) {
 					if (checkLoop())
 						break; 
 				}		
 
-				while (ruleGroupIndex == rules.length || subroutines.find(s => s.groupNumber == ruleGroupIndex)) {
-					if (gosubStack.length > 0) {
-						ruleGroupIndex = gosubStack.pop();
-						if (verbose_logging)
-							consolePrint(`Gosub return to line ${rules[ruleGroupIndex][0].lineNumber}`);
-						//console.log(`return group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
-					} else {
-						ruleGroupIndex = rules.length;	// force exit
-						break;
-					}
-				} 
+				if (ruleGroupIndex == endIndex && gosubStack.length > 0) {
+					if (verbose_logging)
+						consolePrint(`Return to ${htmlJump(rules[gosubStack.at(-1)][0].lineNumber)}`, true);
+					ruleGroupIndex = gosubStack.pop();
+					endIndex = findEnd(ruleGroupIndex);
+					ruleGroupIndex++;
+				}
 			}
 		}
 
@@ -11602,13 +11649,11 @@ function nextLevel() {
 
 			loadLevelFromStateOrTarget();
 		} else if(isLevelSelectOptionSelected()) {
-			// level select
-			titleSelection = 0;
+			titleSelection = null;
 			gotoLevelSelectScreen();
 		} else {
 			throw "next level";
-			// settings
-			// TODO
+			// settings -- TODO
 		}
 	} else {
 		if (hasUsedCheckpoint){
@@ -11889,7 +11934,7 @@ let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/u;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/i;
 const reg_name = /^[\p{L}\p{N}_$]+/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
 const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
@@ -12312,7 +12357,7 @@ var codeMirrorFn = function() {
             if (toplevel && toplevel.length > 0)
                 state.levels.push([]);
         } else if (state.section == 'objects') {
-            expandLastObject(state);
+            expandLastObject(state);  // otherwise error message could be on later line
             state.objects_section = 0;
         }
     }
@@ -12332,15 +12377,20 @@ var codeMirrorFn = function() {
         // finalise previous section
         if (state.section === '') {
             state.commentStyle ||= '()';
-        } else if (state.section === 'objects') {
+        } else if (state.section == 'objects') {
             expandLastObject(state);
-        } else if (state.section === 'legend') {
+        } else if (state.section == 'legend') {
             state.names = [];
             state.names.push(...Object.keys(state.objects));
             state.names.push(...state.legend_synonyms.map(s => s[0]));
             state.names.push(...state.legend_aggregates.map(s => s[0]));
             state.names.push(...state.legend_properties.map(s => s[0]));
-        } else if (section === 'levels') {
+        } else if (state.section == 'mappings' && state.objects_section == 1) {
+            logError(`Unexpected end of section, MAPPING definition incomplete.`, state.lineNumber);
+            //delete state.mappings['$tmp$'];
+            state.objects_candname = null;            
+        }
+        if (section == 'levels') {
             state.abbrevNames = [];
             state.abbrevNames.push(...Object.keys(state.objects));
             state.abbrevNames.push(...state.legend_synonyms.map(s => s[0]));
@@ -12377,8 +12427,12 @@ var codeMirrorFn = function() {
                 if (state.metadata_lines[ident]) {
                     var otherline = state.metadata_lines[token];
                     logWarning(`You've already defined a "${errorCase(token)}" in the prelude on line ${htmlJump(otherline)}.`, state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
                 } else if (prelude_not_implemented.includes(token)) {
                     logWarning(`Option ${errorCase(token)} is not implemented, but may be in the future. Let me know if you really need it.`,state.lineNumber);
+                    lexer.pushToken(token, 'ERROR');
+                    return;
                 } else if (prelude_param_text.includes(token)) {
                     ident = token;
                     lexer.pushToken(token, 'METADATA');
@@ -12487,7 +12541,7 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.id = token;
-                if (isAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
+                if (wordAlreadyDeclared(state, token) || token.match(/^(player|background)$/i)) {
                     logError(`You cannot define a tag called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 // } else if (hasParts(token)) {  // cannot happen
@@ -12531,6 +12585,7 @@ var codeMirrorFn = function() {
 
         function setState() {
             state.tags[symbols.id] = symbols.members.map(m => expandTag(m)).flat();
+            state.tags[symbols.id].lineNumber = state.lineNumber;
         }
 
         // tags that reference other tags are expanded to the lowest level here rather than when used
@@ -12591,7 +12646,7 @@ var codeMirrorFn = function() {
             lexer.matchComment();
             if (token = lexer.match(reg_name, !state.case_sensitive)) {
                 symbols.rhs = token;
-                if (isAlreadyDeclared(state, token)) {
+                if (wordAlreadyDeclared(state, token)) {
                     logError(`You cannot define a mapping called "${errorCase(token)}" because the name is already in use.`, state.lineNumber);
                     lexer.pushToken(token, 'ERROR');
                 } else {
@@ -12603,6 +12658,8 @@ var codeMirrorFn = function() {
                 lexer.pushToken(token, 'ERROR');
                 return;
             }
+
+            lexer.matchComment();
             if (token = lexer.matchToken()) {
                 logError(`Unrecognised stuff in a mapping: "${errorCase(token)}".`, state.lineNumber);
                 lexer.pushToken(token, 'ERROR');
@@ -12612,7 +12669,7 @@ var codeMirrorFn = function() {
         }
 
         function setState() {
-            state.mappings[symbols.rhs] = { 
+            state.mappings['$tmp$'] = { 
                 fromKey: symbols.lhs,
                 lineNumber: state.lineNumber,
              };
@@ -12627,7 +12684,7 @@ var codeMirrorFn = function() {
     //
     function parseMappingsLine2(stream, state) {
         const lexer = new Lexer(stream, state);
-        const mapping = state.mappings[state.objects_candname];
+        const mapping = state.mappings['$tmp$'];
         const symbols = {};
 
         if (getTokens())
@@ -12692,6 +12749,7 @@ var codeMirrorFn = function() {
             else {
                 mapping.fromValues = symbols.lhs;
                 mapping.values = symbols.rhs;
+                state.mappings[state.objects_candname] = mapping;
             }
         }
     }
@@ -12766,7 +12824,7 @@ var codeMirrorFn = function() {
             state.objects[candname] = newobj;
 
             const cnlc = candname.toLowerCase();
-            if (candname != cnlc && [ "background", "player" ].includes(cnlc))
+            if (candname != cnlc && [ 'background', 'player' ].includes(cnlc))
                 createAlias(state, cnlc, candname, state.lineNumber);
             for (const alias of aliases) {
                 registerOriginalCaseName(state, alias, state.lineNumber);
@@ -12789,18 +12847,18 @@ var codeMirrorFn = function() {
             while (!lexer.matchEolSemi()) {
                 let token = null;
                 let kind = 'ERROR';
-                if (token = lexer.match(/^[#\w]+/, true)) {
-                    if (color_names.includes(token) || token.match(/#([0-9a-f]{2}){3,4}|#([0-9a-f]{3,4})/)) {
+                if (token = lexer.match(/^[\w]+/, true)) {
+                    if (color_names.includes(token)) {
                         colors.push(token);
                         kind = (token in colorPalettes.arnecolors) ? `COLOR COLOR-${token.toUpperCase()}`
                             : (token === "transparent") ? 'COLOR FADECOLOR'
                             : `MULTICOLOR${token}`;
                     } else logWarning(`Invalid color in object section: "${errorCase(token)}".`, state.lineNumber);
-
+                } else if (token = lexer.match(/^#(([0-9a-f]{2}){3,4}|[0-9a-f]{3,4})/i)) {
+                    colors.push(token);
+                    kind = `MULTICOLOR${token}`;
                 } else if (token = lexer.matchToken()) {
                     logError(`Was looking for color for object "${errorCase(state.objects_candname)}", got "${errorCase(token)}" instead.`, state.lineNumber);
-                    lexer.pushToken(token, 'ERROR');
-                    lexer.matchToken();
                 } else throw 'obj-color';
                 lexer.pushToken(token, kind);
             }
@@ -12931,10 +12989,21 @@ var codeMirrorFn = function() {
         return lexer.tokens;
 
         function isValidDirection(arg) {
-            if (Object.hasOwn(state.tags, arg)) {
-                return state.tags[arg].every(v => clockwiseDirections.includes(v)) ? arg : null;
-            }
-            return clockwiseDirections.includes(arg) ? arg : null;
+            const tagvalues = getTag(state, arg);
+            const mappings = getMapping(state, arg);
+            return tagvalues && tagvalues.every(v => clockwiseDirections.includes(v)) ? arg 
+                : mappings && mappings.values && mappings.values.every(v => clockwiseDirections.includes(v)) ? arg 
+                : clockwiseDirections.includes(arg) ? arg : null;    
+        }
+
+        function isValidNumeric(arg) {
+            const tagvalues = getTag(state, arg);
+            const mappings = getMapping(state, arg);
+            //console.log(tagvalues, tagvalues.map(v => Number(v)));
+            if (tagvalues && tagvalues.every(v => !isNaN(parseFloat(v)))) return arg;
+            if (mappings && mappings.values && mappings.values.every(v => !isNaN(parseFloat(v)))) return arg ;
+            if (!isNaN(parseFloat(arg))) return arg;
+            return null;    
         }
 
         // build a list of tokens and kinds
@@ -12956,8 +13025,8 @@ var codeMirrorFn = function() {
                         logError(`Missing sprite to copy from.`, state.lineNumber);
                     else if (token == symbols.candname) 
                         logError(`You attempted to set the sprite "${errorCase(token)}" to copy from itself! Please don't.`, state.lineNumber)
-                    else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
-                        logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
+                    // else if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
+                    //     logError(`You're trying to copy from "${errorCase(token)}" but it's not defined anywhere.`, state.lineNumber)
                     else {
                         kind = 'NAME';
                         symbols.cloneSprite = token;
@@ -12968,9 +13037,8 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.match(/^[0-9.]+/);
-                    const arg = parseFloat(token);
-                    if (arg == NaN)
+                    token = lexer.matchToken(true);
+                    if (!isValidNumeric(token))
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
                         symbols.scale = arg;
@@ -12985,7 +13053,7 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const dir = isValidDirection(token);
                     if (dir == null)
-                        logError(`Flip requires a direction or tag argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                        logError(`Flip requires a direction argument, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'flip', dir ]);
                         kind = 'METADATATEXT';  //???
@@ -12995,7 +13063,8 @@ var codeMirrorFn = function() {
                 } else if (token = lexer.match(/^[|-]/)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
-                    symbols.transforms.push([ 'flip', token == '|' ? '>' : 'v']);  
+                    // P:S compat: "- and | for horizontal and vertical mirrors"
+                    symbols.transforms.push([ 'flip', token == '-' ? '>' : 'v']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
@@ -13004,9 +13073,9 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = args[1] ? +args[1] : 1;
-                    if (!(args.length <= 2 && dir && amt))
-                        logError(`Shift requires a direction or tag argument and optionally how many, but you gave it ${errorCase(token)}.`, state.lineNumber);
+                    const amt = isValidNumeric(args[1] || 1);
+                    if (!(args.length <= 2 && dir != null && amt != null))
+                        logError(`Shift requires a direction argument and optionally an amount, but you gave it ${errorCase(token)}.`, state.lineNumber);
                     else {
                         symbols.transforms.push([ 'shift', dir, amt ]);
                         kind = 'METADATATEXT';  //???
@@ -13020,11 +13089,11 @@ var codeMirrorFn = function() {
                     token = lexer.match(reg_transform_args,  true);
                     const args = token ? token.split(':') : [];
                     const dir = isValidDirection(args[0]);
-                    const amt = args[1] ? +args[1] : null;
-                    if (!(args.length == 2 && dir && amt))
-                        logError(`Translate requires two arguments, a direction or tag and an amount, not ${errorCase(token)}.`, state.lineNumber);
+                    const amt = isValidNumeric(args[1]);
+                    if (!(args.length == 2 && dir != null && amt != null))
+                        logError(`Translate requires two arguments, a direction and an amount, not ${errorCase(token)}.`, state.lineNumber);
                     else {
-                        symbols.transforms.push([ 'translate', dir, +args[1] ]);
+                        symbols.transforms.push([ 'translate', dir, amt ]);
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -13051,15 +13120,16 @@ var codeMirrorFn = function() {
                     lexer.matchComment();
                     symbols.vector = { 
                         type: 'canvas', 
-                        data: [] 
+                        data: [],
+                        h: 1, w: 1,
                     };
                     if (token = lexer.match(/^[0-9,]+/,  true)) {
                         const parts = token && token.split(',');
                         if (!(parts.length >= 1 && parts.length <= 2))
                             logError(`Canvas size has to be specified as a number or number,number, not ${errorCase(token)}.`, state.lineNumber);
                         else {
-                            symbols.vector.w = parts[0];
-                            symbols.vector.h = parts[1] || parts[0];
+                            symbols.vector.w = ~~parts[0];
+                            symbols.vector.h = ~~(parts[1] || parts[0]);
                             kind = 'METADATATEXT';  //???
                         }
                         lexer.pushToken(token, kind);
@@ -13084,21 +13154,22 @@ var codeMirrorFn = function() {
     // if the last object has tags, expand it, delete original name and add property
     function expandLastObject(state) {
         const candname = state.objects_candname;
+        state.objects_candname = null;
         if (!candname || !hasParts(candname)) return;
         const obj = state.objects[candname];
         const newobjects = expandObjectDef(state, candname, obj);
         if (newobjects) {
-            // add new objects but do not overwrite existing
-            for (const [newid, newvalue] of newobjects)
-                if (!Object.hasOwn(state.objects, newid)) {
-                    state.objects[newid] = newvalue;
-                    registerOriginalCaseName(state, newid, state.lineNumber);
-                }
+            // they will have been created
+            for (const [newid, newvalue] of newobjects) {
+                registerOriginalCaseName(state, newid, state.lineNumber);
+                const clone = newvalue.cloneSprite;
+                if (clone && !(wordAlreadyDeclared(state, clone)))
+                    logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+            }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
             delete state.objects[candname];
-            state.objects_candname = '';
             state.legend_properties.push(newlegend);
         }
     }
@@ -13196,7 +13267,7 @@ var codeMirrorFn = function() {
             }
             if (token = lexer.matchToken()) {
                 logError(`I wasn't expecting anything after the sound declaration ${tsounds.at(-1)} on this line, so I don't know what to do with "${errorCase(token)}" here.`, state.lineNumber);
-                lexer.pushToken(token, 'SOUND');
+                lexer.pushToken(token, 'ERROR');
                 return null;
             } else return tsounds;
         }
@@ -13220,9 +13291,9 @@ var codeMirrorFn = function() {
             // start of parse
             if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 symbols.newname = token;
-                const defname = isAlreadyDeclared(state, token);
+                const defname = wordAlreadyDeclared(state, token);
                 if (defname)
-                    logError(`Name "${errorCase(token)}" already in use (on line ${htmlJump(defname.lineNumber, 'errorTextLineNumber')}`);
+                    logError(`Name "${errorCase(token)}" already in use (on line ${htmlJump(defname.lineNumber)})`, state.lineNumber);
                 else if (keyword_array.includes(token))
                     logWarning(`You named an object "${errorCase(token)}", but this is a keyword. Don't do that!`, state.lineNumber);
                 lexer.pushToken(token, defname ? 'ERROR' : 'NAME');
@@ -13506,7 +13577,7 @@ var codeMirrorFn = function() {
             lexer.matchComment();
             getIdent();
             if (!lexer.matchEol()) {
-                if (token = lexer.match(/^(on)\b/u, true)) {
+                if (token = lexer.match(/^(on)\b/i, true)) {
                     symbols.kind = token;
                     lexer.pushToken(token, 'LOGICWORD');
                 } else {
@@ -13531,7 +13602,7 @@ var codeMirrorFn = function() {
             let token
             if (token = lexer.match(reg_objectname, !state.case_sensitive) || lexer.matchObjectGlyph(!state.case_sensitive)) {
                 let kind = 'ERROR';
-                if (!(isAlreadyDeclared(state, token) || createObjectRef(state, token)))
+                if (!(wordAlreadyDeclared(state, token) || createObjectRef(state, token)))
                     logError(`Error in win condition: "${errorCase(token)}" is not a valid object name.`, state.lineNumber);
                 else {
                     names.push(token);
@@ -13580,7 +13651,7 @@ var codeMirrorFn = function() {
                 if (token == 'link') {
                     if (!(token = lexer.match(reg_objectname, !state.case_sensitive))) 
                         logError(`LINK needs an object to know where to put the link.`, state.lineNumber);
-                    else if (!isAlreadyDeclared(state, token))
+                    else if (!wordAlreadyDeclared(state, token))
                         logError(`LINK object "${errorCase(token)}" not found, it needs to be already defined.`, state.lineNumber);
                     else {      // @@
                         const objects = expandSymbol(state, token, false, () => {});
@@ -13933,7 +14004,7 @@ var codeMirrorFn = function() {
                                         stream.match(/[\p{Z}\s]*/u, true);
                                         return 'NAME';
                                     }
-                                } else if (m.match(reg_objectnamerel) && (isAlreadyDeclared(state, m) || createObjectRef(state, m))) {
+                                } else if (m.match(reg_objectnamerel) && (wordAlreadyDeclared(state, m) || createObjectRef(state, m))) {
                                     return 'NAME';
                                 }
                                 
@@ -14093,32 +14164,35 @@ var tagDirections = [
     { keys: [ 'vertical' ], values: [ 'up', 'down' ] },
 ];
 
+// returns [ tag values ]
 function getTag(state, t) {
     return Object.hasOwn(state.tags, t) && state.tags[t];
 }
 
+// returns { values:[], fromKey:, fromValues:[] }
 function getMapping(state, m) {
     return Object.hasOwn(state.mappings, m) && state.mappings[m];
 }
 
-function isMappedTo(state, key, target) {
-    return Object.hasOwn(state.mappings, key) && state.mappings[key].fromKey == target;
+// is this a mapping from this key?
+function isMappedTo(state, m, from) {
+    return getMapping(state, m) && state.mappings[m].fromKey == from;
 }
 
-// is there a mapping fomr => key?
-function canMapValue(state, key, from) {
-    const map = state.mappings[key];
+// is there a mapping: from => m?
+function canMapValue(state, m, from) {
+    const map = state.mappings[m];
     return map && map.fromKey == from;
 }
 
-function getMappedValue(state, key, value) {
-    const map = state.mappings[key];
+function getMappedValue(state, m, value) {
+    const map = state.mappings[m];
     const index = map.fromValues.indexOf(value);
     return map.values[index];
 }
 
-function getMappedValues(state, key) {
-    const map = state.mappings[key];
+function getMappedValues(state, m) {
+    const map = state.mappings[m];
     return map.values.map(v => getTag(state, v) || v).flat();
 }
 
@@ -14136,6 +14210,7 @@ function cartesianProduct(...arrays) {
 // a combinatorial ident expander based on embedded tags and ':' delimiters
 class TagExpander {
     constructor(state, ident, usedirs = false, delim = ':') {
+        this.state = state;
         this.ident = ident;
         this.delim = delim;
         [ this.stem, ...this.tail ] = ident.split(delim);
@@ -14162,54 +14237,64 @@ class TagExpander {
         this.expansion = cartesianProduct(...this.values);
     }
 
-    get expKeys() {
-        return this.keys;
+    // for a known key return the expansion column index, or -1 if not known
+    getPartIndex(part) {
+        return this.keys.indexOf(part);
     }
-    get expValues() {
-        return this.expansion;
+
+    // for a known key return the expansion subsitute value, or null if not known
+    getPartSubstitute(part, exp) {
+        return this.keys.includes(part) ? exp[this.keys.indexOf(part)] : null;
+    }
+
+    // for a known key and mapping return the mapped expansion subsitute value, or null if not known
+    getPartMapped(part, exp) {
+        const mapping = getMapping(this.state, part);
+        if (!(mapping && this.keys.includes(mapping.fromKey))) return null;
+        const value = this.getPartSubstitute(mapping.fromKey, exp);
+        return getMappedValue(this.state, part, value);
     }
 
     // get array of base idents, one for each expansion
+    // con:dirs => [ con:up, con:right, con:down, con:left ]
     getExpandedIdents() {
-        if (this.keys.length == 0)
-            return [ this.ident ];
-        return this.expansion.map(e => [ 
-            this.stem, 
-            ...this.tail.map(p => 
-                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
-        ].join(this.delim));
+        return this.expansion.map(e => this.getExpandedIdent(e));
     }
 
     // get an expanded ident based on a single expansion
+    // con:dirs => con:up
     getExpandedIdent(exp) {
-        return [ this.stem, ...this.tail.map(p => 
-            this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
-            ].join(this.delim);
+        return [ 
+            this.stem, 
+            ...this.tail.map(p => this.getPartSubstitute(p, exp) || p)
+        ].join(this.delim);
     }
 
-    // return alternate join key with substitutions based on a specific expansion
+    // return alternate join key with substitutions based on a specific expansion and possible mapping
+    // con:dirs,other => other:up
+    // con:dirs:rot,other => other:up:right
     getExpandedAlt(exp, ident) {
         const [ stem, ...tail ] = ident.split(':');
-        return (tail.length == 0) ? stem
-            : [ stem, ...tail.map(p => 
-                this.keys.includes(p) ? exp[this.keys.indexOf(p)] : p) 
-            ].join(this.delim);
+
+        return (tail.length == 0) ? stem : [ 
+            stem, 
+            ...tail.map((p,x) => this.getPartSubstitute(p, exp) || this.getPartMapped(p, exp) || p) 
+        ].join(this.delim);
     }
 
     // return ident with substitution if available based on a specific expansion
+    // con:dirs,other,1 => other:right
     getSubstitutedIdent(exp, ident, index) {
-        const newident = this.keys.includes(ident) ? exp[this.keys.indexOf(ident)] : ident;
-        return simpleRelativeDirections.includes(ident) ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] : newident;
+        const newident = this.getPartSubstitute(ident, exp) || this.getPartMapped(ident, exp) || ident;
+        return simpleRelativeDirections.includes(ident) 
+            ? clockwiseDirections[(clockwiseDirections.indexOf(ident) + index) % 4] 
+            : newident;
     }
 
     // return array of (possibly expanded) idents, one for each expansion
+    // con:dirs,other => [ other:up, other:right, other:down, other:left ]
     getExpandedAltIdents(ident) {
-        const [ stem, ...tail ] = ident.split(':');
-        return this.expansion.map(e =>
-            (tail.length == 0) ? stem
-            : [ stem, ...tail.map(p => 
-                this.keys.includes(p) ? e[this.keys.indexOf(p)] : p) 
-            ].join(this.delim) );
+        return this.expansion.map(e => this.getExpandedAlt(e, ident));
     }
 }
 
@@ -14227,10 +14312,17 @@ function expandObjectDef(state, objid, objvalue) {
 
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
+
+        // if it exists just return it otherwise create it
+        if (Object.hasOwn(state.objects, newid))
+            return [ newid, state.objects[newid] ];
+
         const newvalue = { 
             ...deepClone(objvalue),
             canRedef: true 
         };
+        state.objects[newid] = newvalue;
+
         if (objvalue.cloneSprite) {
             const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
             if (state.objects[altspriteid])
@@ -14239,7 +14331,6 @@ function expandObjectDef(state, objid, objvalue) {
             //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
         } else 
             newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
-
         
         if (objvalue.transforms) {
             newvalue.transforms = [];
@@ -14247,10 +14338,10 @@ function expandObjectDef(state, objid, objvalue) {
                 const op = xform[0];
                 newvalue.transforms.push([ op, 
                     expander.getSubstitutedIdent(exp, xform[1], index),
-                    (op == 'rot') ? expander.getSubstitutedIdent(exp, xform[2], index) : xform[2] ]);
+                    expander.getSubstitutedIdent(exp, xform[2], index) ]);
             })
         }
-        return [newid, newvalue];
+        return [ newid, newvalue ];
     });
     
     return newobjects;
@@ -14299,7 +14390,7 @@ function applySpriteTransforms(obj) {
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] ).reverse()), // 90°
             m => Array.from(m, l => l.reverse() ).reverse(), // 180°
             m => Array.from(m[0], (ch,col) => m.map( row => row[col] )).reverse() // 270°
-        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.spritematrix),
+        ][(4 + dir2 - dir1) % 4](obj.spritematrix),
         'translate': (obj,dir,amt) => [
             (s => s.y -= amt),
             (s => s.x += amt),
@@ -14309,7 +14400,11 @@ function applySpriteTransforms(obj) {
     };
 
     for (const tf of obj.transforms || []) {
-        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, 
+            cwdIndexOf(tf[1]), 
+            ['rot','flip'].includes(tf[0])
+                ? cwdIndexOf(tf[2])
+                : +tf[2]);
     }
 }
 
@@ -14325,7 +14420,7 @@ function applyVectorTransforms(obj) {
             p => p.angle += 90,
             p => p.angle += 180,
             p => p.angle += 270,
-        ][(4 + cwdIndexOf(dir2) - dir1) % 4](obj.vector),
+        ][(4 + dir2 - dir1) % 4](obj.vector),
         'translate': (obj,dir,amt) => [
             (s => s.y -= amt),
             (s => s.x += amt),
@@ -14336,18 +14431,22 @@ function applyVectorTransforms(obj) {
     };
 
     for (const tf of obj.transforms || []) {
-        tranfunc[tf[0]](obj, cwdIndexOf(tf[1]), tf[2]);
+        tranfunc[tf[0]](obj, 
+            cwdIndexOf(tf[1]), 
+            ['rot','flip'].includes(tf[0])
+                ? cwdIndexOf(tf[2])
+                : +tf[2]);
     }
 }
 
-// PS> check whether a name has been used and is not available
-function isAlreadyDeclared(state, ident) {
-    return Object.hasOwn(state.objects, ident)
-        || state.legend_synonyms.find(s => s[0] == ident)
+// PS> check whether a name has been used and is not available, return its def
+function wordAlreadyDeclared(state, ident) {
+    return Object.hasOwn(state.objects, ident) ? state.objects[ident]
+        : Object.hasOwn(state.tags, ident) ? state.tags[ident]
+        : Object.hasOwn(state.mappings, ident) ? state.mappings[ident]
+        : (state.legend_synonyms.find(s => s[0] == ident)
         || state.legend_aggregates.find(s => s[0] == ident)
-        || state.legend_properties.find(s => s[0] == ident)
-        || Object.hasOwn(state.tags, ident)
-        || Object.hasOwn(state.mappings, ident)
+        || state.legend_properties.find(s => s[0] == ident));
 }
 
 // PS> check how a name has been used if at all
@@ -14363,16 +14462,16 @@ function isDeclaredAs(state, ident) {
 
 // get the object(s) referred to if declared, or null otherwise
 function getObjectRefs(state, ident) {
-    if (isAlreadyDeclared(state, ident)) return [ ident ];
+    if (wordAlreadyDeclared(state, ident)) return [ ident ];
     const idents = expandObjectRef(state, ident, true);
-    return idents.every(i => isAlreadyDeclared(state, i)) ? idents : null;
+    return idents.every(i => wordAlreadyDeclared(state, i)) ? idents : null;
 }
 
 // get the undefined object(s) referred to
 function getObjectUndefs(state, ident) {
-    if (isAlreadyDeclared(state, ident)) return [ ];
+    if (wordAlreadyDeclared(state, ident)) return [ ];
     const idents = expandObjectRef(state, ident, true);
-    return idents.filter(i => !isAlreadyDeclared(state, i));
+    return idents.filter(i => !wordAlreadyDeclared(state, i));
 }
 
 // create a property object for an ident with parts, if possible and not already there
@@ -14545,8 +14644,8 @@ function generateExtraMembers(state) {
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other.spritematrix.map(row => [...row]);
-                obj.spriteoffset = { ...other.spriteoffset };
+                obj.spritematrix = other ? other.spritematrix.map(row => [...row]) : [];
+                obj.spriteoffset = other ? { ...other.spriteoffset } : obj.spriteoffset;
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
@@ -14591,7 +14690,7 @@ function generateExtraMembers(state) {
                 glyphDict[key] = glyphDict[val];
                 glyphOrder.push([dat.lineNumber,key]);
             } 
-            }
+        }
 
         //then, aggregates
         for (var i = 0; i < state.legend_aggregates.length; i++) {
@@ -14620,6 +14719,7 @@ function generateExtraMembers(state) {
                     } else {
                         if (obj.layer === undefined) {
                             logError('Object "' + n.toUpperCase() + '" has been defined, but not assigned to a layer.', dat.lineNumber);
+                            obj.layer = 0;  // safety
                         } else {
                             var n1 = n.toUpperCase();
                             var n2 = state.idDict[mask[obj.layer]].toUpperCase();
@@ -14756,6 +14856,10 @@ function generateExtraMembers(state) {
     for (var key in propertiesDict) {
         if (propertiesDict.hasOwnProperty(key)) {
             var values = propertiesDict[key];
+            if (!values.every(v => state.objects[v])) {
+                console.log(`Properties not in state.objects:`, values);
+                TooManyErrors();
+            }
             var sameLayer = true;
             for (var i = 1; i < values.length; i++) {
                 // dies here if previous error
@@ -14875,6 +14979,7 @@ function generateExtraMembersPart2(state) {
 Level.prototype.calcBackgroundMask = function(state) {
     if (state.backgroundlayer === undefined) {
         logError("You have to have a background layer");
+        TooManyErrors();
     }
 
     var backgroundMask = state.layerMasks[state.backgroundlayer];
@@ -14943,6 +15048,45 @@ function levelFromString(state,level) {
 	}
 	return o;
 }
+
+////
+function levelAllObjects(state) { //@@
+	const backgroundlayer = state.backgroundlayer;
+	const backgroundLayerMask = state.layerMasks[backgroundlayer];
+    const count = state.objectCount;
+    const width = ~~Math.ceil(Math.sqrt(count));
+    const height = ~~(Math.ceil(count/width));
+    const level = new Level(0, width, height, state.collisionLayers.length, new Int32Array(width * height * STRIDE_OBJ), '');
+
+	for (let i = 0; i < count; i++) {
+        const objid = state.idDict[i];
+        const maskint = new BitVec(STRIDE_OBJ);
+        let mask = [ ...state.glyphDict[objid] ];
+
+        for (let z = 0; z < level.layerCount; z++) {
+            if (mask[z]>=0) {
+                maskint.ibitset(mask[z]);
+            }
+        }
+        for (let w = 0; w < STRIDE_OBJ; ++w) {
+            level.objects[STRIDE_OBJ * i + w] = maskint.data[w];
+        }
+	}
+    
+	const levelBackgroundMask = level.calcBackgroundMask(state);
+	for (let i=0;i<level.n_tiles;i++) {
+		const cell = level.getCell(i);
+		if (!backgroundLayerMask.anyBitsInCommon(cell)) {
+			cell.ior(levelBackgroundMask);
+			level.setCell(i, cell);
+		}
+	}
+    //RebuildLevelArrays();
+    suppressInput = true;
+	return level;
+}
+
+////
 //also assigns glyphDict
 function levelsToArray(state) {
 	const levels = [];
@@ -15096,26 +15240,22 @@ function convertSectionNamesToIndices(state) {
 }
 
 // fix gosubs and subroutines to use group number (so must be after created groups)
-function fixUpGosubs(state) { // PS>
-    const subroutines = state.subroutines;
-    const rules = state.rules;
-    // first fixup subroutines so we know which group to gosub to
-    let rulex = 0;
-    for (const subroutine of subroutines) {
-        while (rules[rulex][0].lineNumber < subroutine.lineNumber)
-            rulex++;
-        subroutine.groupNumber = rulex;
-    }
-
+// will be called twice, for main and late rules
+function fixUpGosubs(rules, subroutines) { //@@
     // rules are now groups. Go figure.
-    for (const group of state.rules) {
+    for (const group of rules) {
         for (const rule of group) {
             for (const cmd of rule.commands) {
+                // replace name by linenumber
                 if (cmd[0] == 'gosub' && typeof cmd[1] == "string") {       // the vagaries of the parse means this fixup may already have been done
-                    const subroutine = state.subroutines.find(s => s.label == cmd[1].toLowerCase());
-                    if (!subroutine) 
+                    const subroutine = subroutines.find(s => s.label == cmd[1].toLowerCase());
+                    if (!subroutine) {
                         logError(`Invalid GOSUB command - there is no subroutine named "${cmd[1]}".`, rule.lineNumber);
-                    else cmd[1] = subroutine.groupNumber;   // replace name by linenumber
+                    } else {
+                        cmd[1] = rules.findIndex(r => r[0].lineNumber >= subroutine.lineNumber);
+                        if (cmd[1] == -1)
+                            logWarning(`GOSUB to an empty subroutine -- or a late/non-late mixup?`, rule.lineNumber);
+                    }
                 }
             }
         }
@@ -15255,11 +15395,10 @@ function processRuleString(rule, state, curRules) {
                         if (groupNumber === lineNumber) {
                             if (curRules.length == 0) {
                                 logError('The "+" symbol, for joining a rule with the group of the previous rule, needs a previous rule to be applied to.', lineNumber);
-                            }
-                            if (i !== 0) {
+                            } else if (i !== 0) {
                                 logError('The "+" symbol, for joining a rule with the group of the previous rule, must be the first symbol on the line ', lineNumber);
-                            }
-                            groupNumber = curRules[curRules.length - 1].groupNumber;
+                            } else
+                                groupNumber = curRules[curRules.length - 1].groupNumber;
                         } else {
                             logError('Two "+"s (the "append to previous rule group" symbol) applied to the same rule.', lineNumber);
                         }
@@ -15364,7 +15503,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     rhs = true;
                 }
-            } else if (isAlreadyDeclared(state, token) || createObjectRef(state, token)) { // @@
+            } else if (wordAlreadyDeclared(state, token) || createObjectRef(state, token)) {
                 // it's either a known object name or a name that might need expanding but definitely not a command (need a better way...)
                 if (!incellrow) {
                     logWarning("Invalid token "+token.toUpperCase() +". Object names should only be used within cells (square brackets).", lineNumber);
@@ -15506,7 +15645,7 @@ function rulesToArray(state) {
 }
 
 // find and filter out start and end loop, subroutines PS>
-function parseRulesToArray(state) {
+function parseRulesToArray(state) { //@@
     const oldrules = state.rules;
     var newrules = [];
     var loops = [];
@@ -15514,7 +15653,7 @@ function parseRulesToArray(state) {
     for (var i = 0; i < oldrules.length; i++) {
         var lineNumber = oldrules[i][1];
         var newrule = processRuleString(oldrules[i], state, newrules);
-        if (newrule.bracket) {
+        if (newrule.bracket) {  // start=1 end=-1
             loops.push([lineNumber, newrule.bracket]);
         } else if (newrule.label) {      // PS>
             const other = subroutines.find(s => s.label == newrule.label);
@@ -15588,7 +15727,7 @@ function expandRuleWithTags(state, rule) {
     rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
         row.forEach((cell, cellx) => {     // between bars [ | ]
             cell.forEach((atom, atomx) => {
-                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !isAlreadyDeclared(state, atom)) {
+                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
                     todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
                 }
             });
@@ -15652,7 +15791,7 @@ function checkRuleObjects(state, rules) {
             .filter(o => o != '...')
             .flat();
         for (const obj of objs) {
-            if (!isAlreadyDeclared(state, obj))
+            if (!wordAlreadyDeclared(state, obj))
                 console.log(`Not declared`, rule.lineNumber, obj);
         }
     }
@@ -15719,6 +15858,8 @@ function rewriteUpLeftRules(rule) {
     if (containsEllipsis(rule)) {
         return;
     }
+    if (rule.rhs.length > 0 && rule.rhs.length != rule.lhs.length) // safe: can happen with prior error
+        return;
 
     if (rule.direction == 'up') {
         rule.direction = 'down';
@@ -16759,6 +16900,7 @@ function ruleGroupDiscardOverlappingTest(ruleGroup) {
     }
 }
 
+// split rules into late and non-late, replace 1x[rules] by 2x[groups][rules]
 function arrangeRulesByGroupNumber(state) {
     var aggregates = {};
     var aggregates_late = {};
@@ -17122,7 +17264,7 @@ function twiddleMetaData(state, update = false) {
     }
 
     if (newmetadata.tween_snap) {
-        const snap = Math.max(parseInt(state.metadata.tween_snap), 1);
+        const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
         if (snap) newmetadata.tween_snap = snap;
         else {
             logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
@@ -17269,7 +17411,9 @@ function printRules(state) {
         var rule = state.rules[i];
         // print subroutine - could be more than one, must come before any startloop and after any endloop!
         let subrtext = '';
-        for (let subroutine = state.subroutines[subroutineIndex]; subroutine && subroutine.lineNumber < rule.lineNumber; subroutine = state.subroutines[++subroutineIndex]) {
+        for (let subroutine = state.subroutines[subroutineIndex]; 
+              subroutine && subroutine.lineNumber < rule.lineNumber; 
+              subroutine = state.subroutines[++subroutineIndex]) {
             subrtext += `SUBROUTINE ${subroutine.label}<br>`;
         }
         if (loopIndex < state.loops.length) {
@@ -17611,7 +17755,7 @@ function loadFile(str) {
 	}
 
     if (debugSwitch.includes('tag')) console.log('Tags', state.tags);
-    if (debugSwitch.includes('map')) console.log('Mappings', state.mappings);
+    if (debugSwitch.includes('tag')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
     generateExtraMembers(state);
@@ -17644,6 +17788,9 @@ function loadFile(str) {
 	arrangeRulesByGroupNumber(state);
 	collapseRules(state.rules);
 	collapseRules(state.lateRules);
+    if (debugSwitch.includes('rules')) console.log('Rules', state.rules);
+    if (debugSwitch.includes('rules')) console.log('Late Rules', state.lateRules);
+    if (debugSwitch.includes('rules')) console.log('Subroutines', state.subroutines);
 
     generateRigidGroupList(state);
 
@@ -17656,7 +17803,9 @@ function loadFile(str) {
 
 	generateLoopPoints(state);
 
-    fixUpGosubs(state);  //
+    fixUpGosubs(state.rules, state.subroutines);  //@@
+    fixUpGosubs(state.lateRules, state.subroutines);  //@@
+    //fixUpGosubs(state);  //@@
 
     generateSoundData(state);
 
@@ -18084,22 +18233,22 @@ function printLevel() {
 }
 
 function levelEditorClick(event,click) {
-	// note: screenwidth and screenheight are correct, not inflated by glyph panel
-	const glyphPanelRect = { x: 0, y: -1 - editorRowCount, w: screenwidth + 1, h: editorRowCount };
-	if (mouseCoordY >= glyphPanelRect.y && mouseCoordY < glyphPanelRect.y + glyphPanelRect.h) {
-		var newindex = mouseCoordX + glyphPanelRect.w * (mouseCoordY - glyphPanelRect.y);
+	if (mouseCoordY<=-2) {
+		var ypos = editorRowCount-(-mouseCoordY-2)-1;
+		var newindex=mouseCoordX+(screenwidth-1)*ypos;
 		if (mouseCoordX===-1) {
 			printLevel();
-		} else if (mouseCoordX >= 0 && newindex < glyphImages.length) {
-			glyphSelectedIndex = newindex;
+		} else if (mouseCoordX>=0&&newindex<glyphImages.length) {
+			glyphSelectedIndex=newindex;
 			redraw();
 		}
 
-	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
+	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-2&&mouseCoordY<screenheight-2-editorRowCount	) {
 		var glyphname = glyphImagesCorrespondance[glyphSelectedIndex];
 		var glyph = state.glyphDict[glyphname];
 		var glyphmask = new BitVec(STRIDE_OBJ);
-		for (var i=0;i<glyph.length;i++) {
+		for (var i=0;i<glyph.length;i++)
+		{
 			var id = glyph[i];
 			if (id>=0) {
 				glyphmask.ibitset(id);
@@ -18125,18 +18274,20 @@ function levelEditorClick(event,click) {
 			curLevel.setCell(coordIndex, glyphmask);
 			redraw();
 		}
-	} else {
-		if (mouseCoordX == -1) {
+	}
+	else if (click) {
+		if (mouseCoordX===-1) {
+			//add a left row to the map
 			addLeftColumn();			
 			canvasResize();
-		} else if (mouseCoordX == screenwidth) {
+		} else if (mouseCoordX===screenwidth-2) {
 			addRightColumn();
 			canvasResize();
 		} 
-		if (mouseCoordY == -1) {
+		if (mouseCoordY===-1) {
 			addTopRow();
 			canvasResize();
-		} else if (mouseCoordY == screenheight) {
+		} else if (mouseCoordY===screenheight-2-editorRowCount) {
 			addBottomRow();
 			canvasResize();
 		}
@@ -18149,25 +18300,26 @@ function levelEditorRightClick(event,click) {
 			glyphSelectedIndex=mouseCoordX;
 			redraw();
 		}
-	} else if (mouseCoordX >= 0 && mouseCoordY >= 0 && mouseCoordX < screenwidth && mouseCoordY < screenheight) {
+	} else if (mouseCoordX>-1&&mouseCoordY>-1&&mouseCoordX<screenwidth-2&&mouseCoordY<screenheight-2-editorRowCount	) {
 		var coordIndex = mouseCoordY + mouseCoordX*curLevel.height;
 		var glyphmask = new BitVec(STRIDE_OBJ);
 		glyphmask.ibitset(state.backgroundid);
 		curLevel.setCell(coordIndex, glyphmask);
 		redraw();
 	}
-	else {
-		if (mouseCoordX == -1) {
+	else if (click) {
+		if (mouseCoordX===-1) {
+			//add a left row to the map
 			removeLeftColumn();			
 			canvasResize();
-		} else if (mouseCoordX == screenwidth) {
+		} else if (mouseCoordX===screenwidth-2) {
 			removeRightColumn();
 			canvasResize();
 		} 
-		if (mouseCoordY == -1) {
+		if (mouseCoordY===-1) {
 			removeTopRow();
 			canvasResize();
-		} else if (mouseCoordY == screenheight) {
+		} else if (mouseCoordY===screenheight-2-editorRowCount) {
 			removeBottomRow();
 			canvasResize();
 		}
@@ -18175,18 +18327,6 @@ function levelEditorRightClick(event,click) {
 }
 
 function getTilesTraversingPoints(x1, y1, x2, y2) {
-	// these branches should never be hit, but we want to be defensive to avoid infinite loops:
-	if (isNaN(x2)) {
-		console.warn("getTilesTraversingPoints() got NaN (second coord)")
-		x2 = -100
-		y2 = -100
-	}
-	if (isNaN(x1)) {
-		console.warn("getTilesTraversingPoints() got NaN (first coord)")
-		x1 = x2
-		y1 = y2
-	}
-	
 	if (cellwidth !== cellheight) {
 		throw "Error: Cell is not square.";
 	}
@@ -19274,7 +19414,10 @@ function checkKey(e,justPressed) {
 		return prevent(e);
     } else {
 	    if (!againing && inputdir>=0) {
-            if (inputdir===4 && ('noaction' in state.metadata)) {
+			if (suppressInput) {
+				//suppressInput = false;
+				//goToPauseScreen();
+			} else if (inputdir===4 && ('noaction' in state.metadata)) {
 
             } else {
                 pushInput(inputdir);

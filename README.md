@@ -15,18 +15,43 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24h08. 
-It includes a beta release of canvas sprites based on canvas API calls.
-See [Objects](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/objects.html).
-Please try the gallery and examples.
-
-Breaking change:
-* A `canvas:` sprite is now drawn to align with the bottom left corner, the same as for regular sprites.
-This will break some existing games. The fix is to move the sprite offset using `translate:`.
+The latest version is Release v-24j02. 
+Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
+* Fix `canvas: transform: rot:` regression (#109).
+* Fix GOSUB interactions with late rules (#107).
+* Add verbose logging of GOSUB/return.
+* Add new Show All Objects (checkerboard on toolbar) - for beta testing
+
+Older fixes/updates:
+* Fix transform numeric tags and mapping (#105)
+* Fix transform numeric parsing
+* Fix error message and line number for when object already defined
+* Fix verbose logging
+* Fix handling of tags and mappings in sprite building (#102 #103)
+* Fixed parsing of SOUNDS line to detect bad characters in a seed (#101).
+* The 'show layers' button now provides help about using PgUp/PgDn, and shows the level number (#93).
+* Gallery programs have been filtered, keeping only those that work with this release, and have a 'hack' link.
+* Fixed compiler errors for `tween_snap` and sprite colours with no space, like `#111#111`, in gallery programs (#).
+* Editor hint prompting for colours is fixed, and a few of the newer prelude settings have been added (#87).
+* Documentation has been updated for: more than 10 sprite colours, metadata twiddling, tween_length, nokeyboard (#78, #91).
+* Level select keyboard scrolling now works for multiple pages (#94).
+* The demo program 'Black Box' now ignores the keyboard and has level select (#96).
+It still has an outstanding display bug (#97).
+* Includes a beta release of canvas sprites based on canvas API calls.
+See [Objects](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/objects.html).
+* A `canvas:` sprite is now drawn to align with the bottom left corner, the same as for regular sprites.
+This will break some existing games. The fix is to move the sprite offset using `translate:`.
+* The `flip:` shorthands "\-" and "\|" are now compatible with Pattern:Script (see Tapaban) (#83).
+* Problems with the level editor mouse position and behaviour have been corrected (#85).
+* Sample programs `wriggle` and `abracadabra` have been updated.
+* Upper case filename `abracadabra.txt` has been replaced by lower case.
+* Fix sokolink game so player does not disappear.
+* Fix level select screen to start by selecting current level (#80).
+* More fixes to stop compile errors from causing exceptions and crashes.
 * Gallery updated to include `canvas:` games as well as all PS and PS plus (175 total).
-* Level edit reverted to ignore zoomscreen etc.
+* Level edit reverted to ignore zoomscreen etc (#76).
 * Two canvas games have been added to the editor **Examples** dropdown.
 * A missing target for a sprite `copy:` no longer crashes, but falls back to a default blank icon.
 * Various combinations of errors that could cause a `TypeError` exception will now terminate the compile with 'Too Many Errors' instead.
@@ -38,7 +63,7 @@ Recent fixes/updates:
 * Title screen treats as continue if set checkpoint before winning first level.
 * Highlight of selected level now less intrusive.
 * `skip_title_screen` is now working.
-* Solve symbol default now "X" in code and docs.
+* Solve symbol default now "X" in code and docs (#89).
 * Fix parsing of non-alpha transform args.
 * Fix menu click on level 1 to not go to title.
 * Fix crash on menu click on non-menu lines.

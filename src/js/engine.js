@@ -2851,12 +2851,14 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 	// find the end of this block of rule groups
 	function findEnd(start) {
 		let result = -1;
-		// find the subroutine after the one we are in, if any
-		// note: trouble if it's an ==
-		let x = subroutines.findIndex(s => s.lineNumber > rules[start][0].lineNumber);
-		// find the rule group for that line number
-		if (x != -1)
-			result = rules.findIndex(r => r[0].lineNumber >= subroutines[x].lineNumber) 
+		if (start < rules.length) {
+			// find the subroutine after the one we are in, if any
+			// note: trouble if it's an ==
+			let x = subroutines.findIndex(s => s.lineNumber > rules[start][0].lineNumber);
+			// find the rule group for that line number
+			if (x != -1)
+				result = rules.findIndex(r => r[0].lineNumber >= subroutines[x].lineNumber) 
+		}
 		return (result == -1) ? rules.length : result;
 	}
 
@@ -2887,7 +2889,8 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 				break; 
 		} else {
 			if (gosubTarget >= 0) {
-				gosubStack.push(ruleGroupIndex + 1);  // todo: push loop point
+				// push current location so on return we can check if at end
+				gosubStack.push(ruleGroupIndex);  // todo: push loop point
 				if (verbose_logging)
 					consolePrint(`Gosub to ${htmlJump(rules[gosubTarget][0].lineNumber)}`, true, rules[ruleGroupIndex][0].lineNumber);
 				ruleGroupIndex = gosubTarget;
@@ -2907,6 +2910,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 						consolePrint(`Return to ${htmlJump(rules[gosubStack.at(-1)][0].lineNumber)}`, true);
 					ruleGroupIndex = gosubStack.pop();
 					endIndex = findEnd(ruleGroupIndex);
+					ruleGroupIndex++;
 				}
 			}
 		}
