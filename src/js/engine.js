@@ -3137,6 +3137,10 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		sfxCreateList = [];
 		sfxDestroyList = [];
 		
+		if(dontModify) {
+			var oldSeedsToAnimate = seedsToAnimate;
+		}
+
 		seedsToPlay_CanMove=[];
 		seedsToPlay_CantMove=[];
 		seedsToAnimate={};
@@ -3369,6 +3373,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
     		if (verbose_logging) {
     			consoleCacheDump();
     		}
+			seedsToAnimate = oldSeedsToAnimate;
 			return false;
 		}
 
