@@ -2675,11 +2675,10 @@ Rule.prototype.queueCommands = function() {
 		if (command[0] == 'message') {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
-			gotoLevel(command[1]);
+			curLevel.commandQueue.pop();
+			curLevel.commandQueue.push(`${command[0]},${command[1]}`);
 		} else if (command[0] == 'status') {
 			statusText = command[1];
-		} else if (command[0] == 'link') {
-			gotoLink();
 		}		
 
 		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
@@ -3239,6 +3238,19 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			messagetext = "";
 			statusText = "";
 			DoUndo(true,false, true, true, true);
+			return true;
+		}
+
+		// kludge to avoid triggering error
+		//console.log('cmdq', curLevel.commandQueue);
+		if (curLevel.commandQueue.find(c => c.startsWith('goto'))) {
+			const cmd = curLevel.commandQueue.find(c => c.startsWith('goto'));
+			gotoLevel(cmd.substr(5));
+			return true;
+		}
+
+		if (curLevel.commandQueue.includes('link')) {
+			gotoLink();
 			return true;
 		}
 
