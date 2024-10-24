@@ -345,7 +345,7 @@ var codeMirrorFn = function() {
         matchEolSemi() { 
             this.matchComment();
             if (this.state.commentStyle == '//' && this.match(/^;/)) {
-                this.pushToken(';', 'SEMICOLON');
+                this.pushToken(';', 'BRACKET');
                 return true;
             }
             return this.stream.eol(); 
@@ -1103,7 +1103,7 @@ var codeMirrorFn = function() {
         // build a list of tokens and kinds
         function getTokens() {
             // same as reg_name plus : and reldirs
-            const reg_transform_args = /^[\p{L}\p{N}_$:<>^]+/u;
+            const reg_transform_args = /^[\p{L}\p{N}_$:<>^.]+/u;
             while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
@@ -1131,11 +1131,11 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.matchToken(true);
+                    token = lexer.match(reg_transform_args, true);                    
                     if (!isValidNumeric(token))
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
-                        symbols.scale = arg;
+                        symbols.scale = +token;
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
