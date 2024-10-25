@@ -422,11 +422,22 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
+	console.log(`titleSelected=${titleSelected} titleSelection=${titleSelection}`)
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
+		const selected = (i == selectLine + levelSelectScrollPos - 3);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
-		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
+		//console.log(section, `i=${i} solved=${solved} locked=${locked} selected=${selected}`);
+
+		// kludge to avoid selecting locked level
+		if (selected && locked) {
+			selectLine = -1;
+			titleSelected = false;
+			quittingTitleScreen = false;
+		}
+		
+		if (selected && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
 			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
@@ -2675,11 +2686,10 @@ Rule.prototype.queueCommands = function() {
 		if (command[0] == 'message') {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
-			gotoLevel(command[1]);
+			curLevel.commandQueue.pop();
+			curLevel.commandQueue.push(`${command[0]},${command[1]}`);
 		} else if (command[0] == 'status') {
 			statusText = command[1];
-		} else if (command[0] == 'link') {
-			gotoLink();
 		}		
 
 		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
@@ -3239,6 +3249,19 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			messagetext = "";
 			statusText = "";
 			DoUndo(true,false, true, true, true);
+			return true;
+		}
+
+		// kludge to avoid triggering error
+		//console.log('cmdq', curLevel.commandQueue);
+		if (curLevel.commandQueue.find(c => c.startsWith('goto'))) {
+			const cmd = curLevel.commandQueue.find(c => c.startsWith('goto'));
+			gotoLevel(cmd.substr(5));
+			return true;
+		}
+
+		if (curLevel.commandQueue.includes('link')) {
+			gotoLink();
 			return true;
 		}
 
