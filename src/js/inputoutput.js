@@ -523,13 +523,14 @@ function mouseAction(event,click,id) {
 				} else if (mouseCoordY > 2 && mouseCoordY < 12) {
 					const clickedLevel = mouseCoordY - 3 + levelSelectScrollPos;
 					if (clickedLevel < state.sections.length) {
-						generateLevelSelectScreen(-1, 0, mouseCoordY);
+						// do this first, because it will get cancelled if locked
 						if (titleSelection != null) {
 							titleSelected=true;
 							messageselected=false;
 							timer=0;
 							quittingTitleScreen=true;
 						}						
+						generateLevelSelectScreen(-1, 0, mouseCoordY);
 					}
 				}
 			} else if (titleMode == 3) { // pause screen select

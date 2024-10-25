@@ -422,11 +422,22 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
+	console.log(`titleSelected=${titleSelected} titleSelection=${titleSelection}`)
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
+		const selected = (i == selectLine + levelSelectScrollPos - 3);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
-		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
+		//console.log(section, `i=${i} solved=${solved} locked=${locked} selected=${selected}`);
+
+		// kludge to avoid selecting locked level
+		if (selected && locked) {
+			selectLine = -1;
+			titleSelected = false;
+			quittingTitleScreen = false;
+		}
+		
+		if (selected && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
 			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
