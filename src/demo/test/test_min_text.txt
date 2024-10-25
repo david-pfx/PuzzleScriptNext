@@ -65,6 +65,9 @@ x scale:1  ; blue; text: 99
 w scale:1  ; blue; text: 999
 z scale:1  ; blue; text: 9999
 
+star * scale:0.6
+red; text: ⭐
+
 =======
 LEGEND
 =======
@@ -91,6 +94,8 @@ s
 t
 u,f,e
 numbers
+star
+
 ======
 RULES
 ======
@@ -111,7 +116,7 @@ LEVELS
 .....p......
 .0123456789.
 .r.s.t.u.f..
-..x.w.z...e.
+..x.w.z.*.e.
 ............
 
 message second level
