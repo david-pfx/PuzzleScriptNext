@@ -8420,11 +8420,22 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
+	console.log(`titleSelected=${titleSelected} titleSelection=${titleSelection}`)
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
+		const selected = (i == selectLine + levelSelectScrollPos - 3);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
-		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
+		//console.log(section, `i=${i} solved=${solved} locked=${locked} selected=${selected}`);
+
+		// kludge to avoid selecting locked level
+		if (selected && locked) {
+			selectLine = -1;
+			titleSelected = false;
+			quittingTitleScreen = false;
+		}
+		
+		if (selected && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
 			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
@@ -10673,11 +10684,10 @@ Rule.prototype.queueCommands = function() {
 		if (command[0] == 'message') {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
-			gotoLevel(command[1]);
+			curLevel.commandQueue.pop();
+			curLevel.commandQueue.push(`${command[0]},${command[1]}`);
 		} else if (command[0] == 'status') {
 			statusText = command[1];
-		} else if (command[0] == 'link') {
-			gotoLink();
 		}		
 
 		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
@@ -11237,6 +11247,19 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			messagetext = "";
 			statusText = "";
 			DoUndo(true,false, true, true, true);
+			return true;
+		}
+
+		// kludge to avoid triggering error
+		//console.log('cmdq', curLevel.commandQueue);
+		if (curLevel.commandQueue.find(c => c.startsWith('goto'))) {
+			const cmd = curLevel.commandQueue.find(c => c.startsWith('goto'));
+			gotoLevel(cmd.substr(5));
+			return true;
+		}
+
+		if (curLevel.commandQueue.includes('link')) {
+			gotoLink();
 			return true;
 		}
 
@@ -12251,7 +12274,7 @@ var codeMirrorFn = function() {
         matchEolSemi() { 
             this.matchComment();
             if (this.state.commentStyle == '//' && this.match(/^;/)) {
-                this.pushToken(';', 'SEMICOLON');
+                this.pushToken(';', 'BRACKET');
                 return true;
             }
             return this.stream.eol(); 
@@ -13009,7 +13032,7 @@ var codeMirrorFn = function() {
         // build a list of tokens and kinds
         function getTokens() {
             // same as reg_name plus : and reldirs
-            const reg_transform_args = /^[\p{L}\p{N}_$:<>^]+/u;
+            const reg_transform_args = /^[\p{L}\p{N}_$:<>^.]+/u;
             while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
@@ -13037,11 +13060,11 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.matchToken(true);
+                    token = lexer.match(reg_transform_args, true);                    
                     if (!isValidNumeric(token))
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
-                        symbols.scale = arg;
+                        symbols.scale = +token;
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -18524,13 +18547,14 @@ function mouseAction(event,click,id) {
 				} else if (mouseCoordY > 2 && mouseCoordY < 12) {
 					const clickedLevel = mouseCoordY - 3 + levelSelectScrollPos;
 					if (clickedLevel < state.sections.length) {
-						generateLevelSelectScreen(-1, 0, mouseCoordY);
+						// do this first, because it will get cancelled if locked
 						if (titleSelection != null) {
 							titleSelected=true;
 							messageselected=false;
 							timer=0;
 							quittingTitleScreen=true;
 						}						
+						generateLevelSelectScreen(-1, 0, mouseCoordY);
 					}
 				}
 			} else if (titleMode == 3) { // pause screen select

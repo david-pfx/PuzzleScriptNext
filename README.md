@@ -15,16 +15,19 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24j02. 
+The latest version is Release v-24j25. 
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
+* Fixed `level_select_lock` (#114)
+* Fixed `require_player_movement` error on `goto` (#116)
+* Fixed problems parsing `text:` sprites (#117)
+
+Older fixes/updates:
 * Fix `canvas: transform: rot:` regression (#109).
 * Fix GOSUB interactions with late rules (#107).
 * Add verbose logging of GOSUB/return.
 * Add new Show All Objects (checkerboard on toolbar) - for beta testing
-
-Older fixes/updates:
 * Fix transform numeric tags and mapping (#105)
 * Fix transform numeric parsing
 * Fix error message and line number for when object already defined
