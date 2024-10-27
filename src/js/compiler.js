@@ -519,7 +519,7 @@ function generateExtraMembers(state) {
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
-                    { length: state.sprite_size },
+                    { length: state.cell_height || state.sprite_size },
                     () => (new Array(state.sprite_size).fill(0))
                 );
             }

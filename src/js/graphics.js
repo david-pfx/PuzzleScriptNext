@@ -582,11 +582,12 @@ function redrawCellGrid(curlevel) {
                 x: obj.spriteoffset.x, 
                 y: obj.spriteoffset.y + (obj.vector 
                     ? state.sprite_size * (1 - obj.vector.h)
-                    : state.sprite_size - obj.spritematrix.length)
+                    ? (state.cell_height || state.sprite_size) * (1 - obj.vector.h)
+                    : (state.cell_height || state.sprite_size) - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
-                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / state.sprite_size)
+                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / ( state.cell_height || state.sprite_size))
             };
 
         }
@@ -636,7 +637,7 @@ function redrawCellGrid(curlevel) {
 
         // Decision required whether to follow P:S pivot (top left)
         const spriteScaler = state.metadata.sprite_size ? { 
-            scale: state.sprite_size, 
+            scale: state.cell_height || state.sprite_size, 
             pivotx: 0.0, // todo
             pivoty: 1.0 
         } : null;
@@ -1091,7 +1092,8 @@ function canvasResize(level) {
     statusLineHeight = state.metadata.status_line ? canvas.height / TITLE_HEIGHT : 0;
 
     // round the cell size as a multiple of sprite size
-    let w = h = state.sprite_size || 5;
+    let h = state.cell_height || state.sprite_size || 5;
+    let w = state.sprite_size || 5;
     if (textMode) {
         w= 5 + 1;
         const xchar = font['X'].split('\n').map(a=>a.trim());

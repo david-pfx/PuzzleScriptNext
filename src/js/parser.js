@@ -601,9 +601,15 @@ var codeMirrorFn = function() {
                 soundverbs_movement.push(...mouse_clicks_table);
             } else if (ident == 'sprite_size') {
                 const args = value[1].split('x').map(a => parseInt(a));
+                logWarning(`"${errorCase(ident)}" : ${value[1]}`, state.lineNumber);
                 if (!(args.length == 1 || args.length == 2))
                     logError(`MetaData "${errorCase(ident)}" requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
-                else state.sprite_size = args[0];
+                else {
+                    state.sprite_size = args[0];
+                    if(args.length == 2) {
+                        state.cell_height = args[1];
+                    }
+                }
             } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
