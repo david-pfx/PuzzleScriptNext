@@ -3472,6 +3472,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		    	//first have to verify that something's changed
 		    	var old_verbose_logging=verbose_logging;
 		    	var oldmessagetext = messagetext;
+				const oldseedsToAnimate = seedsToAnimate;
 		    	verbose_logging=false;
 		    	if (processInput(-1,true,true)) {
 			    	verbose_logging=old_verbose_logging;
@@ -3490,6 +3491,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			    }
 			    verbose_logging=old_verbose_logging;
 			    messagetext = oldmessagetext;
+				seedsToAnimate = oldseedsToAnimate;
 		    }   
 		}
 		
