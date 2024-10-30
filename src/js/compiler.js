@@ -185,7 +185,7 @@ function expandObjectDef(state, objid, objvalue) {
 
         // if it exists just return it otherwise create it
         if (Object.hasOwn(state.objects, newid))
-            return [ newid, state.objects[newid] ];
+            return [ newid, state.objects[newid] ]; //@@ bug in Hebird, fails to redefine object
 
         const newvalue = { 
             ...deepClone(objvalue),
@@ -353,7 +353,7 @@ function createObjectRef(state, ident) {
         const parts = ident.split(':');
         if (parts.some(e => relativeDirections.includes(e))) {
             if (debugSwitch.includes('exp')) console.log(`Create object ref for relative direction: ${ident}`);
-            for (const forward of simpleAbsoluteDirections) { //@@
+            for (const forward of simpleAbsoluteDirections) {
                 const absOf = dir => relativeDirs.includes(dir) ? relativeDict[forward][relativeDirs.indexOf(dir)] : dir;
                 const id = ident.split(':').map(p => absOf(p)).join(':');
                 createObjectRef(state, id);
@@ -519,7 +519,9 @@ function generateExtraMembers(state) {
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
-                    { length: state.sprite_size },
+                    { 
+                        length: state.cell_height || state.sprite_size 
+                    },
                     () => (new Array(state.sprite_size).fill(0))
                 );
             }
@@ -920,7 +922,7 @@ function levelFromString(state,level) {
 }
 
 ////
-function levelAllObjects(state) { //@@
+function levelAllObjects(state) {
 	const backgroundlayer = state.backgroundlayer;
 	const backgroundLayerMask = state.layerMasks[backgroundlayer];
     const count = state.objectCount;
@@ -1016,7 +1018,7 @@ function levelsToArray(state) {
             title = null;
 		}
 	});
-    links.forEach(link => { //@@
+    links.forEach(link => {
         let index = -9999;
         if ((index = levels.findIndex(level => link.target == level.section)) != -1)
             link.targetNo = index;
@@ -1111,7 +1113,7 @@ function convertSectionNamesToIndices(state) {
 
 // fix gosubs and subroutines to use group number (so must be after created groups)
 // will be called twice, for main and late rules
-function fixUpGosubs(rules, subroutines) { //@@
+function fixUpGosubs(rules, subroutines) { 
     // rules are now groups. Go figure.
     for (const group of rules) {
         for (const rule of group) {
@@ -1515,7 +1517,7 @@ function rulesToArray(state) {
 }
 
 // find and filter out start and end loop, subroutines PS>
-function parseRulesToArray(state) { //@@
+function parseRulesToArray(state) {
     const oldrules = state.rules;
     var newrules = [];
     var loops = [];
@@ -3673,10 +3675,9 @@ function loadFile(str) {
 
 	generateLoopPoints(state);
 
-    fixUpGosubs(state.rules, state.subroutines);  //@@
-    fixUpGosubs(state.lateRules, state.subroutines);  //@@
-    //fixUpGosubs(state);  //@@
-
+    fixUpGosubs(state.rules, state.subroutines);
+    fixUpGosubs(state.lateRules, state.subroutines);
+    
     generateSoundData(state);
 
     formatHomePage(state);

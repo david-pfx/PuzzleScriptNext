@@ -1,7 +1,7 @@
 // Functions to create and render text and sprites
 
 // Create and return a graphic sprite canvas
-function createSprite(name,spritegrid, colors, size) {
+function createSprite(name,spritegrid, colors, size, height) {
 	colors ||= [state.bgcolor, state.fgcolor];
 
 	var canvas = makeSpriteCanvas(name);
@@ -10,7 +10,7 @@ function createSprite(name,spritegrid, colors, size) {
     canvas.width = spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize;
     canvas.height = spritegrid.length * pixelSize;
 
-    renderSprite(context, spritegrid, colors, 0, 0, 0, size);
+    renderSprite(context, spritegrid, colors, 0, 0, 0, size, height);
 
     return canvas;
 }
@@ -88,14 +88,14 @@ function createSvgSprite(name, vector) {
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
-function renderSprite(context, spritegrid, colors, padding, x, y, size) {
+function renderSprite(context, spritegrid, colors, padding, x, y, size, height) {
     colors ||= ['#00000000', state.fgcolor];
 
     const rc = { 
         x: x * cellwidth, // global
         y: y * cellheight, 
-        w: size || spritegrid[0].length, 
-        h: size || spritegrid.length,
+        w: size || spritegrid[0].length,
+        h: height || size || spritegrid.length,
     };
 
     context.clearRect(rc.x, rc.y, rc.w, rc.h);
@@ -174,7 +174,7 @@ function regenSpriteImages() {
 	} 
     
     if (IDE===true) {
-        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);
+        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);  //@@?? w,h
     }
     
     if (state.levels.length===0) {
@@ -187,7 +187,7 @@ function regenSpriteImages() {
             spriteImages[i] =
                     s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
                 : s.vector ? createVectorSprite('v' + i.toString(), s.vector)
-            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
+            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size, state.cell_height);
         }
     });
 
@@ -581,12 +581,12 @@ function redrawCellGrid(curlevel) {
             const offs = { 
                 x: obj.spriteoffset.x, 
                 y: obj.spriteoffset.y + (obj.vector 
-                    ? state.sprite_size * (1 - obj.vector.h)
-                    : state.sprite_size - obj.spritematrix.length)
+                    ? (state.cell_height || state.sprite_size) * (1 - obj.vector.h)
+                    : (state.cell_height || state.sprite_size) - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
-                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / state.sprite_size)
+                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / ( state.cell_height || state.sprite_size))
             };
 
         }
@@ -635,8 +635,8 @@ function redrawCellGrid(curlevel) {
             seedsToAnimate = {};
 
         // Decision required whether to follow P:S pivot (top left)
-        const spriteScaler = state.metadata.sprite_size ? { 
-            scale: state.sprite_size, 
+        const spriteScaler = state.metadata.sprite_size ? { //@@?? w,h does this even work?
+            scale: state.cell_height || state.sprite_size, 
             pivotx: 0.0, // todo
             pivoty: 1.0 
         } : null;
@@ -690,7 +690,7 @@ function redrawCellGrid(curlevel) {
                             const rch = vector && vector.flipy ? -rc.h : rc.h;
                             ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
                             ctx.rotate(params.angle * Math.PI / 180);
-                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1); //@@
+                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1);
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 -rcw/2, -rch/2, rcw, rch);
@@ -1019,9 +1019,11 @@ function drawEditorIcons(mini,minj) {
     // show tooltip
     if (tooltip_string.length > 0)
     {
-        ctx.fillStyle = state.fgcolor;
-        ctx.font = `16px "Source Sans Pro", Helvetica, Arial, sans-serif`;
-        ctx.fillText(tooltip_string, xoffset, yoffset-0.4*cellheight);
+		ctx.fillStyle = state.fgcolor;
+		ctx.font = '16px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(tooltip_string, xoffset + screenwidth * cellwidth/2, yoffset-0.5*cellheight);//, screenwidth * cellwidth);
     }
 
 	if (mouseCoordX>=-1&&mouseCoordY>=-1&&mouseCoordX<screenwidth-1&&mouseCoordY<screenheight-1-editorRowCount) {
@@ -1091,7 +1093,9 @@ function canvasResize(level) {
     statusLineHeight = state.metadata.status_line ? canvas.height / TITLE_HEIGHT : 0;
 
     // round the cell size as a multiple of sprite size
-    let w = h = state.sprite_size || 5;
+    let h = state.cell_height || state.sprite_size || 5;
+    let w = state.sprite_size || 5;
+
     if (textMode) {
         w= 5 + 1;
         const xchar = font['X'].split('\n').map(a=>a.trim());

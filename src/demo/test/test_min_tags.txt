@@ -4,6 +4,7 @@ homepage www.polyomino.com
 
 // test program for new TAG section
 
+sprite_size 7
 verbose_logging
 debug
 debug_switch tag,map,obj,layer,prop
@@ -18,6 +19,11 @@ tagbool = true false
 dirs = up down left right
 num4 = n1 n2 n3 n4
 num5 = n1 n2 n3 n4 n5
+// hebird
+ID = D1 D2 D3 D4
+NEXT = KM KQ KW KE KA KS KD
+PREV = KM KQ KW KE KA KS KD
+LEAN = LL LM LR LU LD
 
 ========
 MAPPINGS
@@ -38,7 +44,16 @@ up down left right -> down up right left
 ========
 OBJECTS
 ========
-Background .;grey
+Background .
+grey darkgray lightgray
+2222221
+2000001
+2000001
+2000001
+2000001
+2000001
+1111111
+
 PLAYER P;yellow
 r; red
 
@@ -94,6 +109,58 @@ green
 objn5:num5
 blue
 
+// hebird
+Eyes:PREV:LEAN
+white black
+..0.0
+.00000
+..0.0
+.
+.
+.
+
+Eyes:KM:LL @
+white black
+..0.0
+.10100
+..0.0
+.
+.
+.
+
+Eyes:KM:LM #
+white black
+..0.0
+.01010
+..0.0
+.
+.
+.
+
+Snake:ID:NEXT:PREV
+red darkred orange
+.........
+..00.00..
+.00...00.
+.........
+.........
+.00...00.
+..00.00..
+.........
+translate:left:1
+
+Snake:ID:KM:KM
+red darkred orange
+....0....
+..00100..
+.0011100.
+.0111110.
+.0111110.
+.0022200.
+..00200..
+.........
+translate:left:1
+
 =======
 LEGEND
 =======
@@ -104,6 +171,9 @@ LEGEND
 5 = obj5:t11:left
 6 = obj6:t12:up:t23
 objax = obj1 or obj1a
+! = Eyes:KM:LR
+Snake:D1:KM = Snake:D1:KM:PREV
+% = Snake:D1:KM:KM
 
 ================
 COLLISIONLAYERS
@@ -117,6 +187,9 @@ dirs -> obj4:dirs, obj5:tag1:dirs
 obj6:tag1:dirs:tag2
 obj7:true,obj7:false
 objn4:num4, objn5:num5
+--
+eyes:prev:lean
+Snake:ID:NEXT:PREV
 
 ======
 RULES
@@ -162,4 +235,6 @@ LEVELS
 ..1....2...
 ....pr.3...
 .......4...
+.!.@.#.....
+.%.........
 ...........
