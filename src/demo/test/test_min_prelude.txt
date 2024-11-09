@@ -110,12 +110,12 @@ k
 m
 
 RULES
+(it's a win!)[ action player ] -> win
 [ up player ] -> message You just moved the player up!
 [ down player ] -> status You just moved the player down!
 [ right player ] -> status You just moved the player right (and again)!
 [ right player ] -> again
 [ stationary player ] -> [ right player ]
-[ action player ] -> win
 
 WINCONDITIONS
 

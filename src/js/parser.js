@@ -2061,9 +2061,12 @@ var codeMirrorFn = function() {
                 }
                 case 'rules': {
                         if (sol) {
-                            var rule = reg_notcommentstart.exec(stream.string)[0];
+                            const cmt = matchComment(stream, state);
+                            const rule = stream.string.substring(stream.pos).match(reg_notcommentstart)[0];
                             state.rules.push([rule, state.lineNumber, state.mixedCase]);
                             state.tokenIndex = 0;//in rules, records whether bracket has been found or not
+                            if (cmt)
+                                return 'comment';
                         }
 
                         if (state.tokenIndex===-4) {
