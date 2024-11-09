@@ -15,14 +15,17 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24j30. 
+The latest version is Release v-24k09
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
-* Added support for non-square sprite grids (#120 #121)
-* Fixed where `again` terminates afx transitions (#110)
+* Fixed bug if copy does `translate:` and copied does not (#125)
+* Fix status to work with `again`, clear on user input (and doc) (#122, *123, #124)
+* Allow comments to start a rule (#126)
 
 Older fixes/updates:
+* Added support for non-square sprite grids (#120 #121)
+* Fixed where `again` terminates afx transitions (#110)
 * Fixed `level_select_lock` (#114)
 * Fixed `require_player_movement` error on `goto` (#116)
 * Fixed problems parsing `text:` sprites (#117)

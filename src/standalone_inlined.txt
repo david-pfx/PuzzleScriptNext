@@ -7316,7 +7316,8 @@ function redrawCellGrid(curlevel) {
 
     }
     
-    if (debugSwitch.includes('redraw')) console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight}`, minMaxIJ);
+    if (debugSwitch.includes('redraw')) 
+        console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight} cell=${cellwidth},${cellheight}`, minMaxIJ);
     // used in function isInside
     screenOffsetX = minMaxIJ[0];
     screenOffsetY = minMaxIJ[1];
@@ -8263,7 +8264,6 @@ function goToPauseScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
-	statusText = "";
 
 	generatePauseScreen();
 }
@@ -8358,7 +8358,6 @@ function gotoLevelSelectScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
-	statusText = "";
 
 	if (titleSelection == null) {
 		for(var i = 0; i < state.sections.length; i++) {
@@ -8889,6 +8888,7 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
+		status: statusText,
 	};
 	return ret;
 }
@@ -9232,6 +9232,8 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 	 	state.metadata = deepClone(lev.metadata);
      	twiddleMetadataExtras(resetAutoTick);
     }
+
+	statusText = lev.status || "";
 
     againing=false;
 	messagetext = "";  //fix for hang
@@ -11156,7 +11158,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		calculateRowColMasks();
 
 		var alreadyResolved=[];
-		statusText = "";
+		if (dir != -1) 		// clear status line on user input
+			statusText = "";
 
         var i=0;
         do {
@@ -11249,7 +11252,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
-			statusText = "";
 			DoUndo(true,false, true, true, true);
 			return true;
 		}
@@ -11345,7 +11347,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				goToTitleScreen();
 			}
 			messagetext = "";
-			statusText = "";
 			canvasResize();	
 			return true;
 		}
@@ -13196,8 +13197,10 @@ var codeMirrorFn = function() {
             for (const [newid, newvalue] of newobjects) {
                 registerOriginalCaseName(state, newid, state.lineNumber);
                 const clone = newvalue.cloneSprite;
-                if (clone && !(wordAlreadyDeclared(state, clone)))
+                if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+                    delete newvalue.cloneSprite;
+                }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
@@ -13994,9 +13997,12 @@ var codeMirrorFn = function() {
                 }
                 case 'rules': {
                         if (sol) {
-                            var rule = reg_notcommentstart.exec(stream.string)[0];
+                            const cmt = matchComment(stream, state);
+                            const rule = stream.string.substring(stream.pos).match(reg_notcommentstart)[0];
                             state.rules.push([rule, state.lineNumber, state.mixedCase]);
                             state.tokenIndex = 0;//in rules, records whether bracket has been found or not
+                            if (cmt)
+                                return 'comment';
                         }
 
                         if (state.tokenIndex===-4) {
@@ -14346,14 +14352,13 @@ function expandObjectDef(state, objid, objvalue) {
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
 
-        // if it exists just return it otherwise create it
-        if (Object.hasOwn(state.objects, newid))
-            return [ newid, state.objects[newid] ]; //@@ bug in Hebird, fails to redefine object
+        // if it exists reuse it otherwise create it
+        const newvalue = state.objects[newid] || { };
+        for (const [key, value] of Object.entries(objvalue)) {
+            newvalue[key] = objvalue[key];
+        }
+        newvalue.canRedef = true;
 
-        const newvalue = { 
-            ...deepClone(objvalue),
-            canRedef: true 
-        };
         state.objects[newid] = newvalue;
 
         if (objvalue.cloneSprite) {
@@ -14670,15 +14675,17 @@ function generateExtraMembers(state) {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
                 obj.vector = { ...other.vector };
-                obj.spriteoffset = { ...other.spriteoffset };
+                if (other.spriteoffset)
+                    obj.spriteoffset = { ...other.spriteoffset };
             } 
             applyVectorTransforms(obj);
 
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other ? other.spritematrix.map(row => [...row]) : [];
-                obj.spriteoffset = other ? { ...other.spriteoffset } : obj.spriteoffset;
+                obj.spritematrix = other.spritematrix.map(row => [...row]);
+                if (other.spriteoffset)
+                    obj.spriteoffset = { ...other.spriteoffset };
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
