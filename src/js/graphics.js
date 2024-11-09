@@ -524,7 +524,8 @@ function redrawCellGrid(curlevel) {
 
     }
     
-    if (debugSwitch.includes('redraw')) console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight}`, minMaxIJ);
+    if (debugSwitch.includes('redraw')) 
+        console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight} cell=${cellwidth},${cellheight}`, minMaxIJ);
     // used in function isInside
     screenOffsetX = minMaxIJ[0];
     screenOffsetY = minMaxIJ[1];

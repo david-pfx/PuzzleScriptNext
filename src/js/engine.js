@@ -261,7 +261,6 @@ function goToPauseScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
-	statusText = "";
 
 	generatePauseScreen();
 }
@@ -356,7 +355,6 @@ function gotoLevelSelectScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
-	statusText = "";
 
 	if (titleSelection == null) {
 		for(var i = 0; i < state.sections.length; i++) {
@@ -887,6 +885,7 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
+		status: statusText,
 	};
 	return ret;
 }
@@ -1230,6 +1229,8 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 	 	state.metadata = deepClone(lev.metadata);
      	twiddleMetadataExtras(resetAutoTick);
     }
+
+	statusText = lev.status || "";
 
     againing=false;
 	messagetext = "";  //fix for hang
@@ -3154,7 +3155,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		calculateRowColMasks();
 
 		var alreadyResolved=[];
-		statusText = "";
+		if (dir != -1) 		// clear status line on user input
+			statusText = "";
 
         var i=0;
         do {
@@ -3247,7 +3249,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
-			statusText = "";
 			DoUndo(true,false, true, true, true);
 			return true;
 		}
@@ -3343,7 +3344,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				goToTitleScreen();
 			}
 			messagetext = "";
-			statusText = "";
 			canvasResize();	
 			return true;
 		}

@@ -18,7 +18,7 @@ mouse_clicks
 nokeyboard
 norepeat_action
 norestart
-noundo
+//noundo
 //require_player_movement
 run_rules_on_level_start
 runtime_metadata_twiddling
@@ -110,9 +110,12 @@ k
 m
 
 RULES
+(it's a win!)[ action player ] -> win
 [ up player ] -> message You just moved the player up!
 [ down player ] -> status You just moved the player down!
-[ action player ] -> win
+[ right player ] -> status You just moved the player right (and again)!
+[ right player ] -> again
+[ stationary player ] -> [ right player ]
 
 WINCONDITIONS
 

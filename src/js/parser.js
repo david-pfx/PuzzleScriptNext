@@ -1261,8 +1261,10 @@ var codeMirrorFn = function() {
             for (const [newid, newvalue] of newobjects) {
                 registerOriginalCaseName(state, newid, state.lineNumber);
                 const clone = newvalue.cloneSprite;
-                if (clone && !(wordAlreadyDeclared(state, clone)))
+                if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+                    delete newvalue.cloneSprite;
+                }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
@@ -2059,9 +2061,12 @@ var codeMirrorFn = function() {
                 }
                 case 'rules': {
                         if (sol) {
-                            var rule = reg_notcommentstart.exec(stream.string)[0];
+                            const cmt = matchComment(stream, state);
+                            const rule = stream.string.substring(stream.pos).match(reg_notcommentstart)[0];
                             state.rules.push([rule, state.lineNumber, state.mixedCase]);
                             state.tokenIndex = 0;//in rules, records whether bracket has been found or not
+                            if (cmt)
+                                return 'comment';
                         }
 
                         if (state.tokenIndex===-4) {
