@@ -183,13 +183,14 @@ function expandObjectDef(state, objid, objvalue) {
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
 
-        // if it exists reuse it otherwise create it
-        const newvalue = state.objects[newid] || { };
-        for (const [key, value] of Object.entries(objvalue)) {
-            newvalue[key] = objvalue[key];
-        }
-        newvalue.canRedef = true;
+        // if it exists just return it otherwise create it
+        if (Object.hasOwn(state.objects, newid))
+            return [ newid, state.objects[newid] ]; //@@ bug in Hebird, fails to redefine object
 
+        const newvalue = { 
+            ...deepClone(objvalue),
+            canRedef: true 
+        };
         state.objects[newid] = newvalue;
 
         if (objvalue.cloneSprite) {
@@ -506,17 +507,15 @@ function generateExtraMembers(state) {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
                 obj.vector = { ...other.vector };
-                if (other.spriteoffset)
-                    obj.spriteoffset = { ...other.spriteoffset };
+                obj.spriteoffset = { ...other.spriteoffset };
             } 
             applyVectorTransforms(obj);
 
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other.spritematrix.map(row => [...row]);
-                if (other.spriteoffset)
-                    obj.spriteoffset = { ...other.spriteoffset };
+                obj.spritematrix = other ? other.spritematrix.map(row => [...row]) : [];
+                obj.spriteoffset = other ? { ...other.spriteoffset } : obj.spriteoffset;
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
