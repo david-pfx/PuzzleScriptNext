@@ -19,7 +19,6 @@ The latest version is Release v-24k09
 Please try the gallery and examples, and notify any bugs.
 
 Recent fixes/updates:
-* Fixed bug if copy does `translate:` and copied does not (#125)
 * Fix status to work with `again`, clear on user input (and doc) (#122, *123, #124)
 * Allow comments to start a rule (#126)
 
