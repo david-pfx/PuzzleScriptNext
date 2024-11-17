@@ -1,0 +1,203 @@
+title Van Gogh Slide
+author Irregular Hex
+homepage irregularhex.itch.io
+
+sprite_size 10
+
+load_images van_gogh=https://raw.githubusercontent.com/IrregularHex/RandomStuff/refs/heads/main/van_gogh_wheat_field_public_domain.png frame=https://raw.githubusercontent.com/IrregularHex/RandomStuff/refs/heads/main/frame.png
+
+tween_length 0.1
+
+skip_title_screen
+verbose_logging
+debug_switch xxx
+
+========
+TAGS
+========
+
+X = 0 1 2 3 4
+Y = 0 1 2 3
+
+
+========
+OBJECTS
+========
+
+Background
+transparent
+Wall
+transparent
+Frame canvas:7,6
+{"drawImage":["frame", -0.18, -0.12, 7.28, 6.18]}
+
+Player canvas:
+{"fillStyle":"#dddd00"}
+{"lineWidth":0.04}
+{"beginPath":[]}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+
+T:0:0 canvas:
+{"drawImage":["van_gogh",   0,   0, 200, 200, 0, 0, 1, 1]}
+
+T:1:0 canvas:
+{"drawImage":["van_gogh", 200,   0, 200, 200, 0, 0, 1, 1]}
+
+T:2:0 canvas:
+{"drawImage":["van_gogh", 400,   0, 200, 200, 0, 0, 1, 1]}
+
+T:3:0 canvas:
+{"drawImage":["van_gogh", 600,   0, 200, 200, 0, 0, 1, 1]}
+
+T:4:0 canvas:
+{"drawImage":["van_gogh", 800,   0, 200, 200, 0, 0, 1, 1]}
+
+T:0:1 canvas:
+{"drawImage":["van_gogh",   0, 200, 200, 200, 0, 0, 1, 1]}
+
+T:1:1 canvas:
+{"drawImage":["van_gogh", 200, 200, 200, 200, 0, 0, 1, 1]}
+
+T:2:1 canvas:
+{"drawImage":["van_gogh", 400, 200, 200, 200, 0, 0, 1, 1]}
+
+T:3:1 canvas:
+{"drawImage":["van_gogh", 600, 200, 200, 200, 0, 0, 1, 1]}
+
+T:4:1 canvas:
+{"drawImage":["van_gogh", 800, 200, 200, 200, 0, 0, 1, 1]}
+
+T:0:2 canvas:
+{"drawImage":["van_gogh",   0, 400, 200, 200, 0, 0, 1, 1]}
+
+T:1:2 canvas:
+{"drawImage":["van_gogh", 200, 400, 200, 200, 0, 0, 1, 1]}
+
+T:2:2 canvas:
+{"drawImage":["van_gogh", 400, 400, 200, 200, 0, 0, 1, 1]}
+
+T:3:2 canvas:
+{"drawImage":["van_gogh", 600, 400, 200, 200, 0, 0, 1, 1]}
+
+T:4:2 canvas:
+{"drawImage":["van_gogh", 800, 400, 200, 200, 0, 0, 1, 1]}
+
+T:0:3 canvas:
+{"drawImage":["van_gogh",   0, 600, 200, 200, 0, 0, 1, 1]}
+
+T:1:3 canvas:
+{"drawImage":["van_gogh", 200, 600, 200, 200, 0, 0, 1, 1]}
+
+T:2:3 canvas:
+{"drawImage":["van_gogh", 400, 600, 200, 200, 0, 0, 1, 1]}
+
+T:3:3 canvas:
+{"drawImage":["van_gogh", 600, 600, 200, 200, 0, 0, 1, 1]}
+
+T:4:3 canvas:
+{"drawImage":["van_gogh", 800, 600, 200, 200, 0, 0, 1, 1]}
+{"fillStyle":"black"}
+{"beginPath":[]}{"arc":[0.5,0.5,0.4,0,6.28]}{"fill":[]}
+{"fillStyle":"#dddd00"}
+{"beginPath":[]}{"arc":[0.5,0.5,0.38,0,6.28]}{"fill":[]}
+{"fillStyle":"black"}
+{"beginPath":[]}{"arc":[0.35,0.4,0.06,0,6.28]}{"fill":[]}
+{"beginPath":[]}{"arc":[0.65,0.4,0.06,0,6.28]}{"fill":[]}
+{"beginPath":[]}{"arc":[0.5,0.55,0.25,0,3.14]}{"fill":[]}
+
+RowWin:Y
+transparent
+
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+@ = Wall and Frame
+P = Player
+
+0 = T:0:0
+1 = T:1:0
+2 = T:2:0
+3 = T:3:0
+4 = T:4:0
+q = T:0:1
+w = T:1:1
+e = T:2:1
+r = T:3:1
+t = T:4:1
+a = T:0:2
+s = T:1:2
+d = T:2:2
+f = T:3:2
+g = T:4:2
+z = T:0:3
+c = T:1:3
+b = T:2:3
+n = T:3:3
+m = T:4:3
+
+Tile = T:X:Y
+
+
+=======
+SOUNDS
+=======
+
+Player Move 99755107
+Sfx0 4404900
+
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Frame
+--
+Wall, Player
+Tile
+RowWin:Y
+
+
+======
+RULES     
+======
+
+[ > Player | Tile ] -> [ > Player | < Tile ]
+
+[RowWin:Y] -> []
+
+late right [T:0:0|T:1:0|T:2:0|T:3:0|T:4:0|] -> [T:0:0|T:1:0|T:2:0|T:3:0|T:4:0|RowWin:0]
+late right [T:0:1|T:1:1|T:2:1|T:3:1|T:4:1|] -> [T:0:1|T:1:1|T:2:1|T:3:1|T:4:1|RowWin:1]
+late right [T:0:2|T:1:2|T:2:2|T:3:2|T:4:2|] -> [T:0:2|T:1:2|T:2:2|T:3:2|T:4:2|RowWin:2]
+late right [T:0:3|T:1:3|T:2:3|T:3:3|    |] -> [T:0:3|T:1:3|T:2:3|T:3:3|    |RowWin:3]
+
+late [RowWin:0][RowWin:1][RowWin:2][RowWin:3][Player] -> [RowWin:0][RowWin:1][RowWin:2][RowWin:3][T:4:3] Sfx0
+
+
+==============
+WINCONDITIONS
+==============
+
+
+=======     
+LEVELS
+=======
+
+section Level_1
+#######
+#q034r#
+#2acwe#
+#bgstn#
+#dzf1p#
+@######
+
+section WinTest
+#######
+#01234#
+#qwert#
+#asdfg#
+#zcpbn#
+@######

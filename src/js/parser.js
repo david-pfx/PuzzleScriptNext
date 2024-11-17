@@ -225,7 +225,7 @@ var codeMirrorFn = function() {
     const prelude_not_implemented = [
         'game_uri', 'level_title_style', 'show_level_title_in_menu', 
     ];
-    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
+    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube', 'load_images'];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
         prelude_param_single, prelude_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
@@ -1261,8 +1261,10 @@ var codeMirrorFn = function() {
             for (const [newid, newvalue] of newobjects) {
                 registerOriginalCaseName(state, newid, state.lineNumber);
                 const clone = newvalue.cloneSprite;
-                if (clone && !(wordAlreadyDeclared(state, clone)))
+                if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+                    delete newvalue.cloneSprite;
+                }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?

@@ -15,14 +15,20 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24k09
-Please try the gallery and examples, and notify any bugs.
+The latest version is Release v-24k18. 
+The changes to the rendering and support for loading images from URL should be considered as __alpha__ release.
+Please test and notify any issues.
 
 Recent fixes/updates:
-* Fix status to work with `again`, clear on user input (and doc) (#122, *123, #124)
-* Allow comments to start a rule (#126)
+* Fix regression when againing used with tweening (#110).
+* Fix overlapping tag expansions bug (Hebird) (#125).
+* Fix oversized sprites not displaying correctly in tween renderer (#130).
+* Merge move tweening (`tween_length`) into main render loop (#68).
+* Support loading images via URL (#129).
 
 Older fixes/updates:
+* Fix status to work with `again`, clear on user input (and doc) (#122, *123, #124)
+* Allow comments to start a rule (#126)
 * Added support for non-square sprite grids (#120 #121)
 * Fixed where `again` terminates afx transitions (#110)
 * Fixed `level_select_lock` (#114)

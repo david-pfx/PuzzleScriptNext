@@ -1453,7 +1453,7 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval && messagetext == "" && !isAnimating) {
+        if (timer>againinterval && messagetext == "" && !isTweening) {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;

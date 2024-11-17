@@ -1,0 +1,68 @@
+title Oversized Sprite Test
+skip_title_screen
+
+( Drawing behavior changes when tweening is enabled )
+tween_length .05
+
+========
+OBJECTS
+========
+
+Background
+LIGHTGRAY
+
+Player
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+BigSpriteBox
+blue
+0000000000
+0........0
+0........0
+0........0
+0........0
+0........0
+0........0
+0........0
+0........0
+0000000000
+
+BigVectorBox canvas:2,2
+{"fillStyle": "black"}
+{"lineWidth": 0.4}
+{"strokeRect":[0, 0, 2, 2]}
+{"font": ".13px Arial"}
+{"fillText": ["Oversized Box Simulator", 0.3, 1.03]}
+
+=======
+LEGEND
+=======
+
+. = Background
+@ = Player
+$ = BigSpriteBox
+% = BigVectorBox
+
+================
+COLLISIONLAYERS
+================
+
+Background
+( New layer group to prevent background from being drawn in front )
+--
+Player, BigSpriteBox, BigVectorBox
+
+=======     
+LEVELS
+=======
+
+section Test
+.....
+.....
+@$.%.
+.....
