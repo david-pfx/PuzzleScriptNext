@@ -524,7 +524,8 @@ var defaultVerboseLogging = false;
 
 var tweeninterval=0;
 var tweentimer=0;
-var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
+var isTweening = false;     // true for tweening not yet complete, to defer againing
+var isAnimating = false;    // true for animation/tweening/smoothscreen to keep rendering
 var animateinterval=0;
 
 var restarting=false;
@@ -6833,15 +6834,32 @@ function createCanvasSprite(name, vector) {
     function addInstr(json) {
         for (const instr of json) {
             try {
-                for (const [key, value] of Object.entries(instr)) {
+                for (let [key, value] of Object.entries(instr)) {
                     if (key === "!include") {
                         const include = state.objects[value.toLowerCase()];
                         if (include) {
                             addInstr(include.vector.data);
                         } else {
-                            logWarningNoLine("include object '" + value + "' not found");
+                            logErrorNoLine(`Something called "${value}" you wanted to include does not seem to exist.`);
                         }
                     } else if (context[key] instanceof Function) {
+                        // Special case for drawing images loaded with 'load_images'.
+                        if (key === 'drawImage') {
+                            const imageName = value[0];
+                            if (imageName === undefined) {
+                                logErrorNoLine(`This call to "drawImage" needs to have at least one argument.`, true);
+                                continue;
+                            }
+                            let image = customImages[imageName];
+                            if (!image) {
+                                logErrorNoLine(`Could not find or load an image called "${imageName}".`, true);
+                                continue;
+                            }
+                            // Replace `drawImage('imageName', ...)` with `drawImage(image, ...)`.
+                            value = deepClone(value);
+                            value[0] = image;
+                        }
+
                         context[key].apply(context, value);
                     } else {
                         context[key] = value;
@@ -7385,17 +7403,19 @@ function redrawCellGrid(curlevel) {
         }
     }
 
-    var tweening = state.metadata.tween_length && currentMovedEntities;
-    // global flag to force redraw
-    isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
+    const doMoveTweens = state.metadata.tween_length && currentMovedEntities;
+    const moveTween = doMoveTweens ? calcTweening() : 0;
+    const animTween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+
+    // global flags to force redraw, defer againing
+    isAnimating = state.metadata.smoothscreen || doMoveTweens || Object.keys(seedsToAnimate).length > 0;
+    isTweening = moveTween > 0 || animTween > 0;
 
     const render = new RenderOrder(minMaxIJ);
     if (!levelEditorOpened && !showLayers)
     //if (!levelEditorOpened)
         setClip(render);
-    if (tweening) 
-        drawObjectsTweening(render.getIter());
-    else drawObjects(render);
+    drawObjects(render);
 
     // show layer no
     if (showLayers) {
@@ -7423,8 +7443,7 @@ function redrawCellGrid(curlevel) {
     // Default draw loop, including when animating
     function drawObjects(render) {
         showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
-        const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
-        if (tween == 0) 
+        if (animTween == 0) 
             seedsToAnimate = {};
 
         // Decision required whether to follow P:S pivot (top left)
@@ -7439,7 +7458,7 @@ function redrawCellGrid(curlevel) {
             for (const posindex of render.getPosIndexes(group)) {
                 const posmask = curlevel.getCellInto(posindex,_o12);    
                 for (let k = group.firstObjectNo; k < group.firstObjectNo + group.numObjects; ++k) {
-                    const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
+                    const animate = (animTween > 0) ? seedsToAnimate[posindex+','+k] : null;
                     if (posmask.get(k) || animate) {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
@@ -7448,17 +7467,7 @@ function redrawCellGrid(curlevel) {
                         let spriteScale = 1;
                         //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
-                        const drawpos = render.getDrawPos(posindex, obj);
                         const vector = obj.vector;
-                        let params = {
-                            x: 0, y: 0,
-                            scalex: 1.0, scaley: 1.0,
-                            alpha: 1.0,
-                            angle: vector ? vector.angle : 0.0,
-                        };
-                        if (animate) 
-                            params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
-
                         // size of the sprite in pixels
                         const spriteSize = vector ? {
                             w: (vector.w || 1) * cellwidth,
@@ -7468,6 +7477,24 @@ function redrawCellGrid(curlevel) {
                             h: obj.spritematrix.length * pixelSize,
                         };
 
+                        const drawpos = render.getDrawPos(posindex, obj);
+                        let params = {
+                            x: 0, y: 0,
+                            scalex: 1.0, scaley: 1.0,
+                            alpha: 1.0,
+                            angle: vector ? vector.angle : 0.0,
+                        };
+
+                        // if move tweening applies to this object use it, other maybe animate it
+                        const mt = doMoveTweens && getTweening(moveTween, drawpos, obj, posindex);
+                        if (mt) {
+                            [ drawpos.x, drawpos.y, ctx.globalAlpha ] = mt;
+                        } else {
+                            if (animate) 
+                                params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, animTween);
+                            ctx.globalAlpha = params.alpha;
+                        }
+
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -7476,7 +7503,6 @@ function redrawCellGrid(curlevel) {
                             h: params.scaley * spriteSize.h * spriteScale 
                         };
                         //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
-                        ctx.globalAlpha = params.alpha;
                         if (vector) {
                             // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
                             const rcw = vector && vector.flipx ? -rc.w : rc.w;
@@ -7557,48 +7583,22 @@ function redrawCellGrid(curlevel) {
         return params;
     }
 
-    // Draw loop used when tweening
-    function drawObjectsTweening(iter) {
-        // assume already validated
+    // return a value as to tween factor to apply for move tweening
+    function calcTweening() {
         const easing = state.metadata.tween_easing || 'linear';
         const snap = state.metadata.tween_snap || state.sprite_size;
-        let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
-        tween = Math.floor(tween * snap) / snap;
+        const tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
+        return Math.floor(tween * snap) / snap;
+    }
 
-        for (var k = 0; k < state.idDict.length; k++) {
-            var object = state.objects[state.idDict[k]];
-            var layerID = object.layer;
-
-            for (var i = iter[0]; i < iter[2]; i++) {
-                for (var j = iter[1]; j < iter[3]; j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var posMask = curlevel.getCellInto(posIndex,_o12);                
-                
-                    if (posMask.get(k) != 0) {                  
-
-                        var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
-                        var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
-
-                        if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
-                            var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
-
-                            if (dir != 16) { //Cardinal directions
-                                var delta = dirMasksDelta[dir];
-            
-                                x -= cellwidth*delta[0]*tween
-                                y -= cellheight*delta[1]*tween
-                            } else if (dir == 16) { //Action button
-                                ctx.globalAlpha = 1-tween;
-                            }
-                        }
-                        
-                        ctx.drawImage(
-                            spriteImages[k], 0, 0, cellwidth, cellheight,
-                            Math.floor(x), Math.floor(y), cellwidth, cellheight);
-                        ctx.globalAlpha = 1;
-                    }
-                }
-            }
+    // calculate and return tween-adjusted values
+    function getTweening(tween, drawpos, object, posIndex) {
+        const dir = currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+object.layer];
+        if (dir == 16)  // Action button
+            return [ drawpos.x, drawpos.y, 1-tween ];
+        if (dir >= 0) { // Cardinal directions
+            var delta = dirMasksDelta[dir];
+            return [ drawpos.x - cellwidth*delta[0]*tween, drawpos.y - cellheight*delta[1]*tween, 1 ];
         }
     }
 
@@ -7998,7 +7998,7 @@ EasingFunctions = {
       11: "easeInQuint",
       12: "easeOutQuint",
       13: "easeInOutQuint"
-  }
+  }  
 </script>
 <script>
 var onLevelRestarted = new Event("levelRestarted");
@@ -8813,6 +8813,59 @@ function tryLoadCustomFont() {
 
 tryLoadCustomFont();
 
+let customImages = {};
+
+function tryLoadImages() {
+	if (!state.metadata.load_images)
+		return;
+	customImages = {};
+
+	function regenImages() {
+		forceRegenImages = true;
+		canvasResize();
+	}
+
+	// If there's an issue with the image, it's confusing if nothing at all is drawn to the screen.
+	// So while the image is loading, draw solid black. If there was an error loading the image,
+	// draw solid red.
+	const loadingImage = new Image();
+	loadingImage.src = 'data:image/svg+xml;charset=utf-8,' +
+		'<svg width="4096" height="4096" xmlns="http://www.w3.org/2000/svg">' +
+		'<rect x="0" y="0" width="4096" height="4096" fill="black"/></svg>';
+	const errorImage = new Image();
+	errorImage.src = 'data:image/svg+xml;charset=utf-8,' +
+		'<svg width="4096" height="4096" xmlns="http://www.w3.org/2000/svg">' +
+		'<rect x="0" y="0" width="4096" height="4096" fill="red"/></svg>';
+
+	// The format is "name1=src1 name2=src2 ...".
+	state.metadata.load_images.split(' ').forEach(arg => {
+		let [name, src] = arg.split(/=(.*)/s);
+		if (!name || !src) {
+			logErrorNoLine(`Expected load_images to be in the form "name1=src1 name2=src2 ...", ` +
+				`but I saw "${arg}".`, true);
+			return;
+		}
+		if (verbose_logging)
+			consolePrint(`Loading image "${name}" from "${src}..."`);
+		customImages[name] = loadingImage;
+		let image = new Image();
+		image.crossOrigin = 'Anonymous';
+		image.src = src;
+		image.onload = () => {
+			if (verbose_logging)
+				consolePrint(`Image "${name}" finished loading.`, true);
+			customImages[name] = image;
+			regenImages();
+		};
+		image.onerror = () => {
+			logErrorNoLine(`An error occurred while loading image "${name}" from "${src}. ` +
+				`Check the browser's developer console for details.`, true);
+			customImages[name] = errorImage;
+			regenImages();
+		};
+	});
+}
+
 generateTitleScreen();
 if (titleMode>0){
 	titleSelection=0;
@@ -8888,7 +8941,6 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
-		status: statusText,
 	};
 	return ret;
 }
@@ -8970,8 +9022,10 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
+			tryLoadImages();
+
 			if (state.metadata.skip_title_screen!==undefined) {
-				consolePrint("skip_title_screen enabled, proceeding to do exactly as it says on the tin.")
+				consolePrint("Skipping title screen.")
 				if(state.metadata["continue_is_level_select"] !== undefined) {
 					gotoLevelSelectScreen();
 				}
@@ -8988,7 +9042,8 @@ function setGameState(_state, command, randomseed) {
 		}
 		case "rebuild":
 		{
-			//do nothing
+			// The user may have updated an image path.
+			tryLoadImages();
 			break;
 		}
 		case "loadFirstNonMessageLevel":{
@@ -12161,7 +12216,7 @@ var codeMirrorFn = function() {
     const prelude_not_implemented = [
         'game_uri', 'level_title_style', 'show_level_title_in_menu', 
     ];
-    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
+    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube', 'load_images'];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
         prelude_param_single, prelude_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
@@ -13197,8 +13252,10 @@ var codeMirrorFn = function() {
             for (const [newid, newvalue] of newobjects) {
                 registerOriginalCaseName(state, newid, state.lineNumber);
                 const clone = newvalue.cloneSprite;
-                if (clone && !(wordAlreadyDeclared(state, clone)))
+                if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
+                    delete newvalue.cloneSprite;
+                }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
@@ -14350,11 +14407,13 @@ function expandObjectDef(state, objid, objvalue) {
     const newobjects = expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
 
-        // if it exists just return it otherwise create it
-        if (Object.hasOwn(state.objects, newid))
-            return [ newid, state.objects[newid] ]; //@@ bug in Hebird, fails to redefine object
-
-        const newvalue = { 
+        // check if tag expansion redefines an existing object
+        // if this is one expansion overlapping another then redefines is set, so use new definition (Hebird)
+        // else silently ignore this redefinition, use original value
+        let newvalue = state.objects[newid];
+        if (newvalue && !newvalue.canRedef)
+            return [ newid, newvalue ];
+        newvalue = { 
             ...deepClone(objvalue),
             canRedef: true 
         };
@@ -14674,15 +14733,17 @@ function generateExtraMembers(state) {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
                 obj.vector = { ...other.vector };
-                obj.spriteoffset = { ...other.spriteoffset };
+                if (other.spriteoffset)
+                    obj.spriteoffset = { ...other.spriteoffset };
             } 
             applyVectorTransforms(obj);
 
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other ? other.spritematrix.map(row => [...row]) : [];
-                obj.spriteoffset = other ? { ...other.spriteoffset } : obj.spriteoffset;
+                obj.spritematrix = other.spritematrix.map(row => [...row]);
+                if (other.spriteoffset)
+                    obj.spriteoffset = { ...other.spriteoffset };
             } 
             if (obj.spritematrix.length == 0) {
                 obj.spritematrix = Array.from(
@@ -19492,7 +19553,7 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval && messagetext == "" && !isAnimating) {
+        if (timer>againinterval && messagetext == "" && !isTweening) {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;
