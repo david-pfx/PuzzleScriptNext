@@ -41,15 +41,32 @@ function createCanvasSprite(name, vector) {
     function addInstr(json) {
         for (const instr of json) {
             try {
-                for (const [key, value] of Object.entries(instr)) {
+                for (let [key, value] of Object.entries(instr)) {
                     if (key === "!include") {
                         const include = state.objects[value.toLowerCase()];
                         if (include) {
                             addInstr(include.vector.data);
                         } else {
-                            logWarningNoLine("include object '" + value + "' not found");
+                            logErrorNoLine(`Something called "${value}" you wanted to include does not seem to exist.`);
                         }
                     } else if (context[key] instanceof Function) {
+                        // Special case for drawing images loaded with 'load_images'.
+                        if (key === 'drawImage') {
+                            const imageName = value[0];
+                            if (imageName === undefined) {
+                                logErrorNoLine(`This call to "drawImage" needs to have at least one argument.`, true);
+                                continue;
+                            }
+                            let image = customImages[imageName];
+                            if (!image) {
+                                logErrorNoLine(`Could not find or load an image called "${imageName}".`, true);
+                                continue;
+                            }
+                            // Replace `drawImage('imageName', ...)` with `drawImage(image, ...)`.
+                            value = deepClone(value);
+                            value[0] = image;
+                        }
+
                         context[key].apply(context, value);
                     } else {
                         context[key] = value;
@@ -602,7 +619,7 @@ function redrawCellGrid(curlevel) {
     //if (!levelEditorOpened)
         setClip(render);
     if (tweening) 
-        drawObjectsTweening(render.getIter());
+        drawObjectsTweening(render);
     else drawObjects(render);
 
     // show layer no
@@ -766,7 +783,8 @@ function redrawCellGrid(curlevel) {
     }
 
     // Draw loop used when tweening
-    function drawObjectsTweening(iter) {
+    function drawObjectsTweening(render) {
+        const iter = render.getIter();
         // assume already validated
         const easing = state.metadata.tween_easing || 'linear';
         const snap = state.metadata.tween_snap || state.sprite_size;
@@ -777,6 +795,16 @@ function redrawCellGrid(curlevel) {
             var object = state.objects[state.idDict[k]];
             var layerID = object.layer;
 
+            const vector = object.vector;
+            // size of the sprite in pixels
+            const spriteSize = vector ? {
+                w: (vector.w || 1) * cellwidth,
+                h: (vector.h || 1) * cellheight,
+            } : {
+                w: object.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
+                h: object.spritematrix.length * pixelSize,
+            };
+
             for (var i = iter[0]; i < iter[2]; i++) {
                 for (var j = iter[1]; j < iter[3]; j++) {
                     var posIndex = j + i * curlevel.height;
@@ -784,8 +812,9 @@ function redrawCellGrid(curlevel) {
                 
                     if (posMask.get(k) != 0) {                  
 
-                        var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
-                        var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
+                        const drawpos = render.getDrawPos(posIndex, object);
+                        let x = drawpos.x;
+                        let y = drawpos.y;
 
                         if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
                             var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
@@ -801,8 +830,8 @@ function redrawCellGrid(curlevel) {
                         }
                         
                         ctx.drawImage(
-                            spriteImages[k], 0, 0, cellwidth, cellheight,
-                            Math.floor(x), Math.floor(y), cellwidth, cellheight);
+                            spriteImages[k], 0, 0, spriteSize.w, spriteSize.h,
+                            Math.floor(x), Math.floor(y), spriteSize.w, spriteSize.h);
                         ctx.globalAlpha = 1;
                     }
                 }
@@ -1206,4 +1235,4 @@ EasingFunctions = {
       11: "easeInQuint",
       12: "easeOutQuint",
       13: "easeInOutQuint"
-  }
+  }  
