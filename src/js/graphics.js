@@ -610,17 +610,15 @@ function redrawCellGrid(curlevel) {
         }
     }
 
-    var tweening = state.metadata.tween_length && currentMovedEntities;
+    const moveTweening = state.metadata.tween_length && currentMovedEntities;
     // global flag to force redraw
-    isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
+    isAnimating = state.metadata.smoothscreen || moveTweening || Object.keys(seedsToAnimate).length > 0;
 
     const render = new RenderOrder(minMaxIJ);
     if (!levelEditorOpened && !showLayers)
     //if (!levelEditorOpened)
         setClip(render);
-    if (tweening) 
-        drawObjectsTweening(render);
-    else drawObjects(render);
+    drawObjects(render);
 
     // show layer no
     if (showLayers) {
@@ -648,9 +646,10 @@ function redrawCellGrid(curlevel) {
     // Default draw loop, including when animating
     function drawObjects(render) {
         showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
-        const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
-        if (tween == 0) 
+        const animTween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+        if (animTween == 0) 
             seedsToAnimate = {};
+        const moveTween = moveTweening && calcTweening();
 
         // Decision required whether to follow P:S pivot (top left)
         const spriteScaler = state.metadata.sprite_size ? { //@@?? w,h does this even work?
@@ -673,17 +672,7 @@ function redrawCellGrid(curlevel) {
                         let spriteScale = 1;
                         //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
-                        const drawpos = render.getDrawPos(posindex, obj);
                         const vector = obj.vector;
-                        let params = {
-                            x: 0, y: 0,
-                            scalex: 1.0, scaley: 1.0,
-                            alpha: 1.0,
-                            angle: vector ? vector.angle : 0.0,
-                        };
-                        if (animate) 
-                            params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
-
                         // size of the sprite in pixels
                         const spriteSize = vector ? {
                             w: (vector.w || 1) * cellwidth,
@@ -693,6 +682,24 @@ function redrawCellGrid(curlevel) {
                             h: obj.spritematrix.length * pixelSize,
                         };
 
+                        const drawpos = render.getDrawPos(posindex, obj);
+                        let params = {
+                            x: 0, y: 0,
+                            scalex: 1.0, scaley: 1.0,
+                            alpha: 1.0,
+                            angle: vector ? vector.angle : 0.0,
+                        };
+
+                        // if move tweening applies to this object use it, other maybe animate it
+                        const mt = moveTweening && getTweening(moveTween, drawpos, obj, posindex);
+                        if (mt) {
+                            [ drawpos.x, drawpos.y, ctx.globalAlpha ] = mt;
+                        } else {
+                            if (animate) 
+                                params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, animTween);
+                            ctx.globalAlpha = params.alpha;
+                        }
+
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -701,7 +708,6 @@ function redrawCellGrid(curlevel) {
                             h: params.scaley * spriteSize.h * spriteScale 
                         };
                         //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
-                        ctx.globalAlpha = params.alpha;
                         if (vector) {
                             // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
                             const rcw = vector && vector.flipx ? -rc.w : rc.w;
@@ -782,60 +788,22 @@ function redrawCellGrid(curlevel) {
         return params;
     }
 
-    // Draw loop used when tweening
-    function drawObjectsTweening(render) {
-        const iter = render.getIter();
-        // assume already validated
+    // return a value as to tween factor to apply for move tweening
+    function calcTweening() {
         const easing = state.metadata.tween_easing || 'linear';
         const snap = state.metadata.tween_snap || state.sprite_size;
-        let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
-        tween = Math.floor(tween * snap) / snap;
+        const tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
+        return Math.floor(tween * snap) / snap;
+    }
 
-        for (var k = 0; k < state.idDict.length; k++) {
-            var object = state.objects[state.idDict[k]];
-            var layerID = object.layer;
-
-            const vector = object.vector;
-            // size of the sprite in pixels
-            const spriteSize = vector ? {
-                w: (vector.w || 1) * cellwidth,
-                h: (vector.h || 1) * cellheight,
-            } : {
-                w: object.spritematrix.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize,
-                h: object.spritematrix.length * pixelSize,
-            };
-
-            for (var i = iter[0]; i < iter[2]; i++) {
-                for (var j = iter[1]; j < iter[3]; j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var posMask = curlevel.getCellInto(posIndex,_o12);                
-                
-                    if (posMask.get(k) != 0) {                  
-
-                        const drawpos = render.getDrawPos(posIndex, object);
-                        let x = drawpos.x;
-                        let y = drawpos.y;
-
-                        if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
-                            var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
-
-                            if (dir != 16) { //Cardinal directions
-                                var delta = dirMasksDelta[dir];
-            
-                                x -= cellwidth*delta[0]*tween
-                                y -= cellheight*delta[1]*tween
-                            } else if (dir == 16) { //Action button
-                                ctx.globalAlpha = 1-tween;
-                            }
-                        }
-                        
-                        ctx.drawImage(
-                            spriteImages[k], 0, 0, spriteSize.w, spriteSize.h,
-                            Math.floor(x), Math.floor(y), spriteSize.w, spriteSize.h);
-                        ctx.globalAlpha = 1;
-                    }
-                }
-            }
+    // calculate and return tween-adjusted values
+    function getTweening(tween, drawpos, object, posIndex) {
+        const dir = currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+object.layer];
+        if (dir == 16)  // Action button
+            return [ drawpos.x, drawpos.y, 1-tween ];
+        if (dir >= 0) { // Cardinal directions
+            var delta = dirMasksDelta[dir];
+            return [ drawpos.x - cellwidth*delta[0]*tween, drawpos.y - cellheight*delta[1]*tween, 1 ];
         }
     }
 

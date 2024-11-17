@@ -225,7 +225,7 @@ var codeMirrorFn = function() {
     const prelude_not_implemented = [
         'game_uri', 'level_title_style', 'show_level_title_in_menu', 
     ];
-    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
+    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube', 'load_images'];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
         prelude_param_single, prelude_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',

@@ -810,6 +810,59 @@ function tryLoadCustomFont() {
 
 tryLoadCustomFont();
 
+let customImages = {};
+
+function tryLoadImages() {
+	if (!state.metadata.load_images)
+		return;
+	customImages = {};
+
+	function regenImages() {
+		forceRegenImages = true;
+		canvasResize();
+	}
+
+	// If there's an issue with the image, it's confusing if nothing at all is drawn to the screen.
+	// So while the image is loading, draw solid black. If there was an error loading the image,
+	// draw solid red.
+	const loadingImage = new Image();
+	loadingImage.src = 'data:image/svg+xml;charset=utf-8,' +
+		'<svg width="4096" height="4096" xmlns="http://www.w3.org/2000/svg">' +
+		'<rect x="0" y="0" width="4096" height="4096" fill="black"/></svg>';
+	const errorImage = new Image();
+	errorImage.src = 'data:image/svg+xml;charset=utf-8,' +
+		'<svg width="4096" height="4096" xmlns="http://www.w3.org/2000/svg">' +
+		'<rect x="0" y="0" width="4096" height="4096" fill="red"/></svg>';
+
+	// The format is "name1=src1 name2=src2 ...".
+	state.metadata.load_images.split(' ').forEach(arg => {
+		let [name, src] = arg.split(/=(.*)/s);
+		if (!name || !src) {
+			logErrorNoLine(`Expected load_images to be in the form "name1=src1 name2=src2 ...", ` +
+				`but I saw "${arg}".`, true);
+			return;
+		}
+		if (verbose_logging)
+			consolePrint(`Loading image "${name}" from "${src}..."`);
+		customImages[name] = loadingImage;
+		let image = new Image();
+		image.crossOrigin = 'Anonymous';
+		image.src = src;
+		image.onload = () => {
+			if (verbose_logging)
+				consolePrint(`Image "${name}" finished loading.`, true);
+			customImages[name] = image;
+			regenImages();
+		};
+		image.onerror = () => {
+			logErrorNoLine(`An error occurred while loading image "${name}" from "${src}. ` +
+				`Check the browser's developer console for details.`, true);
+			customImages[name] = errorImage;
+			regenImages();
+		};
+	});
+}
+
 generateTitleScreen();
 if (titleMode>0){
 	titleSelection=0;
@@ -885,7 +938,6 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
-		status: statusText,
 	};
 	return ret;
 }
@@ -967,8 +1019,10 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
+			tryLoadImages();
+
 			if (state.metadata.skip_title_screen!==undefined) {
-				consolePrint("skip_title_screen enabled, proceeding to do exactly as it says on the tin.")
+				consolePrint("Skipping title screen.")
 				if(state.metadata["continue_is_level_select"] !== undefined) {
 					gotoLevelSelectScreen();
 				}
@@ -985,7 +1039,8 @@ function setGameState(_state, command, randomseed) {
 		}
 		case "rebuild":
 		{
-			//do nothing
+			// The user may have updated an image path.
+			tryLoadImages();
 			break;
 		}
 		case "loadFirstNonMessageLevel":{
