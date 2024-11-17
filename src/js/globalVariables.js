@@ -34,7 +34,8 @@ var defaultVerboseLogging = false;
 
 var tweeninterval=0;
 var tweentimer=0;
-var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
+var isTweening = false;     // true for tweening not yet complete, to defer againing
+var isAnimating = false;    // true for animation/tweening/smoothscreen to keep rendering
 var animateinterval=0;
 
 var restarting=false;

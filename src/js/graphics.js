@@ -610,9 +610,13 @@ function redrawCellGrid(curlevel) {
         }
     }
 
-    const moveTweening = state.metadata.tween_length && currentMovedEntities;
-    // global flag to force redraw
-    isAnimating = state.metadata.smoothscreen || moveTweening || Object.keys(seedsToAnimate).length > 0;
+    const doMoveTweens = state.metadata.tween_length && currentMovedEntities;
+    const moveTween = doMoveTweens ? calcTweening() : 0;
+    const animTween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+
+    // global flags to force redraw, defer againing
+    isAnimating = state.metadata.smoothscreen || doMoveTweens || Object.keys(seedsToAnimate).length > 0;
+    isTweening = moveTween > 0 || animTween > 0;
 
     const render = new RenderOrder(minMaxIJ);
     if (!levelEditorOpened && !showLayers)
@@ -646,10 +650,8 @@ function redrawCellGrid(curlevel) {
     // Default draw loop, including when animating
     function drawObjects(render) {
         showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
-        const animTween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
         if (animTween == 0) 
             seedsToAnimate = {};
-        const moveTween = moveTweening && calcTweening();
 
         // Decision required whether to follow P:S pivot (top left)
         const spriteScaler = state.metadata.sprite_size ? { //@@?? w,h does this even work?
@@ -663,7 +665,7 @@ function redrawCellGrid(curlevel) {
             for (const posindex of render.getPosIndexes(group)) {
                 const posmask = curlevel.getCellInto(posindex,_o12);    
                 for (let k = group.firstObjectNo; k < group.firstObjectNo + group.numObjects; ++k) {
-                    const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
+                    const animate = (animTween > 0) ? seedsToAnimate[posindex+','+k] : null;
                     if (posmask.get(k) || animate) {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
@@ -691,7 +693,7 @@ function redrawCellGrid(curlevel) {
                         };
 
                         // if move tweening applies to this object use it, other maybe animate it
-                        const mt = moveTweening && getTweening(moveTween, drawpos, obj, posindex);
+                        const mt = doMoveTweens && getTweening(moveTween, drawpos, obj, posindex);
                         if (mt) {
                             [ drawpos.x, drawpos.y, ctx.globalAlpha ] = mt;
                         } else {
