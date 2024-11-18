@@ -7404,11 +7404,12 @@ function redrawCellGrid(curlevel) {
     }
 
     const doMoveTweens = state.metadata.tween_length && currentMovedEntities;
+    const doAfxAnimate = Object.keys(seedsToAnimate).length > 0;
     const moveTween = doMoveTweens ? calcTweening() : 0;
-    const animTween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
+    const animTween = doAfxAnimate ? 1 - clamp(tweentimer/animateinterval, 0, 1) : 0;  // range 1 => 0
 
     // global flags to force redraw, defer againing
-    isAnimating = state.metadata.smoothscreen || doMoveTweens || Object.keys(seedsToAnimate).length > 0;
+    isAnimating = state.metadata.smoothscreen || doMoveTweens || doAfxAnimate;
     isTweening = moveTween > 0 || animTween > 0;
 
     const render = new RenderOrder(minMaxIJ);
@@ -19553,7 +19554,8 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval && messagetext == "" && !isTweening) {
+        if (timer>againinterval && messagetext == "") {
+        //if (timer>againinterval && messagetext == "" && !isTweening) {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;
