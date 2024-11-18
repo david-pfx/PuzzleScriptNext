@@ -5,6 +5,7 @@ homepage www.polyomino.com
 // test program for new TAG section
 
 sprite_size 7
+skip_title_screen
 verbose_logging
 debug
 debug_switch tag,map,obj,layer,prop

@@ -1,8 +1,14 @@
 Title PSNext pixel versus canvas transform test-page [new-parser]
 sprite_size 5
 run_rules_on_level_start
+
+skip_title_screen
+verbose_logging
+debug
+debug_switch none
+
 // https://gist.github.com/angilbert/1190d678d00e5142b34e4bce325eb1e8
-//debug_switch obj
+
 ========
 OBJECTS
 ========

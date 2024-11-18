@@ -4,11 +4,12 @@ homepage www.polyomino.com
 
 // test program canvas vector sprites
 
+sprite_size 7
+
+skip_title_screen
 verbose_logging
 debug
 debug_switch obj
-
-sprite_size 7
 
 ========
 OBJECTS

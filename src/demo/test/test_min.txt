@@ -4,8 +4,11 @@ homepage www.polyomino.com
 
 // minimal program as base for tests
 
+skip_title_screen
 verbose_logging
 debug
+debug_switch none
+
 ========
 OBJECTS
 ========

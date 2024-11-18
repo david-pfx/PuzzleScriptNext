@@ -5,6 +5,7 @@ homepage www.polyomino.com
 // demo program showing that sprites can be any length or width
 // sprites not matching defined sprite size are aligned ???
 
+skip_title_screen
 verbose_logging
 debug
 

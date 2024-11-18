@@ -8,9 +8,12 @@ homepage www.polyomino.com
 
 //animate_interval 2.0
 
+mouse_clicks
+
+skip_title_screen
 verbose_logging
 debug
-mouse_clicks
+debug_switch none
 
 ========
 OBJECTS

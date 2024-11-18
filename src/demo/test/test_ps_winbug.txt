@@ -2,7 +2,7 @@ title test min
 author polyomino
 homepage www.polyomino.com
 
-( minimal program as base for tests, PS compat )
+( test win-again conflict vs ps )
 
 verbose_logging
 debug

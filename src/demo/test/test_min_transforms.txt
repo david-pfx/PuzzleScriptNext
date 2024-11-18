@@ -5,10 +5,12 @@ homepage www.polyomino.com
 // test program showing sprite transforms
 
 run_rules_on_level_start
+sprite_size 7
+
+skip_title_screen
 verbose_logging
 debug
 debug_switch obj
-sprite_size 7
 
 ====
 tags
