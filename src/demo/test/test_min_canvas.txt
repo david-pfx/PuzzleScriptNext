@@ -92,6 +92,11 @@ n canvas:
 {"fill":[]}
 rot:right:down
 
+// errors for testing
+//nx copy:n translate:down:4
+
+//ny canvas: copy:nx translate:down:4
+
 o canvas: copy:man translate:down:4
 
 q canvas: copy:man flip:right

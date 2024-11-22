@@ -508,22 +508,25 @@ function generateExtraMembers(state) {
             obj.vector.angle ||= 0;
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.vector = { ...other.vector };
-                if (other.spriteoffset)
-                    obj.spriteoffset = { ...other.spriteoffset };
+                if (other && other.vector) {
+                    if (other.spriteoffset)
+                        obj.spriteoffset = { ...other.spriteoffset };
+                    obj.vector = { ...other.vector };
+                } else logError(`Canvas object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
             } 
             applyVectorTransforms(obj);
 
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other.spritematrix.map(row => [...row]);
-                if (other.spriteoffset)
-                    obj.spriteoffset = { ...other.spriteoffset };
+                if (other && !other.vector) {
+                    if (other.spriteoffset)
+                        obj.spriteoffset = { ...other.spriteoffset };
+                    obj.spritematrix = other.spritematrix.map(row => [...row]);
+                } else logError(`Sprite object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
             } 
             if (obj.spritematrix.length == 0) {
-                obj.spritematrix = Array.from(
-                    { 
+                obj.spritematrix = Array.from({ 
                         length: state.cell_height || state.sprite_size 
                     },
                     () => (new Array(state.sprite_size).fill(0))
