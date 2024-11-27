@@ -7736,11 +7736,14 @@ function drawSmoothScreenDebug(ctx) {
 }
 
 function setClip(tween) {
+    // could probably just use screen height/width?
+    const cliph = (flickscreen || zoomscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
+    const clipw = tween.iter[2] - tween.iter[0];
     const rc = {
         x: xoffset,
         y: yoffset,
-        w: (tween.iter[2] - tween.iter[0]) * cellwidth,
-        h: (tween.iter[3] - tween.iter[1]) * cellheight + statusLineHeight,
+        w: clipw * cellwidth,
+        h: cliph * cellheight + statusLineHeight,
     };
     ctx.save();
     ctx.beginPath();
@@ -13255,7 +13258,6 @@ var codeMirrorFn = function() {
                 const clone = newvalue.cloneSprite;
                 if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
-                    delete newvalue.cloneSprite;
                 }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
@@ -14733,22 +14735,25 @@ function generateExtraMembers(state) {
             obj.vector.angle ||= 0;
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.vector = { ...other.vector };
-                if (other.spriteoffset)
-                    obj.spriteoffset = { ...other.spriteoffset };
+                if (other && other.vector) {
+                    if (other.spriteoffset)
+                        obj.spriteoffset = { ...other.spriteoffset };
+                    obj.vector = { ...other.vector };
+                } else logError(`Canvas object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
             } 
             applyVectorTransforms(obj);
 
         } else {
             if (obj.cloneSprite) {
                 const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other.spritematrix.map(row => [...row]);
-                if (other.spriteoffset)
-                    obj.spriteoffset = { ...other.spriteoffset };
+                if (other && !other.vector) {
+                    if (other.spriteoffset)
+                        obj.spriteoffset = { ...other.spriteoffset };
+                    obj.spritematrix = other.spritematrix.map(row => [...row]);
+                } else logError(`Sprite object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
             } 
             if (obj.spritematrix.length == 0) {
-                obj.spritematrix = Array.from(
-                    { 
+                obj.spritematrix = Array.from({ 
                         length: state.cell_height || state.sprite_size 
                     },
                     () => (new Array(state.sprite_size).fill(0))
@@ -19554,8 +19559,7 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval && messagetext == "") {
-        //if (timer>againinterval && messagetext == "" && !isTweening) {
+        if (timer>againinterval && messagetext == "" && !isTweening) {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;
