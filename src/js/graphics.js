@@ -943,11 +943,14 @@ function drawSmoothScreenDebug(ctx) {
 }
 
 function setClip(tween) {
+    // could probably just use screen height/width?
+    const cliph = (flickscreen || zoomscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
+    const clipw = tween.iter[2] - tween.iter[0];
     const rc = {
         x: xoffset,
         y: yoffset,
-        w: (tween.iter[2] - tween.iter[0]) * cellwidth,
-        h: (tween.iter[3] - tween.iter[1]) * cellheight + statusLineHeight,
+        w: clipw * cellwidth,
+        h: cliph * cellheight + statusLineHeight,
     };
     ctx.save();
     ctx.beginPath();

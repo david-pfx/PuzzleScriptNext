@@ -1263,7 +1263,6 @@ var codeMirrorFn = function() {
                 const clone = newvalue.cloneSprite;
                 if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
                     logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
-                    delete newvalue.cloneSprite;
                 }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
