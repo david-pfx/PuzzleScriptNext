@@ -259,7 +259,9 @@ function goToPauseScreen() {
 	titleMode = 3;
 	titleScreen = true;
 	textMode = true;
-    againing = false;
+	if (againing)
+		DoUndo(true, false);
+    againing = false;//@@
 	messagetext = "";
 
 	generatePauseScreen();
@@ -413,7 +415,8 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		levelHighlightLine++;
 	else if (levelSelectScrollPos > 0 && (levelHighlightLine == 3 || scrollIncrement < 0))
 		levelSelectScrollPos--;
-	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (levelHighlightLine == 11 || scrollIncrement > 0))
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length 
+			 && (levelHighlightLine == 11 || scrollIncrement > 0) && !titleSelected)
 		levelSelectScrollPos++;
 
 	titleSelection = levelHighlightLine - 3 + levelSelectScrollPos;
@@ -1378,6 +1381,9 @@ function DoRestart(force) {
 	}
 	if (force!==true && ('norestart' in state.metadata)) {
 		return;
+	}
+	if (againing){
+		DoUndo(force,true);
 	}
 	restarting=true;
 	if (force!==true) {
