@@ -415,7 +415,8 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		levelHighlightLine++;
 	else if (levelSelectScrollPos > 0 && (levelHighlightLine == 3 || scrollIncrement < 0))
 		levelSelectScrollPos--;
-	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (levelHighlightLine == 11 || scrollIncrement > 0))
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length 
+			 && (levelHighlightLine == 11 || scrollIncrement > 0) && !titleSelected)
 		levelSelectScrollPos++;
 
 	titleSelection = levelHighlightLine - 3 + levelSelectScrollPos;
