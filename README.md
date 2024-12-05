@@ -15,16 +15,19 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24k28. 
+The latest version is Release v-24l06. 
 The changes to the rendering and support for loading images from URL should be considered as __alpha__ release.
 Please test and notify any issues.
 
 Recent fixes/updates:
+* Pause (Esc) during again sequence does not resume correctly #140
+* Level select Enter on last line scrolls and selects the next line down #142
+* Bug when undoing a restart into an again loop (PS) #141
+
+Older fixes/updates:
 * Fixed: Use of zoomscreen breaks status_line (#124).
 * Fixed: TypeError: Cannot read properties of undefined (reading 'vector')  (#133).
 * Fixed: documentation for mouse input.
-
-Older fixes/updates:
 * Fix regression when againing used with tweening (#110).
 * Fix overlapping tag expansions bug (Hebird) (#125).
 * Fix oversized sprites not displaying correctly in tween renderer (#130).
