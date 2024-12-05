@@ -259,7 +259,9 @@ function goToPauseScreen() {
 	titleMode = 3;
 	titleScreen = true;
 	textMode = true;
-    againing = false;
+	if (againing)
+		DoUndo(true, false);
+    againing = false;//@@
 	messagetext = "";
 
 	generatePauseScreen();
