@@ -1067,6 +1067,7 @@ function extractSections(state) {
 }
 
 function convertSectionNamesToIndices(state) {
+    // BUG: duplicate sections are not detected
 	var sectionMap = {};
 	var duplicateSections = {};
 	for (var s = 0; s < state.sections.length; s++) {
@@ -1090,11 +1091,11 @@ function convertSectionNamesToIndices(state) {
 			var sectionName = command[1].toLowerCase();
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
-				logError(`Invalid GOTO command - there is no section named "${command[1]}". Either it does not exist, or it has zero levels.`, rule.lineNumber);
+				logError(`Invalid GOTO command - there is no section named "${errorCase(command[1])}". Either it does not exist, or it has zero levels.`, rule.lineNumber);
 				//logError('Invalid GOTO command - There is no section named "'+command[1]+'". Either it does not exist, or it has zero levels.', rule.lineNumber);
 				sectionIndex = -9999;
 			}else if (duplicateSections[sectionName] !== undefined){
-				logError(`Invalid GOTO command - there are multiple sections named "${command[1]}". Section names must be unique for GOTO to work.`, rule.lineNumber);
+				logError(`Invalid GOTO command - there are multiple sections named "${errorCase(command[1])}". Section names must be unique for GOTO to work.`, rule.lineNumber);
 				sectionIndex = -9999;
 			}
 			command[1] = sectionIndex;
@@ -1108,10 +1109,10 @@ function convertSectionNamesToIndices(state) {
 		var targetName = level.target.toLowerCase();
 		var targetIndex = sectionMap[targetName];
 		if (targetIndex === undefined){
-			logError(`Invalid GOTO command - there is no section named "${command[1]}".`, level.lineNumber);
+			logError(`Invalid GOTO command - there is no section named "${errorCase(targetName)}".`, level.lineNumber);
 			targetIndex = 0;
 		}else if (duplicateSections[targetName] !== undefined){
-			logError(`Invalid GOTO command - there are multiple sections named "${command[1]}".`, level.lineNumber);
+			logError(`Invalid GOTO command - there are multiple sections named "${errorCase(targetName)}".`, level.lineNumber);
 			targetIndex = 0;
 		}
 		level.target = targetIndex;

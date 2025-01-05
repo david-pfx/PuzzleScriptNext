@@ -202,8 +202,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 	const setImage = (n,text) => {
 		if (!text) throw "image";
 		titleImage[n] = text.padEnd(TITLE_WIDTH);
-		if (state.metadata.keyhint_color) 
-			lineColorOverride[n] = state.metadata.keyhint_color;
+		if (state.keyhint_color) 
+			lineColorOverride[n] = state.keyhint_color;
 	}
 	if (state.metadata.text_controls) {
 		const text = wordwrap(state.metadata.text_controls, TITLE_WIDTH, true);
@@ -229,8 +229,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 	}
 	titleSplit.forEach((line,x) => {
 		titleImage[1 + x] = centerText(line.trim(), TITLE_WIDTH);
-		if (state.metadata.title_color)
-			lineColorOverride[1 + x] = state.metadata.title_color;
+		if (state.title_color)
+			lineColorOverride[1 + x] = state.title_color;
 	});
 
 	if (state.metadata.author) {
@@ -242,8 +242,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 		}
 		split.forEach((line, x) => { 
 			titleImage[3 + x]=line.trim().padStart(TITLE_WIDTH);
-			if (state.metadata.author_color)
-				lineColorOverride[3 + x] = state.metadata.author_color;
+			if (state.author_color)
+				lineColorOverride[3 + x] = state.author_color;
 		});
 	}
 	redraw();
@@ -621,8 +621,8 @@ function drawMessageScreen(message) {
 		: IsMouseGameInputEnabled() ? "Click or X to continue" : "X to continue");
 
 	titleImage = fillAndHighlight(screen);
-	if (state.metadata.keyhint_color)
-		lineColorOverride[screen.options[0]] = state.metadata.keyhint_color;
+	if (state.keyhint_color)
+		lineColorOverride[screen.options[0]] = state.keyhint_color;
 
 	const splitMessage = wordwrap(message, TITLE_WIDTH, true);
 
@@ -974,6 +974,8 @@ function setGameState(_state, command, randomseed) {
 	RandomGen = new RNG(randomseed);
 
 	state = _state;
+	// regenerate text to pick up new colours if any
+	regenText();
 
     if (command[0]!=="rebuild"){
       backups=[];
