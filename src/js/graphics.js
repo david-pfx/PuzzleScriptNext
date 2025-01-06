@@ -151,15 +151,17 @@ function regenText() {
     
     // create a single text sheet canvas for each colour containing all the character glyphs
     ['#00000000', state.fgcolor, state.text_color, state.author_color, state.keyhint_color, state.background_color, state.title_color].forEach(color => {
-        if (color && !textsheetCanvas[color]) {
+        if (color && !textsheetCanvas[color])
             textsheetCanvas[color] = document.createElement('canvas');
-            textsheetCanvas[color].width = textsheetSize * cellwidth;
-            textsheetCanvas[color].height = textsheetSize * cellheight;
-        }
     });
         
     for (const color in textsheetCanvas) {
-        const textsheetContext = textsheetCanvas[color].getContext('2d');
+        const canvas = textsheetCanvas[color];
+        canvas.width = textsheetSize * cellwidth;
+        canvas.height = textsheetSize * cellheight;
+        
+        const ctx = textsheetCanvas[color].getContext('2d');
+        ctx.clearRect(0, 0, cellwidth, cellheight);
 
         for (var n = 0; n < fontKeys.length; n++) {
             var key = fontKeys[n];
@@ -169,11 +171,11 @@ function regenText() {
 
                 var textX = (n % textsheetSize)|0;
                 var textY = (n / textsheetSize)|0;
-                renderSprite(textsheetContext, fontstr, [ '#00000000', color ], 1, textX, textY);
+                renderSprite(ctx, fontstr, [ '#00000000', color ], 1, textX, textY);
             }
         }
     }
-    if (debugSwitch.includes('redraw')) console.log('regenText textsheetCanvas=', textsheetCanvas);
+    if (debugSwitch.includes('redraw')) console.log(`regenText sz=${textsheetSize} fk=${fontKeys.length} textsheetCanvas=`, textsheetCanvas);
 }
 
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
@@ -948,8 +950,9 @@ function drawSmoothScreenDebug(ctx) {
 
 function setClip(tween) {
     // could probably just use screen height/width?
-    const cliph = (flickscreen || zoomscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
-    const clipw = tween.iter[2] - tween.iter[0];
+    if (debugSwitch.includes('redraw')) console.log(`clip zfs=${zoomscreen},${flickscreen},${smoothscreen} screen=${screenwidth}x${screenheight} iter=`, tween.iter);
+    const clipw = (flickscreen || zoomscreen || smoothscreen) ? screenwidth : (tween.iter[2] - tween.iter[0]);
+    const cliph = (flickscreen || zoomscreen || smoothscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
     const rc = {
         x: xoffset,
         y: yoffset,

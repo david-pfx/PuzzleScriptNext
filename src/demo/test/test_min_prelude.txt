@@ -77,7 +77,7 @@ youtube asdf
 // Based on the information found here: https://fonts.googleapis.com/css2?family=VT323&display=swap
 //custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 // and another for testing
-//custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 //debug_switch various random strings // obj
 //homepage
 text_controls This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...
