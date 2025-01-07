@@ -2971,6 +2971,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 				endIndex = findEnd(ruleGroupIndex);
 				gosubTarget = -1;
 				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+				if (debugSwitch.includes('gosub')) console.log(`gosub1 group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber} endindex:${endIndex}`, gosubStack);
 			} else {
 				ruleGroupIndex++;
 				// note special for loops and gosubs that end after the last rule
@@ -2979,12 +2980,14 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 						break; 
 				}		
 
-				if (ruleGroupIndex == endIndex && gosubStack.length > 0) {
+				// loop to handle stacked returns
+				while (ruleGroupIndex == endIndex && gosubStack.length > 0) {
 					if (verbose_logging)
 						consolePrint(`Return to ${htmlJump(rules[gosubStack.at(-1)][0].lineNumber)}`, true);
 					ruleGroupIndex = gosubStack.pop();
 					endIndex = findEnd(ruleGroupIndex);
 					ruleGroupIndex++;
+					if (debugSwitch.includes('gosub')) console.log(`gosub2 group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber} endindex:${endIndex}`, gosubStack);
 				}
 			}
 		}
