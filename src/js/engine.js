@@ -2808,8 +2808,12 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
 	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
+
 	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
 	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
+    state.author_color = state.metadata.author_color ? colorToHex(colorPalette, state.metadata.author_color) : state.fgcolor;
+    state.title_color = state.metadata.title_color ? colorToHex(colorPalette, state.metadata.title_color) : state.fgcolor;
+    state.keyhint_color = state.metadata.keyhint_color ? colorToHex(colorPalette, state.metadata.keyhint_color) : state.fgcolor;
 }
 
 function showTempMessage(message) {
