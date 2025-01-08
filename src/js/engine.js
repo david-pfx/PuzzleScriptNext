@@ -3524,7 +3524,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    			var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
 		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
 				}
-				restartTarget=level4Serialization();
+				restartTarget=backupLevel();		// fix for twiddle issues #67 #73 and reopen
+				//restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
 				storage_set(document.URL+'_checkpoint',backupStr);
@@ -3855,7 +3856,8 @@ function updateLocalStorage() {
 		
 		storage_set(document.URL,curLevelNo);
 		if (curlevelTarget!==null){
-			restartTarget=level4Serialization();
+			restartTarget=backupLevel();		// fix for twiddle issues #67 #73 and reopen
+			//restartTarget=level4Serialization();
 			var backupStr = JSON.stringify(restartTarget);
 			storage_set(document.URL+'_checkpoint',backupStr);
 		} else {
