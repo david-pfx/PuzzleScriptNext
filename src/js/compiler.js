@@ -3576,14 +3576,9 @@ function generateSoundData(state) {
 
 
 function formatHomePage(state) {
-    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
-    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
-    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
-    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
-    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
+    // twiddle metadata has already made sure the defaults are correct
 
     if (canSetHTMLColors) {
-
         if ('background_color' in state.metadata) {
             document.body.style.backgroundColor = state.bgcolor;
         }
