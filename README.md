@@ -22,6 +22,7 @@ Recent fixes/updates:
 * Fix clip region for smoothscreen #148
 * Fix gosub stacked returns #147
 * Fix save/restore twiddle on checkpoint #73
+* Fix default colours for twiddling (exposed by #146)
 
 Older fixes/updates:
 * Pause (Esc) during again sequence does not resume correctly #140
