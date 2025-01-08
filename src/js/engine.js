@@ -202,8 +202,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 	const setImage = (n,text) => {
 		if (!text) throw "image";
 		titleImage[n] = text.padEnd(TITLE_WIDTH);
-		if (state.metadata.keyhint_color) 
-			lineColorOverride[n] = state.metadata.keyhint_color;
+		if (state.keyhint_color) 
+			lineColorOverride[n] = state.keyhint_color;
 	}
 	if (state.metadata.text_controls) {
 		const text = wordwrap(state.metadata.text_controls, TITLE_WIDTH, true);
@@ -229,8 +229,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 	}
 	titleSplit.forEach((line,x) => {
 		titleImage[1 + x] = centerText(line.trim(), TITLE_WIDTH);
-		if (state.metadata.title_color)
-			lineColorOverride[1 + x] = state.metadata.title_color;
+		if (state.title_color)
+			lineColorOverride[1 + x] = state.title_color;
 	});
 
 	if (state.metadata.author) {
@@ -242,8 +242,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 		}
 		split.forEach((line, x) => { 
 			titleImage[3 + x]=line.trim().padStart(TITLE_WIDTH);
-			if (state.metadata.author_color)
-				lineColorOverride[3 + x] = state.metadata.author_color;
+			if (state.author_color)
+				lineColorOverride[3 + x] = state.author_color;
 		});
 	}
 	redraw();
@@ -621,8 +621,8 @@ function drawMessageScreen(message) {
 		: IsMouseGameInputEnabled() ? "Click or X to continue" : "X to continue");
 
 	titleImage = fillAndHighlight(screen);
-	if (state.metadata.keyhint_color)
-		lineColorOverride[screen.options[0]] = state.metadata.keyhint_color;
+	if (state.keyhint_color)
+		lineColorOverride[screen.options[0]] = state.keyhint_color;
 
 	const splitMessage = wordwrap(message, TITLE_WIDTH, true);
 
@@ -1022,6 +1022,8 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
+			// regenerate text to pick up new colours if any
+			regenText();
 			tryLoadImages();
 
 			if (state.metadata.skip_title_screen!==undefined) {
@@ -2969,6 +2971,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 				endIndex = findEnd(ruleGroupIndex);
 				gosubTarget = -1;
 				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+				if (debugSwitch.includes('gosub')) console.log(`gosub1 group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber} endindex:${endIndex}`, gosubStack);
 			} else {
 				ruleGroupIndex++;
 				// note special for loops and gosubs that end after the last rule
@@ -2977,12 +2980,14 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 						break; 
 				}		
 
-				if (ruleGroupIndex == endIndex && gosubStack.length > 0) {
+				// loop to handle stacked returns
+				while (ruleGroupIndex == endIndex && gosubStack.length > 0) {
 					if (verbose_logging)
 						consolePrint(`Return to ${htmlJump(rules[gosubStack.at(-1)][0].lineNumber)}`, true);
 					ruleGroupIndex = gosubStack.pop();
 					endIndex = findEnd(ruleGroupIndex);
 					ruleGroupIndex++;
+					if (debugSwitch.includes('gosub')) console.log(`gosub2 group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber} endindex:${endIndex}`, gosubStack);
 				}
 			}
 		}
@@ -3519,7 +3524,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    			var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
 		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
 				}
-				restartTarget=level4Serialization();
+				restartTarget=backupLevel();		// fix for twiddle issues #67 #73 and reopen
+				//restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
 				storage_set(document.URL+'_checkpoint',backupStr);
@@ -3850,7 +3856,8 @@ function updateLocalStorage() {
 		
 		storage_set(document.URL,curLevelNo);
 		if (curlevelTarget!==null){
-			restartTarget=level4Serialization();
+			restartTarget=backupLevel();		// fix for twiddle issues #67 #73 and reopen
+			//restartTarget=level4Serialization();
 			var backupStr = JSON.stringify(restartTarget);
 			storage_set(document.URL+'_checkpoint',backupStr);
 		} else {

@@ -3,7 +3,7 @@ author polyomino with a rather long author to trigger some text wrapping text wr
 homepage www.polyomino.com
 
 // minimal program with prelude tests
-debug_switch menu
+debug_switch menu,redraw
 
 // keywords
 
@@ -75,9 +75,9 @@ youtube asdf
 //--- param text
 //author
 // Based on the information found here: https://fonts.googleapis.com/css2?family=VT323&display=swap
-custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
+//custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 // and another for testing
-//custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
 //debug_switch various random strings // obj
 //homepage
 text_controls This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...This is a text control...
@@ -130,6 +130,9 @@ message This is a rather long message designed to see the result of specifying a
 .y...p...g.
 .m.......b.
 ...........
+
+//goto S5x // error
+//section S5 // error not detected
 
 section S2
 

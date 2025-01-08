@@ -15,16 +15,18 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-24l06. 
-The changes to the rendering and support for loading images from URL should be considered as __alpha__ release.
-Please test and notify any issues.
+The latest version is Release v-25a08. 
 
 Recent fixes/updates:
+* Implement text colours for non custom font #146
+* Fix clip region for smoothscreen #148
+* Fix gosub stacked returns #147
+* Fix save/restore twiddle on checkpoint #73
+
+Older fixes/updates:
 * Pause (Esc) during again sequence does not resume correctly #140
 * Level select Enter on last line scrolls and selects the next line down #142
 * Bug when undoing a restart into an again loop (PS) #141
-
-Older fixes/updates:
 * Fixed: Use of zoomscreen breaks status_line (#124).
 * Fixed: TypeError: Cannot read properties of undefined (reading 'vector')  (#133).
 * Fixed: documentation for mouse input.

@@ -105,14 +105,14 @@ function createSvgSprite(name, vector) {
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
-function renderSprite(context, spritegrid, colors, padding, x, y, size, height) {
+function renderSprite(context, spritegrid, colors, padding, cellx, celly, size, height) {
     colors ||= ['#00000000', state.fgcolor];
 
     const rc = { 
-        x: x * cellwidth, // global
-        y: y * cellheight, 
-        w: size || spritegrid[0].length,
-        h: height || size || spritegrid.length,
+        x: cellx * cellwidth, // global
+        y: celly * cellheight, 
+        w: size || spritegrid[0].length * pixelSize,
+        h: height || size || spritegrid.length * pixelSize,
     };
 
     context.clearRect(rc.x, rc.y, rc.w, rc.h);
@@ -144,32 +144,38 @@ function drawTextWithFont(ctx, text, color, x, y, height) {
 
 }
 
-// create a single text sheet canvas containing all the character glyphs
-var textsheetCanvas = null;
+let textsheetCanvas = {};
 
 function regenText() {
-    textsheetCanvas ||= document.createElement('canvas');
-
     var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+    
+    // create a single text sheet canvas for each colour containing all the character glyphs
+    ['#00000000', state.fgcolor, state.text_color, state.author_color, state.keyhint_color, state.background_color, state.title_color].forEach(color => {
+        if (color && !textsheetCanvas[color])
+            textsheetCanvas[color] = document.createElement('canvas');
+    });
+        
+    for (const color in textsheetCanvas) {
+        const canvas = textsheetCanvas[color];
+        canvas.width = textsheetSize * cellwidth;
+        canvas.height = textsheetSize * cellheight;
+        
+        const ctx = textsheetCanvas[color].getContext('2d');
+        ctx.clearRect(0, 0, cellwidth, cellheight);
 
-    textsheetCanvas.width = textsheetSize * cellwidth;
-    textsheetCanvas.height = textsheetSize * cellheight * 2;
+        for (var n = 0; n < fontKeys.length; n++) {
+            var key = fontKeys[n];
+            if (font.hasOwnProperty(key)) {
+                fontstr = font[key].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
+                fontstr.shift();
 
-    var textsheetContext = textsheetCanvas.getContext('2d');
-
-    for (var n = 0; n < fontKeys.length; n++) {
-        var key = fontKeys[n];
-        if (font.hasOwnProperty(key)) {
-            fontstr = font[key].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
-            fontstr.shift();
-
-            var textX = (n % textsheetSize)|0;
-            var textY = (n / textsheetSize)|0;
-
-            renderSprite(textsheetContext, fontstr, undefined, 1, textX, textY);
-            renderSprite(textsheetContext, fontstr, ['#00000000', '#000000'], 1, textX, textY + textsheetSize);
+                var textX = (n % textsheetSize)|0;
+                var textY = (n / textsheetSize)|0;
+                renderSprite(ctx, fontstr, [ '#00000000', color ], 1, textX, textY);
+            }
         }
     }
+    if (debugSwitch.includes('redraw')) console.log(`regenText sz=${textsheetSize} fk=${fontKeys.length} textsheetCanvas=`, textsheetCanvas);
 }
 
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
@@ -191,7 +197,7 @@ function regenSpriteImages() {
 	} 
     
     if (IDE===true) {
-        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);  //@@?? w,h
+        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);  //?? w,h
     }
     
     if (state.levels.length===0) {
@@ -426,7 +432,7 @@ function redrawTextMode() {
         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
         for (var i = 0; i < TITLE_WIDTH; i++) {
             for (var j = 0; j < TITLE_HEIGHT; j++) {
-                ctx.fillStyle = lineColor(j);
+                const color = lineColor(j);
                 var ch = titleImage[j].charAt(i);
                 if (ch in font) {
                     var index = fontIndex[ch];
@@ -434,7 +440,7 @@ function redrawTextMode() {
                     var textY = (index / textsheetSize)|0;
                     ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(
-                        textsheetCanvas,
+                        textsheetCanvas[color],
                         textX * textcellwidth,
                         textY * textcellheight,
                         textcellwidth, textcellheight,
@@ -655,7 +661,7 @@ function redrawCellGrid(curlevel) {
             seedsToAnimate = {};
 
         // Decision required whether to follow P:S pivot (top left)
-        const spriteScaler = state.metadata.sprite_size ? { //@@?? w,h does this even work?
+        const spriteScaler = state.metadata.sprite_size ? { //?? w,h does this even work?
             scale: state.cell_height || state.sprite_size, 
             pivotx: 0.0, // todo
             pivoty: 1.0 
@@ -944,8 +950,9 @@ function drawSmoothScreenDebug(ctx) {
 
 function setClip(tween) {
     // could probably just use screen height/width?
-    const cliph = (flickscreen || zoomscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
-    const clipw = tween.iter[2] - tween.iter[0];
+    if (debugSwitch.includes('redraw')) console.log(`clip zfs=${zoomscreen},${flickscreen},${smoothscreen} screen=${screenwidth}x${screenheight} iter=`, tween.iter);
+    const clipw = (flickscreen || zoomscreen || smoothscreen) ? screenwidth : (tween.iter[2] - tween.iter[0]);
+    const cliph = (flickscreen || zoomscreen || smoothscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
     const rc = {
         x: xoffset,
         y: yoffset,

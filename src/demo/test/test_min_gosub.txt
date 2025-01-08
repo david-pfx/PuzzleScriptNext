@@ -4,10 +4,11 @@ homepage www.polyomino.com
 
 // testing gosubs
 
+skip_title_screen
 //run_rules_on_level_start
 verbose_logging
 debug
-debug_switch rules
+debug_switch rules,gosub
           
 ========
 OBJECTS
@@ -48,6 +49,8 @@ RULES
 [ right p ][ g ] -> gosub add green
 [ action p ] -> gosub sub1
 late [ ] -> gosub sub1 late
+[ up p] -> gosub sub2
+[] -> log startloop
 
 // bug: does not loop after gosub
 startloop
@@ -75,6 +78,14 @@ subroutine sub1
 
 subroutine sub1 late
     late [] -> log sub1
+
+subroutine sub2
+    [] -> log sub2
+    [up p] -> gosub sub3
+    // #147 gosub is last
+
+subroutine sub3
+    [] -> log sub3
 
 ==============
 WINCONDITIONS
