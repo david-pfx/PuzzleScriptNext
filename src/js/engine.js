@@ -974,8 +974,6 @@ function setGameState(_state, command, randomseed) {
 	RandomGen = new RNG(randomseed);
 
 	state = _state;
-	// regenerate text to pick up new colours if any
-	regenText();
 
     if (command[0]!=="rebuild"){
       backups=[];
@@ -1024,6 +1022,8 @@ function setGameState(_state, command, randomseed) {
 		    quittingTitleScreen=false;
 			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
+			// regenerate text to pick up new colours if any
+			regenText();
 			tryLoadImages();
 
 			if (state.metadata.skip_title_screen!==undefined) {
