@@ -261,7 +261,7 @@ function goToPauseScreen() {
 	textMode = true;
 	if (againing)
 		DoUndo(true, false);
-    againing = false;//@@
+    againing = false;
 	messagetext = "";
 
 	generatePauseScreen();
@@ -1224,7 +1224,7 @@ function unconsolidateDiff(before,after) {
 }
 
 function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) {
-	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev);
+	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev, snapCamera, resetTween, resetAutoTick);
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
@@ -1447,7 +1447,8 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
 	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
-    restoreLevel(torestore, null, resetTween, resetAutoTick);
+    restoreLevel(torestore, null, resetTween, resetAutoTick); 
+	updateCameraPositionTarget(); // #157
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
 	if (linkStack.length > 0 && linkStack.at(-1).backupTop == backups.length)
