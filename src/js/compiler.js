@@ -972,7 +972,7 @@ function levelsToArray(state) {
     const links = [];
     //const links = {};
     //const targets = new Set();
-    let section, title, description, gotoFlag;
+    let section, title, description, gotoFlag, input;
     
     if (state.levels.at(-1).length == 0)
         state.levels.pop();
@@ -1014,6 +1014,8 @@ function levelsToArray(state) {
 				lineNumber: level[2],
                 object: level[3]
             });
+		} else if (level[0] == 'input') {
+            input = level[1];
 		} else {
             if (gotoFlag && links.length == 0) 
                 logWarning('Level unreachable due to previous GOTO.', level[0]);
@@ -1021,6 +1023,7 @@ function levelsToArray(state) {
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
             levels.at(-1).linksTop = links.length;
+            if (input) levels.at(-1).input = input;
             ++levelNo;
             title = null;
 		}

@@ -480,6 +480,7 @@ function gotoLevel(index) {
 	resetFlickDat();
 	canvasResize();	
 	clearInputHistory();
+	processLevelInput();
 }
   
 function gotoLink() {
@@ -1397,14 +1398,15 @@ function DoRestart(force) {
 	}
 
 	restoreLevel(restartTarget, true);
+	initSmoothCamera();
 	tryPlayRestartSound();
 	document.dispatchEvent(new CustomEvent("psplusLevelRestarted", {detail: curLevelNo}));
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
-  }
+  	}
   
-  twiddleMetadataExtras();
+  	twiddleMetadataExtras();
 	
 	curLevel.commandQueue=[];
 	curLevel.commandQueueSourceRules=[];
@@ -1448,7 +1450,7 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
     var torestore = backups[backups.length-1];
 	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
     restoreLevel(torestore, null, resetTween, resetAutoTick); 
-	updateCameraPositionTarget(); // #157
+	updateCameraPositionTarget();
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
 	if (linkStack.length > 0 && linkStack.at(-1).backupTop == backups.length)
@@ -3131,6 +3133,33 @@ function calculateRowColMasks() {
 var playerPositions;
 var playerPositionsAtTurnStart;
 
+// process inputs specific to level (code copied from testing framework)
+function processLevelInput() {
+	const input = state.levels[curLevelNo].input;
+	if (!input) return;
+	if (verbose_logging)
+		consolePrint(`Processing level input ${input}`);
+	const inputDat = input.split(',');
+	state.levels[curLevelNo].input = null;
+
+	for (const val of inputDat) {
+		if (val==="undo") {
+			DoUndo(false,true);
+		} else if (val==="restart") {
+			DoRestart();
+		} else if (val==="tick") {
+			processInput(-1);
+		} else {
+			processInput(dirNames.indexOf(val));
+		}
+		while (againing) {
+			againing=false;
+			processInput(-1);			
+		}
+	}
+
+}
+
 // acceptable input directions, used here and in inputoutput
 var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'lclick', 'rclick'];  // todo: reaction, mclick
 
@@ -3160,7 +3189,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		newMovedEntities = {};
 	}
 
-	var startDir = dir;
+	//var startDir = dir;
 
 	againing = false;
 
@@ -3815,6 +3844,7 @@ function nextLevel() {
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
+	processLevelInput(); //@@
 }
 
 function loadLevelFromStateOrTarget() {

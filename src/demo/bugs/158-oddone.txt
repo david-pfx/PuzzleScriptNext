@@ -1,0 +1,80 @@
+title repo 
+run_rules_on_level_start
+smoothscreen 5x5
+
+// Move the player to the right into the red zone
+// Hit ESC and then "replay level from the start" in the menu
+// The game restarts but the view immediately scrolls right into the red zone (player is out of view)
+// step right and the view refocusses on the player
+
+verbose_logging
+debug
+debug_switch nada
+
+========
+OBJECTS
+========
+
+Background .
+blue
+
+Player
+black
+
+o
+lightgrey 
+
+1
+grey
+
+2
+red
+
+grid canvas:
+{"beginPath":[]} {"lineWidth":"0.02"}
+{"strokeStyle":"#ffffff"}
+{"rect":[0.05,0.05,0.9,0.9]}
+{"stroke":[]}
+
+=======
+LEGEND
+=======
+
+p = player and o
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background 
+o 1 2
+grid
+player
+
+======
+RULES     
+======  
+
+[ background ] -> [ background grid ]
+
+==============
+WINCONDITIONS
+==============
+
+=======     
+LEVELS
+=======
+
+input right,right,right,right,right,right,restart
+
+111111111111111111111111111
+111111111111111111111111111
+poooooo222222222222oooooooo
+112111111111111111111111111
+111111111111111111111111111
+
+
