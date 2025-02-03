@@ -972,7 +972,7 @@ function levelsToArray(state) {
     const links = [];
     //const links = {};
     //const targets = new Set();
-    let section, title, description, gotoFlag;
+    let section, title, description, gotoFlag, input;
     
     if (state.levels.at(-1).length == 0)
         state.levels.pop();
@@ -1014,6 +1014,8 @@ function levelsToArray(state) {
 				lineNumber: level[2],
                 object: level[3]
             });
+		} else if (level[0] == 'input') {
+            input = level[1];
 		} else {
             if (gotoFlag && links.length == 0) 
                 logWarning('Level unreachable due to previous GOTO.', level[0]);
@@ -1021,6 +1023,7 @@ function levelsToArray(state) {
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
             levels.at(-1).linksTop = links.length;
+            if (input) levels.at(-1).input = input;
             ++levelNo;
             title = null;
 		}
@@ -2891,7 +2894,7 @@ function getMaskFromName(state,name) {
 	}
 
 	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
-		logErrorNoLine("error, didn't find any object called player, either in the objects section, or the legends section. there must be a player!");
+		logErrorNoLine("Error, didn't find any object called player, either in the objects section, or the legends section. There must be a player!");
 	}
 	return objectMask;
 }
@@ -3068,10 +3071,10 @@ function twiddleMetaData(state, update = false) {
 		var validArguments = true
 
 		if (args.length < 1) {
-			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S]')
+			logErrorNoLine(`Smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S].`)
 			validArguments = false
 		} else if (args.length > 4) {
-			logErrorNoLine('smoothscreen given ' + args.length + ' arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]')
+			logErrorNoLine(`Smoothscreen given "${args.length}" arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S].`)
 			validArguments = false
 		}
 
@@ -3098,7 +3101,7 @@ function twiddleMetaData(state, update = false) {
 				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
 			}
 		} else {
-			logErrorNoLine('smoothscreen given first argument ' + args[0] + ' but must be formatted WxH where W and H are integers')
+			logErrorNoLine(`Smoothscreen given first argument "${args[0]}" but must be formatted WxH where W and H are integers.`)
 			validArguments = false
 		}
 
@@ -3108,7 +3111,7 @@ function twiddleMetaData(state, update = false) {
 				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
 				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
 			} else {
-				logErrorNoLine('smoothscreen given second argument ' + args[1] + ' but must be formatted IxJ where I and J are integers')
+				logErrorNoLine(`Smoothscreen given second argument "${args[1]}" but must be formatted IxJ where I and J are integers.`)
 				validArguments = false
 			}
 		}
@@ -3118,7 +3121,7 @@ function twiddleMetaData(state, update = false) {
 			if (cameraSpeedMatch) {
 				smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
 			} else {
-				logErrorNoLine('smoothscreen given third argument ' + args[2] + ' but must be a number')
+				logErrorNoLine(`Smoothscreen given third argument "${args[2]}" but must be a number.`)
 				validArguments = false
 			}
 		}
@@ -3133,11 +3136,12 @@ function twiddleMetaData(state, update = false) {
     if (newmetadata.tween_easing) {
         let easing = newmetadata.tween_easing;
         if (easing) {
-            easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+            easing = (!isNaN(parseInt(easing)) && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+            //easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
             if (EasingFunctions[easing]) 
                 newmetadata.tween_easing = easing;
             else {
-                logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);
+                logErrorNoLine(`Sorry, but tween easing argument "${newmetadata.tween_easing}" is not a valid number or lerp.`);
                 delete newmetadata.tween_easing;
             }
         }
@@ -3147,7 +3151,7 @@ function twiddleMetaData(state, update = false) {
         const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
         if (snap) newmetadata.tween_snap = snap;
         else {
-            logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
+            logErrorNoLine(`Sorry, but tween snap argument "${newmetadata.tween_snap}" is not a valid number.`);
             delete newmetadata.tween_snap;
         }
     }
@@ -3576,7 +3580,12 @@ function generateSoundData(state) {
 
 
 function formatHomePage(state) {
-    // twiddle metadata has already made sure the defaults are correct
+    // twiddle metadata doesn't set these
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
         if ('background_color' in state.metadata) {

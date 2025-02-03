@@ -1,0 +1,351 @@
+Title Turn to stone
+author clickmazes
+homepage https://clickmazes.itch.io
+again_interval 0.1
+sprite_size 15
+runtime_metadata_twiddling
+background_color #25272a
+text_color green
+run_rules_on_level_start
+
+=====
+TAGS
+=====
+
+_X = _1 _2 _3 _4
+
+========
+OBJECTS
+========
+
+(https://lospec.com/palette-list/painted-parchment-9
+#dda963 - light tan
+#c9814b - tan
+#25272a - dark
+#dbc1af - cream
+#cf6a4f - soft brick red 
+#e0b94a - mustard yellow 
+#b2af5c - light mossy green
+#a7a79e - silver
+#9b6970 - soft plum)
+
+Background .
+#25272a
+
+void & 
+#a7a79e
+
+stone:_1 
+#cf6a4f
+
+stone:_2 
+#c9814b
+
+stone:_3 
+#dda963
+
+stone:_4 
+#b2af5c
+
+sand:_1 1
+#cf6a4f transparent transparent
+222222222222222
+211.1.1.1.1.112
+21...........12
+2..0.0.0.0.0..2
+21...........12
+2..0.0.0.0.0..2
+21...........12
+2..0.0.0.0.0..2
+21...........12
+2..0.0.0.0.0..2
+21...........12.
+2..0.0.0.0.0..2
+21...........12
+211.1.1.1.1.112
+222222222222222
+
+sand:_2 2
+#c9814b transparent transparent
+copy: sand:_1
+
+sand:_3 3
+#dda963 transparent transparent
+copy: sand:_1
+
+sand:_4 4
+#b2af5c transparent transparent
+copy: sand:_1
+
+flip !
+transparent #9b6970 transparent
+copy: sand:_1
+
+box
+transparent transparent #25272a
+copy: sand:_1
+
+player:directions
+#dbc1af transparent transparent
+....00...00....
+.111.0...0.111.
+.1...0...0...1.
+.1.000000000.1.
+...0.......0.2.
+...0.......0.2.
+...0.......0.2.
+.220.......022.
+.2.0.......0...
+.2.0.......0...
+.2.0.......0...
+.1.000000000.1.
+.1...........1.
+.111.......111.
+...............
+rot:up:>
+
+dark:directions 
+#25272a transparent  transparent
+copy: player:directions
+
+key1 (key in sand) 
+transparent #dbc1af transparent
+copy: player:up
+
+key2 (key in stone)
+transparent #25272a transparent
+copy: player:up
+
+edge:directions
+#9b6970 transparent
+1111...........
+11.............
+1..............
+1..............
+...............
+...............
+...............
+...............
+...............
+...............
+...............
+0.............0
+0.0.0.0.0.0.0.0
+000000000000000
+000000000000000
+rot:up:>
+
+corner:directions
+transparent #9b6970
+copy: edge:directions
+
+rot1
+transparent
+
+rot2
+transparent
+
+rot3
+transparent
+
+rot4
+transparent
+
+rot5
+transparent
+
+lock
+transparent
+
+fall
+transparent
+
+score ?
+transparent
+
+track:_X
+transparent
+
+thanks canvas:6,1
+{"beginPath":[]}
+{"font":"0.6px Arial"} 
+{"fillStyle":"#dbc1af"} 
+{"fillText":["Thanks for playing!",0.5,0.6]}
+
+tick t canvas:
+{"beginPath":[]}
+{"font":"0.7px serif"} 
+{"textAlign":"center"} 
+{"fillStyle":"#25272a"} 
+{"fillText":["\u2713",0.5,0.76]}
+
+=======
+LEGEND
+=======
+
+i = player:down and sand:_1
+j = player:down and sand:_2
+k = player:down and sand:_3
+l = player:down and sand:_4
+
+(only suitable for CC-2024 puzzle)
+(assumes 4 zones & 2 colours)
+5 = sand:_2 and track:_1
+6 = sand:_3 and track:_2
+7 = sand:_2 and track:_3
+8 = sand:_3 and track:_4
+
+b = key1 and sand:_1
+c = key1 and sand:_2
+d = key1 and sand:_3
+e = key1 and sand:_4
+
+player = player:directions
+darkX  = dark:directions
+edgeX  = edge:directions
+
+sandX  = sand:_X
+stoneX = stone:_X
+obj = sandX or stoneX
+keyX   = key1 or key2
+rotX   = rot1 or rot2 or rot3 or rot4 or rot5
+
+=======
+SOUNDS
+=======
+
+sfx0 86029103 (rotate)
+sfx1 97033907 (bump)
+sfx2 83506506 (engage)
+sfx3 56529103 (win)
+
+================
+COLLISIONLAYERS
+================
+
+Background
+rotX 
+lock 
+sandX stoneX void edge:directions corner:directions score
+track:_X
+flip
+keyX box
+player 
+darkX
+fall
+tick
+---
+thanks
+
+======
+RULES
+======
+
+(init)
+late right [?||||] -> [?|box|box|box|box]
+down  [ sandX | void ] -> [ sandX | edge:down  ]
+up    [ sandX | void ] -> [ sandX | edge:up    ]
+right [ sandX | void ] -> [ sandX | edge:right ]
+left  [ sandX | void ] -> [ sandX | edge:left  ]
+right [ void | edge:up   | ... | void ] -> [ corner:down  | edge:up   | ... | corner:left ]
+right [ void | edge:down | ... | void ] -> [ corner:right | edge:down | ... | corner:up ]
+
+[ no rotX stationary player:> sandX | sandX ]   -> [ > player:> sandX | sandX ]
+[ no rotX stationary player:> stoneX | stoneX ] -> [ > player:> stoneX | stoneX ]
+
+[ > player | edgeX ] -> [ stationary player | edgeX ] sfx1
+[ > player sandX | stoneX ] -> [ player sandX | stoneX ] sfx1 
+[ > player stoneX | sandX ] -> [ player stoneX | sandX ] sfx1 
+[stationary player][fall] -> [player][] sfx1
+
+[ player darkX ] -> [ player ]
+
+( === engine applies movement === )
+
+(rotation animation)
+(step5 - lock the key cell until the player moves away)
+late [ rot5 keyX player ] -> [ keyX lock player ]
+late [ rot5 ] -> [] (edge case)
+(step4 - flip)
+late _X [rot4] [ stone:_X flip ] -> [rot4][ sand:_X ]
+late _X [rot4] [ sand:_X flip ]  -> [rot4][ stone:_X ]
+late [rot4] -> [rot5]
+(step3 - identify all matching/connected cells)
+late _X [rot3] [ flip sand:_X  | no flip sand:_X ]  -> [rot3] [ flip sand:_X  | flip sand:_X ]
+late _X [rot3] [ flip stone:_X | no flip stone:_X ] -> [rot3] [ flip stone:_X | flip stone:_X ]
+late [rot3] -> [rot4]
+(step2 - switch path/wall below player)
+late _X [ rot2 player:> | sand:_X ]  -> [ rot3 player:> | sand:_X  flip ] 
+late _X [ rot2 player:> | stone:_X ] -> [ rot3 player:> | stone:_X flip ] 
+late _X [ rot2 player:> ]            -> [ rot5 player:> ] (edge)
+(step1 - rotate player) 
+late _X [ rot1 player:> ] -> [ rot2 player:v ] sfx0
+(start rotation animation)
+late [ player:> keyX no lock ] -> [ player:> keyX rot1 lock ] sfx2
+late [rot1][ fall ] -> [rot1][]
+
+(detect falling)
+late [ no rotX player:> sandX  | sandX ]  -> [ player:> sandX fall | sandX ]
+late [ no rotX player:> stoneX | stoneX ] -> [ player:> stoneX fall | stoneX ]
+(adjust colours)
+late [ player:> stoneX no darkX ] -> [ player:> dark:> stoneX ]
+late [ key1 stoneX ] -> [ key2 stoneX ]
+late [ key2 sandX ]  -> [ key1 sandX ]
+(unlock last used key)
+late [ keyX lock no player ] -> [ keyX ]
+
+(update progress bar)
+late [tick] ->[]
+late right [?||||] [track:_1 obj] -> [?|obj|||] [track:_1 obj]
+late right [?||||] [track:_2 obj] -> [?||obj||] [track:_2 obj]
+late right [?||||] [track:_3 obj] -> [?|||obj|] [track:_3 obj]
+late right [?||||] [track:_4 obj] -> [?||||obj] [track:_4 obj]
+late right [ ? |...| stoneX ] -> [ ? |...| stoneX tick ]
+(detect win)
+late [player no fall no rotX][|?|stoneX|stoneX|stoneX|stoneX] -> [player][|thanks||||] sfx3
+
+(rotate animation is slower than falling)
+late [ fall ] -> [ fall ] again again_interval 0.05
+late [ rotX ] -> [ rotX ] again again_interval 0.2 
+
+==============
+WINCONDITIONS
+==============
+
+=======
+LEVELS
+=======
+
+Message Turn all sand to stone
+
+&&&&&&&&&&
+&222222c2&
+&2333d332&
+&c3222232&
+&232d323c&
+&2d283232&
+&23722c32&
+&263d3332&
+&522222j2&
+&&&&&&&&&&
+..?.......
+
+(smaller / harder / huge state space / but less thinky
+&&&&&&&&
+&3111c2&
+&3d1223&
+&433c33&
+&e4144d&
+&41b244&
+&1122j4&
+&&&&&&&&)
+
+(test 
+&&&&&&&&&&
+&26383222&
+&237222d2&
+&c633d33c&
+&522c22j2&
+&&&&&&&&&&
+..?.......)
+

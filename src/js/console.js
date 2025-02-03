@@ -176,19 +176,23 @@ function clearConsole() {
 	diffToVisualize=null;
 }
 
-var clearConsoleClick = document.getElementById("clearConsoleClick");
-clearConsoleClick.addEventListener("click", clearConsole, false);
-clearConsoleClick.addEventListener("click", clearConsole, false);
+function onClearConsole(event) {
+	clearConsole();
+	prevent(event);
+	canvas.focus();
+}
 
-function verboseToggle() {
+document.getElementById("clearConsoleClick").addEventListener("mousedown", clearConsole, false);
+
+function verboseToggle(event) {
 	defaultVerboseLogging = !defaultVerboseLogging;
 	consolePrint(`Default verbose logging is now ${defaultVerboseLogging ? 'ENABLED' : 'DISABLED'}`, true);
 	verbose_logging = cache_console_messages = defaultVerboseLogging;
+	prevent(event);
+	canvas.focus();
 }
 
-const verboseLoggingClick = document.getElementById("verboseLoggingClick");
-verboseLoggingClick.addEventListener("click", verboseToggle, false);
-verboseLoggingClick.addEventListener("click", verboseToggle, false);
+document.getElementById("verboseLoggingClick").addEventListener("mousedown", verboseToggle, false);
 
 function debugToggle() {
 	defaultDebugMode = !defaultDebugMode;
@@ -197,7 +201,6 @@ function debugToggle() {
 }
 
 const debugLoggingClick = document.getElementById("debugLoggingClick");
-debugLoggingClick.addEventListener("click", debugToggle, false);
 debugLoggingClick.addEventListener("click", debugToggle, false);
 
 function showLayersToggle() {
@@ -209,14 +212,12 @@ function showLayersToggle() {
 
 const showLayersClick = document.getElementById("showLayersClick");
 showLayersClick.addEventListener("click", showLayersToggle, false);
-showLayersClick.addEventListener("click", showLayersToggle, false);
 
 function callRunClick() {
 	runClick();
 }
 
 const runProgramClick = document.getElementById("runProgramClick");
-runProgramClick.addEventListener("click", callRunClick, false);
 runProgramClick.addEventListener("click", callRunClick, false);
 
 function callMakeGifClick() {
@@ -228,7 +229,6 @@ function callMakeGifClick() {
 
 const makeGifClick = document.getElementById("makeGifClick");
 makeGifClick.addEventListener("click", callMakeGifClick, false);
-makeGifClick.addEventListener("click", callMakeGifClick, false);
 
 function callGotoLevelAllClick() {
 	if (!textMode) {
@@ -238,5 +238,4 @@ function callGotoLevelAllClick() {
 }
 
 const gotoLevelAllClick = document.getElementById("gotoLevelAllClick");
-gotoLevelAllClick.addEventListener("click", callGotoLevelAllClick, false);
 gotoLevelAllClick.addEventListener("click", callGotoLevelAllClick, false);
