@@ -8275,7 +8275,7 @@ function goToPauseScreen() {
 	textMode = true;
 	if (againing)
 		DoUndo(true, false);
-    againing = false;//@@
+    againing = false;
 	messagetext = "";
 
 	generatePauseScreen();
@@ -8494,6 +8494,7 @@ function gotoLevel(index) {
 	resetFlickDat();
 	canvasResize();	
 	clearInputHistory();
+	processLevelInput();
 }
   
 function gotoLink() {
@@ -9238,7 +9239,7 @@ function unconsolidateDiff(before,after) {
 }
 
 function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) {
-	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev);
+	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev, snapCamera, resetTween, resetAutoTick);
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
@@ -9411,14 +9412,15 @@ function DoRestart(force) {
 	}
 
 	restoreLevel(restartTarget, true);
+	initSmoothCamera();
 	tryPlayRestartSound();
 	document.dispatchEvent(new CustomEvent("psplusLevelRestarted", {detail: curLevelNo}));
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
-  }
+  	}
   
-  twiddleMetadataExtras();
+  	twiddleMetadataExtras();
 	
 	curLevel.commandQueue=[];
 	curLevel.commandQueueSourceRules=[];
@@ -9461,7 +9463,8 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
 	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
-    restoreLevel(torestore, null, resetTween, resetAutoTick);
+    restoreLevel(torestore, null, resetTween, resetAutoTick); 
+	updateCameraPositionTarget();
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
 	if (linkStack.length > 0 && linkStack.at(-1).backupTop == backups.length)
@@ -11144,6 +11147,33 @@ function calculateRowColMasks() {
 var playerPositions;
 var playerPositionsAtTurnStart;
 
+// process inputs specific to level (code copied from testing framework)
+function processLevelInput() {
+	const input = state.levels[curLevelNo].input;
+	if (!input) return;
+	if (verbose_logging)
+		consolePrint(`Processing level input ${input}`);
+	const inputDat = input.split(',');
+	state.levels[curLevelNo].input = null;
+
+	for (const val of inputDat) {
+		if (val==="undo") {
+			DoUndo(false,true);
+		} else if (val==="restart") {
+			DoRestart();
+		} else if (val==="tick") {
+			processInput(-1);
+		} else {
+			processInput(dirNames.indexOf(val));
+		}
+		while (againing) {
+			againing=false;
+			processInput(-1);			
+		}
+	}
+
+}
+
 // acceptable input directions, used here and in inputoutput
 var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'lclick', 'rclick'];  // todo: reaction, mclick
 
@@ -11173,7 +11203,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		newMovedEntities = {};
 	}
 
-	var startDir = dir;
+	//var startDir = dir;
 
 	againing = false;
 
@@ -11828,6 +11858,7 @@ function nextLevel() {
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
+	processLevelInput(); //@@
 }
 
 function loadLevelFromStateOrTarget() {
@@ -13762,7 +13793,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(goto|level|link|message|section|title)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(goto|level|link|message|section|title|input)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${errorCase(token)}_VERB`);
 
@@ -13811,7 +13842,7 @@ var codeMirrorFn = function() {
                 state.levels.pop();
                 toplevel = null;
             }
-            const cmds = [ 'goto', 'level', 'link', 'message', 'section', 'title', ];
+            const cmds = [ 'goto', 'level', 'link', 'message', 'section', 'title', 'input' ];
             if (cmds.includes(symbols.start))
                 state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
             else {
@@ -15223,7 +15254,7 @@ function levelsToArray(state) {
     const links = [];
     //const links = {};
     //const targets = new Set();
-    let section, title, description, gotoFlag;
+    let section, title, description, gotoFlag, input;
     
     if (state.levels.at(-1).length == 0)
         state.levels.pop();
@@ -15265,6 +15296,8 @@ function levelsToArray(state) {
 				lineNumber: level[2],
                 object: level[3]
             });
+		} else if (level[0] == 'input') {
+            input = level[1];
 		} else {
             if (gotoFlag && links.length == 0) 
                 logWarning('Level unreachable due to previous GOTO.', level[0]);
@@ -15272,6 +15305,7 @@ function levelsToArray(state) {
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
             levels.at(-1).linksTop = links.length;
+            if (input) levels.at(-1).input = input;
             ++levelNo;
             title = null;
 		}
@@ -17142,7 +17176,7 @@ function getMaskFromName(state,name) {
 	}
 
 	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
-		logErrorNoLine("error, didn't find any object called player, either in the objects section, or the legends section. there must be a player!");
+		logErrorNoLine("Error, didn't find any object called player, either in the objects section, or the legends section. There must be a player!");
 	}
 	return objectMask;
 }
@@ -17319,10 +17353,10 @@ function twiddleMetaData(state, update = false) {
 		var validArguments = true
 
 		if (args.length < 1) {
-			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S]')
+			logErrorNoLine(`Smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S].`)
 			validArguments = false
 		} else if (args.length > 4) {
-			logErrorNoLine('smoothscreen given ' + args.length + ' arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]')
+			logErrorNoLine(`Smoothscreen given "${args.length}" arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S].`)
 			validArguments = false
 		}
 
@@ -17349,7 +17383,7 @@ function twiddleMetaData(state, update = false) {
 				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
 			}
 		} else {
-			logErrorNoLine('smoothscreen given first argument ' + args[0] + ' but must be formatted WxH where W and H are integers')
+			logErrorNoLine(`Smoothscreen given first argument "${args[0]}" but must be formatted WxH where W and H are integers.`)
 			validArguments = false
 		}
 
@@ -17359,7 +17393,7 @@ function twiddleMetaData(state, update = false) {
 				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
 				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
 			} else {
-				logErrorNoLine('smoothscreen given second argument ' + args[1] + ' but must be formatted IxJ where I and J are integers')
+				logErrorNoLine(`Smoothscreen given second argument "${args[1]}" but must be formatted IxJ where I and J are integers.`)
 				validArguments = false
 			}
 		}
@@ -17369,7 +17403,7 @@ function twiddleMetaData(state, update = false) {
 			if (cameraSpeedMatch) {
 				smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
 			} else {
-				logErrorNoLine('smoothscreen given third argument ' + args[2] + ' but must be a number')
+				logErrorNoLine(`Smoothscreen given third argument "${args[2]}" but must be a number.`)
 				validArguments = false
 			}
 		}
@@ -17384,11 +17418,12 @@ function twiddleMetaData(state, update = false) {
     if (newmetadata.tween_easing) {
         let easing = newmetadata.tween_easing;
         if (easing) {
-            easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+            easing = (!isNaN(parseInt(easing)) && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+            //easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
             if (EasingFunctions[easing]) 
                 newmetadata.tween_easing = easing;
             else {
-                logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);
+                logErrorNoLine(`Sorry, but tween easing argument "${newmetadata.tween_easing}" is not a valid number or lerp.`);
                 delete newmetadata.tween_easing;
             }
         }
@@ -17398,7 +17433,7 @@ function twiddleMetaData(state, update = false) {
         const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
         if (snap) newmetadata.tween_snap = snap;
         else {
-            logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
+            logErrorNoLine(`Sorry, but tween snap argument "${newmetadata.tween_snap}" is not a valid number.`);
             delete newmetadata.tween_snap;
         }
     }
@@ -17827,7 +17862,12 @@ function generateSoundData(state) {
 
 
 function formatHomePage(state) {
-    // twiddle metadata has already made sure the defaults are correct
+    // twiddle metadata doesn't set these
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
         if ('background_color' in state.metadata) {

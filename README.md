@@ -15,16 +15,21 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25a08. 
+The latest version is Release v-25b03. 
 
 Recent fixes/updates:
+* Fix issues with error checking of numeric settings
+* Fix smoothscreen multi-undo does not track the player #157
+* Fix smoothscreen and canvas sprites oddity #158
+* Fix background colour not applied to header/footer #159
+* Reset focus after click verbose logging
+
+Older fixes/updates:
 * Implement text colours for non custom font #146
 * Fix clip region for smoothscreen #148
 * Fix gosub stacked returns #147
 * Fix save/restore twiddle on checkpoint #73
 * Fix default colours for twiddling (exposed by #146)
-
-Older fixes/updates:
 * Pause (Esc) during again sequence does not resume correctly #140
 * Level select Enter on last line scrolls and selects the next line down #142
 * Bug when undoing a restart into an again loop (PS) #141
