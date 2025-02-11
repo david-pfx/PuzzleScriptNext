@@ -3267,11 +3267,7 @@ function cacheRuleStringRep(rule) {
 	}
 	for (var i=0;i<rule.commands.length;i++) {
 		var command = rule.commands[i];
-		if (command.length===1) {
-			result = result +command[0].toString();
-		} else {
-			result = result + '('+command[0].toString()+", "+command[1].toString()+') ';			
-		}
+        result += (command.length == 1) ? ` ${command[0]}` : ` ${command[0]}(${command[1]})`;
 	}
 	//print commands next
 	rule.stringRep=result;
@@ -3300,20 +3296,15 @@ function printRules(state) {
               subroutine = state.subroutines[++subroutineIndex]) {
             subrtext += `SUBROUTINE ${subroutine.label}<br>`;
         }
-        if (loopIndex < state.loops.length) {
-            if (state.loops[loopIndex][0] < rule.lineNumber) {
-                output += subrtext + "STARTLOOP<br>";
-                subrtext = '';
-                loopIndex++;
-                if (loopIndex < state.loops.length) { // don't die with mismatched loops
-                    loopEnd = state.loops[loopIndex][0];
-                    loopIndex++;
-                }
-            }
-        }
-        if (loopEnd !== -1 && loopEnd < rule.lineNumber) {
-            output += "ENDLOOP<br>";
-            loopEnd = -1;
+        while (loopIndex < state.loops.length) {
+            const loop = state.loops[loopIndex];
+            if (loop[0] < rule.lineNumber) {
+                if (loop[1] == 1) {
+                    output += subrtext + "STARTLOOP<br>";
+                    subrtext = '';
+                } else output += "ENDLOOP<br>";
+            } else break;
+            loopIndex++;
         }
         output += subrtext;
         if (rule.hasOwnProperty('discard')) {
@@ -3328,11 +3319,10 @@ function printRules(state) {
             output += rule.stringRep + "<br>";
         }
     }
-    if (loopEnd !== -1) { // no more rules after loop end
+    if (loopIndex < state.loops.length)
         output += "ENDLOOP<br>";
-    }
-    output += "===========<br>";
-    output = "<br>Rule Assembly : (" + (state.rules.length - discardcount) + " rules)<br>===========<br>" + output;
+    output += "=============<br>";
+    output = "<br>Rule Assembly : (" + (state.rules.length - discardcount) + " rules)<br>=============<br>" + output;
     consolePrint(output);
 }
 
@@ -3404,7 +3394,7 @@ function generateLoopPoints(state) {
                     break;
                 }
             } else {
-                if (firstRuleLine >= loop[0]) {
+                if (firstRuleLine >= loop[0]) {     //@@
                     source = i - 1;
                     loopPoint[source] = target;
                     outside = true;
@@ -3686,6 +3676,8 @@ function loadFile(str) {
 	generateExtraMembersPart2(state);
 
 	generateLoopPoints(state);
+    if (debugSwitch.includes('rules')) console.log('Loop Points', state.loopPoint);
+    if (debugSwitch.includes('rules')) console.log('Late Loop Points', state.lateLoopPoint);
 
     fixUpGosubs(state.rules, state.subroutines);
     fixUpGosubs(state.lateRules, state.subroutines);

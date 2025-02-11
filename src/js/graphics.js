@@ -475,6 +475,7 @@ function redrawCellGrid(curlevel) {
         curlevel.movements = diffToVisualize.movements;
         curlevel.rigidMovementAppliedMask = diffToVisualize.rigidMovementAppliedMask;
     }
+    ctx.restore();
     ctx.fillStyle = state.bgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -901,7 +902,7 @@ function drawSmoothScreenDebug(ctx) {
             cellwidth / 4,
             0, 2* Math.PI
         );
-        ctx.fill()
+        ctx.fill();
     }
 
     var targetOffsetX = cameraPositionTarget.x - cameraPosition.x;
@@ -915,7 +916,7 @@ function drawSmoothScreenDebug(ctx) {
         cellwidth / 8,
         0, 2* Math.PI
     );
-    ctx.fill()
+    ctx.fill();
 
     ctx.strokeStyle = '#0000ff';
     ctx.lineWidth = cellwidth / 16;
@@ -934,7 +935,7 @@ function drawSmoothScreenDebug(ctx) {
         cellwidth / 4,
         0, 2* Math.PI
     );
-    ctx.fill()
+    ctx.fill();
 
     ctx.strokeStyle = '#ff0000';
     ctx.lineWidth = cellwidth / 8;
@@ -945,7 +946,7 @@ function drawSmoothScreenDebug(ctx) {
         boundarySize.height * cellheight
     );
 
-    ctx.restore()
+    ctx.restore();
 }
 
 function setClip(tween) {

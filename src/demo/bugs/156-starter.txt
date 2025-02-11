@@ -1,0 +1,112 @@
+title PuzzleScriptNext Starter
+author davidus
+homepage www.polyomino.com
+
+// Welcome to PuzzleScript Next, the home of the most advanced PuzzleScript features!
+
+// This is the starting point for advanced users who love PuzzleScript and want more!
+// It shows a few of the many new features added to the original PuzzleScript, building 
+// on the work of PuzzleScript Plus, Pattern:Script and others.
+
+// See how you can use // comments instead of () if you prefer, or you can mix them.
+
+// For more information, don't forget to check out the fully merged documentation, 
+// the examples in the dropdown and the gallery.
+
+// This program can be found in next/starter.txt.
+
+tween_length 0.03
+smoothscreen 5x5
+level_select
+runtime_metadata_twiddling
+text_controls Don't forget to try the Examples\nand the Action key and Escape for Level Select!
+
+verbose_logging
+
+========
+OBJECTS
+========
+
+Background 
+LIGHTGRAY GRAY
+00010
+11111
+01000
+11111
+00010
+
+Wall copy:Background
+DARKGRAY BLACK
+
+Target; #0f0
+Player; #00f8
+Crate; orange
+xpoint; white
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+x = xpoint
+=======
+SOUNDS
+=======
+
+player cantmove 85101706
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target, xpoint
+Player, Wall, Crate
+
+======
+RULES
+======
+late [ Player xpoint ] -> [ Player xpoint ] checkpoint message Checkpoint!
+[ >  Player | Crate ] -> [  >  Player | > Crate  ]
+[action Player] -> background_color #ff4400ff
+
+==============
+WINCONDITIONS
+==============
+
+all Target on Crate
+
+=======
+LEVELS
+=======
+
+section Level 1
+#########
+#x......#
+#.....@.#
+#.P.*.O.#
+#.......#
+#.......#
+#########
+
+section Level 2
+#########
+#.......#
+#x.o....#
+#.o...*.#
+#....*p##
+#.....###
+#########
+
+section Level 3
+#########
+#.......#
+##..o.#.#
+#x*.p.*.#
+#.#.o.#.#
+#.......#
+#########

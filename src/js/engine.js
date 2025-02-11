@@ -692,7 +692,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
+			consolePrint(`Loading "${leveldat.section || leveldat.title}" (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -742,6 +742,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
 	if (debugSwitch.includes('load')) console.log(`loadLevelFromStateTarget(${levelindex},${target})`);
     var leveldat = target;    
+	if (verbose_logging)
+		consolePrint(`Returning to checkpoint in "${state.levels[levelindex].section || state.levels[levelindex].title}".`); //@@
   	curLevelNo=levelindex;
   	curlevelTarget=target;
     if (leveldat.message===undefined) {
@@ -2797,6 +2799,7 @@ Rule.prototype.queueCommands = function() {
 					log += " ("+command[1]+")"
 				}
 				consolePrintFromRule(log,this,true);
+				canvasResize();
 			}
     	}   
   	}
