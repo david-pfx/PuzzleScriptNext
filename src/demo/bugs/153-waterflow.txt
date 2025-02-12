@@ -1,0 +1,94 @@
+title Waterflow
+author Lala_yqz
+
+debug
+verbose_logging
+debug_switch rules
+
+// A loop for late rules AND a subroutine stops the main loop from working #153
+// the main loop (the loop without late rules) does not loop.
+========
+OBJECTS
+========
+
+background 
+GREEN     
+
+wall
+brown
+
+water 
+blue
+
+player
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+whatever
+transparent
+
+=======
+LEGEND
+=======
+
+. = background
+# = wall
+w = water
+p = player
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+background
+wall, water
+player
+whatever
+
+======
+RULES     
+======     
+
+(Putting the late loop here fixes the problem.)
+
+startloop
+  up [water | no wall] -> [water | water]
+  right [water | no wall] -> [water | water]
+  down [water | no wall] -> [water | water]
+  left [water | no wall] -> [water | water]
+endloop
+
+(Or, removing this late loop fixes the problem.)
+startloop
+  late [whatever] -> [ ]
+endloop
+
+
+(Or, removing this subroutine fixes the problem.)
+subroutine test
+ [whatever] -> [ ]  // Or, putting a "late" before this rule fixes the problem.
+
+==============
+WINCONDITIONS
+==============
+
+=======     
+LEVELS
+=======
+
+p..#############
+...####.....####
+...####.###.####
+...####.###.####
+...####.###.####
+...####.###.####
+...#w...###....#
+...#############

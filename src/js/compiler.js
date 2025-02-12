@@ -3396,7 +3396,9 @@ function generateLoopPoints(state) {
             } else {
                 if (firstRuleLine >= loop[0]) {     //@@
                     source = i - 1;
-                    loopPoint[source] = target;
+                    // this test can fail if there are no rules between startloop and endloop, either way
+                    if (source >= target)
+                        loopPoint[source] = target;
                     outside = true;
                     break;
                 }
