@@ -7206,7 +7206,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (debugSwitch.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
+    if (debugSwitch.includes('redraw')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -7268,6 +7268,7 @@ function redrawCellGrid(curlevel) {
         curlevel.movements = diffToVisualize.movements;
         curlevel.rigidMovementAppliedMask = diffToVisualize.rigidMovementAppliedMask;
     }
+    ctx.restore();
     ctx.fillStyle = state.bgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -7694,7 +7695,7 @@ function drawSmoothScreenDebug(ctx) {
             cellwidth / 4,
             0, 2* Math.PI
         );
-        ctx.fill()
+        ctx.fill();
     }
 
     var targetOffsetX = cameraPositionTarget.x - cameraPosition.x;
@@ -7708,7 +7709,7 @@ function drawSmoothScreenDebug(ctx) {
         cellwidth / 8,
         0, 2* Math.PI
     );
-    ctx.fill()
+    ctx.fill();
 
     ctx.strokeStyle = '#0000ff';
     ctx.lineWidth = cellwidth / 16;
@@ -7727,7 +7728,7 @@ function drawSmoothScreenDebug(ctx) {
         cellwidth / 4,
         0, 2* Math.PI
     );
-    ctx.fill()
+    ctx.fill();
 
     ctx.strokeStyle = '#ff0000';
     ctx.lineWidth = cellwidth / 8;
@@ -7738,7 +7739,7 @@ function drawSmoothScreenDebug(ctx) {
         boundarySize.height * cellheight
     );
 
-    ctx.restore()
+    ctx.restore();
 }
 
 function setClip(tween) {
@@ -8706,7 +8707,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
+			consolePrint(`Loading "${leveldat.section || leveldat.title}" (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -8756,6 +8757,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
 	if (debugSwitch.includes('load')) console.log(`loadLevelFromStateTarget(${levelindex},${target})`);
     var leveldat = target;    
+	if (verbose_logging)
+		consolePrint(`Returning to checkpoint in "${state.levels[levelindex].section || state.levels[levelindex].title}".`); 
   	curLevelNo=levelindex;
   	curlevelTarget=target;
     if (leveldat.message===undefined) {
@@ -10632,12 +10635,13 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
             currentIndex += delta;
         }
     }
+	perfCounters.applied++;
 
-  if (verbose_logging && result){
-    var ruleDirection = dirMaskName[rule.direction];
-    if (!rule.directional()){
-      ruleDirection="";
-    }
+  	if (verbose_logging && result){
+    	var ruleDirection = dirMaskName[rule.direction];
+    	if (!rule.directional()){
+      		ruleDirection="";
+    	}
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
 		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
@@ -10667,9 +10671,8 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 		
 		var logString = `<font color="green">Rule <a onclick="jumpToLine(${rule.lineNumber});"  href="javascript:void(0);">${rule.lineNumber}</a> ${ruleDirection} applied${gapMessage}.</font>`;
 		consolePrint(logString,false,rule.lineNumber,inspect_ID);
-		
 	}
-
+	if (perfCounters.applied % 100 == 0) console.log(`Applied ${perfCounters.applied} rules in ${Date.now() - perfCounters.start}ms.`);		
     return result;
 };
 
@@ -10811,6 +10814,7 @@ Rule.prototype.queueCommands = function() {
 					log += " ("+command[1]+")"
 				}
 				consolePrintFromRule(log,this,true);
+				canvasResize();
 			}
     	}   
   	}
@@ -11189,13 +11193,17 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		matches: 0,
 		replaces: 0,
 		replaced: 0,
+		applied: 0,
 		commands: 0,
 		randoms : 0,
 		groups: 0,
 		tries: 0,		
 	}
+	if (debugSwitch.includes('profile')) console.profile('INP');
 	const ret = procInp(dir, dontDoWin, dontModify, bak, coord);
+	if (debugSwitch.includes('profile')) console.profileEnd('INP');
 	perfCounters.elapsed = Date.now() - perfCounters.start;
+	if (debugSwitch.includes('perf')) console.log(perfCounters);
 	return ret;
 }
 function procInp(dir,dontDoWin,dontModify,bak,coord) {
@@ -11858,7 +11866,7 @@ function nextLevel() {
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
-	processLevelInput(); //@@
+	processLevelInput(); 
 }
 
 function loadLevelFromStateOrTarget() {
@@ -15892,7 +15900,7 @@ function expandRuleWithTags(state, rule) {
     rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
         row.forEach((cell, cellx) => {     // between bars [ | ]
             cell.forEach((atom, atomx) => {
-                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
+                if (atomx % 2 == 1 && cell[atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
                     todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
                 }
             });
@@ -17549,11 +17557,7 @@ function cacheRuleStringRep(rule) {
 	}
 	for (var i=0;i<rule.commands.length;i++) {
 		var command = rule.commands[i];
-		if (command.length===1) {
-			result = result +command[0].toString();
-		} else {
-			result = result + '('+command[0].toString()+", "+command[1].toString()+') ';			
-		}
+        result += (command.length == 1) ? ` ${command[0]}` : ` ${command[0]}(${command[1]})`;
 	}
 	//print commands next
 	rule.stringRep=result;
@@ -17582,20 +17586,15 @@ function printRules(state) {
               subroutine = state.subroutines[++subroutineIndex]) {
             subrtext += `SUBROUTINE ${subroutine.label}<br>`;
         }
-        if (loopIndex < state.loops.length) {
-            if (state.loops[loopIndex][0] < rule.lineNumber) {
-                output += subrtext + "STARTLOOP<br>";
-                subrtext = '';
-                loopIndex++;
-                if (loopIndex < state.loops.length) { // don't die with mismatched loops
-                    loopEnd = state.loops[loopIndex][0];
-                    loopIndex++;
-                }
-            }
-        }
-        if (loopEnd !== -1 && loopEnd < rule.lineNumber) {
-            output += "ENDLOOP<br>";
-            loopEnd = -1;
+        while (loopIndex < state.loops.length) {
+            const loop = state.loops[loopIndex];
+            if (loop[0] < rule.lineNumber) {
+                if (loop[1] == 1) {
+                    output += subrtext + "STARTLOOP<br>";
+                    subrtext = '';
+                } else output += "ENDLOOP<br>";
+            } else break;
+            loopIndex++;
         }
         output += subrtext;
         if (rule.hasOwnProperty('discard')) {
@@ -17610,11 +17609,10 @@ function printRules(state) {
             output += rule.stringRep + "<br>";
         }
     }
-    if (loopEnd !== -1) { // no more rules after loop end
+    if (loopIndex < state.loops.length)
         output += "ENDLOOP<br>";
-    }
-    output += "===========<br>";
-    output = "<br>Rule Assembly : (" + (state.rules.length - discardcount) + " rules)<br>===========<br>" + output;
+    output += "=============<br>";
+    output = "<br>Rule Assembly : (" + (state.rules.length - discardcount) + " rules)<br>=============<br>" + output;
     consolePrint(output);
 }
 
@@ -17686,9 +17684,11 @@ function generateLoopPoints(state) {
                     break;
                 }
             } else {
-                if (firstRuleLine >= loop[0]) {
+                if (firstRuleLine >= loop[0]) {     //@@
                     source = i - 1;
-                    loopPoint[source] = target;
+                    // this test can fail if there are no rules between startloop and endloop, either way
+                    if (source >= target)
+                        loopPoint[source] = target;
                     outside = true;
                     break;
                 }
@@ -17968,6 +17968,8 @@ function loadFile(str) {
 	generateExtraMembersPart2(state);
 
 	generateLoopPoints(state);
+    if (debugSwitch.includes('rules')) console.log('Loop Points', state.loopPoint);
+    if (debugSwitch.includes('rules')) console.log('Late Loop Points', state.lateLoopPoint);
 
     fixUpGosubs(state.rules, state.subroutines);
     fixUpGosubs(state.lateRules, state.subroutines);
