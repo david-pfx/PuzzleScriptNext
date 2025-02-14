@@ -1,0 +1,79 @@
+title test min
+author polyomino
+homepage www.polyomino.com
+
+( minimal program as base for tests, PS compat )
+
+verbose_logging
+debug
+========
+OBJECTS
+========
+Background
+grey
+PLAYER P
+white
+R
+RED
+B
+BLUE
+g
+green
+y
+yellow
+k
+pink
+
+=======
+LEGEND
+=======
+. = Background
+a = b and k
+o = b or g
+ork = r or k
+rgb = r or g or b
+gbr = g or b or r
+
+=======
+SOUNDS
+=======
+================
+COLLISIONLAYERS
+================
+Background
+y
+Player, R, B, G
+k
+======
+RULES
+======
+
+[ > p | r ] -> [ > p | > r ]
+startloop
+[ > p | g | ] -> [ | > p | > g ]
+endloop
+startloop
+[ > p | b ] -> [ p | g ]
+endloop
+
+==============
+WINCONDITIONS
+==============
+all r on y
+
+=======
+LEVELS
+=======
+
+( message first level )
+
+...g......
+....p.r.y.
+...b......
+
+message second level
+
+..........
+....pry...
+..........
+

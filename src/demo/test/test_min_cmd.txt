@@ -52,8 +52,8 @@ COLLISIONLAYERS
 ================
 Background
 y
-Player, R, B, G
 k
+Player, R, B, G
 ======
 RULES
 ======
@@ -61,12 +61,12 @@ RULES
 [ > p | r ] -> [ > p | > r ]
 [ > p | g ] -> Background_color green
 [ > p | b ] -> Background_color blue
-[ p k ] -> checkpoint message Checkpoint!
+late [ p k ] -> checkpoint message Checkpoint!
 late [ p | r ] -> log P is next to r
 late [ p | y ] -> log P is next to y
 late [ p | g ] -> log P is next to g
 late [ p | k ] -> log P is next to k
-[ action p ] win
+[ action p ] -> win
 
 ==============
 WINCONDITIONS
@@ -87,7 +87,7 @@ message first level\n\ntriggers a bug?
 
 message second level
 
-..........
+....k.....
 ....pry...
 ..........
 

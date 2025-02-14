@@ -692,7 +692,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
+			consolePrint(`Loading "${leveldat.section || leveldat.title}" (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -742,6 +742,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
 	if (debugSwitch.includes('load')) console.log(`loadLevelFromStateTarget(${levelindex},${target})`);
     var leveldat = target;    
+	if (verbose_logging)
+		consolePrint(`Returning to checkpoint in "${state.levels[levelindex].section || state.levels[levelindex].title}".`); 
   	curLevelNo=levelindex;
   	curlevelTarget=target;
     if (leveldat.message===undefined) {
@@ -2618,12 +2620,13 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
             currentIndex += delta;
         }
     }
+	perfCounters.applied++;
 
-  if (verbose_logging && result){
-    var ruleDirection = dirMaskName[rule.direction];
-    if (!rule.directional()){
-      ruleDirection="";
-    }
+  	if (verbose_logging && result){
+    	var ruleDirection = dirMaskName[rule.direction];
+    	if (!rule.directional()){
+      		ruleDirection="";
+    	}
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
 		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
@@ -2653,9 +2656,8 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 		
 		var logString = `<font color="green">Rule <a onclick="jumpToLine(${rule.lineNumber});"  href="javascript:void(0);">${rule.lineNumber}</a> ${ruleDirection} applied${gapMessage}.</font>`;
 		consolePrint(logString,false,rule.lineNumber,inspect_ID);
-		
 	}
-
+	if (perfCounters.applied % 100 == 0) console.log(`Applied ${perfCounters.applied} rules in ${Date.now() - perfCounters.start}ms.`);		
     return result;
 };
 
@@ -2797,6 +2799,7 @@ Rule.prototype.queueCommands = function() {
 					log += " ("+command[1]+")"
 				}
 				consolePrintFromRule(log,this,true);
+				canvasResize();
 			}
     	}   
   	}
@@ -3175,13 +3178,17 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		matches: 0,
 		replaces: 0,
 		replaced: 0,
+		applied: 0,
 		commands: 0,
 		randoms : 0,
 		groups: 0,
 		tries: 0,		
 	}
+	if (debugSwitch.includes('profile')) console.profile('INP');
 	const ret = procInp(dir, dontDoWin, dontModify, bak, coord);
+	if (debugSwitch.includes('profile')) console.profileEnd('INP');
 	perfCounters.elapsed = Date.now() - perfCounters.start;
+	if (debugSwitch.includes('perf')) console.log(perfCounters);
 	return ret;
 }
 function procInp(dir,dontDoWin,dontModify,bak,coord) {
@@ -3844,7 +3851,7 @@ function nextLevel() {
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
-	processLevelInput(); //@@
+	processLevelInput(); 
 }
 
 function loadLevelFromStateOrTarget() {

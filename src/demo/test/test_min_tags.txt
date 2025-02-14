@@ -206,8 +206,8 @@ num4 [ objn4:num4 | ] -> [ objn4:num4 | objn4:next4 ]
 right [ ^ p | obj6:t12:up:tag2 ] -> [ p | ]
 right [ < p | obj6:t12:dirs:tag2 ] -> [ p | ]
 right [ < p | no obj6:t12:dirs:tag2 ] -> [ p | ]
-right [ < p | no obj6:t12:>:tag2 ] -> [ p | ]               // triggers inline expansion bug #38
-tag1 [no obj5:tag1:dirs] -> []          // see #145
+right [ < p | no obj6:t12:>:tag2 ] -> [ p | ]    // triggers inline expansion bug #38
+tag1 [no obj5:tag1:dirs] -> []                  // triggers inline expansion bug #145
 
 // check prefixes
 right dirs [ ^ p | obj2:dirs ] -> [ p | obj4:dirs ]
