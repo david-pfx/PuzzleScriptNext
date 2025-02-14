@@ -1610,7 +1610,7 @@ function expandRuleWithTags(state, rule) {
     rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
         row.forEach((cell, cellx) => {     // between bars [ | ]
             cell.forEach((atom, atomx) => {
-                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
+                if (atomx % 2 == 1 && cell[atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
                     todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
                 }
             });
