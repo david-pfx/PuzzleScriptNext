@@ -413,7 +413,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (debugSwitch.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
+    if (debugSwitch.includes('redraw')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();

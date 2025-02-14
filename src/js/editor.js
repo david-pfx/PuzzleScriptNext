@@ -290,6 +290,9 @@ function addToDebugTimeline(level,lineNumber){
 		debug_visualisation_array[debugger_turnIndex]=[];
 	}
 
+	// special switch to disable verbose logging on rigid for performance reasons (see Enigmash)
+	const norigidlog = debugSwitch.includes("norigidlog");
+
 	var debugTimelineSnapshot = {
 		width:level.width,
 		height:level.height,
@@ -300,10 +303,10 @@ function addToDebugTimeline(level,lineNumber){
 		movements:new Int32Array(level.movements),
 		commandQueue:level.commandQueue.concat([]),
 		commandQueueSourceRules:level.commandQueueSourceRules.concat([]),
-		rigidMovementAppliedMask:level.rigidMovementAppliedMask.map(a=>a.clone()),
+		rigidMovementAppliedMask: norigidlog ? level.rigidMovementAppliedMask : level.rigidMovementAppliedMask.map(a=>a.clone()),
+		//rigidMovementAppliedMask:level.rigidMovementAppliedMask.map(a=>a.clone()),
 		level: level,
 	};
-	
 
 	debug_visualisation_array[debugger_turnIndex][lineNumber]=debugTimelineSnapshot;
 	return `${debugger_turnIndex},${lineNumber}`;
