@@ -22,6 +22,11 @@ QUnit.config.urlConfig.push({
 	label: "Show source",
 	tooltip: "Enabling this will show the source code, if needed."
 });
+QUnit.config.urlConfig.push({
+	id: "errorsonly",
+	label: "Show errors only",
+	tooltip: "Enabling this will show errors but not warnings."
+});
 
 runRuleSuite('PS rules ⚖️', testdata);
 runRuleSuite('PS+ rules ⚖️', plus_testdata);
@@ -73,6 +78,7 @@ function testRule(testName, testData) {
 		+ lineof('Expected level', tdLevel) 
 		+ (tdSounds ? lineof('Expected sounds', tdSounds) : '')
 		+ '<br/>';
+	const errstrings = QUnit.config.errorsonly ? errorStringsOnly : errorStrings;
 
 	QUnit.test(
 		testName,
@@ -82,7 +88,7 @@ function testRule(testName, testData) {
 				QUnit.assert.true(runTest(tdat),
 					"Passed all tests"
 				+ tdDescription
-				+ (errorStrings.length > 0 ? listify('Actual errors', errorStrings) : '')
+				+ (errstrings.length > 0 ? listify('Actual errors', errstrings) : '')
 				+ (soundHistory.length > 0 ? lineof('Actual sounds', soundHistory.join()) : '')
 				+ (QUnit.config.showsource ? lineof('Game source', `<pre>${tdCode}</pre>`) : ''));
 			};
@@ -92,6 +98,7 @@ function testRule(testName, testData) {
 
 function testCompile(testName, testData) {
 	const [tdCode, tdErrors] = testData;
+	const errstrings = QUnit.config.errorsonly ? errorStringsOnly : errorStrings;
 	//const testerrors = '<b>Expected errors:</b><ul>' + tdErrors.map(m => '<li>'+JSON.stringify(m)+'</li>').join('') + '</ul>';
 	QUnit.test(
 		testName,
@@ -101,7 +108,7 @@ function testCompile(testName, testData) {
 				QUnit.assert.true(runCompilationTest(tdat),
 					"Passed compile test<br/>"
 					+ (tdErrors.length > 0 ? listify("Expected errors", tdErrors) : '')
-					+ (errorStrings.length > 0 ? listify('Actual errors', errorStrings) : '')
+					+ (errstrings.length > 0 ? listify('Actual errors', errstrings) : '')
 					+ (QUnit.config.showsource ? lineof('Game source', `<pre>${tdCode}</pre>`) : ''));
 			}
 		}(testData)
