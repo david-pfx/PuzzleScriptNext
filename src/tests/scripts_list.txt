@@ -1,6 +1,3 @@
-I'm too far gone.txt
-Loop Deleter.txt
-README
 actiontest.txt
 againexample.txt
 atlas shrank.txt
@@ -29,7 +26,6 @@ heroes_of_sokoban_3.txt
 icecrates.txt
 it dies in the light.txt
 kettle.txt
-kishoutenketsu.html
 ledchallenge.txt
 leftrightnpcs.txt
 legend of zokoban.txt

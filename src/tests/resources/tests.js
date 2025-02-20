@@ -29,9 +29,10 @@ runRuleSuite('PS> rules ⚖️', next_testdata);
 runCompileSuite('PS compile 🐛', errormessage_testdata);
 runCompileSuite('PS+ compile 🐛', plus_errormessage_testdata);
 
-// cannot get this to work, spent enough time
+// cannot get this to work loading files directly, spent enough time
 // see https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
-//runFileSuite('Demo files 📃', 'demo_list.txt');
+
+runFileSuite('Demo files 📃', scripts_data);
 
 //addStartLink();
 
@@ -52,18 +53,11 @@ function runCompileSuite(module, testDataList) {
 }
 
 // Test that a list of files compile without error or warning
-function runFileSuite(title, filename) {
-	QUnit.module(title, () => {
-		getTextFile(filename, files => files.split('\n')
-			.map(f => f.trim())
-			.filter(f => !['README', 'blank.txt'].includes(f))
-			.slice(0, limit)
-			.forEach(f => {
-				getTextFile(`../demo/${f}`, text => {
-					testCompile(f, [text, []]);
-				});
-			})
-		);
+function runFileSuite(module, testdata) {
+	QUnit.module(module, () => {
+		testdata.forEach(f => {
+			testCompile(f.name, [ f.text, [] ]);
+		})
 	});
 }
 
@@ -178,9 +172,11 @@ function getTextFile(filename, callback) {
 	var req = new XMLHttpRequest();
 	req.open('GET', filename);
 	req.onload = event => {
+		//console.log(`Onload: ${filename} status: ${req.status}`);
 		callback(req.responseText);
 	}
 	req.onerror = event => {
+		//console.log(`Onerror: ${filename} status: ${req.status}`);
 		consoleError("HTTP Error "+ req.status + ' - ' + req.statusText);
 		callback("");
 	}
