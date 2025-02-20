@@ -321,20 +321,20 @@ startLoop
 [ RightMovingElephant ] -> [ Right RightMovingElephant ] again
 [ DownMovingElephant ] -> [ Down DownMovingElephant ] again
 
-right [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | right Dog | SFX3 ]
-left [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | left Dog | SFX3 ]
-up [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | up Dog | SFX3 ]
-down [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | down Dog | SFX3]
-right [ VerticalMovingElephant | Stationary Dog | No Obstacle ] -> [ VerticalMovingElephant | right Dog | SFX3 ]
-left [ VerticalMovingElephant | Stationary Dog | No Obstacle ] -> [ VerticalMovingElephant | left Dog | SFX3 ]
-up [ HorizontalMovingElephant | Stationary Dog | No Obstacle ] -> [ HorizontalMovingElephant | up Dog | SFX3 ]
-down [ HorizontalMovingElephant | Stationary Dog | No Obstacle ] -> [ HorizontalMovingElephant | down Dog | SFX3]
+right [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | right Dog | ] SFX3
+left [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | left Dog | ] SFX3
+up [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | up Dog | ] SFX3
+down [ Elephant | Stationary Dog | No Obstacle ] -> [ Elephant | down Dog | ] SFX3
+right [ VerticalMovingElephant | Stationary Dog | No Obstacle ] -> [ VerticalMovingElephant | right Dog | ] SFX3
+left [ VerticalMovingElephant | Stationary Dog | No Obstacle ] -> [ VerticalMovingElephant | left Dog | ] SFX3
+up [ HorizontalMovingElephant | Stationary Dog | No Obstacle ] -> [ HorizontalMovingElephant | up Dog | ] SFX3
+down [ HorizontalMovingElephant | Stationary Dog | No Obstacle ] -> [ HorizontalMovingElephant | down Dog | ] SFX3
 
-[ > MovingElephant | Cat | ] -> [ Elephant | Cat | SFX5 ]
+[ > MovingElephant | Cat | ] -> [ Elephant | Cat | ] SFX5
 [ > MovingElephant | Mouse ] -> [ Elephant | Mouse ]
-[ > MovingElephant | Dog | Obstacle | ] -> [ Elephant | Dog | Obstacle | SFX3 ]
-[ > MovingElephant | Dog | No Obstacle ] -> [ Elephant | > Dog | SFX3 ]
-[ > MovingElephant | Obstacle | ] -> [ Elephant | Obstacle | SFX2 ]
+[ > MovingElephant | Dog | Obstacle | ] -> [ Elephant | Dog | Obstacle | ] SFX3
+[ > MovingElephant | Dog | No Obstacle ] -> [ Elephant | > Dog | ] SFX3
+[ > MovingElephant | Obstacle | ] -> [ Elephant | Obstacle | ] SFX2
 
 (Dog rules)
 [ UP Dog ] -> [ UP UpMovingDog ]
@@ -347,20 +347,20 @@ down [ HorizontalMovingElephant | Stationary Dog | No Obstacle ] -> [ Horizontal
 [ RightMovingDog ] -> [ Right RightMovingDog ] again
 [ DownMovingDog ] -> [ Down DownMovingDog ] again
 
-right [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | right Cat | SFX4 ]
-left [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | left Cat | SFX4 ]
-up [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | up Cat | SFX4 ]
-down [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | down Cat | SFX4]
-right [ VerticalMovingDog | Stationary Cat | No Obstacle ] -> [ VerticalMovingDog | right Cat | SFX4 ]
-left [ VerticalMovingDog | Stationary Cat | No Obstacle ] -> [ VerticalMovingDog | left Cat | SFX4 ]
-up [ HorizontalMovingDog | Stationary Cat | No Obstacle ] -> [ HorizontalMovingDog | up Cat | SFX4 ]
-down [ HorizontalMovingDog | Stationary Cat | No Obstacle ] -> [ HorizontalMovingDog | down Cat | SFX4]
+right [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | right Cat | ] SFX4
+left [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | left Cat | ] SFX4
+up [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | up Cat | ] SFX4
+down [ Dog | Stationary Cat | No Obstacle ] -> [ Dog | down Cat | ] SFX4
+right [ VerticalMovingDog | Stationary Cat | No Obstacle ] -> [ VerticalMovingDog | right Cat | ] SFX4
+left [ VerticalMovingDog | Stationary Cat | No Obstacle ] -> [ VerticalMovingDog | left Cat | ] SFX4
+up [ HorizontalMovingDog | Stationary Cat | No Obstacle ] -> [ HorizontalMovingDog | up Cat | ] SFX4
+down [ HorizontalMovingDog | Stationary Cat | No Obstacle ] -> [ HorizontalMovingDog | down Cat | ] SFX4
 
-[ > MovingDog | Mouse | ] -> [ Dog | Mouse | SFX3 ]
+[ > MovingDog | Mouse | ] -> [ Dog | Mouse | ] SFX3
 [ > MovingDog | Elephant ] -> [ Dog | Elephant ]
-[ > MovingDog | Cat | Obstacle | ] -> [ Dog | Cat | Obstacle | SFX4 ]
-[ > MovingDog | Cat | No Obstacle ] -> [ Dog | > Cat | SFX4 ]
-[ > MovingDog | Obstacle | ] -> [ Dog | Obstacle | SFX2 ]
+[ > MovingDog | Cat | Obstacle | ] -> [ Dog | Cat | Obstacle | ] SFX4
+[ > MovingDog | Cat | No Obstacle ] -> [ Dog | > Cat | ] SFX4
+[ > MovingDog | Obstacle | ] -> [ Dog | Obstacle | ] SFX2
 
 (Cat rules)
 [ UP Cat ] -> [ UP UpMovingCat ]
@@ -373,20 +373,20 @@ down [ HorizontalMovingDog | Stationary Cat | No Obstacle ] -> [ HorizontalMovin
 [ RightMovingCat ] -> [ Right RightMovingCat ] again
 [ DownMovingCat ] -> [ Down DownMovingCat ] again
 
-right [ Cat | Stationary Mouse | No Wall ] -> [ Cat | right Mouse | SFX1 ]
-left [ Cat | Stationary Mouse | No Wall ] -> [ Cat | left Mouse | SFX1 ]
-up [ Cat | Stationary Mouse | No Wall ] -> [ Cat | up Mouse | SFX1 ]
-down [ Cat | Stationary Mouse | No Wall ] -> [ Cat | down Mouse | SFX1]
-right [ VerticalMovingCat | Stationary Mouse | No Wall ] -> [ VerticalMovingCat | right Mouse | SFX1 ]
-left [ VerticalMovingCat | Stationary Mouse | No Wall ] -> [ VerticalMovingCat | left Mouse | SFX1 ]
-up [ HorizontalMovingCat | Stationary Mouse | No Wall ] -> [ HorizontalMovingCat | up Mouse | SFX1 ]
-down [ HorizontalMovingCat | Stationary Mouse | No Wall ] -> [ HorizontalMovingCat | down Mouse | SFX1]
+right [ Cat | Stationary Mouse | No Wall ] -> [ Cat | right Mouse | ] SFX1
+left [ Cat | Stationary Mouse | No Wall ] -> [ Cat | left Mouse | ] SFX1
+up [ Cat | Stationary Mouse | No Wall ] -> [ Cat | up Mouse | ] SFX1
+down [ Cat | Stationary Mouse | No Wall ] -> [ Cat | down Mouse | ] SFX1
+right [ VerticalMovingCat | Stationary Mouse | No Wall ] -> [ VerticalMovingCat | right Mouse | ] SFX1
+left [ VerticalMovingCat | Stationary Mouse | No Wall ] -> [ VerticalMovingCat | left Mouse | ] SFX1
+up [ HorizontalMovingCat | Stationary Mouse | No Wall ] -> [ HorizontalMovingCat | up Mouse | ] SFX1
+down [ HorizontalMovingCat | Stationary Mouse | No Wall ] -> [ HorizontalMovingCat | down Mouse | ] SFX1
 
-[ > MovingCat | Elephant | ] -> [ Cat | Elephant | SFX4 ]
+[ > MovingCat | Elephant | ] -> [ Cat | Elephant | ] SFX4
 [ > MovingCat | Dog ] -> [ Cat | Dog ]
-[ > MovingCat | Mouse | Wall | ] -> [ Cat | Mouse | Wall | SFX1 ]
-[ > MovingCat | Mouse | No Wall ] -> [ Cat | > Mouse | SFX1 ]
-[ > MovingCat | Obstacle | ] -> [ Cat | Obstacle | SFX2 ]
+[ > MovingCat | Mouse | Wall | ] -> [ Cat | Mouse | Wall | ] SFX1
+[ > MovingCat | Mouse | No Wall ] -> [ Cat | > Mouse | ] SFX1
+[ > MovingCat | Obstacle | ] -> [ Cat | Obstacle | ] SFX2
 
 (Mouse rules)
 [ UP Mouse ] -> [ UP UpMovingMouse ]
@@ -399,21 +399,21 @@ down [ HorizontalMovingCat | Stationary Mouse | No Wall ] -> [ HorizontalMovingC
 [ RightMovingMouse ] -> [ Right RightMovingMouse ] again
 [ DownMovingMouse ] -> [ Down DownMovingMouse ] again
 
-right [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | right Elephant | SFX5 ]
-left [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | left Elephant | SFX5 ]
-up [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | up Elephant | SFX5 ]
-down [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | down Elephant | SFX5]
-right [ VerticalMovingMouse | Stationary Elephant | No Obstacle ] -> [ VerticalMovingMouse | right Elephant | SFX5 ]
-left [ VerticalMovingMouse | Stationary Elephant | No Obstacle ] -> [ VerticalMovingMouse | left Elephant | SFX5 ]
-up [ HorizontalMovingMouse | Stationary Elephant | No Obstacle ] -> [ HorizontalMovingMouse | up Elephant | SFX5 ]
-down [ HorizontalMovingMouse | Stationary Elephant | No Obstacle ] -> [ HorizontalMovingMouse | down Elephant | SFX5]
+right [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | right Elephant | ] SFX5
+left [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | left Elephant | ] SFX5
+up [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | up Elephant | ] SFX5
+down [ Mouse | Stationary Elephant | No Obstacle ] -> [ Mouse | down Elephant | ] SFX5
+right [ VerticalMovingMouse | Stationary Elephant | No Obstacle ] -> [ VerticalMovingMouse | right Elephant | ] SFX5
+left [ VerticalMovingMouse | Stationary Elephant | No Obstacle ] -> [ VerticalMovingMouse | left Elephant | ] SFX5
+up [ HorizontalMovingMouse | Stationary Elephant | No Obstacle ] -> [ HorizontalMovingMouse | up Elephant | ] SFX5
+down [ HorizontalMovingMouse | Stationary Elephant | No Obstacle ] -> [ HorizontalMovingMouse | down Elephant | ] SFX5
 
-[ > MovingMouse | Dog | ] -> [ Mouse | Dog | SFX1 ]
+[ > MovingMouse | Dog | ] -> [ Mouse | Dog | ] SFX1
 [ > MovingMouse | Cat ] -> [ Mouse | Cat ]
-[ > MovingMouse | Elephant | Wall | ] -> [ Mouse | Elephant | Wall | SFX5 ]
-[ > MovingMouse | Elephant | No Obstacle ] -> [ Mouse | > Elephant | SFX5 ]
-[ > MovingMouse | Wall | ] -> [ Mouse | Wall | SFX2 ]
-[ > MovingMouse | Hole | ] -> [ No MovingMouse | Hole | SFX0 ]
+[ > MovingMouse | Elephant | Wall | ] -> [ Mouse | Elephant | Wall | ] SFX5
+[ > MovingMouse | Elephant | No Obstacle ] -> [ Mouse | > Elephant | ] SFX5
+[ > MovingMouse | Wall | ] -> [ Mouse | Wall | ] SFX2
+[ > MovingMouse | Hole | ] -> [ No MovingMouse | Hole | ] SFX0
 
 endloop
 
