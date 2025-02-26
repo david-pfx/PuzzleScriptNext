@@ -5224,7 +5224,7 @@ function MakeRiff ( sampleRate, bitsPerSample,data) {
 
 
 if (typeof exports != 'undefined')  // For node.js
-  exports.RIFFWAVE = RIFFWAVE;
+  exports.RIFFWAVE = MakeRiff;
 
 </script>
 <script>
@@ -6213,7 +6213,7 @@ if (typeof exports != 'undefined') {
   // For node.js
   var RIFFWAVE = require('./riffwave').RIFFWAVE;
   exports.Params = Params;
-  exports.generate = generate;
+  exports.generate = generateFromSeed;
 }
 
 var sfxCache = {};
@@ -7410,14 +7410,15 @@ function redrawCellGrid(curlevel) {
         }
     }
 
-    const doMoveTweens = state.metadata.tween_length && currentMovedEntities;
+    const doMoveTweens = Object.keys(currentMovedEntities).length > 0;
     const doAfxAnimate = Object.keys(seedsToAnimate).length > 0;
     const moveTween = doMoveTweens ? calcTweening() : 0;
     const animTween = doAfxAnimate ? 1 - clamp(tweentimer/animateinterval, 0, 1) : 0;  // range 1 => 0
-
+    
     // global flags to force redraw, defer againing
     isAnimating = state.metadata.smoothscreen || doMoveTweens || doAfxAnimate;
     isTweening = moveTween > 0 || animTween > 0;
+    if (isAnimating && debugSwitch.includes('tween')) console.log(`tween moveTween=${moveTween} animTween=${animTween} seedsToAnimate=`, seedsToAnimate, `currentMovedEntities=`, currentMovedEntities);
 
     const render = new RenderOrder(minMaxIJ);
     if (!levelEditorOpened && !showLayers)
@@ -7601,7 +7602,7 @@ function redrawCellGrid(curlevel) {
 
     // calculate and return tween-adjusted values
     function getTweening(tween, drawpos, object, posIndex) {
-        const dir = currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+object.layer];
+        const dir = currentMovedEntities["p"+posIndex+"-l"+object.layer];
         if (dir == 16)  // Action button
             return [ drawpos.x, drawpos.y, 1-tween ];
         if (dir >= 0) { // Cardinal directions
@@ -9201,8 +9202,8 @@ function RebuildLevelArrays() {
 let messagetext="";			// text for command message
 let statusText = "";  		// text for status line
 let gosubTarget = -1;  		// name of target gosub
-var currentMovedEntities = {};
-var newMovedEntities = {};
+var currentMovedEntities = {};		// entities to be tween animated
+var newMovedEntities = {};			// entities that have moved this turn
 
 function applyDiff(diff, level_objects) {
 
@@ -9249,7 +9250,6 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 
 	if (resetTween) {
 		currentMovedEntities = {};
-		//console.log("Wiped movedEntities (level)")
 	}
 
 	const switchLevel = lev.levelNo >= 0 && lev.levelNo != curLevelNo;
@@ -9667,8 +9667,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     return true;
 }
 
-function repositionEntitiesAtCell(positionIndex) {
-    var movementMask = curLevel.getMovements(positionIndex);
+function repositionEntitiesAtCell(positionIndex, dontModify) {
+		var movementMask = curLevel.getMovements(positionIndex);
     if (movementMask.iszero())
         return false;
 
@@ -9678,7 +9678,7 @@ function repositionEntitiesAtCell(positionIndex) {
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
-				if (state.metadata.tween_length) {
+				if (state.metadata.tween_length && !dontModify) {
 					var delta = dirMasksDelta[layerMovement];
 					var targetIndex = (positionIndex+delta[1]+delta[0]*curLevel.height);
 
@@ -11036,13 +11036,13 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 }
 
 //if this returns!=null, need to go back and reprocess
-function resolveMovements(level, bannedGroup){
+function resolveMovements(level, bannedGroup, dontModify) {
 	var moved=true;
 
     while(moved){
         moved=false;
         for (var i=0;i<level.n_tiles;i++) {
-		  moved = repositionEntitiesAtCell(i) || moved;
+			moved = repositionEntitiesAtCell(i, dontModify) || moved;
         }
     }
     var doUndo=false;
@@ -11288,7 +11288,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
 
 			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
-			var shouldUndo = resolveMovements(curLevel, bannedGroup);
+        	var shouldUndo = resolveMovements(curLevel, bannedGroup, dontModify);
 			
         	if (shouldUndo) {
         		rigidloop=true;
@@ -12082,6 +12082,7 @@ const MAX_ERRORS_FOR_REAL=100;
 
 let compiling = false;
 let errorStrings = [];      //also stores warning strings
+let errorStringsOnly = [];  //only error strings
 let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
@@ -12142,9 +12143,10 @@ function logErrorCacheable(str, lineNumber,urgent) {
             //do nothing, duplicate error
          } else {
             consolePrint(errorString);
+            errorStringsOnly.push(errorString);
             errorStrings.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -12162,8 +12164,9 @@ function logError(str, lineNumber,urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
+            errorStringsOnly.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -12181,10 +12184,10 @@ function logWarning(str, lineNumber, urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -12198,7 +12201,7 @@ function logWarningNoLine(str, urgent, increaseErrorCount = false) {
             errorStrings.push(errorString);
             if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
-        }
+            }
         }
         if (increaseErrorCount) {
             errorCount++;
@@ -12214,10 +12217,11 @@ function logErrorNoLine(str,urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-        errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            errorStringsOnly.push(errorString);
+            errorCount++;
+			if (errorCount > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
-    }
+            }
         }
     }
 }
