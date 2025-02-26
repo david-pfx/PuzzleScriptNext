@@ -1,0 +1,148 @@
+// Issue: Tween behaviour inconsistency #162
+// Arrow keys to show bad tweening
+// Action for next level
+
+title Magnet Block Demake
+author Issac Andrews / demake by xxuurruuii
+homepage www.puzzlescript.net
+tween_length 0.5
+again_interval 0.8
+run_rules_on_level_start
+
+debug
+verbose_logging
+debug_switch tween
+========
+OBJECTS
+========
+
+Background
+gray
+
+Target
+lightgreen
+..0..
+.000.
+00000
+.000.
+..0..
+
+Final
+black
+.....
+.0.0.
+..0..
+.0.0.
+.....
+
+Wall
+white
+
+Player
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+
+Crate B
+blue
+
+crateR
+blue
+
+crateL
+blue
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+O = Target
+CrateMX = crateR or crateL
+CrateX = Crate or CrateMX
+moveable = player or crate
+! = Final and Wall
+2 = Crate and Target
+3 = Player and Target
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+// -- // divider here fixes the issue
+Player, Wall, CrateX
+Final
+
+======
+RULES
+======
+
+[ action player ] -> win
+right down [ > Player | Crate ] -> [ > Player | > CrateR ] 
+left up    [ > Player | Crate ] -> [ > Player | > CrateL ] 
+
+[ stationary CrateR | stationary Crate ] -> [ < CrateL | Crate ] 
+[ stationary CrateL | stationary Crate ] -> [ < CrateR | Crate ] 
+
+[> CrateX | stationary moveable ]   -> [ > CrateX | > moveable ]
+[> moveable | Wall ]                -> [ moveable | Wall ]
+[> moveable | stationary moveable ] -> [ moveable | moveable ]
+
+[ stationary crateMX ] -> [ crate ]
+
+[ crateMX ] -> again
+
+==============
+WINCONDITIONS
+==============
+
+some Final
+all Final on Player
+
+=======
+LEVELS
+=======
+
+section test1
+######
+#....#
+#pb.b#
+#....#
+######
+
+section test2
+######
+#....#
+#b.bp#
+#....#
+######
+
+
+section test3
+#####
+#.p.#
+#.b.#
+#...#
+#.b.#
+#####
+
+section test4
+#####
+#.b.#
+#...#
+#.b.#
+#.p.#
+#####
+

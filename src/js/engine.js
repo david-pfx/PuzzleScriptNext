@@ -1186,8 +1186,8 @@ function RebuildLevelArrays() {
 let messagetext="";			// text for command message
 let statusText = "";  		// text for status line
 let gosubTarget = -1;  		// name of target gosub
-var currentMovedEntities = {};
-var newMovedEntities = {};
+var currentMovedEntities = {};		// entities to be tween animated
+var newMovedEntities = {};			// entities that have moved this turn
 
 function applyDiff(diff, level_objects) {
 
@@ -1234,7 +1234,6 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 
 	if (resetTween) {
 		currentMovedEntities = {};
-		//console.log("Wiped movedEntities (level)")
 	}
 
 	const switchLevel = lev.levelNo >= 0 && lev.levelNo != curLevelNo;
@@ -1652,8 +1651,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     return true;
 }
 
-function repositionEntitiesAtCell(positionIndex) {
-    var movementMask = curLevel.getMovements(positionIndex);
+function repositionEntitiesAtCell(positionIndex, dontModify) {
+		var movementMask = curLevel.getMovements(positionIndex);
     if (movementMask.iszero())
         return false;
 
@@ -1663,7 +1662,7 @@ function repositionEntitiesAtCell(positionIndex) {
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
-				if (state.metadata.tween_length) {
+				if (state.metadata.tween_length && !dontModify) {
 					var delta = dirMasksDelta[layerMovement];
 					var targetIndex = (positionIndex+delta[1]+delta[0]*curLevel.height);
 
@@ -3021,13 +3020,13 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 }
 
 //if this returns!=null, need to go back and reprocess
-function resolveMovements(level, bannedGroup){
+function resolveMovements(level, bannedGroup, dontModify) {
 	var moved=true;
 
     while(moved){
         moved=false;
         for (var i=0;i<level.n_tiles;i++) {
-		  moved = repositionEntitiesAtCell(i) || moved;
+			moved = repositionEntitiesAtCell(i, dontModify) || moved;
         }
     }
     var doUndo=false;
@@ -3273,7 +3272,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
 
 			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
-			var shouldUndo = resolveMovements(curLevel, bannedGroup);
+        	var shouldUndo = resolveMovements(curLevel, bannedGroup, dontModify);
 			
         	if (shouldUndo) {
         		rigidloop=true;

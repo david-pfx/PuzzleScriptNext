@@ -63,10 +63,7 @@
 
 
 <h1>Sections of a PuzzleScript file</h1>
-<p>
-A puzzlescript file is divided into the following sections. 
-<p>
-
+  <p>A puzzlescript file is divided into the following sections. </p>
   <ul class="nav nav-pills">
     <li><a href="prelude.html">Prelude</a></li>
     <li><a href="objects.html">Objects</a></li>
@@ -80,26 +77,23 @@ A puzzlescript file is divided into the following sections.
     <li><a href="levels.html">Levels</a></li>
   </ul>
 
-<p>
-    <h2>CollisionLayers</h2>
-    <p>
-    Objects can be placed on different layers:
-    <p>
-    <pre><code>COLLISIONLAYERS
+<h2>CollisionLayers</h2>
+  <p>Objects can be placed on different layers:</p>
+
+<pre><code>COLLISIONLAYERS
 ===============      
 Background
 Target
 Player, Wall, Crate</code></pre>
-    <p>The purpose of layers is twofold. 
+
+<p>The purpose of layers is twofold. 
 Firstly, it is about resolving movements: two objects on the same layer cannot coexist in a single cell. 
-If an object tries to move into a cell where there is already an object in that layer, it will be blocked. 
-</p>
+If an object tries to move into a cell where there is already an object in that layer, it will be blocked. </p>
 <p>Secondly the order of layers determines in what order things are drawn.
-  Objects are drawn from back to front, earlier objects are hidden by later ones.
-</p>
+  Objects are drawn from back to front, earlier objects are hidden by later ones.</p>
 <p>The <b>background</b> layer is a special layer, below everything else. 
   Every game must have one.  Every tile must have a background tile. 
-  However, by defining 
+  However, by defining </p>
 <pre><code>Background = Background1 or Background2</code></pre>
 
 <p>In the <a href="legend.html">legend</a>, you can have several tile types on the background layer. 
@@ -111,7 +105,7 @@ If you don't specify one explicitly for a tile, it is inferred based on what oth
      The intent is to avoid one object (which includes the background) drawing over another object in an adjoining cell. 
      This is achieved by separating the collision layers into layer groups. 
      Note that this feature only affects rendering, not collision detection.</p>
-  <p>Objects in (the visible part of) the level are rendered in the order defined by these rules:
+  <p>Objects in (the visible part of) the level are rendered in the order defined by these rules:</p>
   <ol>
     <li>All objects in the layers of a layer group are rendered before (and thus, under) the objects in the layers of higher groups.</li>
     <li>Inside a layer group, all the objects in a cell are rendered before the objects in the next cell. 
@@ -121,12 +115,19 @@ If you don't specify one explicitly for a tile, it is inferred based on what oth
   
   <p>You can use a <code>--</code> line to separate layer groups. 
     So if for instance you want to make a pseudo-3D effect with background tiles filling their cells, characters and walls that overflow their cells upward, 
-    and shadows under the characters and walls that overflow upward and leftward, you could have a collision layer definition like this.
+    and shadows under the characters and walls that overflow upward and leftward, you could have a collision layer definition like this.</p>
+  
   <pre><code>Background
   Shadows
   --
   Character, Wall</code></pre>
-  <p>This way you make sure that a shadow will not overdraw a character or wall in the cell above or left of the one that casts the shadow.
+
+  <p>This way you make sure that a shadow will not overdraw a character or wall in the cell above or left of the one that casts the shadow.</p>
+  <p>Layer groups are not mandatory. 
+    If you don't use them, all the layers are considered to be in the same group. 
+    If you use them, you must use them consistently, i.e. you must use the same number of separators in all levels.</p>
+  <p><b>Note:</b> any time you use oversized sprites, tweening or animation, where a sprite may be drawn outside the boundaries of its cell, you are 
+      probably going to have to use Layer Groups to avoid rendering artefacts.</p>
   
   <h3>Rendering directions <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h3>
   <p>The default cell ordering is not always what you want, so you can redefine it for each layer group. 
