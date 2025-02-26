@@ -30,11 +30,12 @@ window.addEventListener('load', function () {
 			editor.setValue(sd.text);
 			let loadDropdown = document.getElementById('loadDropDown');
 			loadDropdown.selectedIndex=0;
+			compile(["restart"]);
 		}
 		catch(ex) { }
 	} else {
 		editor.setValue("loading starter...");
-		tryLoadFile(`demo/${starterCodeFile}`, false);
+		tryLoadFile(`demo/${starterCodeFile}`, true, false);
 	}
 	setEditorClean();
 });
@@ -220,7 +221,7 @@ function tryLoadGist(id) {
 	githubHTTPClient.send();
 }
 
-function tryLoadFile(fileName, docompile = true) {
+function tryLoadFile(fileName, docompile, doclear) {
 	var fileOpenClient = new XMLHttpRequest();
 	fileOpenClient.open('GET', fileName);
 	fileOpenClient.onreadystatechange = function() {
@@ -230,17 +231,17 @@ function tryLoadFile(fileName, docompile = true) {
 		if (fileOpenClient.status != 200 && fileOpenClient.status != 201) {
 			consoleError("HTTP Error "+ fileOpenClient.status + ' - ' + fileOpenClient.statusText);
 		} else 
-			loadGame(fileOpenClient.responseText, docompile)
+			loadGame(fileOpenClient.responseText, docompile, doclear)
 	}
 	fileOpenClient.send();
 }
 
-function loadGame(text, docompile = true) {
+function loadGame(text, docompile = true, doclear = true) {
 	editor.setValue(text);
 	setEditorClean();
 	unloadGame();
 	if (docompile) {
-		clearConsole();
+		if (doclear) clearConsole();
 		compile(["restart"]);
 	}
 }

@@ -983,7 +983,7 @@ if (typeof exports != 'undefined') {
   // For node.js
   var RIFFWAVE = require('./riffwave').RIFFWAVE;
   exports.Params = Params;
-  exports.generate = generate;
+  exports.generate = generateFromSeed;
 }
 
 var sfxCache = {};

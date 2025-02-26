@@ -1,0 +1,12 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "start": "node create_scripts_data.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

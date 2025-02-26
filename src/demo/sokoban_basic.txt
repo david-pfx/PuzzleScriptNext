@@ -76,7 +76,6 @@ RULES
 ======
 
 [ > Player | Crate ] -> [ > Player | > Crate ] 
-late [Crate | Crate ] -> restart message fail
 
 ==============
 WINCONDITIONS

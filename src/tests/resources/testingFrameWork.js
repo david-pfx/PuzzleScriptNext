@@ -69,6 +69,7 @@ function runCompilationTest(dataarray) {
 	unitTesting=true;
 	const [ levelString, recordedErrorStrings, recordedErrorCount ] = dataarray;
 	errorStrings = [];
+	errorStringsOnly = [];
 	errorCount=0;
 
 	try{
@@ -77,7 +78,8 @@ function runCompilationTest(dataarray) {
 		console.log(error);
 	}
 
-	const strippedErrorStrings = errorStrings.map(stripHTMLTags);
+	const errstrings = QUnit.config.errorsonly ? errorStringsOnly : errorStrings;
+	const strippedErrorStrings = errstrings.map(stripHTMLTags);
 	const simulated_summary = processErrors(strippedErrorStrings);
 	const recorded_summary = processErrors(recordedErrorStrings);
 	const errorsOk = simulated_summary == recorded_summary;

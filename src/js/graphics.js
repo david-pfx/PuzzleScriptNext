@@ -617,14 +617,15 @@ function redrawCellGrid(curlevel) {
         }
     }
 
-    const doMoveTweens = state.metadata.tween_length && currentMovedEntities;
+    const doMoveTweens = Object.keys(currentMovedEntities).length > 0;
     const doAfxAnimate = Object.keys(seedsToAnimate).length > 0;
     const moveTween = doMoveTweens ? calcTweening() : 0;
     const animTween = doAfxAnimate ? 1 - clamp(tweentimer/animateinterval, 0, 1) : 0;  // range 1 => 0
-
+    
     // global flags to force redraw, defer againing
     isAnimating = state.metadata.smoothscreen || doMoveTweens || doAfxAnimate;
     isTweening = moveTween > 0 || animTween > 0;
+    if (isAnimating && debugSwitch.includes('tween')) console.log(`tween moveTween=${moveTween} animTween=${animTween} seedsToAnimate=`, seedsToAnimate, `currentMovedEntities=`, currentMovedEntities);
 
     const render = new RenderOrder(minMaxIJ);
     if (!levelEditorOpened && !showLayers)
@@ -808,7 +809,7 @@ function redrawCellGrid(curlevel) {
 
     // calculate and return tween-adjusted values
     function getTweening(tween, drawpos, object, posIndex) {
-        const dir = currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+object.layer];
+        const dir = currentMovedEntities["p"+posIndex+"-l"+object.layer];
         if (dir == 16)  // Action button
             return [ drawpos.x, drawpos.y, 1-tween ];
         if (dir >= 0) { // Cardinal directions

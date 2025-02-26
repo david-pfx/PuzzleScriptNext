@@ -24,6 +24,7 @@ const MAX_ERRORS_FOR_REAL=100;
 
 let compiling = false;
 let errorStrings = [];      //also stores warning strings
+let errorStringsOnly = [];  //only error strings
 let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
@@ -84,9 +85,10 @@ function logErrorCacheable(str, lineNumber,urgent) {
             //do nothing, duplicate error
          } else {
             consolePrint(errorString);
+            errorStringsOnly.push(errorString);
             errorStrings.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -104,8 +106,9 @@ function logError(str, lineNumber,urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
+            errorStringsOnly.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -123,10 +126,10 @@ function logWarning(str, lineNumber, urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -140,7 +143,7 @@ function logWarningNoLine(str, urgent, increaseErrorCount = false) {
             errorStrings.push(errorString);
             if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
-        }
+            }
         }
         if (increaseErrorCount) {
             errorCount++;
@@ -156,10 +159,11 @@ function logErrorNoLine(str,urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-        errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            errorStringsOnly.push(errorString);
+            errorCount++;
+			if (errorCount > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
-    }
+            }
         }
     }
 }
