@@ -47,6 +47,26 @@ function saveFile(htmlString, filename) {
 
 // mainline function to build and save standalone version of script
 function buildStandalone(sourceCode) {
+	function removeDiv(div) {
+		const start = htmlString.indexOf('<div ' + div);
+		const end = htmlString.indexOf('</div>', start);
+		if (start >= 0 && end >= 0) {
+			htmlString = htmlString.substring(0, start) + htmlString.substring(end + 6);
+		}
+	}
+
+	function patchGameContainer(top) {
+		for (let start = htmlString.indexOf('.gameContainer'); start != -1; start = htmlString.indexOf('.gameContainer', start + 1)) {
+			const end = htmlString.indexOf('}', start);
+			if (start >= 0 && end >= 0 && htmlString.substring(start, end).indexOf(top) >= 0) {
+				const head = htmlString.substring(0, start);
+				const tail = htmlString.substring(start).replace(/top:.*?;/, 'top:0;').replace(/bottom:.*?;/, 'bottom:0;');
+				htmlString = head+tail;
+				break;
+			}
+		}
+	}
+	
 	if (standalone_HTML_String.length===0) {
 		consolePrint("Can't export yet - still downloading html template.",true,null,null);
 		return;
@@ -69,6 +89,13 @@ function buildStandalone(sourceCode) {
 	htmlString = htmlString.replace(/__GAMETITLE__/g, escapeHtmlChars(title));
 	htmlString = htmlString.replace(/__HOMEPAGE__/g, homepage);
 	htmlString = htmlString.replace(/__HOMEPAGE_STRIPPED_PROTOCOL__/g, homepage_stripped);
+
+	if (exportOptions.includes('notitle'))
+		removeDiv('class="title"');
+	if (exportOptions.includes('nofooter'))
+		removeDiv('class="footer"');
+	if (exportOptions.includes('nopadding'))
+		patchGameContainer('top:3');
 
 	// $ has special meaning to JavaScript's String.replace 
 	// c.f.	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#specifying_a_string_as_a_parameter

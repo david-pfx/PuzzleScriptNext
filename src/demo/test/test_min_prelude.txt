@@ -4,6 +4,7 @@ homepage www.polyomino.com
 
 // minimal program with prelude tests
 debug_switch menu,redraw
+export_options notitle,nofooter,nopadding
 
 // keywords
 

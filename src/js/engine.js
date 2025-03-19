@@ -944,6 +944,7 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
+		//links: Array.from(linkStack),		//@@
 	};
 	return ret;
 }
@@ -1293,6 +1294,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
     }
 
 	statusText = lev.status || "";
+	//linkStack = lev.links;		//@@
 
     againing=false;
 	messagetext = "";  //fix for hang
