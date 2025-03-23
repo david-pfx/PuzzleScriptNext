@@ -2749,8 +2749,9 @@ Rule.prototype.queueCommands = function() {
 		curLevel.commandQueueSourceRules.push(this);
 
 		if (verbose_logging) {
+			const inspect_ID =  addToDebugTimeline(curLevel, this.lineNumber);
 			const logString = htmlColor('green', `Rule ${htmlJump(this.lineNumber)} triggers command ${command[0]}.`);
-			consolePrint(logString, false, this.lineNumber, null);
+			consolePrint(logString, false, this.lineNumber, inspect_ID);  //@@
 		}
 
 		if (command[0] == 'message') {

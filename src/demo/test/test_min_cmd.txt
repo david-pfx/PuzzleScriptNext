@@ -58,6 +58,7 @@ Player, R, B, G
 RULES
 ======
 
+[ > p | rgb ] -> [ > p | > rgb ]
 [ > p | r ] -> [ > p | > r ]
 [ > p | g ] -> Background_color green
 [ > p | b ] -> Background_color blue
