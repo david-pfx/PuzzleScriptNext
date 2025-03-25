@@ -12,6 +12,7 @@ export_options notitle,nofooter,nopadding
 auto_level_titles
 continue_is_level_select
 debug
+enable_pause
 level_select
 level_select_lock
 mouse_clicks

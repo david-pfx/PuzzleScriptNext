@@ -212,7 +212,8 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'enable_pause', 
+        'level_select', 'level_select_lock', 
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
