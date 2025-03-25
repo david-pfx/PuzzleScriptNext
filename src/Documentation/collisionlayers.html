@@ -123,11 +123,11 @@ If you don't specify one explicitly for a tile, it is inferred based on what oth
   Character, Wall</code></pre>
 
   <p>This way you make sure that a shadow will not overdraw a character or wall in the cell above or left of the one that casts the shadow.</p>
-  <p>Layer groups are not mandatory. 
+  <p>
+  <p><b>Note:</b>Layer groups are not mandatory. 
     If you don't use them, all the layers are considered to be in the same group. 
-    If you use them, you must use them consistently, i.e. you must use the same number of separators in all levels.</p>
-  <p><b>Note:</b> any time you use oversized sprites, tweening or animation, where a sprite may be drawn outside the boundaries of its cell, you are 
-      probably going to have to use Layer Groups to avoid rendering artefacts.</p>
+    However any time you use oversized sprites, tweening or animation, where a sprite may be drawn outside the boundaries of its cell, you are 
+    probably going to have to use Layer groups to avoid rendering artefacts.</p>
   
   <h3>Rendering directions <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h3>
   <p>The default cell ordering is not always what you want, so you can redefine it for each layer group. 

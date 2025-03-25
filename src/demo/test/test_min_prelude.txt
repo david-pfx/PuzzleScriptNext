@@ -4,6 +4,7 @@ homepage www.polyomino.com
 
 // minimal program with prelude tests
 debug_switch menu,redraw
+export_options notitle,nofooter,nopadding
 
 // keywords
 
@@ -11,6 +12,7 @@ debug_switch menu,redraw
 auto_level_titles
 continue_is_level_select
 debug
+enable_pause
 level_select
 level_select_lock
 mouse_clicks

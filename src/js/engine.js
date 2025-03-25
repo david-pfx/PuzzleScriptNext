@@ -944,6 +944,7 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
+		//links: Array.from(linkStack),		//@@
 	};
 	return ret;
 }
@@ -1293,6 +1294,7 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
     }
 
 	statusText = lev.status || "";
+	//linkStack = lev.links;		//@@
 
     againing=false;
 	messagetext = "";  //fix for hang
@@ -2747,8 +2749,9 @@ Rule.prototype.queueCommands = function() {
 		curLevel.commandQueueSourceRules.push(this);
 
 		if (verbose_logging) {
+			const inspect_ID =  addToDebugTimeline(curLevel, this.lineNumber);
 			const logString = htmlColor('green', `Rule ${htmlJump(this.lineNumber)} triggers command ${command[0]}.`);
-			consolePrint(logString, false, this.lineNumber, null);
+			consolePrint(logString, false, this.lineNumber, inspect_ID);
 		}
 
 		if (command[0] == 'message') {
@@ -3423,8 +3426,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
     		}
 
 	    	if (verbose_logging) { 
-	    		var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('restart')];
-	    		consolePrintFromRule('RESTART command executed, reverting to restart state.',r.lineNumber);
+	    		const r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('restart')];
+	    		consolePrintFromRule('RESTART command executed, reverting to restart state.', r);
 	    		consoleCacheDump();
 			}
 			if (!dontModify){
@@ -3444,7 +3447,10 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrintFromRule('QUIT command executed, exiting level.',r);
 				consoleCacheDump();
 			}
-			if (state.metadata.level_select !== undefined) {
+			if (state.metadata.enable_pause) {
+				goToPauseScreen(); 
+			} else if (state.metadata.level_select !== undefined) {
+				titleSelection = null;
 				gotoLevelSelectScreen();
 			} else {
 				goToTitleScreen();

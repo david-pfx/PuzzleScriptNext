@@ -65,12 +65,13 @@ y create  afx:fade
 y destroy afx:fade
 
 sfx1 64217903 
-sfx99 64217903 
+sfx99 16417502
 
 ================
 COLLISIONLAYERS
 ================
 Background
+--
 Player, r, b, g, y, k, d, m, w
 t
 ======
@@ -78,7 +79,8 @@ RULES
 ======
 
 horizontal [ lclick rgby | t ] -> [ t | rgby ]
-
+[ >p | r ] -> sfx1
+[ >p | g ] -> sfx99
 ==============
 WINCONDITIONS
 ==============

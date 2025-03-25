@@ -4,6 +4,10 @@ homepage www.polyomino.com
 
 // minimal program for testing commands
 runtime_metadata_twiddling
+continue_is_level_select
+mouse_left w
+level_select
+//enable_pause
 
 verbose_logging
 debug
@@ -31,8 +35,13 @@ black orange white blue
 R;RED
 B;BLUE
 g;green
+W;white
 y;yellow
 k;pink
+q; darkblue; text: quit
+u; darkblue; text: undo
+x; darkblue; text: win
+z; darkblue; text: restart
 
 =======
 LEGEND
@@ -51,13 +60,16 @@ SOUNDS
 COLLISIONLAYERS
 ================
 Background
+w
 y
 k
 Player, R, B, G
+q, u, x, z
 ======
 RULES
 ======
 
+[ > p | rgb ] -> [ > p | > rgb ]
 [ > p | r ] -> [ > p | > r ]
 [ > p | g ] -> Background_color green
 [ > p | b ] -> Background_color blue
@@ -67,7 +79,11 @@ late [ p | y ] -> log P is next to y
 late [ p | g ] -> log P is next to g
 late [ p | k ] -> log P is next to k
 [ action p ] -> win
-
+[ w q ] -> quit
+[ w u ] -> undo
+[ w x ] -> win
+[ w z ] -> restart
+[ w ] -> []
 ==============
 WINCONDITIONS
 ==============
@@ -77,6 +93,8 @@ all r on y
 LEVELS
 =======
 
+section S1
+
 message first level\n\ntriggers a bug?
 
 ...g......
@@ -84,12 +102,39 @@ message first level\n\ntriggers a bug?
 ...b...k..
 ..........
 ..........
+...quxz....
 
 message second level
 
 ....k.....
 ....pry...
 ..........
+..quxz....
+
+section S2
+
+......
+.pww..
+......
+.quxz.
+
+
+section S3
+
+...w.
+.p.w.
+...w.
+.quxz
+
+section S4
+
+...w.
+.p.w.
+...w.
+...w.
+.quxz
+
+section S5
 
 level 40x40 to trigger diff undo twiddle bug
 rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr

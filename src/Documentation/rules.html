@@ -58,12 +58,10 @@
   <li>Sections</li>
   <li class="active">Rules</li>
 </ol>
-<p>
+</p>
 
 <h1>Sections of a PuzzleScript file</h1>
-<p>
-A puzzlescript file is divided into the following sections. 
-<p>
+<p>A puzzlescript file is divided into the following sections. </p>
   <ul class="nav nav-pills">
     <li><a href="prelude.html">Prelude</a></li>
     <li><a href="objects.html">Objects</a></li>
@@ -116,7 +114,7 @@ A puzzlescript file is divided into the following sections.
 
 	<p>It's possible for a rule to search for several disconnected bits.  
 		For instance, you could have a bird that vanishes whenever the cat tries to jump up:
-   	   	<pre><code>[ up Cat ]  [ Bird ] -> [ up Cat ] [ ]</code></pre>
+   	   	<pre><code>[ up Cat ]  [ Bird ] -> [ up Cat ] [ ]</code></pre></p>
 
 	<p>It's possible to restrict rules to only operating in particular directions - for instance, the following removes anything that steps on lava:</p>
    	   	<pre><code>down [ Mortal | Lava ]  -> [ Corpse | Lava ]</code></pre>
@@ -191,8 +189,7 @@ right once [ cell count | doublex ] -> [ cell count2 | doublex ]
 		<dt>random</dt>
 		<dd>This prefix works not on a single rule but on a rule group.
 			It looks at all possible applications of all rules in that group, and picks one at random.
-			<p>
-			There are also some other ways to do randomness.
+			<p>There are also some other ways to do randomness.</p>
 			See <a href="randomness.html">Randomness</a> for a detailed explanation.
 		</dd>
 
@@ -206,36 +203,31 @@ right once [ cell count | doublex ] -> [ cell count2 | doublex ]
 	</dl>
 
 <h3><span id="commands"></span>Commands</h3>
-   	<p>
-   	Sometimes just replacing tiles with tiles is not enough, you want other things to happen.  
+   	<p>Sometimes just replacing tiles with tiles is not enough, you want other things to happen.  
 	That's what commands are for. 
-	They go after the right-hand side. 
-   	<p>
-   	As an example, you can install a checkpoint, so that when people hit reset they're taken back to this point rather than the start of the level:
-   	<p>
+	They go after the right-hand side. </p>
+   	
+   	<p>As an example, you can install a checkpoint, so that when people hit reset they're taken back to this point rather than the start of the level:</p>
    	<pre><code>late [ Player SavePoint ] -> checkpoint</code></pre>
-   	<p>
-   	In several games, it's important that if the player can't move, nothing else can happen either - so that you can't make time tick forward 
+   	
+	<p>In several games, it's important that if the player can't move, nothing else can happen either - so that you can't make time tick forward 
 	by repeatedly walking into walls.  
 	There's a prelude setting for this, <b>require_player_movement</b>, but you can also simulate it as follows.
-   	<pre><code>[ Player ] -> [ Player Shadow ]
+<pre><code>[ Player ] -> [ Player Shadow ]
 late [ Player Shadow ] -> cancel
 late [ Shadow ] -> [ ]</code></pre>   
-<p>
-	At the start of the turn, you put a counter on the square the player's in, and if they're still together after the movement phase, then cancel the whole move.
-	<p>
-	You can combine several commands together, so you could do this if you wanted to play a sound effect as well.
+</p>
+	<p>At the start of the turn, you put a counter on the square the player's in, and if they're still together after the movement phase, then cancel the whole move.</p>
+	<p>You can combine several commands together, so you could do this if you wanted to play a sound effect as well.</p>
 	<pre><code>late [ Player Shadow ] -> checkpoint sfx3</code></pre>
-	<p>
-	You can have as many as you like, but if any command has a text argument, it must the the last on the line because it will swallow the rest.</p>
-	<p>
-	You can have combine commands with regular rules, if you want. 
-   	<p>   	   	
+
+	<p>You can have as many as you like, but if any command has a text argument, it must the the last on the line because it will swallow the rest.</p>
+	<p>You can have combine commands with regular rules, if you want. </p>   	   	
 <pre><code>[ > Player | Person ] -> [ &lt; Player | Person ] message Woah, buddy, back off!
 [ > Player | Person ] -> [ &lt; Player | Corpse ] again message Working on it...
 </code></pre>
-<br>
 
+<br>
 <h4>Available Commands</h4>
    	<p>
     <dl>
@@ -296,9 +288,11 @@ late [ Player | Crate ] -> log The Player is next to a Crate
 late [ Player | Wall ] -> log The Player is next to a Wall</code></pre>
 	  </dd>
 
-	  <dt>message You're dead. Press Undo or Restart to try again.</dt>
+	  <dt>message You're dead. \n Press Undo or Restart to try again.</dt>
       <dd>Gives the player a message.  
-		Reads everything to its right, so it has to be the rightmost argument.</dd>
+		Reads everything to its right, so it has to be the rightmost argument.
+		The \n is a newline character, so you can have multi-line messages.</dd>
+	  </dd>
 
 	  <dt>nosave <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
 	  <dd>Forces the engine to NOT save the current state to the undo stack. 

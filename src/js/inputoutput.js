@@ -1215,7 +1215,7 @@ function checkKey(e,justPressed) {
         		stopSolving();
         		break;
         	}
-			if (!titleScreen) {
+			if (!titleScreen && state.metadata.enable_pause) {
 				goToPauseScreen(); 
 				canvasResize();
 			} else if (!titleScreen || titleMode > 1) {
@@ -1224,7 +1224,8 @@ function checkKey(e,justPressed) {
 					titleSelection = 0;
 					
 					timer = 0;
-					if(titleScreen === false && state.metadata["level_select"] !== undefined) {
+					if(!titleScreen && state.metadata.level_select) {
+						titleSelection = null;
 						gotoLevelSelectScreen();
 					} else {
 						goToTitleScreen();

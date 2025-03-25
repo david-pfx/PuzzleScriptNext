@@ -215,6 +215,18 @@ Rule Assembly : (4 rules)
 			</dd>
       <p>You can also get this output in the editor by clicking on the <img src="../images/birdy.gif" height="24" width="24"> button.</p>
 
+			<dt>enable_pause<img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+			<dd>
+      When the player pauses the game by pressing the <b>Escape</b> key, a pause menu is shown. 
+      The player can then choose whether to resume or restart the level, select a different level or return to the title menu.  
+			</dd>
+
+			<dt>export_options notitle,nofooter,nopadding<img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+      <dd>These options allow you to remove the title, footer, and padding from an exported game. 
+        This allows you to embed the game in a webpage where you want to control the layout yourself.
+        Other options may be added as the need arises.
+      </dd>
+
 			<dt>flickscreen WxH</dt>
 			<dd>
 				Setting flickscreen divides each level into WxH grids, and zooms the camera in so that the player can only see one at a time - the camera does not follow the player around on a move-to-move basis, but if the player moves from one part of this grid to another, the camera <em>flicks</em> to the new position.  See <a href="../editor.html?hack=6880313">Legend of Zokoban</a> for a cute example.

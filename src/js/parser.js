@@ -212,11 +212,12 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'enable_pause', 
+        'level_select', 'level_select_lock', 
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
-    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'debug_switch'];
+    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'debug_switch', 'export_options' ];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
@@ -599,6 +600,8 @@ var codeMirrorFn = function() {
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
             } else if (ident == 'debug_switch') {
                 debugSwitch = value[1];
+            } else if (ident == 'export_options') {
+                exportOptions = value[1];
             } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);

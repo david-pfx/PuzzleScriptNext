@@ -27,6 +27,7 @@ var oldflickscreendat = [];//used for buffering old flickscreen/scrollscreen pos
 var keybuffer = [];
 
 var debugSwitch = '';
+var exportOptions = '';
 var showLayers = false;
 var showLayerNo = 0;
 var defaultDebugMode = false;
