@@ -15,17 +15,20 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25b26. 
-
+The latest version is Release v-25c25. 
 Recent fixes/updates:
+* Fix: quit goes to first level but should be current #165
+* New prelude settings 'enable_pause', 'export_options' (see docs)
+* Fix: Fix UX annoyance with the debug hover #168
+* Tweaks for docs: Collision layers, message, tags
+
+Older fixes/updates:
 * Fixed Tween behaviour inconsistency #162
 * Closed with updated docs: Dev version tweening is broken for left and up #163
 * Improved startup so initial load gets compile but no clear #139
 * Fixed doc for key_repeat_interval #161
 * Fixed export filename issues #138
 * Compiled all the gallery programs and fixed a few minor bugs
-
-Older fixes/updates:
 * Fixed: A loop for late rules AND a subroutine stops the main loop from working #153 (inherited from PS)
 * Fixed: ENIGMASH verbose_logging maxes out CPU #150 (see issue for details) (inherited from PS)
 * Fixed: The "no" rule not expanded when used with a tag which is also a rule prefix #145
