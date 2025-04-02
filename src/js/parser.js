@@ -924,6 +924,7 @@ var codeMirrorFn = function() {
             delete newobj.canRedef;
             newobj.colors = [];
             newobj.spritematrix = [];
+            newobj.spriteoffset = { x: 0, y: 0 };
             newobj.transforms = [];
             delete state.objects[candname];
             state.objects[candname] = newobj;
@@ -1267,10 +1268,6 @@ var codeMirrorFn = function() {
             // they will have been created
             for (const [newid, newvalue] of newobjects) {
                 registerOriginalCaseName(state, newid, state.lineNumber);
-                const clone = newvalue.cloneSprite;
-                if (clone && !(wordAlreadyDeclared(state, clone))) {  // should this be state.objects?
-                    logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
-                }
             }
             const newlegend = [ candname, ...newobjects.map(n => n[0])];
             newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?

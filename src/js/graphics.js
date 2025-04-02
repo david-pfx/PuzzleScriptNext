@@ -281,17 +281,27 @@ function generateGlyphImages() {
 	}
 
 	if (IDE) {
-		//make highlight thingy
+		//make highlight thingy in grid
 		glyphHighlight = makeSpriteCanvas("highlight");
 		var spritectx = glyphHighlight.getContext('2d');
-		spritectx.fillStyle = '#FFFFFF';
+		spritectx.strokeStyle = 'orange';
+		spritectx.lineWidth = 3;
+        spritectx.strokeRect(0, 0, cellwidth, cellheight);
 
-        const hlwid = 3;
-        spritectx.fillRect(0, 0, cellwidth, hlwid);
-        spritectx.fillRect(0, 0, hlwid, cellheight);
-
-        spritectx.fillRect(0, cellheight - hlwid, cellwidth, hlwid);
-        spritectx.fillRect(cellwidth - hlwid, 0, hlwid, cellheight);
+        //---------------------------------------------------------------------------
+        // generate a hover highlight the size of the largest object in the level
+        // but this needs to handle negative sprite offsets
+        // const size = Object.values(state.objects).reduce((acc, obj) => {
+        //     return {
+        //         x: Math.min(acc.x, obj.spriteoffset.x),
+        //         y: Math.min(acc.y, obj.spriteoffset.y),
+        //         width: Math.max(acc.width, obj.spriteoffset.x + obj.spritematrix[0].length),
+        //         height: Math.max(acc.height, obj.spriteoffset.y + obj.spritematrix.length), 
+        //     };
+        // }, { x: 0, y: 0, width: 0, height: 0 });
+        // console.log(`size: ${JSON.stringify(size)}`);
+        // spritectx.strokeRect(0, 0, size.width * pixelSize, size.height * pixelSize);
+        //---------------------------------------------------------------------------
 
 		glyphPrintButton = textImages['editor_s'];
 
@@ -331,15 +341,10 @@ function generateGlyphImages() {
 		//make highlight thingy
 		glyphMouseOver = makeSpriteCanvas("glyphMouseOver");
 		var spritectx = glyphMouseOver.getContext('2d');
-		spritectx.fillStyle = 'yellow';
-		const mowid = 3;  // was 2
-
-        spritectx.fillRect(0, 0, cellwidth, mowid);
-        spritectx.fillRect(0, 0, mowid, cellheight);
-
-        spritectx.fillRect(0, cellheight - mowid, cellwidth, mowid);
-        spritectx.fillRect(cellwidth - mowid, 0, mowid, cellheight);
-
+        spritectx.lineWidth = 3;
+        spritectx.strokeStyle = 'yellow';
+        spritectx.strokeRect(0, 0, cellwidth, cellheight);
+        
         //make movement glyphs
 
         const coords = [
