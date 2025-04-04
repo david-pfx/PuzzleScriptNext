@@ -1170,7 +1170,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
                     // P:S compat: "- and | for horizontal and vertical mirrors"
-                    symbols.transforms.push([ 'flip', token == '-' ? '>' : 'v']);  
+                    symbols.transforms.push([ 'flip', token == '-' ? 'down' : 'right']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
@@ -1257,24 +1257,31 @@ var codeMirrorFn = function() {
         }
     }
 
-    // if the last object has tags, expand it, delete original name and add property
+    // if the last object has tags, expand it, create new objects
+    // delete original name and add property
+    // then apply the transforms
     function expandLastObject(state) {
         const candname = state.objects_candname;
         state.objects_candname = null;
-        if (!candname || !hasParts(candname)) return;
-        const obj = state.objects[candname];
-        const newobjects = expandObjectDef(state, candname, obj);
-        if (newobjects) {
-            // they will have been created
-            for (const [newid, newvalue] of newobjects) {
-                registerOriginalCaseName(state, newid, state.lineNumber);
-            }
-            const newlegend = [ candname, ...newobjects.map(n => n[0])];
-            newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
+        const obj = candname && state.objects[candname];
+        if (!obj) return;
+        if (hasParts(candname)) {
+            const newobjects = expandObjectDef(state, candname, obj);
+            if (newobjects) {
+                // they will have been created
+                for (const [newid, newobj] of newobjects) {
+                    registerOriginalCaseName(state, newid, state.lineNumber);
+                    applyTransforms(state, newobj);
+                }
+                const newlegend = [ candname, ...newobjects.map(n => n[0])];
+                newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
-            delete state.objects[candname];
-            state.legend_properties.push(newlegend);
+                delete state.objects[candname];
+                state.legend_properties.push(newlegend);
+                return;
+            }
         }
+        applyTransforms(state, obj);
     }
 
     ////////////////////////////////////////////////////////////////////////////
