@@ -1635,7 +1635,7 @@ function expandRuleWithTags(state, rule) {
             for (const newident of expander.getExpandedIdents()) {
                 const newrule = deepCloneRule(r);
                 newrule.lhs[t.rowx][t.cellx][t.atomx] = newident;
-                if (rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
+                if (rule.rhs.length > 0 && rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
                     newrule.rhs[t.rowx][t.cellx][t.atomx] = newident;
                 temprules.push(newrule);
             }
