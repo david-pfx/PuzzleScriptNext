@@ -15,14 +15,16 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25c25. 
+The latest version is Release v-25d05. 
 Recent fixes/updates:
+* Fix Sprite expansion errors visible in Hebird #170
+* Fix [ OBJ:perpendicular ] TypeError crash #171
+
+Older fixes/updates:
 * Fix: quit goes to first level but should be current #165
 * New prelude settings 'enable_pause', 'export_options' (see docs)
 * Fix: Fix UX annoyance with the debug hover #168
 * Tweaks for docs: Collision layers, message, tags
-
-Older fixes/updates:
 * Fixed Tween behaviour inconsistency #162
 * Closed with updated docs: Dev version tweening is broken for left and up #163
 * Improved startup so initial load gets compile but no clear #139
