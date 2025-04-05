@@ -1,0 +1,1741 @@
+title ⠀             Hebird              A Snakebird Fangame
+author Karoo
+homepage https://karoo13.itch.io/
+
+sprite_size 7x4
+key_repeat_interval 0.22
+again_interval 0.06
+//realtime_interval 0.06
+run_rules_on_level_start
+
+skip_title_screen
+//debug
+//verbose_logging
+debug_switch obj
+
+=====
+TAGS
+=====
+
+ID = D1 D2 D3 D4
+NEXT = KM KQ KW KE KA KS KD
+PREV = KM KQ KW KE KA KS KD
+LEAN = LL LM LR LU LD
+
+ADJ = J
+ADJA = ADJ JQ
+ADJAC = ADJA JW JQW
+ADJACE = ADJAC JE JQE JWE JQWE
+ADJACEN = ADJACE JA JQA JWA JQWA JEA JQEA JWEA JQWEA
+ADJACENC = ADJACEN JS JQS JWS JQWS JES JQES JWES JQWES JAS JQAS JWAS JQWAS JEAS JQEAS JWEAS JQWEAS
+ADJACENCY = ADJACENC JD JQD JWD JQWD JED JQED JWED JQWED JAD JQAD JWAD JQWAD JEAD JQEAD JWEAD JQWEAD JSD JQSD JWSD JQWSD JESD JQESD JWESD JQWESD JASD JQASD JWASD JQWASD JEASD JQEASD JWEASD JQWEASD
+
+=========
+MAPPINGS
+=========
+
+ADJ => HasQ
+J -> JQ
+ADJA => HasW
+J JQ -> JW JQW
+ADJAC => HasE
+J JQ JW JQW -> JE JQE JWE JQWE
+ADJACE => HasA
+J JQ JW JQW JE JQE JWE JQWE -> JA JQA JWA JQWA JEA JQEA JWEA JQWEA
+ADJACEN => HasS
+J JQ JW JQW JE JQE JWE JQWE JA JQA JWA JQWA JEA JQEA JWEA JQWEA -> JS JQS JWS JQWS JES JQES JWES JQWES JAS JQAS JWAS JQWAS JEAS JQEAS JWEAS JQWEAS
+ADJACENC => HasD
+J JQ JW JQW JE JQE JWE JQWE JA JQA JWA JQWA JEA JQEA JWEA JQWEA JS JQS JWS JQWS JES JQES JWES JQWES JAS JQAS JWAS JQWAS JEAS JQEAS JWEAS JQWEAS -> JD JQD JWD JQWD JED JQED JWED JQWED JAD JQAD JWAD JQWAD JEAD JQEAD JWEAD JQWEAD JSD JQSD JWSD JQWSD JESD JQESD JWESD JQWESD JASD JQASD JWASD JQWASD JEASD JQEASD JWEASD JQWEASD
+
+========
+OBJECTS
+========
+
+Background
+#123048 #12314A #12324C #12334E #123450 #123552 #123654 #123756
+3333333
+2222222
+1111111
+4000004
+
+Offgrid
+#123048 #12314A #12324C #12334E #123450 #123552 #123654 #123756
+3777773
+6666666
+5555555
+4444444
+
+Darkened
+#102C42 #102D43 #102E44 #102F45 #103046 #103147 #103248 #103349
+..77777..
+.6666666.
+.5555555.
+444444444
+333333333
+.2222222.
+.1111111.
+..00000..
+translate:left:1
+
+Init
+transparent
+
+Player
+transparent
+
+Eyes:PREV:LEAN
+white black
+..0.0
+.00000
+..0.0
+.
+.
+.
+
+Eyes:KM:LL
+white black
+..0.0
+.10100
+..0.0
+.
+.
+.
+
+Eyes:KM:LM
+white black
+..0.0
+.01010
+..0.0
+.
+.
+.
+
+Eyes:KM:LR
+white black
+..0.0
+.00101
+..0.0
+.
+.
+.
+
+Eyes:KM:LU
+white black
+..1.1
+.00000
+..0.0
+.
+.
+.
+
+Eyes:KM:LD
+white black
+..0.0
+.00000
+..1.1
+.
+.
+.
+
+Eyes:KQ:LEAN
+white black
+copy: Eyes:KM:LEAN
+translate:right:1
+
+Eyes:KW:LEAN
+white black
+copy: Eyes:KM:LEAN
+
+Eyes:KE:LEAN
+white black
+copy: Eyes:KW:LEAN
+translate:left:1
+
+Eyes:KA:LEAN
+white black
+copy: Eyes:KQ:LEAN
+translate:up:1
+
+Eyes:KS:LEAN
+white black
+copy: Eyes:KW:LEAN
+translate:up:1
+
+Eyes:KD:LEAN
+white black
+copy: Eyes:KE:LEAN
+translate:up:1
+ 
+BorderUU
+black
+0.00000
+000.00.
+...0..0
+.
+
+BorderU
+black
+0.00000
+000.00.
+...0..0
+.
+.
+.
+.
+.
+
+BorderD
+black purple blue
+..222..
+.221222
+2211112
+1111111
+
+BorderDD
+black purple blue
+.......
+.......
+222..22
+1122221
+1111111
+1101101
+0010010
+1000000
+
+BorderDDD
+black purple blue
+1111111
+1101101
+0010010
+1000000
+
+BorderL
+black
+0000...
+000.0..
+0000...
+00.0...
+0000...
+000.0..
+0000...
+00.0...
+
+BorderLD
+black purple
+0000...
+000.0..
+0000...
+00.0...
+
+BorderR
+black
+..0.000
+...0000
+...0.00
+...0000
+..0.000
+...0000
+...0.00
+...0000
+
+BorderRD
+black
+..0.000
+...0000
+...0.00
+...0000
+
+Blood
+red
+...0..0
+.0..0
+0..0..0
+.
+.
+.
+
+Wall
+brown lightbrown
+..00100
+.0000000
+.0000000
+010001000
+000000010
+.0010000
+.0000000
+..00000
+translate:left:1
+
+GrassQ
+green
+.
+0
+.
+.
+.
+.
+.
+.
+
+GrassW
+green
+.00000
+..0..0
+.
+.
+.
+.
+.
+.
+
+GrassE
+green
+.
+......0
+.
+.
+.
+.
+.
+.
+
+Spike
+darkgray
+..0.0
+..0.0
+0..0..0
+.00000
+.00000
+0..0..0
+..0.0
+..0.0
+
+RodQ
+darkgray
+.0
+000
+.00
+.
+.
+.
+.
+translate:left:1
+
+RodW
+darkgray
+..000
+..000
+...0
+.
+.
+.
+.
+.
+
+RodE
+darkgray
+......0
+.....000
+.....00
+.
+.
+.
+.
+
+RodA
+darkgray
+.00
+000
+.0
+.
+translate:left:1
+
+RodS
+darkgray
+...0
+..000
+..000
+
+RodD
+darkgray
+.....00
+.....000
+......0
+.
+
+Fruit1
+red darkred green
+....2
+..0022
+.000022
+.01000
+000010
+01000
+000
+.
+
+Fruit2
+purple blue darkbrown
+...22
+..102
+.10010
+.00200
+..1010
+.10000
+.0010
+...00
+
+Fruit3
+lightgreen green brown
+..0.0
+.21011
+1010100
+.101011
+00110101
+.100101
+..11010
+....1
+
+Fruit4
+yellow lightbrown darkbrown
+.....22
+.....00
+...0000
+00001000
+.1110010
+..00010
+.000.00
+.....0
+translate:left:1
+
+(BUG: currently has layering issues)
+Exit1
+white red orange yellow lightgreen blue purple
+.
+..122
+.11123
+.66033
+.65444
+..554
+.
+.
+
+Exit2
+white red orange yellow lightgreen blue purple
+..22
+.112223
+1111233
+.66033
+6654444
+655544
+...55
+.
+
+Fire
+orange yellow
+...0
+..010
+0.110.0
+0111010
+0111110
+0011100
+.00000
+.
+
+Crate:ID:ADJACENCY
+lightbrown
+...000...
+..00.00..
+.00...00.
+.0.....0.
+.0.....0.
+.00...00.
+..00.00..
+...000...
+translate:left:1
+
+Crate:ID:JQ
+lightbrown
+..0000...
+.....00..
+......00.
+0......0.
+00.....0.
+.00...00.
+..00.00..
+...000...
+translate:left:1
+
+Crate:ID:JW
+lightbrown
+..0...0..
+..0...0..
+.00...00.
+.0.....0.
+.0.....0.
+.00...00.
+..00.00..
+...000...
+translate:left:1
+
+Crate:ID:JE
+lightbrown
+copy: Crate:ID:JQ|
+
+Crate:ID:JA
+lightbrown
+copy: Crate:ID:JQ-
+
+Crate:ID:JS
+lightbrown
+copy: Crate:ID:JW-
+
+Crate:ID:JD
+lightbrown
+copy: Crate:ID:JQ|-
+
+Crate:ID:JQW
+lightbrown
+......0..
+......0..
+......00.
+0......0.
+00.....0.
+.00...00.
+..00.00..
+...000...
+translate:left:1
+
+Crate:ID:JQE
+lightbrown
+..00000..
+.........
+.........
+0.......0
+00.....00
+.00...00.
+..00.00..
+...000...
+translate:left:1
+
+Crate:ID:JQA
+lightbrown
+..0000...
+.....00..
+......00.
+.......0.
+.......0.
+......00.
+.....00..
+..0000...
+translate:left:1
+
+Crate:ID:JQS
+lightbrown
+..0000...
+.....00..
+......00.
+0......0.
+00.....0.
+.00...00.
+..0...0..
+..0...0..
+translate:left:1
+
+Crate:ID:JQD
+lightbrown
+..0000...
+.....00..
+......00.
+0......00
+00......0
+.00......
+..00.....
+...0000..
+translate:left:1
+
+Crate:ID:JWE
+lightbrown
+Copy: Crate:ID:JQW|
+
+Crate:ID:JWA
+lightbrown
+Copy: Crate:ID:JQS-
+
+Crate:ID:JWS
+lightbrown
+..0...0..
+..0...0..
+.00...00.
+.0.....0.
+.0.....0.
+.00...00.
+..0...0..
+..0...0..
+translate:left:1
+
+Crate:ID:JWD
+lightbrown
+Copy: Crate:ID:JQS|-
+
+Crate:ID:JEA
+lightbrown
+Copy: Crate:ID:JQD|
+
+Crate:ID:JES
+lightbrown
+Copy: Crate:ID:JQS|
+
+Crate:ID:JED
+lightbrown
+Copy: Crate:ID:JQA|
+
+Crate:ID:JAS
+lightbrown
+Copy: Crate:ID:JQW-
+
+Crate:ID:JAD
+lightbrown
+Copy: Crate:ID:JQE-
+
+Crate:ID:JSD
+lightbrown
+Copy: Crate:ID:JQW|-
+
+Crate:ID:JQWE
+lightbrown
+.........
+.........
+.........
+0.......0
+00.....00
+.00...00.
+..00.00..
+...000...
+translate:left:1
+
+Crate:ID:JQWA
+lightbrown
+......0..
+......0..
+......00.
+.......0.
+.......0.
+......00.
+.....00..
+..0000...
+translate:left:1
+
+Crate:ID:JQWS
+lightbrown
+......0..
+......0..
+......00.
+0......0.
+00.....0.
+.00...00.
+..0...0..
+..0...0..
+translate:left:1
+
+Crate:ID:JQWD
+lightbrown
+......0..
+......0..
+......00.
+0......00
+00......0
+.00......
+..00.....
+...0000..
+translate:left:1
+
+Crate:ID:JQEA
+lightbrown
+..00000..
+.........
+.........
+........0
+.......00
+......00.
+.....00..
+..0000...
+translate:left:1
+
+Crate:ID:JQES
+lightbrown
+..00000..
+.........
+.........
+0.......0
+00.....00
+.00...00.
+..0...0..
+..0...0..
+translate:left:1
+
+Crate:ID:JQED
+lightbrown
+Copy: Crate:ID:JQEA|
+
+Crate:ID:JQAS
+lightbrown
+Copy: Crate:ID:JQWA-
+
+Crate:ID:JQAD
+lightbrown
+Copy: Crate:ID:JQEA-
+
+Crate:ID:JQSD
+lightbrown
+Copy: Crate:ID:JQWD|-
+
+Crate:ID:JWEA
+lightbrown
+Copy: Crate:ID:JQWD|
+
+Crate:ID:JWES
+lightbrown
+Copy: Crate:ID:JQWS|
+
+Crate:ID:JWED
+lightbrown
+Copy: Crate:ID:JQWA|
+
+Crate:ID:JWAS
+lightbrown
+Copy: Crate:ID:JQWS-
+
+Crate:ID:JWAD
+lightbrown
+Copy: Crate:ID:JQES-
+
+Crate:ID:JWSD
+lightbrown
+Copy: Crate:ID:JQWS|-
+
+Crate:ID:JEAS
+lightbrown
+Copy: Crate:ID:JQWD-
+
+Crate:ID:JEAD
+lightbrown
+Copy: Crate:ID:JQEA|-
+
+Crate:ID:JESD
+lightbrown
+Copy: Crate:ID:JQWA|-
+
+Crate:ID:JASD
+lightbrown
+Copy: Crate:ID:JQWE-
+
+Crate:ID:JQWEA
+lightbrown
+.........
+.........
+.........
+........0
+.......00
+......00.
+.....00..
+..0000...
+translate:left:1
+
+Crate:ID:JQWES
+lightbrown
+.........
+.........
+.........
+0.......0
+00.....00
+.00...00.
+..0...0..
+..0...0..
+translate:left:1
+
+Crate:ID:JQWED
+lightbrown
+Copy: Crate:ID:JQWEA|
+
+Crate:ID:JQWAS
+lightbrown
+......0..
+......0..
+......00.
+.......0.
+.......0.
+......00.
+......0..
+......0..
+translate:left:1
+
+Crate:ID:JQWAD
+lightbrown
+......0..
+......0..
+......00.
+.......00
+........0
+.........
+.........
+..00000..
+translate:left:1
+
+Crate:ID:JQWSD
+lightbrown
+......0..
+......0..
+......00.
+0......00
+00......0
+.00......
+..0......
+..0......
+translate:left:1
+
+Crate:ID:JQEAS
+lightbrown
+Copy: Crate:ID:JQWAD-
+
+Crate:ID:JQEAD
+lightbrown
+..00000..
+.........
+.........
+.........
+.........
+.........
+.........
+..00000..
+translate:left:1
+
+Crate:ID:JQESD
+lightbrown
+Copy: Crate:ID:JQWAD|-
+
+Crate:ID:JQASD
+lightbrown
+Copy: Crate:ID:JQWEA-
+
+Crate:ID:JWEAS
+lightbrown
+Copy: Crate:ID:JQWSD|
+
+Crate:ID:JWEAD
+lightbrown
+Copy: Crate:ID:JQWAD|
+
+Crate:ID:JWESD
+lightbrown
+Copy: Crate:ID:JQWAS|
+
+Crate:ID:JWASD
+lightbrown
+Copy: Crate:ID:JQWES-
+
+Crate:ID:JEASD
+lightbrown
+Copy: Crate:ID:JQWEA|-
+
+Crate:ID:JQWEAS
+lightbrown
+.........
+.........
+.........
+........0
+.......00
+......00.
+......0..
+......0..
+translate:left:1
+
+Crate:ID:JQWEAD
+lightbrown
+.........
+.........
+.........
+.........
+.........
+.........
+.........
+..00000..
+translate:left:1
+
+Crate:ID:JQWESD
+lightbrown
+Copy: Crate:ID:JQWEAS|
+
+Crate:ID:JQWASD
+lightbrown
+Copy: Crate:ID:JQWEAS-
+
+Crate:ID:JQEASD
+lightbrown
+Copy: Crate:ID:JQWEAD-
+
+Crate:ID:JWEASD
+lightbrown
+Copy: Crate:ID:JQWEAS|-
+
+Crate:ID:JQWEASD
+lightbrown
+.........
+.........
+....0....
+...000...
+...000...
+....0....
+.........
+.........
+translate:left:1
+
+Crate:D2:ADJACENCY
+orange
+
+Crate:D3:ADJACENCY
+lightred
+
+Crate:D4:ADJACENCY
+red
+
+Smoke1
+gray
+..000
+.00.00
+00...00
+0.....0
+0.....0
+00...00
+.00.00
+..000
+
+Smoke2
+gray
+..0.0
+.0...0
+.......
+0.....0
+0.....0
+.......
+.0...0
+..0.0
+
+Snake:ID:NEXT:PREV
+red darkred orange
+.........
+..00.00..
+.00...00.
+.........
+.........
+.00...00.
+..00.00..
+.........
+translate:left:1
+
+Snake:ID:KQ:KW
+red darkred orange
+..11110..
+.111110..
+.111110..
+1111110..
+0011110..
+.001110..
+...000...
+.........
+translate:left:1
+
+Snake:ID:KQ:KE
+red darkred orange
+..00.00..
+.1110111.
+.1111111.
+111111111
+001111100
+.0011100.
+...000...
+.........
+translate:left:1
+
+Snake:ID:KQ:KA
+red darkred orange
+..00.....
+.11100...
+.111110..
+1111110..
+1111110..
+.111110..
+.11100...
+..00.....
+translate:left:1
+
+Snake:ID:KQ:KS
+red darkred orange
+..00.....
+.11100...
+.111110..
+1111110..
+0011110..
+.001110..
+..01110..
+..01110..
+translate:left:1
+
+Snake:ID:KQ:KD
+red darkred orange
+..00.....
+.11100...
+.1111100.
+111111100
+001111111
+.0011111.
+...00111.
+.....00..
+translate:left:1
+
+Snake:ID:KW:KS
+red darkred orange
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+translate:left:1
+
+Snake:ID:KW:KE
+red darkred orange
+copy: Snake:ID:KQ:KW|
+
+Snake:ID:KW:KA
+red darkred orange
+copy: Snake:ID:KQ:KS-
+
+Snake:ID:KW:KD
+red darkred orange
+copy: Snake:ID:KQ:KS|-
+
+Snake:ID:KE:KA
+red darkred orange
+copy: Snake:ID:KQ:KD|
+
+Snake:ID:KE:KS
+red darkred orange
+copy: Snake:ID:KQ:KS|
+
+Snake:ID:KE:KD
+red darkred orange
+copy: Snake:ID:KQ:KA|
+
+Snake:ID:KA:KS
+red darkred orange
+copy: Snake:ID:KQ:KW-
+
+Snake:ID:KA:KD
+red darkred orange
+copy: Snake:ID:KQ:KE-
+
+Snake:ID:KS:KD
+red darkred orange
+copy: Snake:ID:KQ:KW|-
+
+Snake:ID:KW:KQ
+red darkred orange
+copy: Snake:ID:KQ:KW
+
+Snake:ID:KE:KQ
+red darkred orange
+copy: Snake:ID:KQ:KE
+
+Snake:ID:KA:KQ
+red darkred orange
+copy: Snake:ID:KQ:KA
+
+Snake:ID:KS:KQ
+red darkred orange
+copy: Snake:ID:KQ:KS
+
+Snake:ID:KD:KQ
+red darkred orange
+copy: Snake:ID:KQ:KD
+
+Snake:ID:KE:KW
+red darkred orange
+copy: Snake:ID:KW:KE
+
+Snake:ID:KA:KW
+red darkred orange
+copy: Snake:ID:KW:KA
+
+Snake:ID:KS:KW
+red darkred orange
+copy: Snake:ID:KW:KS
+
+Snake:ID:KD:KW
+red darkred orange
+copy: Snake:ID:KW:KD
+
+Snake:ID:KA:KE
+red darkred orange
+copy: Snake:ID:KE:KA
+
+Snake:ID:KS:KE
+red darkred orange
+copy: Snake:ID:KE:KS
+
+Snake:ID:KD:KE
+red darkred orange
+copy: Snake:ID:KE:KD
+
+Snake:ID:KS:KA
+red darkred orange
+copy: Snake:ID:KA:KS
+
+Snake:ID:KD:KA
+red darkred orange
+copy: Snake:ID:KA:KD
+
+Snake:ID:KD:KS
+red darkred orange
+copy: Snake:ID:KS:KD
+
+Snake:ID:KM:KQ
+red darkred orange
+..00.....
+.11100...
+.111110..
+1111110..
+0011110..
+.001110..
+...000...
+.........
+translate:left:1
+
+Snake:ID:KM:KW
+red darkred orange
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+...000...
+.........
+translate:left:1
+
+Snake:ID:KM:KE
+red darkred orange
+copy: Snake:ID:KM:KQ|
+
+Snake:ID:KM:KA
+red darkred orange
+copy: Snake:ID:KM:KQ-
+
+Snake:ID:KM:KS
+red darkred orange
+copy: Snake:ID:KM:KW-
+
+Snake:ID:KM:KD
+red darkred orange
+copy: Snake:ID:KM:KQ|-
+
+Snake:ID:KQ:KM
+red darkred orange
+..00.....
+.11100...
+.1111100.
+111111110
+001112110
+.0011222.
+...00110.
+.....00..
+translate:left:1
+
+Snake:ID:KW:KM
+red darkred orange
+..01110..
+..01110..
+..01110..
+..01110..
+..01110..
+..02220..
+..01210..
+...000...
+translate:left:1
+
+Snake:ID:KE:KM
+red darkred orange
+copy: Snake:ID:KQ:KM|
+
+Snake:ID:KA:KM
+red darkred orange
+.....00..
+...00110.
+.0011110.
+001111110
+111112220
+.1111200.
+.11100...
+..00.....
+translate:left:1
+
+Snake:ID:KS:KM
+red darkred orange
+...000..
+..01110..
+..01110..
+..01210..
+..02220..
+..01110..
+..01110..
+..01110..
+translate:left:1
+
+Snake:ID:KD:KM
+red darkred orange
+copy: Snake:ID:KA:KM|
+
+Snake:ID:KM:KM
+red darkred orange
+....0....
+..00100..
+.0011100.
+.0111110.
+.0111110.
+.0022200.
+..00200..
+.........
+translate:left:1
+
+Snake:D2:NEXT:PREV
+blue purple orange
+
+Snake:D3:NEXT:PREV
+lightgreen green orange
+
+Snake:D4:NEXT:PREV
+yellow lightbrown orange
+
+Debounce
+transparent
+
+Signal
+transparent
+
+Skip
+transparent
+
+Tail
+transparent
+
+Tail2
+transparent
+
+Blocked
+transparent
+
+Falling
+transparent
+
+Exiting
+transparent
+
+I:ID
+transparent
+
+L:LEAN
+transparent
+
+MQ
+transparent
+
+MW
+transparent
+
+ME
+transparent
+
+MA
+transparent
+
+MS
+transparent
+
+MD
+transparent
+
+=======
+LEGEND
+=======
+
+Direction = MQ or MW or ME or MA or MS or MD
+NearQ = MQ or MA or MW
+NearW = MW or MQ or ME
+NearE = ME or MW or MD
+NearA = MA or MQ or MS
+NearS = MS or MA or MD
+NearD = MD or MS or ME
+
+Border = BorderUU or BorderU or BorderL or BorderR
+Barrier = Wall or Spike
+Spiky = Spike or Fruit3
+Melty = BorderD or BorderDD or Fire
+Fruit = Fruit1 or Fruit2 or Fruit3 or Fruit4
+
+Crate:D1 = Crate:D1:ADJACENCY
+Crate:D2 = Crate:D2:ADJACENCY
+Crate:D3 = Crate:D3:ADJACENCY
+Crate:D4 = Crate:D4:ADJACENCY
+Crate = Crate:ID
+
+Snake:D1:KM = Snake:D1:KM:PREV
+Snake:D1:KQ = Snake:D1:KQ:PREV
+Snake:D1:KW = Snake:D1:KW:PREV
+Snake:D1:KE = Snake:D1:KE:PREV
+Snake:D1:KA = Snake:D1:KA:PREV
+Snake:D1:KS = Snake:D1:KS:PREV
+Snake:D1:KD = Snake:D1:KD:PREV
+Snake:D2:KM = Snake:D2:KM:PREV
+Snake:D2:KQ = Snake:D2:KQ:PREV
+Snake:D2:KW = Snake:D2:KW:PREV
+Snake:D2:KE = Snake:D2:KE:PREV
+Snake:D2:KA = Snake:D2:KA:PREV
+Snake:D2:KS = Snake:D2:KS:PREV
+Snake:D2:KD = Snake:D2:KD:PREV
+Snake:D3:KM = Snake:D3:KM:PREV
+Snake:D3:KQ = Snake:D3:KQ:PREV
+Snake:D3:KW = Snake:D3:KW:PREV
+Snake:D3:KE = Snake:D3:KE:PREV
+Snake:D3:KA = Snake:D3:KA:PREV
+Snake:D3:KS = Snake:D3:KS:PREV
+Snake:D3:KD = Snake:D3:KD:PREV
+Snake:D4:KM = Snake:D4:KM:PREV
+Snake:D4:KQ = Snake:D4:KQ:PREV
+Snake:D4:KW = Snake:D4:KW:PREV
+Snake:D4:KE = Snake:D4:KE:PREV
+Snake:D4:KA = Snake:D4:KA:PREV
+Snake:D4:KS = Snake:D4:KS:PREV
+Snake:D4:KD = Snake:D4:KD:PREV
+Snake:D1 = Snake:D1:NEXT
+Snake:D2 = Snake:D2:NEXT
+Snake:D3 = Snake:D3:NEXT
+Snake:D4 = Snake:D4:NEXT
+Snake = Snake:ID
+
+Head:D1 = Snake:D1:NEXT:KM
+Head:D2 = Snake:D2:NEXT:KM
+Head:D3 = Snake:D3:NEXT:KM
+Head:D4 = Snake:D4:NEXT:KM
+
+Rigidbody = Crate or Snake
+
+. = Background
+_ = Offgrid
+I = Init and Offgrid
+# = Wall
+X = Spike
+F = Fire
+* = Exit1
+R = Fruit1
+B = Fruit2
+G = Fruit3
+Y = Fruit4
+1 = I:D1
+2 = I:D2
+3 = I:D3
+4 = I:D4
+M = Snake:D1:KM:KM
+Q = Snake:D1:KQ:KM
+W = Snake:D1:KW:KM
+E = Snake:D1:KE:KM
+A = Snake:D1:KA:KM
+S = Snake:D1:KS:KM
+D = Snake:D1:KD:KM
+
+=======
+SOUNDS
+=======
+
+sfx0 34903307 ( Move )
+sfx1 26198107 ( Push )
+sfx2 17347504 ( Blocked )
+sfx3 95837509 ( Eat )
+sfx4 39477909 ( Exiting )
+sfx5 4685700 ( Win )
+sfx6 34991509 ( Spike )
+sfx7 34991509 ( Spike )
+sfx8 34991509 ( Spike )
+sfx9 44948908 ( Melt )
+
+================
+COLLISIONLAYERS
+================
+
+Debounce
+Init
+Player
+I:ID
+L:LEAN
+Direction
+Signal
+Skip
+Tail, Tail2
+Blocked
+Falling
+Exiting
+Background
+Offgrid
+--
+Darkened
+Exit1, Exit2
+Smoke1, Smoke2
+--
+Wall, Spike, Fruit, Crate, Snake
+Fire
+GrassQ
+GrassW
+GrassE
+--
+RodQ
+RodW
+RodE
+RodA
+RodS
+RodD
+--
+Eyes:PREV:LEAN
+Blood
+BorderUU, BorderU, BorderD, BorderDD, BorderDDD
+BorderL, BorderLD, BorderR, BorderRD
+
+======
+RULES
+======
+
+( NOTE: Rule improvements on hold until p:s allows rule direction mapping, will likely be a while)
+( Initialization )
+down ID NEXT PREV [Init] [I:ID | Snake:D1:NEXT:PREV] -> [Init] [Offgrid | Snake:ID:NEXT:PREV Signal]
+ID [Init] [I:ID] -> [Init] [Crate:ID:J]
+down [Init] [Exit1 | ] -> [Init] [Offgrid | Exit2]
+[Init] [Offgrid | Offgrid] -> [Init] [ | ]
+[Init] [no Offgrid | no Offgrid] [Offgrid] -> [Init] [ | ] [ ]
+( Parse snakes )
+startloop
+up ID NEXT [Init] [Snake:ID:KW Signal | | Snake:D1:NEXT:PREV] -> [Init] [Snake:ID:KW | | Snake:ID:NEXT:KS Signal]
+down ID NEXT [Init] [Snake:ID:KS Signal | | Snake:D1:NEXT:PREV] -> [Init] [Snake:ID:KS | | Snake:ID:NEXT:KW Signal]
+left ID [Init] [Snake:ID:KQ Signal | ] -> [Init] [Snake:ID:KQ | Signal I:ID]
+up ID NEXT [Init] [Signal I:ID | Snake:D1:NEXT:PREV] -> [Init] [ | Snake:ID:NEXT:KD Signal]
+right ID [Init] [Snake:ID:KE Signal | ] -> [Init] [Snake:ID:KE | Signal I:ID]
+up ID NEXT [Init] [Signal I:ID | Snake:D1:NEXT:PREV] -> [Init] [ | Snake:ID:NEXT:KA Signal]
+left ID [Init] [Snake:ID:KA Signal | ] -> [Init] [Snake:ID:KA | Signal I:ID]
+down ID NEXT [Init] [Signal I:ID | Snake:D1:NEXT:PREV] -> [Init] [ | Snake:ID:NEXT:KE Signal]
+right ID [Init] [Snake:ID:KD Signal | ] -> [Init] [Snake:ID:KD | Signal I:ID]
+down ID NEXT [Init] [Signal I:ID | Snake:D1:NEXT:PREV] -> [Init] [ | Snake:ID:NEXT:KQ Signal]
+endloop
+[Init] [Signal] -> [Init] [ ]
+
+( Border )
+up [Init | ] -> [ | Init BorderUU BorderL Signal]
+down [Init no Signal | ] -> [Init Signal | BorderL]
+down [Init] [BorderL | | ] -> [Init] [BorderL | | BorderL]
+right [Init] [BorderUU Signal | ] -> [Init] [BorderUU | Signal]
++ down [Init] [Signal no BorderUU | ] -> [Init] [Signal | BorderU]
++ right [Init] [Signal | ] -> [Init] [ | BorderUU Signal]
+down [Init] [Signal | BorderU] -> [Init] [ | BorderU Signal]
+[Init] [Signal] -> [Init] [BorderR Signal]
+down [Init] [BorderR Signal | | ] -> [Init] [BorderR | | BorderR Signal]
+down [Init] [Signal | ] -> [Init] [ | BorderRD BorderDDD Signal]
+up [Init] [BorderDDD Signal | ] -> [Init] [BorderDDD Signal | BorderD]
++ left [Init] [BorderDDD Signal | ] -> [Init] [BorderDDD | BorderDD Signal]
++ left [Init] [Signal | ] -> [Init] [BorderDD | BorderDDD Signal]
+[Init] [BorderDDD Signal no BorderL] -> [Init] [BorderLD BorderDDD Signal]
+[Init] [Signal] -> [Init] [ ]
+[Init] [BorderU] -> [Init] [BorderU Darkened]
+[Init] [BorderUU] -> [Init] [BorderUU Darkened]
+
+( Aesthetics )
+up [Init] [Wall | | no Wall] -> [Init] [Wall GrassW | | ]
+right [Init] [Barrier | ] -> [Init] [Barrier | MQ]
+up [Init] [GrassW | no MQ] -> [Init] [GrassW GrassQ| ]
+left [Init] [Barrier | ] -> [Init] [Barrier | ME]
+up [Init] [GrassW | no ME] -> [Init] [GrassW GrassE| ]
+[Init] [MQ] -> [Init] [ ]
+[Init] [ME] -> [Init] [ ]
+up [Init] [Spike | | Barrier] -> [Init] [Spike RodW | | Barrier]
+down [Init] [Spike | | Barrier] -> [Init] [Spike RodS | | Barrier]
+right [Init] [Barrier | ] -> [Init] [Barrier | MQ]
+up [Init] [Spike | MQ] -> [Init] [Spike RodQ | MQ]
+down [Init] [Spike | MQ] -> [Init] [Spike RodA | MQ]
+left [Init] [Barrier | ] -> [Init] [Barrier | ME]
+up [Init] [Spike | ME] -> [Init] [Spike RodE | ME]
+down [Init] [Spike | ME] -> [Init] [Spike RodD | ME]
+[Init] [MQ] -> [Init] [ ]
+[Init] [ME] -> [Init] [ ]
+( Crate adjacency )
+down ID [Init] [Crate:ID | ] -> [Init] [Crate:ID | I:ID]
+right ID ADJ [Init] [I:ID | Crate:ID:ADJ] -> [Init] [I:ID | Crate:ID:HasQ]
+down ID ADJA [Init] [I:ID | Crate:ID:ADJA] -> [Init] [I:ID | Crate:ID:HasW]
+left ID ADJAC [Init] [I:ID | Crate:ID:ADJAC] -> [Init] [I:ID | Crate:ID:HasE]
+[Init] [I:ID] -> [Init] [ ]
+up ID [Init] [Crate:ID | ] -> [Init] [Crate:ID | I:ID]
+right ID ADJACE [Init] [I:ID | Crate:ID:ADJACE] -> [Init] [I:ID | Crate:ID:HasA]
+up ID ADJACEN [Init] [I:ID | Crate:ID:ADJACEN] -> [Init] [I:ID | Crate:ID:HasS]
+left ID  ADJACENC [Init] [I:ID | Crate:ID:ADJACENC] -> [Init] [I:ID | Crate:ID:HasD]
+[Init] [I:ID] -> [Init] [ ]
+
+( Create player, blocked tiles and end initialization )
+[Init] [Border] -> [Init] [Border Blocked]
+[Init] [Barrier] -> [Init] [Barrier Blocked]
+[Init] [Fruit] -> [Init] [Fruit Blocked]
+ID [Init] [Head:ID] -> [ ] [Head:ID Player]
+
+( Player switching )
+ID [action Player no Skip] [Head:ID no Skip] -> [action Player] [Head:ID Skip] nosave
+ID [action Player] [Head:ID no Skip] -> [no L:LEAN] [Head:ID Player]
+[Skip] -> [ ]
+ID [action Player] [Head:ID] -> [no L:LEAN] [Head:ID Player]
+( Handle diagonal input )
+[stationary Player L:LL Debounce] -> [Player]
+[stationary Player L:LR Debounce] -> [Player]
+[stationary Player L:LU Debounce] -> [Player MW]
+[stationary Player L:LD Debounce] -> [Player MS]
+[stationary Player L:LEAN no Debounce] -> [Player L:LEAN Debounce]
+[left Player L:LU] -> [Player MQ] nosave
+[up Player L:LL] -> [Player MQ] nosave
+[right Player L:LU] -> [Player ME] nosave
+[up Player L:LR] -> [Player ME] nosave
+[left Player L:LD] -> [Player MA] nosave
+[down Player L:LL] -> [Player MA] nosave
+[right Player L:LD] -> [Player MD] nosave
+[down Player L:LR] -> [Player MD] nosave
+[left Player L:LR] -> [Player L:LL] nosave
+[right Player L:LL] -> [Player L:LR] nosave
+[up Player L:LD] -> [Player L:LU] nosave
+[down Player L:LU] -> [Player L:LD] nosave
+[left Player] -> [Player L:LL]
+[right Player] -> [Player L:LR]
+[up Player] -> [Player L:LU]
+[down Player] -> [Player L:LD]
+
+( Unblock rigidbodies, block self )
+[Player Direction] [Rigidbody Blocked] -> [Player Direction] [Rigidbody] sfx0
+ID [Player Direction Snake:ID] [Snake:ID] -> [Player Direction Snake:ID] [Snake:ID Blocked]
+( Point to next position, hit wall or eat fruit )
+up ID NEXT [Player MW Snake:ID:NEXT:PREV | ] -> [Player MW Snake:ID:NEXT:KW | Signal I:ID]
+up [Signal | Blocked no Fruit] -> cancel
+up ID [Signal I:ID | Fruit] -> [Signal | Player Snake:ID:KS:KM] sfx3
+[Signal I:ID] -> [ ]
+[Signal] [Exit1] -> [Signal] [Exit2]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+up [Player MW | Signal] -> [ | ]
+down ID NEXT [Player MS Snake:ID:NEXT:PREV | ] -> [Player MS Snake:ID:NEXT:KS | Signal I:ID]
+down [Signal | Blocked no Fruit] -> cancel
+down ID [Signal I:ID | Fruit] -> [Signal | Player Snake:ID:KW:KM] sfx3
+[Signal I:ID] -> [ ]
+[Signal] [Exit1] -> [Signal] [Exit2]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+down [Player MS | Signal] -> [ | ]
+left ID NEXT [Player MQ Snake:ID:NEXT:PREV | ] -> [Player MQ Snake:ID:NEXT:KQ | Signal I:ID]
+up [Signal | Blocked no Fruit] -> cancel
+up ID [Signal I:ID | Fruit] -> [Signal | Player Snake:ID:KD:KM] sfx3
+[Signal I:ID] -> [ ]
+[Signal] [Exit1] -> [Signal] [Exit2]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+left [Player MQ | Signal] -> [ | ]
+right ID NEXT [Player ME Snake:ID:NEXT:PREV | ] -> [Player ME Snake:ID:NEXT:KE | Signal I:ID]
+up [Signal | Blocked no Fruit] -> cancel
+up ID [Signal I:ID | Fruit] -> [Signal | Player Snake:ID:KA:KM] sfx3
+[Signal I:ID] -> [ ]
+[Signal] [Exit1] -> [Signal] [Exit2]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+right [Player ME | Signal] -> [ | ]
+left ID NEXT [Player MA Snake:ID:NEXT:PREV | ] -> [Player MA Snake:ID:NEXT:KA | Signal I:ID]
+down [Signal | Blocked no Fruit] -> cancel
+down ID [Signal I:ID | Fruit] -> [Signal | Player Snake:ID:KE:KM] sfx3
+[Signal I:ID] -> [ ]
+[Signal] [Exit1] -> [Signal] [Exit2]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+left [Player MA | Signal] -> [ | ]
+right ID NEXT [Player MD Snake:ID:NEXT:PREV | ] -> [Player MD Snake:ID:NEXT:KD | Signal I:ID]
+down [Signal | Blocked no Fruit] -> cancel
+down ID [Signal I:ID | Fruit] -> [Signal | Player Snake:ID:KQ:KM] sfx3
+[Signal I:ID] -> [ ]
+[Signal] [Exit1] -> [Signal] [Exit2]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+right [Player MD | Signal] -> [ | ]
+
+( Mark and unblock tail depending on relative direction )
+ID [Player Direction Snake:ID] [Snake:ID:KM] -> [Player Direction Snake:ID I:ID] [Snake:ID:KM Tail]
+[NearQ] [Tail Snake:ID:KM:KQ Blocked] -> [NearQ] [Tail Snake:ID:KM:KQ]
+[NearW] [Tail Snake:ID:KM:KW Blocked] -> [NearW] [Tail Snake:ID:KM:KW]
+[NearE] [Tail Snake:ID:KM:KE Blocked] -> [NearE] [Tail Snake:ID:KM:KE]
+[NearA] [Tail Snake:ID:KM:KA Blocked] -> [NearA] [Tail Snake:ID:KM:KA]
+[NearS] [Tail Snake:ID:KM:KS Blocked] -> [NearS] [Tail Snake:ID:KM:KS]
+[NearD] [Tail Snake:ID:KM:KD Blocked] -> [NearD] [Tail Snake:ID:KM:KD]
+( Retract tail )
+left [Tail Snake:ID:KM:KQ | ] -> [Tail | Signal]
+up [Tail Snake:ID:KM:KW | ] -> [Tail | Signal]
+right [Tail Snake:ID:KM:KE | ] -> [Tail | Signal]
+up [Signal | ] -> [ | Tail2]
+left [Tail Snake:ID:KM:KA | ] -> [Tail | Signal]
+down [Tail Snake:ID:KM:KS | ] -> [Tail | Signal]
+right [Tail Snake:ID:KM:KD | ] -> [Tail | Signal]
+down [Signal | ] -> [ | Tail2]
+( Move half way, create push force )
+[Player Direction] -> [Player Direction Signal]
+left ID [Player MQ I:ID Signal | ] -> [ | Player MQ I:ID]
+up ID [Player MW I:ID Signal | ] -> [ | Player MW I:ID]
+right ID [Player ME I:ID Signal | ] -> [ | Player ME I:ID]
+up [Player NearW | Rigidbody] -> [Player NearW | Rigidbody NearW] sfx1
+left ID [Player MA I:ID Signal | ] -> [ | Player MA I:ID]
+down ID [Player MS I:ID Signal | ] -> [ | Player MS I:ID]
+right ID [Player MD I:ID Signal | ] -> [ | Player MD I:ID]
+down [Player NearS | Rigidbody] -> [Player NearS | Rigidbody NearS] sfx1
+
+( Propagate push force )
+startloop
+up [MW no Player | | Blocked] -> cancel
+up [MW no Player | | Rigidbody] -> [MW | | Rigidbody MW]
+down [MS no Player | | Blocked] -> cancel
+down [MS no Player | | Rigidbody] -> [MS | | Rigidbody MS]
+left [MQ no Player | ] -> [MQ | Signal]
+up [MQ] [Signal | Blocked] -> cancel
+up [MQ] [Signal | Rigidbody] -> [MQ] [Signal | Rigidbody MQ]
+right [ME no Player | ] -> [ME | Signal]
+up [ME] [Signal | Blocked] -> cancel
+up [ME] [Signal | Rigidbody] -> [ME] [Signal | Rigidbody ME]
+left [MA no Player | ] -> [MA | Signal]
+down [MA] [Signal | Blocked] -> cancel
+down [MA] [Signal | Rigidbody] -> [MA] [Signal | Rigidbody MA]
+right [MD no Player | ] -> [MD | Signal]
+down [MD] [Signal | Blocked] -> cancel
+down [MD] [Signal | Rigidbody] -> [MD] [Signal | Rigidbody MD]
+ID [Snake:ID Direction] [Snake:ID] -> [Snake:ID Direction] [Snake:ID Direction]
+ID [Crate:ID Direction] [Crate:ID] -> [Crate:ID Direction] [Crate:ID Direction]
+endloop
+[Signal] -> [ ]
+( Unblock rigidbodies, including former tail )
+[Player Direction] [Rigidbody Blocked] -> [Player Direction] [Rigidbody]
+[Tail Blocked] -> [Tail]
+[Tail] -> [ ]
+
+( Push everything )
+up [Rigidbody MW no Signal | ] -> [ | Rigidbody MW Signal]
+up [Rigidbody MW Signal | ] -> [ | Rigidbody]
+down [Rigidbody MS no Signal | ] -> [ | Rigidbody MS Signal]
+down [Rigidbody MS Signal | ] -> [ | Rigidbody]
+left [Rigidbody MQ no Signal | ] -> [ | Rigidbody MQ Signal]
+up [Rigidbody MQ Signal | ] -> [ | Rigidbody]
+right [Rigidbody ME no Signal | ] -> [ | Rigidbody ME Signal]
+up [Rigidbody ME Signal | ] -> [ | Rigidbody]
+left [Rigidbody MA no Signal | ] -> [ | Rigidbody MA Signal]
+down [Rigidbody MA Signal | ] -> [ | Rigidbody]
+right [Rigidbody MD no Signal | ] -> [ | Rigidbody MD Signal]
+down [Rigidbody MD Signal | ] -> [ | Rigidbody]
+( Finish moving )
+up ID [Player MQ I:ID | ] -> [ | Player Snake:ID:KD:KM]
+up ID [Player MW I:ID | ] -> [ | Player Snake:ID:KS:KM]
+up ID [Player ME I:ID | ] -> [ | Player Snake:ID:KA:KM]
+down ID [Player MA I:ID | ] -> [ | Player Snake:ID:KE:KM]
+down ID [Player MS I:ID | ] -> [ | Player Snake:ID:KW:KM]
+down ID [Player MD I:ID | ] -> [ | Player Snake:ID:KQ:KM]
+ID PREV [Tail2 Snake:ID:NEXT:PREV] -> [Snake:ID:KM:PREV]
+
+( Check melting before exiting or falling )
+[Smoke2] -> [ ]
+[Smoke1] -> [Smoke2]
+[Snake Melty no Blood] -> [Snake Melty Blood] sfx9
+ID [Crate:ID Melty] [Crate:ID no Melty] -> [Crate:ID Melty] [Smoke1 no Falling]
+[Crate Melty] -> [Smoke1 Melty no Falling] sfx9 again
+[Player] [Blood] -> [ ] [Blood]
+( Exit slither )
+[Fruit] [Exit2] -> [Fruit] [Exit1]
+[Exiting no Snake] -> [ ] sfx5
+[Exiting Snake] -> [Exiting Snake no Blocked no Falling] sfx4
+up [Snake:ID:KM:KW Exiting | | ] -> [ | | Exiting]
+down [Snake:ID:KM:KS Exiting | | ] -> [ | | Exiting]
+left [Snake:ID:KM:KQ Exiting | ] -> [ | Exiting Signal]
+up [Exiting Signal | ] -> [ | Exiting]
+right [Snake:ID:KM:KE Exiting | ] -> [ | Exiting Signal]
+up [Exiting Signal | ] -> [ | Exiting]
+left [Snake:ID:KM:KA Exiting | ] -> [ | Exiting Signal]
+down [Exiting Signal | ] -> [ | Exiting]
+right [Snake:ID:KM:KD Exiting | ] -> [ | Exiting Signal]
+down [Exiting Signal | ] -> [ | Exiting]
+[Head:ID Exiting] -> [Signal]
+ID [Player no Snake] [Head:ID] -> [ ] [Player Head:ID]
+[Player no Snake] -> [Exiting]
+[Signal] [Rigidbody Blocked] -> [Signal] [Rigidbody]
+[Signal] -> [no Blocked no Falling]
+ID PREV [Snake:ID:NEXT:PREV Exiting] -> [Snake:ID:KM:PREV Exiting]
+ID [Player] [Head:ID Exit2] [Snake:ID:KM no Exiting] -> [Player] [Head:ID Exit2] [Snake:ID:KM Exiting]
+[Exiting] [Falling] -> [Exiting] [ ]
+[Exiting] -> again
+
+( Gravity )
+down [Player] [Snake Falling | | Spiky] -> [Player] [Snake Falling | Blood | Spiky] sfx6 sfx7 sfx8
+down [Player Falling | ] -> [Falling | Player]
+down [Player] [Rigidbody Falling | ] -> [Player] [ | Rigidbody]
+( Re-check death )
+[Snake Melty no Blood] -> [Snake Melty Blood] sfx9
+ID [Crate:ID Melty] [Crate:ID no Melty] -> [Crate:ID Melty] [Smoke1 no Falling]
+[Crate Melty] -> [Smoke1 Melty no Falling] sfx9 again
+[Blood] [Player] -> [Blood] [ ]
+ID [Player] [Head:ID Exit2] [Snake:ID:KM no Exiting] -> [Player] [Head:ID Exit2] [Snake:ID:KM Exiting] again
+startloop
+down [Snake | | Blocked no Spiky] -> [Snake Blocked | | Blocked]
+down [Crate | | Blocked] -> [Crate Blocked | | Blocked]
+ID [Snake:ID Blocked] [Snake:ID] -> [Snake:ID Blocked] [Snake:ID Blocked]
+ID [Crate:ID Blocked] [Crate:ID] -> [Crate:ID Blocked] [Crate:ID Blocked]
+endloop
+[Player] [Rigidbody no Blocked] -> [Player] [Rigidbody Falling] again
+
+
+( Graphics )
+[Eyes:PREV:LEAN no Player] -> [ ]
+PREV [Player Snake:ID:PREV no L:LEAN] -> [Player Snake:ID:PREV Eyes:PREV:LM]
+PREV LEAN [Player Snake:ID:PREV L:LEAN] -> [Player Snake:ID:PREV L:LEAN Eyes:PREV:LEAN]
+
+
+==============
+WINCONDITIONS
+==============
+
+no Snake
+no Exiting
+
+=======
+LEVELS
+=======
+
+(derived from 24)
+._._._._._._._.
+I._._._._._._._
+._._._._._._._.
+_._._._G_._._._
+._._._._._._._.
+_._._._#_._._._
+._._._._._._._.
+_._._._._._._._
+._._._._._._._.
+_._._._._._._._
+._._._._._._._.
+_._._._._._._._
+._._._._._._._.
+_._._._._._._._
+._._._._._._._.
+_._._1_1_._._._
+._._._1_._._._.
+_._._1_1_._._._
+._._._._._.*._.
+_._._1_12M_._._
+._._._1_D_._._.
+_._._._.1W_._._
+._._._1_D_._._.
+_._._._#_S_._._
+._._._X_#_._._.
+_._._._#_M_._._
+._._._#_#_._._.
+_._._._#_._._._

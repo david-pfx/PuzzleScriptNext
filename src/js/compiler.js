@@ -176,48 +176,81 @@ function expandObjectRef(state, objid, usedirs = false) {
 }
 
 // expand object defined with tags/directions into new objects
-function expandObjectDef(state, objid, objvalue) {
+function expandObjectDef(state, objid, obj) {
     const expander = new TagExpander(state, objid, true);
     if (expander.keys.length == 0) return;
 
-    const newobjects = expander.expansion.map((exp,index) => {
+    return expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
 
         // check if tag expansion redefines an existing object
         // if this is one expansion overlapping another then redefines is set, so use new definition (Hebird)
         // else silently ignore this redefinition, use original value
-        let newvalue = state.objects[newid];
-        if (newvalue && !newvalue.canRedef)
-            return [ newid, newvalue ];
-        newvalue = { 
-            ...deepClone(objvalue),
-            canRedef: true 
+        const oldobj = state.objects[newid];
+        if (oldobj && !oldobj.canRedef)
+            return [ newid, oldobj ];
+        const newobj = { 
+            ...deepClone(obj),
+            canRedef: true, 
         };
-        state.objects[newid] = newvalue;
 
-        if (objvalue.cloneSprite) {
-            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
-            if (state.objects[altspriteid])
-                newvalue.cloneSprite = altspriteid;
-            // optional?
-            //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
-        } else 
-            newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
-        
-        if (objvalue.transforms) {
-            newvalue.transforms = [];
-            objvalue.transforms.forEach(xform => {
+        newobj.cloneSprite = obj.cloneSprite && expander.getExpandedAlt(exp, obj.cloneSprite);
+
+        if (obj.transforms) {
+            const transforms = [];
+            obj.transforms.forEach(xform => {
                 const op = xform[0];
-                newvalue.transforms.push([ op, 
+                transforms.push([ op, 
                     expander.getSubstitutedIdent(exp, xform[1], index),
                     expander.getSubstitutedIdent(exp, xform[2], index) ]);
-            })
+            });
+            newobj.transforms = transforms;
         }
-        return [ newid, newvalue ];
+
+        // if the new definition has no spritematrix then copy the old one
+        if (newobj.spritematrix.length == 0 && oldobj && oldobj.spritematrix.length > 0) {
+            newobj.spriteoffset = { ...oldobj.spriteoffset };
+            newobj.spritematrix = oldobj.spritematrix.map(row => [ ...row ]);
+        }
+
+        state.objects[newid] = newobj;
+        return [ newid, newobj ];
     });
-    
-    return newobjects;
 }
+
+// apply transforms to the (possibly expanded) object
+function applyTransforms(state, obj) {
+
+    const cloneid = obj.cloneSprite;
+    if (obj.vector) 
+        setVectorSprite(obj);
+    else setSpriteMatrix(obj);
+
+    // expansion if it's a vector object
+    function setVectorSprite(obj) {
+        obj.vector.angle = 0;
+        if (cloneid) {
+            const cloneobj = state.objects[cloneid];
+            if (cloneobj && cloneobj.vector) {
+                obj.spriteoffset = { ...cloneobj.spriteoffset };
+                obj.vector = { ...cloneobj.vector };
+            } else logError(`Canvas object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
+        } 
+        applyVectorTransforms(obj);
+    }
+
+    // expansion if it's a sprite object
+    function setSpriteMatrix(obj) {
+        if (cloneid) {
+            const cloneobj = state.objects[cloneid];
+            if (cloneobj && !cloneobj.vector) {
+                obj.spriteoffset = { ...cloneobj.spriteoffset };    
+                obj.spritematrix = cloneobj.spritematrix.map(row => [ ...row ]);
+            } else logError(`Sprite object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
+        }
+        applySpriteTransforms(obj);
+    }
+}        
 
 // create hierarchy of properties when property contains tags
 // do it by index because names may not be unique
@@ -499,43 +532,18 @@ function generateExtraMembers(state) {
         }
     }
 
-    // fix up what we can of sprite stuff here.
-    // spriteoffset is needed to handle translate with negative args
-    // transform on canvas has to be left until later
+    // create empty sprite matrix if there is none
     for (const [key, obj] of Object.entries(state.objects)) {
-        obj.spriteoffset = { x: 0, y: 0 };
-        if (obj.vector) {
-            obj.vector.angle ||= 0;
-            if (obj.cloneSprite) {
-                const other = state.objects[obj.cloneSprite];
-                if (other && other.vector) {
-                    if (other.spriteoffset)
-                        obj.spriteoffset = { ...other.spriteoffset };
-                    obj.vector = { ...other.vector };
-                } else logError(`Canvas object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
-            } 
-            applyVectorTransforms(obj);
-
-        } else {
-            if (obj.cloneSprite) {
-                const other = state.objects[obj.cloneSprite];
-                if (other && !other.vector) {
-                    if (other.spriteoffset)
-                        obj.spriteoffset = { ...other.spriteoffset };
-                    obj.spritematrix = other.spritematrix.map(row => [...row]);
-                } else logError(`Sprite object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
-            } 
-            if (obj.spritematrix.length == 0) {
-                obj.spritematrix = Array.from({ 
-                        length: state.cell_height || state.sprite_size 
-                    },
-                    () => (new Array(state.sprite_size).fill(0))
-                );
-            }
-            applySpriteTransforms(obj);
+        if (obj.spritematrix.length == 0) {
+            obj.spritematrix = Array.from({ 
+                    length: state.cell_height || state.sprite_size 
+                },
+                () => (new Array(state.sprite_size).fill(0))
+            );
         }
-    }
+}
 
+    if (debugSwitch.includes('obj')) console.log('IDS', state.idDict);
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);
@@ -1627,7 +1635,7 @@ function expandRuleWithTags(state, rule) {
             for (const newident of expander.getExpandedIdents()) {
                 const newrule = deepCloneRule(r);
                 newrule.lhs[t.rowx][t.cellx][t.atomx] = newident;
-                if (rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
+                if (rule.rhs.length > 0 && rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
                     newrule.rhs[t.rowx][t.cellx][t.atomx] = newident;
                 temprules.push(newrule);
             }

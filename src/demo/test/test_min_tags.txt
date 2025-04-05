@@ -228,6 +228,8 @@ right [ ^ p | obj3:dirs ] -> [ p | ]
 right [ ^ p | obj4:dirs ] -> [ p | ]
 right [ v p | obj1 ] -> [ p | ]
 
+[ p obj2:perpendicular ] -> cancel // #171
+
 =======
 LEVELS
 =======

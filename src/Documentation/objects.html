@@ -143,23 +143,25 @@ PINK YELLOW #000000
   </p>
 
   <h3>Transforms <img src="../images/pspatt.png" title="Pattern:Script" height="16"></h3>
-  <p>Following the sprite grid are one or more lines of object transforms.
-    The transforms are executed in order, left to right, and modify the sprite grid as they do so.
-    These are the things you can do.
+    <p>Following the sprite grid are one or more lines of object transforms.
+      The transforms are executed in order, left to right, and modify the sprite grid as they do so.
+      These are the things you can do.</p>
+    <p>The examples here show absolute directions such as <b>right</b> and <b>down</b>, but you can use the relative directions <b>> < ^ v</b> instead.
+      This becomes important when used in conjunction with <a href="tags.html">tags</a>.</p>
 <dl>
   <dt>copy:crate</dt>
   <dd>The sprite grid is replaced by one taken from another object, in this case the crate object.
     Note: 
-    <li>If the object does not exist, the default square is used instead.</li>
-    <li>the <b>copy:</b> transform can be written on the first line, for compatibility. 
+    <li>If the object does not exist, the default square blob is used instead.</li>
+    <li>The <b>copy:</b> transform can be written on the first line, for compatibility. 
     This usage is deprecated.</li>
   </dd>
 
   <dt>flip:right</dt>
-  <dd>Mirrors the grid vertically, left <-> right. 
+  <dd>Flips the grid as if reflected in a vertical mirror, left <-> right. 
     As expected, <b>down</b> mirrors the grid horizontally, up <-> down.
     <p>
-    The shorthands <b>-</b> and <b>|</b> do the same, horizontal and vertical.
+    The shorthands <b>-</b> and <b>|</b> do the same, horizontal = down, and vertical = right. 
   </dd>
 
   <dt>shift:down:3</dt>
@@ -178,8 +180,6 @@ PINK YELLOW #000000
     You can use negative numbers too.
   </dd>
 </dl>
-    <p>In each case of an absolute direction you can use the relative directions <b>> < ^ v</b> instead.
-    This becomes important when used in conjunction with <a href="tags.html">tags</a>.</p>
 
 <h3>Text Sprites  <img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></h3>
 
