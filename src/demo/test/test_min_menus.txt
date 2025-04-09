@@ -1,0 +1,169 @@
+title test min menus
+homepage www.polyomino.com
+author polyomino
+
+// minimal program with tests for menus, level select and related
+debug
+verbose_logging
+debug_switch menu,load
+
+// possible settings
+
+//auto_level_titles
+//continue_is_level_select
+//enable_pause
+//level_select
+//level_select_lock
+//noaction
+//nokeyboard
+//norepeat_action
+//norestart
+//noundo
+//skip_title_screen
+
+//level_select_solve_symbol ✓
+//sitelock_origin_whitelist asdf
+//sitelock_hostname_whitelist asdf
+
+//level_select_unlocked_ahead
+//level_select_unlocked_rollover
+
+========
+OBJECTS
+========
+Background;grey
+P;black
+W;white
+R;RED
+B;BLUE
+g;green
+y;yellow
+k;pink
+m;purple
+
+LEGEND
+. = Background
+player = P or W
+
+SOUNDS
+SFx0 52519108
+
+COLLISIONLAYERS
+Background
+y
+Player, R, B, G
+k
+m
+
+RULES
+[ action player ] -> win
+[ > p | y ] -> [ p | y ] checkpoint sfx0
+
+WINCONDITIONS
+
+LEVELS
+
+section S1
+
+...........
+.k.......r.
+.y...p...g.
+.m.......b.
+...........
+
+//goto S5x // error
+//section S5 // error not detected
+
+section S2
+
+.....
+.pww.
+.....
+
+section S3
+
+...w.
+.p.w.
+...w.
+
+section S4
+
+...w.
+.p.w.
+...w.
+...w.
+
+section S5
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+
+section S6
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+
+section S7
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+...w.
+
+section S8
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+...w.
+...w.
+
+section S9
+
+...w.
+.p.w.
+...w.
+...w.
+...w.
+...w.
+...w.
+...w.
+...w.
+
+section S10
+
+...w.w.
+.p.w.w.
+...w.w.
+
+section S11
+
+...w.w.w.
+.p.w.w.w.
+...w.w.w.
+
+section S12
+
+...w.w.w.w.
+.p.w.w.w.w.
+...w.w.w.w.
+
+section S13
+
+...w.w.w.w.w.
+.p.w.w.w.w.w.
+...w.w.w.w.w.
+
