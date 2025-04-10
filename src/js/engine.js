@@ -97,6 +97,7 @@ function doSetupTitleScreenLevelContinue(){
             if (storage_has(document.URL+'_checkpoint')) {
                 var backupStr = storage_get(document.URL+'_checkpoint');
                 curlevelTarget = JSON.parse(backupStr);
+				if (debugSwitch.includes('menu')) console.log(`doSetupTitleScreenLevelContinue `, 'curlevelTarget=', curlevelTarget);
                 
                 var arr = [];
                 for(var p in Object.keys(curlevelTarget.dat)) {
@@ -124,8 +125,8 @@ function hasStartedTheGame() {
 }
 
 function hasFinishedTheGame() {
-	return state.metadata.level_select && solvedSections.length == state.sections.length
-		|| curLevelNo >= state.levels.length - 1; 
+	return state.metadata.level_select && (solvedSections.length == state.sections.length)
+		|| curLevelNo >= state.levels.length; 
 }
 
 function hasSolvedAtLeastOneSection() {
@@ -474,6 +475,7 @@ function gotoLevel(index) {
 		curLevel = levelAllObjects(state);
 	} else {
 		curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+		curlevelTarget = null; // #164
 		loadLevelFromStateOrTarget();
 	}
 	updateLocalStorage();
@@ -760,7 +762,7 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
 }
 
 function loadLevelFromState(state,levelindex,randomseed) {  
-	if (debugSwitch.includes('load')) console.log(`loadLevelFromState(${levelindex})`);
+	if (debugSwitch.includes('load')) console.log(`loadLevelFromState(levelindex=${levelindex})`);
 	var leveldat = state.levels[levelindex];    
 	curLevelNo=levelindex;
 	curlevelTarget=null;
@@ -944,7 +946,6 @@ function level4Serialization() {
 		oldflickscreendat: oldflickscreendat.concat([]),
     	cameraPositionTarget: Object.assign({}, cameraPositionTarget),
 		levelNo: curLevelNo,
-		//links: Array.from(linkStack),		//@@
 	};
 	return ret;
 }
@@ -1294,7 +1295,6 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
     }
 
 	statusText = lev.status || "";
-	//linkStack = lev.links;		//@@
 
     againing=false;
 	messagetext = "";  //fix for hang
@@ -2072,6 +2072,7 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
 
 }
 
+//@@ should these go in globals? Might fix one notified problem (no repro)
 let MOV_BITS = 5;		// doc: no of bits to hold movement as mask
 let MOV_MASK = 0x1f;	// doc: bit mask to match
 var STRIDE_OBJ = 1;	    // doc: size of BitVec to hold objects, at 32 bits per
@@ -3868,7 +3869,7 @@ function loadLevelFromStateOrTarget() {
 }
 
 function goToTitleScreen(){
-	if (debugSwitch.includes('load')) console.log(`gotoTitleScreen()`);
+	if (debugSwitch.includes('load')) console.log(`gotoTitleScreen() curlevelTarget=`, curlevelTarget, ` restartTarget=`, restartTarget);
     againing=false;
 	messagetext="";
 	statusText = "";
@@ -3898,7 +3899,7 @@ function resetFlickDat() {
 function updateLocalStorage() {
 	if (linkStack.length > 0)
 		return;
-	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, curlevelTarget);
+	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, 'curlevelTarget=', curlevelTarget, 'restartTarget=', restartTarget, 'curLevelNo=', curLevelNo);
 	try {
 		
 		storage_set(document.URL,curLevelNo);
