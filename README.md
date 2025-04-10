@@ -15,12 +15,20 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25d05. 
+The latest version is Release v-25d10. 
+
+Breaking change: Please note that a Pause Menu will now only be seen if activated by prelude setting `enable_pause`.
+This restores compatibility with PS+, but P:S and other games that relied on a pause menu will need to be updated.
+See [prelude](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/prelude) for further information.
+
 Recent fixes/updates:
-* Fix Sprite expansion errors visible in Hebird #170
-* Fix [ OBJ:perpendicular ] TypeError crash #171
+* Fix Link breaks after exit and continue #164
+* Fix ESC menu not always offered #174
+* Update docs for enable_pause
 
 Older fixes/updates:
+* Fix Sprite expansion errors visible in Hebird #170
+* Fix [ OBJ:perpendicular ] TypeError crash #171
 * Fix: quit goes to first level but should be current #165
 * New prelude settings 'enable_pause', 'export_options' (see docs)
 * Fix: Fix UX annoyance with the debug hover #168
