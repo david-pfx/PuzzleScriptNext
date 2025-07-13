@@ -44,8 +44,8 @@ mouse_right m
 mouse_up k
 mouse_rup m
 //puzzlescript_next_version
-sitelock_origin_whitelist asdf
-sitelock_hostname_whitelist asdf
+//sitelock_origin_whitelist asdf
+//sitelock_hostname_whitelist asdf
 tween_easing easeInQuad
 //zoomscreen 9x9
 

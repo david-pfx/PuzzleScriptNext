@@ -90,10 +90,11 @@ function buildStandalone(sourceCode) {
 	htmlString = htmlString.replace(/__HOMEPAGE__/g, homepage);
 	htmlString = htmlString.replace(/__HOMEPAGE_STRIPPED_PROTOCOL__/g, homepage_stripped);
 
+	// idents targeted by export_options must not be quoted in order to survive minification
 	if (exportOptions.includes('notitle'))
-		removeDiv('class="title"');
+		removeDiv('class=title');
 	if (exportOptions.includes('nofooter'))
-		removeDiv('class="footer"');
+		removeDiv('class=footer');
 	if (exportOptions.includes('nopadding'))
 		patchGameContainer('top:3');
 
