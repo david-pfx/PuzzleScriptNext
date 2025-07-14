@@ -89,9 +89,10 @@
 
 <h3>Interface Essentials</h3>
 
-<p>RUN fully unloads, loads and compiles the game.</p>
-<p>REBUILD only injects the code but leaves the state untouched. 
-  Rebuild generally works if you haven’t modified your collision layers (and by extension, haven’t added or removed any objects from the game). </p>
+<p>RUN compiles the game and fully initialises the game state, so it will then run from the title screen.</p>
+<p>REBUILD compiles the code but leaves the state untouched, so the game will  continue from the current point.
+  Rebuild generally works if you haven’t modified your collision layers (and by extension, haven’t added or removed any objects from the game). 
+  Some changes to prelude settings might also cause problems.</p>
 <p>If your game seems buggy, it’s recommended to try Running instead of Rebuilding but otherwise Rebuilding may be faster and it does not reset your progress in a level. 
   Ctrl+Left click (⌘+Left click on Mac) on a level rebuilds the game and loads the level clicked on; this resets the state just as well as running does.</p>
 <p>Many PuzzleScript errors and messages are interactive and have links to rules that caused the error.</p>

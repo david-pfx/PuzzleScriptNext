@@ -3011,6 +3011,7 @@ return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value
 }
 // convert metadata to object format and validate
 function twiddleMetaData(state, update = false) {
+    if (debugSwitch.includes('meta')) console.log(`twiddleMetaData update=${update} metadata:`, state.metadata);
 	var newmetadata;
 
 	if (!update) {

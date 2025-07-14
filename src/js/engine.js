@@ -2813,6 +2813,7 @@ Rule.prototype.queueCommands = function() {
 
 // despite its name, this function exists to establish default values for prelude settings
 function twiddleMetadataExtras(resetAutoTick = true) {
+    if (debugSwitch.includes('meta')) console.log(`twiddleMetaDataExtras resetAutoTick=${resetAutoTick} metadata:`, state.metadata);
 	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
 	if (resetAutoTick || !state.metadata.realtime_interval)
     	autotick=0;
@@ -3963,6 +3964,7 @@ var cameraPosition = {
 };
 
 function initSmoothCamera() {
+    if (debugSwitch.includes('meta')) console.log(`initSmoothCamera metadata:`, state.metadata);
     if (state===undefined || state.metadata.smoothscreen===undefined) {
         return;
     }
