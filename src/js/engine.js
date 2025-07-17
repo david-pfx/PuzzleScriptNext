@@ -159,7 +159,7 @@ function isLevelSelectOptionSelected() {
 }
 
 function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
-	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen()`, hoverLine, scrollIncrement, selectLine);
+	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen()`, 'hoverLine=', hoverLine, 'scrollIncrement=', scrollIncrement, 'selectLine=' , selectLine);
 	lineColorOverride = [];
   	tryLoadCustomFont();
 
@@ -199,6 +199,7 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 		const select = selectLine || hoverLine;
 		titleSelection = screen.options.includes(select) ? options[screen.options.indexOf(select)] : false;  // todo: ???
 	}
+	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen2`, `titleSelection=`, titleSelection, `levelSelectScrollPos=`, levelSelectScrollPos);
 
 	const setImage = (n,text) => {
 		if (!text) throw "image";
@@ -376,7 +377,7 @@ function gotoLevelSelectScreen() {
 }
 
 function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
-	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
+	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen{ ', 'hoverLine=', hoverLine, 'scrollIncrement=', scrollIncrement, 'selectLine=', selectLine);
 	lineColorOverride = [];
 
 	// set initial highlight to current level
@@ -437,6 +438,7 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 			selectLine = -1;
 			titleSelected = false;
 			quittingTitleScreen = false;
+			//TryPlayLockedSound();
 		}
 		
 		if (selected && !locked) {
@@ -1023,6 +1025,7 @@ function setGameState(_state, command, randomseed) {
 		    textMode=true;
 		    titleSelection=0;
 		    titleSelected=false;
+			levelSelectScrollPos = 0;		// else level select interferes with title screen
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
 			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
@@ -2810,6 +2813,7 @@ Rule.prototype.queueCommands = function() {
 
 // despite its name, this function exists to establish default values for prelude settings
 function twiddleMetadataExtras(resetAutoTick = true) {
+    if (debugSwitch.includes('meta')) console.log(`twiddleMetaDataExtras resetAutoTick=${resetAutoTick} metadata:`, state.metadata);
 	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
 	if (resetAutoTick || !state.metadata.realtime_interval)
     	autotick=0;
@@ -3960,6 +3964,7 @@ var cameraPosition = {
 };
 
 function initSmoothCamera() {
+    if (debugSwitch.includes('meta')) console.log(`initSmoothCamera metadata:`, state.metadata);
     if (state===undefined || state.metadata.smoothscreen===undefined) {
         return;
     }

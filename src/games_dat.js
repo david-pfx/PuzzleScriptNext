@@ -257,6 +257,13 @@ var games_gallery_ = [
     "homepage": "abrobecker.free.fr"
   },
   {
+    "url": "https://benjamindav.is/threes/",
+    "thumb": "threes.gif",
+    "title": "Threes: The Demake",
+    "author": "Benjamin Davis",
+    "homepage": "https://asherv.com/threes/"
+  },
+  {
     "url": "play.html?p=9582263",
     "thumb": "9582263.gif",
     "title": "Gobble Rush!",
@@ -414,6 +421,13 @@ var games_gallery_ = [
     "homepage": "https://twitter.com/AllenWebster4th"
   },
   {
+    "url": "https://w.itch.io/aunt-floras-mansion",
+    "thumb": "mansion.gif",
+    "title": "Aunt Flora's Mansion",
+    "author": "anna anthropy",
+    "homepage": "https://w.itch.io/"
+  },
+  {
     "url": "play.html?p=6faf74de7d562674e71a",
     "thumb": "6faf74de7d562674e71a.gif",
     "title": "Tidy the Cafe!",
@@ -568,6 +582,20 @@ var games_gallery_ = [
     "homepage": "https://twitter.com/zejety"
   },
   {
+    "url": "https://heskhwis.itch.io/the-closet-and-the-castle",
+    "thumb": "castle.gif",
+    "title": "The closet and the castle",
+    "author": "HeskHwis and Holly Hatter",
+    "homepage": "https://heskhwis.tumblr.com/"
+  },
+  {
+    "url": "https://heskhwis.itch.io/my-first-kishoutenketsu",
+    "thumb": "fish.gif",
+    "title": "\"My first Kishoutenketsu\"",
+    "author": "HeskHwis",
+    "homepage": "https://heskhwis.tumblr.com/"
+  },
+  {
     "url": "play.html?p=983d3fe448e281182289826597fe5a4b",
     "thumb": "983d3fe448e281182289826597fe5a4b.gif",
     "title": "PrograMaze",
@@ -582,10 +610,24 @@ var games_gallery_ = [
     "homepage": "http://www.richardlocke.co.uk/"
   },
   {
+    "url": "https://virelsa.itch.io/entanglement-chapter-1",
+    "thumb": "entanglement.gif",
+    "title": "Entanglement - Chapter One",
+    "author": "Richard Locke",
+    "homepage": "http://www.richardlocke.co.uk/"
+  },
+  {
     "url": "play.html?p=ce2474f62432e2a703bba3fb65f5b01f",
     "thumb": "ce2474f62432e2a703bba3fb65f5b01f.gif",
     "title": "Vertebrae",
     "author": "Ali Nikkhah"
+  },
+  {
+    "url": "https://rosden.itch.io/theflames",
+    "thumb": "flames.gif",
+    "title": "The Flames",
+    "author": "Rosden Shadow",
+    "homepage": "https://rosden.itch.io/"
   },
   {
     "url": "play.html?p=0e692c47ab0b18099c2485d644590b4e",
@@ -594,7 +636,7 @@ var games_gallery_ = [
     "author": "Aaron Steed"
   },
   {
-    "url": "play.html?p=dc5c4a669e362e389e994025075f7d0b",
+    "url": "https://www.draknek.org/games/puzzlescript/spikes-n-stuff.php",
     "thumb": "spikes.gif",
     "title": "Spikes 'n' Stuff",
     "author": "Alan Hazelden",
@@ -605,6 +647,13 @@ var games_gallery_ = [
     "thumb": "537878634acb9aa4cfbd5298856ea1ef.gif",
     "title": "XL-Plan",
     "author": "Mark Richardson"
+  },
+  {
+    "url": "https://pedropsi.github.io/pmgrp#puzzlescript",
+    "thumb": "pmgrp.gif",
+    "title": "Play Mini Gemini Replay (PMGRP)",
+    "author": "Pedro PSI",
+    "homepage": "https://pedropsi.github.io/"
   },
   {
     "url": "play.html?p=9ebe1e5ad44ac22259343de170a3b337",
@@ -697,8 +746,15 @@ var games_gallery_ = [
     "title": "Indigestion",
     "author": "Le Slo"
   },
+  // excluded as it relies on an exploit
+  // {
+  //   "url": "play.html?p=2fe3172d2b9fe684977d184f1b6226d5",
+  //   "thumb": "2fe3172d2b9fe684977d184f1b6226d5.gif",
+  //   "title": "Pushing It",
+  //   "author": "Jack Lance"
+  // },
   {
-    "url": "play.html?p=86a02fbb49c6c73b4bf899dab5bc63ca",
+    "url": "https://nebu-soku.itch.io/golfshall-we-golf",
     "thumb": "golfy.gif",
     "title": "Shall We Golf?",
     "author": "nebu soku",
@@ -759,5 +815,89 @@ var games_gallery_ = [
     "title": "Caramelban",
     "author": "Notan",
     "homepage": "https://notaninart.itch.io/"
+  },
+  {
+    "url": "play.html?p=fe33549f62cd7666ea14eedcfc3863a3",
+    "thumb": "clearingspace.gif",
+    "title": "Clearing Space",
+    "author": "Sevan",
+    "homepage": "https://www.puzzlescript.net"
+  },
+  {
+    "url": "play.html?p=bc8f853dae0cf7a2ad336a75ab24ba09",
+    "thumb": "crateassembler.gif",
+    "title": "Crate Assembler",
+    "author": "MoonSoup",
+    "homepage": "https://moonsoup.itch.io/"
+  },
+  {
+    "url": "https://theconspiracy.itch.io/single-screen-scream",
+    "thumb": "singlescreenscream.gif",
+    "title": "Single Screen Scream",
+    "author": "Kip Fabish",
+    "homepage": "https://theconspiracy.itch.io"
+  },
+  {
+    "url": "play.html?p=fce521be3852cca725e85154d122e53f",
+    "thumb": "sokoban3d.gif",
+    "title": "Sokoban... in 3D!",
+    "author": "beekie",
+    "homepage": "https://beekie.itch.io/sokoban-in-3d"
+  },
+  {
+    "url": "play.html?p=8627569e70bdd911680d458ba6d0826a",
+    "thumb": "pipebend.gif",
+    "title": "Pipe Bend",
+    "author": "Wizard Melentis",
+    "homepage": "https://wizard-melentis.itch.io"
+  },
+  {
+    "url": "play.html?p=ea5982c0e23eb7f892325d003423f65f",
+    "thumb": "raking.gif",
+    "title": "Raking Sokoban",
+    "author": "Ilija Biskup",
+    "homepage": "https://www.puzzlescript.net"
+  },
+  {
+    "url": "play.html?p=42a7e74f578b9d0bdc9c66469d97b262",
+    "thumb": "observers_paradox.gif",
+    "title": "The observer's paradox",
+    "author": "Sevan",
+    "homepage": "https://sevansevan.itch.io"
+  },
+  {
+    "url": "play.html?p=e2b7b25668f077084a5c31f0fa84973a",
+    "thumb": "sunak.gif",
+    "title": "IBurnedDownBigBenBecauseRishiSunakF**kingRobbedMyFish",
+    "author": "stingby12",
+    "homepage": "https://stingby12.itch.io"
+  },
+  {
+    "url": "play.html?p=e614e414e570294e45533109426245d4",
+    "thumb": "quantum-rails.gif",
+    "title": "Quantum Rails",
+    "author": "crb233",
+    "homepage": "https://crb233.itch.io"
+  },
+  {
+    "url": "play.html?p=3bcc0608540276e7b190caf9d2583a1f",
+    "thumb": "uphillclimb.gif",
+    "title": "Billy Bob's Uphill Climb",
+    "author": "Monakrom",
+    "homepage": "https://monakrom.itch.io"
+  },
+  {
+    "url": "play.html?p=25ee2f1c9000620aa7b6f429c958d095",
+    "thumb": "iamtwo.gif",
+    "title": "I am two",
+    "author": "nebu soku",
+    "homepage": "https://nebu-soku.itch.io/i-am-two"
+  },
+  {
+    "url": "play.html?p=95dc770efe45854e528fa80a48eeca0a",
+    "thumb": "transition.gif",
+    "title": "Transition",
+    "author": "NinaBirb",
+    "homepage": "https://ninabirb.itch.io/transition/"
   },
 ]

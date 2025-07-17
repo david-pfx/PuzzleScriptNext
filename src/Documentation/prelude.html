@@ -275,10 +275,24 @@ Rule Assembly : (4 rules)
       If you set this to 3, then section 1, 2, and 3 will be available at the start.   
       If you solve section 2, then only section 4 will unlock. (So there will only ever be three "unsolved" levels at most.) </dd>
 
+			<dt>load_images<img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+      <dd>Loads a spritesheet image from the specified URL and makes it available to draw into a canvas object.</dd>
+      <pre><code>// load the spritesheet for objects in the game
+load_images my_sprites=https://[...]/sprites.png
+========
+OBJECTS
+========
+Player canvas:
+{"imageSmoothingEnabled": false}  // improves sprite sharpness
+{"drawImage":["my_sprites",   0,   0, 64, 64, 0, 0, 1, 1]}</code></pre>
+
       <dt>local_radius <i>radius</i> <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>
-      <dd>If you set the local_radius flag to a whole number, then the game will only check rules that are in that amount of tiles (a square radius) around the player (or one of the players if you have multiple players in the level). If you still want to have rules to be checked anywhere on the level, preface them with the <b>global</b> keyword like this: 
+      <dd>If you set the local_radius flag to a whole number, then the game will only check rules that are in that amount of tiles (a square radius) around the player 
+        (or one of the players if you have multiple players in the level). 
+        If you still want to have rules to be checked anywhere on the level, preface them with the <b>global</b> keyword like this: 
       <pre><code>(Rows of global crates can push each other, even outside of the player radius)
-  global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
+global [> GCrate | GCrate] -> [> GCrate | > GCrate ]</code></pre>
+
         You generally don't need to use this unless you have a really big level, a ton of rules, and your game would otherwise run slowly.</dd>
 
       <dt>message_text_align right <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>

@@ -1100,6 +1100,7 @@ function canvasResize(level) {
         screenwidth=state.metadata.zoomscreen[0];
         screenheight=state.metadata.zoomscreen[1];
     } else if (smoothscreen) {
+        initSmoothCamera();         // need this in case smoothscreen is now enabled
         screenwidth=state.metadata.smoothscreen.screenSize.width;
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
