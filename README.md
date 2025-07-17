@@ -15,18 +15,23 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25d10. 
+The latest version is Release v-25g17. 
 
 Breaking change: Please note that a Pause Menu will now only be seen if activated by prelude setting `enable_pause`.
 This restores compatibility with PS+, but P:S and other games that relied on a pause menu will need to be updated.
 See [prelude](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/prelude) for further information.
 
 Recent fixes/updates:
+* Idents targeted by `export_options` must not be quoted in order to survive minification
+* Fix: After level select, scroll, select, the Run link does not reset the game properly #177
+* Fix: Adding smoothscreen to an existing program in the editor triggers a crash on Build #176
+* Documentation for `load_images` #129. New feature previously included for testing but not documented until now.
+* New games imported from PS and added to gallery.
+
+Older fixes/updates:
 * Fix Link breaks after exit and continue #164
 * Fix ESC menu not always offered #174
 * Update docs for enable_pause
-
-Older fixes/updates:
 * Fix Sprite expansion errors visible in Hebird #170
 * Fix [ OBJ:perpendicular ] TypeError crash #171
 * Fix: quit goes to first level but should be current #165
