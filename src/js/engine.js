@@ -2822,6 +2822,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
 	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
 
+	const colorPalette = state.metadata.color_palette;
 	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
 	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
     state.author_color = state.metadata.author_color ? colorToHex(colorPalette, state.metadata.author_color) : state.fgcolor;

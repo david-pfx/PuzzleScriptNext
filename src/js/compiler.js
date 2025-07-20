@@ -424,7 +424,6 @@ function colorToHex(palette, str) {
 }
 
 var debugMode;
-var colorPalette;
 
 function generateExtraMembers(state) {
 
@@ -480,20 +479,10 @@ function generateExtraMembers(state) {
     debugMode = false;
     verbose_logging = false;
     throttle_movement = false;
-    colorPalette = colorPalettes.arnecolors;
     for (var i = 0; i < state.metadata.length; i += 2) {
         var key = state.metadata[i];
         var val = state.metadata[i + 1];
-        if (key === 'color_palette') {
-            if (val in colorPalettesAliases) {
-                val = colorPalettesAliases[val];
-            }
-            if (colorPalettes[val] === undefined) {
-                logError('Palette "' + val + '" not found, defaulting to arnecolors.', 0);
-            } else {
-                colorPalette = colorPalettes[val];
-            }
-        } else if (key === 'debug' || defaultDebugMode) {
+        if (key === 'debug' || defaultDebugMode) {
             if (IDE && unitTesting===false){
                 debugMode = true;
                 cache_console_messages = true;
@@ -523,7 +512,7 @@ function generateExtraMembers(state) {
         for (let i = 0; i < obj.colors.length; i++) {
             let c = obj.colors[i];
             if (isColor(c)) {
-                c = colorToHex(colorPalette, c);
+                c = colorToHex(state.metadata.color_palette, c);
                 obj.colors[i] = c;
             } else {
                 logError(`Invalid color specified for object "${n}", namely ${obj.colors[i]}".`, obj.lineNumber + 1);
@@ -1422,7 +1411,7 @@ function processRuleString(rule, state, curRules) {
                 const needarg = commandargs_table.includes(tok);
                 const twid = twiddleable_params.includes(tok);
                 if (needarg || twid) {
-                    if (twid && !state.metadata.includes('runtime_metadata_twiddling')) {
+                    if (twid && !state.metadata.runtime_metadata_twiddling) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
                         const index = findIndexAfterToken(origLine,tokens,i);
@@ -2901,7 +2890,7 @@ function getMaskFromName(state,name) {
 		objectMask.ibitset(o.id);
 	}
 
-	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
+	if (!state.metadata.nokeyboard && objectMask.iszero()) {
 		logErrorNoLine("Error, didn't find any object called player, either in the objects section, or the legends section. There must be a player!");
 	}
 	return objectMask;
@@ -3053,7 +3042,7 @@ function twiddleMetaData(state, update = false) {
             } else {
                 if (intcoords[0]<=0 || intcoords[1]<=0){
                     logWarning(`The dimensions given to me (you gave "${val}") are baad - they should be > 0.`,lineNumber);
-	}
+	            }
                 return intcoords;
             }
         }
@@ -3071,7 +3060,7 @@ function twiddleMetaData(state, update = false) {
         newmetadata.zoomscreen = getCoords(val, state.metadata_lines.zoomscreen);
         if (newmetadata.zoomscreen === null) {
             delete newmetadata.zoomscreen;
-	}
+	    }
 	}
 	if (newmetadata.smoothscreen!==undefined) {
 		var val = newmetadata.smoothscreen;
@@ -3164,6 +3153,27 @@ function twiddleMetaData(state, update = false) {
             delete newmetadata.tween_snap;
         }
     }
+
+    if (newmetadata.color_palette) {
+		const args = newmetadata.color_palette.split(/\s+/);
+        const palette = (args[0] in colorPalettesAliases) ? colorPalettesAliases[args[0]] : args[0];
+        if (!(palette in colorPalettes)) {
+            logError(`Palette "${palette}" not found, defaulting to arnecolors.`, 0);
+            newmetadata.color_palette = colorPalettes.arnecolors;
+        } else {
+            newmetadata.color_palette = colorPalettes[palette];
+        }
+        for (let i = 1; i < args.length; i += 2) {
+            const colorName = args[i];
+            const colorValue = args[i + 1];
+            if (!(colorName in newmetadata.color_palette))
+                logError(`Invalid color name "${colorName}".`, 0);
+            else if (!isColor(colorValue))
+                logError(`Invalid color value "${colorValue}".`, 0);
+            else newmetadata.color_palette[colorName] = colorValue;
+
+        }
+    } else newmetadata.color_palette = colorPalettes.arnecolors
 
     state.metadata=newmetadata;
 
@@ -3582,11 +3592,11 @@ function generateSoundData(state) {
 
 function formatHomePage(state) {
     // twiddle metadata doesn't set these
-    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
-    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
-    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
-    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
-    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.text_color) : "#FFFFFF";
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
         if ('background_color' in state.metadata) {
@@ -3643,6 +3653,9 @@ function loadFile(str) {
     if (debugSwitch.includes('tag')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+
+    // placed here so that the parsed metadata is available
+	twiddleMetaData(state);
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -3682,7 +3695,7 @@ function loadFile(str) {
 	processWinConditions(state);
 	checkObjectsAreLayered(state);
 
-	twiddleMetaData(state);
+	//twiddleMetaData(state);
 	
 	generateExtraMembersPart2(state);
 
