@@ -511,10 +511,7 @@ function generateExtraMembers(state) {
         }
         for (let i = 0; i < obj.colors.length; i++) {
             let c = obj.colors[i];
-            if (isColor(c)) {
-                c = colorToHex(state.metadata.color_palette, c);
-                obj.colors[i] = c;
-            } else {
+            if (!isColor(c)) {
                 logError(`Invalid color specified for object "${n}", namely ${obj.colors[i]}".`, obj.lineNumber + 1);
                 obj.colors[i] = '#ff00ff'; // magenta error color
             }
@@ -1425,7 +1422,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     commands.push([tok]);
                 }
-                        } else {
+            } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
             }
         }

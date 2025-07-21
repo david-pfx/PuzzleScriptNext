@@ -985,20 +985,6 @@ function setGameState(_state, command, randomseed) {
     if (command[0]!=="rebuild"){
       backups=[];
     }
-    //set sprites
-    objectSprites = [];
-    for (const n in state.objects) {
-        if (state.objects.hasOwnProperty(n)) {
-            const object = state.objects[n];
-			objectSprites[object.id] = {
-                dat: object.spritematrix,
-                colors: object.colors,
-				text: object.spritetext,
-                vector: object.vector,
-				scale: object.scale,
-            };
-        }
-    }
     if (state.metadata.realtime_interval!==undefined) {
       autotick=0;
       autotickinterval=state.metadata.realtime_interval*1000;
@@ -2794,6 +2780,12 @@ Rule.prototype.queueCommands = function() {
 				} else {
 					smoothscreen = false;
 				}
+				canvasResize();
+			}
+
+			if (command[0] == "color_palette") {
+				twiddleMetaData(state, true);
+				regenSpriteImages()
 				canvasResize();
 			}
 

@@ -29,7 +29,7 @@ let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/i;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log|color_palette)$/i;
 const reg_name = /^[\p{L}\p{N}_$]+/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
 const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
