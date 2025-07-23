@@ -61,32 +61,34 @@
 <h1>Runtime Metadata Twiddling <img src="../images/mascot_32.png"></h1>
 <br>
 If you want to change the <b>realtime_interval</b> of your game during runtime, you can add <b>runtime_metadata_twiddling</b> to your prelude. 
-To see log output of metadata changes, add <b>runtime_metadata_twiddling_debug</b>.
+To see log output of metadata changes, add <b>verbose_logging</b> (<b>runtime_metadata_twiddling_debug</b> is no longer needed).
 <p></p>
 After this prelude flag has been set, you can change the parameters of some prelude flags based on rule patterns like this:
 
 <pre><code>[> Player | SlowBtn] -> realtime_interval 0.5
 [> Player | FlickBtn] -> [> Player | ] smoothscreen flick 5x5 3x3
+[ Player Bomb ] -> [ DeadPlayer ] color_palette proteus_night red #f00
 </code></pre>
-Any changes you make with this will be included in the undo history of the level.
-
+<p>Any changes you make with this will be included in the undo history of the level.
 Currently the prelude flags that support this are:
-
+</p>
 <ul>
-<li><b>zoomscreen</b></li>
-<li><b>flickscreen</b></li>
-<li><b>smoothscreen</b></li>
-<li><b>key_repeat_interval</b></li>
-<li><b>realtime_interval</b></li>
-<li><b>again_interval</b></li>
-<li><b>background_color</b></li>
-<li><b>text_color</b> (for <b>message</b>)</li>
-<li><b>message_text_align</b> (for <b>message</b>)</li>
-<li><b>noundo</b> (set to anything to enable and <b>wipe</b> to disable, see below)</li>
-<li><b>norestart</b> (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+  <li><b>again_interval</b></li>
+  <li><b>background_color</b></li>
+  <li><b>flickscreen</b></li>
+  <li><b>color_palette</b></li>
+  <li><b>key_repeat_interval</b></li>
+  <li><b>message_text_align</b> (for <b>message</b>)</li>
+  <li><b>noundo</b> (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+  <li><b>norestart</b> (set to anything to enable and <b>wipe</b> to disable, see below)</li>
+  <li><b>realtime_interval</b></li>
+  <li><b>smoothscreen</b></li>
+  <li><b>text_color</b> (for <b>message</b>)</li>
+  <li><b>zoomscreen</b></li>
 </ul>
 
-You can also combine these directives with rule patterns and other flags like <b>nosave</b> and <b>again</b>. Just like with <b>message</b>, the prelude flag needs to be the rightmost argument in the rule:
+<p>You can also combine these directives with rule patterns and other flags like <b>nosave</b> and <b>again</b>. 
+  Just like with <b>message</b>, the prelude flag needs to be the rightmost argument in the rule:</p>
 
 <pre><code>[ Player ConveyorRight] -> [right Player ConveyorRight] again again_interval 0.5
 </code></pre>
@@ -101,7 +103,7 @@ You use these special keywords like this:
 <pre><code>[> Player | WipeButton] -> realtime_interval wipe
 </code></pre>
 
-<h2>Special case - noundo</h2>
+<h3>Special case - noundo</h3>
 
 Once a turn ends with <b>noundo</b> being set, that turn becomes irreversible, meaning you can't undo back past it. This is different from using the <b>nosave</b> command, which will only avoid saving the current turn to the undo stack. So if you have:
 

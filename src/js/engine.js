@@ -2769,13 +2769,15 @@ Rule.prototype.queueCommands = function() {
 			}
 			
 			if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
-				twiddleMetaData(state, true);
+				//twiddleMetaData(state, true);
+				twiddleMetaData(state, command);
 				canvasResize();
 			}
 
 			if (command[0] === "smoothscreen") {
 				if (value !== undefined) {
-					twiddleMetaData(state, true);
+					//twiddleMetaData(state, true);
+					twiddleMetaData(state, command);
 					initSmoothCamera()
 				} else {
 					smoothscreen = false;
@@ -2784,7 +2786,8 @@ Rule.prototype.queueCommands = function() {
 			}
 
 			if (command[0] == "color_palette") {
-				twiddleMetaData(state, true);
+				//twiddleMetaData(state, true);
+				twiddleMetaData(state, command);
 				regenSpriteImages()
 				canvasResize();
 			}

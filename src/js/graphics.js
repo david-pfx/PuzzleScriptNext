@@ -229,8 +229,7 @@ function createObjectSprites() {
             const object = state.objects[n];
 			objectSprites[object.id] = {
                 dat: object.spritematrix,
-                colors: object.colors.map(c => colorToHex(state.metadata.color_palette, c)), // so we can twiddle colours
-                //colors: object.colors, //::
+                colors: object.colors.map(c => colorToHex(state.metadata.color_palette, c)), // in case we twiddled colours
 				text: object.spritetext,
                 vector: object.vector,
 				scale: object.scale,
