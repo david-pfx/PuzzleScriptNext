@@ -15,11 +15,19 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25g17. 
+The latest version is Release v-25g23. 
 
-Breaking change: Please note that a Pause Menu will now only be seen if activated by prelude setting `enable_pause`.
-This restores compatibility with PS+, but P:S and other games that relied on a pause menu will need to be updated.
-See [prelude](https://david-pfx.github.io/PuzzleScriptNext/src/Documentation/prelude) for further information.
+This release implements new features:
+* Custom palette #128
+* Set palette at runtime via metadata twiddling #95
+* Updated documentation (`Prelude` and `Runtime Metadata Twiddling`)
+* Updated version of `colour_chart` to show these features.
+
+This should be regarded as beta at this stage. 
+The changes were more intrusive than I would like, and several bugs surfaced during testing.
+I hope I found and fixed them all, but you have been warned!
+
+I look forward to someone producing some striking visual effects and/or animations using this feature.
 
 Recent fixes/updates:
 * Idents targeted by `export_options` must not be quoted in order to survive minification
@@ -35,7 +43,7 @@ Older fixes/updates:
 * Fix Sprite expansion errors visible in Hebird #170
 * Fix [ OBJ:perpendicular ] TypeError crash #171
 * Fix: quit goes to first level but should be current #165
-* New prelude settings 'enable_pause', 'export_options' (see docs)
+* New prelude settings 'enable_pause', 'export_options' (breaking change: see docs)
 * Fix: Fix UX annoyance with the debug hover #168
 * Tweaks for docs: Collision layers, message, tags
 * Fixed Tween behaviour inconsistency #162
