@@ -985,20 +985,6 @@ function setGameState(_state, command, randomseed) {
     if (command[0]!=="rebuild"){
       backups=[];
     }
-    //set sprites
-    objectSprites = [];
-    for (const n in state.objects) {
-        if (state.objects.hasOwnProperty(n)) {
-            const object = state.objects[n];
-			objectSprites[object.id] = {
-                dat: object.spritematrix,
-                colors: object.colors,
-				text: object.spritetext,
-                vector: object.vector,
-				scale: object.scale,
-            };
-        }
-    }
     if (state.metadata.realtime_interval!==undefined) {
       autotick=0;
       autotickinterval=state.metadata.realtime_interval*1000;
@@ -2783,17 +2769,26 @@ Rule.prototype.queueCommands = function() {
 			}
 			
 			if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
-				twiddleMetaData(state, true);
+				//twiddleMetaData(state, true);
+				twiddleMetaData(state, command);
 				canvasResize();
 			}
 
 			if (command[0] === "smoothscreen") {
 				if (value !== undefined) {
-					twiddleMetaData(state, true);
+					//twiddleMetaData(state, true);
+					twiddleMetaData(state, command);
 					initSmoothCamera()
 				} else {
 					smoothscreen = false;
 				}
+				canvasResize();
+			}
+
+			if (command[0] == "color_palette") {
+				//twiddleMetaData(state, true);
+				twiddleMetaData(state, command);
+				regenSpriteImages()
 				canvasResize();
 			}
 
@@ -2822,6 +2817,7 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
 	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
 
+	const colorPalette = state.metadata.color_palette;
 	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
 	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
     state.author_color = state.metadata.author_color ? colorToHex(colorPalette, state.metadata.author_color) : state.fgcolor;

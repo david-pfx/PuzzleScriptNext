@@ -957,12 +957,15 @@ function onMouseWheel(event) {
 
 	if (!mouseInCanvas || event.ctrlKey) {return;}
 
-	normalizedDelta = Math.sign(event.deltaY);
-
-	if (titleScreen && titleMode == 2 && (IsMouseGameInputEnabled())) {
-		levelSelectScroll(normalizedDelta);
-
-		redraw();
+	const normalizedDelta = Math.sign(event.deltaY);
+	if (titleScreen && IsMouseGameInputEnabled()) {
+		if(titleMode == 1) {
+			generateTitleScreen(-1, normalizedDelta);
+		} else if(titleMode == 2) {
+			generateLevelSelectScreen(-1, normalizedDelta);
+		} else if (titleMode == 3) {
+			generatePauseScreen(-1, normalizedDelta);
+		}
 		prevent(event)
 	}
 	if (levelEditorOpened) {
@@ -970,12 +973,6 @@ function onMouseWheel(event) {
 		redraw();
 		prevent(event)
 	}
-}
-
-function levelSelectScroll(direction) {
-	levelSelectScrollPos = clamp(levelSelectScrollPos + direction, 0, Math.max(state.sections.length - amountOfLevelsOnScreen, 0));
-	titleSelection = clamp(titleSelection + direction, 0, state.sections.length - 1);
-	generateLevelSelectScreen();
 }
 
 function clamp(number, min, max) {

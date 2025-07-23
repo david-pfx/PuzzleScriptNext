@@ -129,7 +129,8 @@ temp2;blue;
         Since the entire range of Unicode characters is available for this purpose, this option is deprecated.
       </dd>
 
-			<dt>color_palette mastersystem</dt>
+			<dt>color_palette mastersystem<img src="../images/psnext.png" alt="PuzzleScript Next" height="16"></dt>
+
 			<dd>By default, when you use colour names, they are pulled from a variation of <a href="http://androidarts.com/palette/16pal.htm">Arne</a>'s 16-Colour palette.  However, there are other palettes to choose from:
 			<p>
         <ul>
@@ -148,8 +149,15 @@ temp2;blue;
         <li>13 - c64 </li>
         <li>14 - whitingjp </li>
         </ul>
-        <p>
-        (you can also refer to them by their numerical index)
+        <p>You can also refer to them by their numerical index.
+          For example, to use the Game Boy palette, you can use either "gameboycolour" or "2".</p>
+          <p>Having selected a palette, you can modify individual colours by specifying a colour name and a hex code to set it, as shown here.</p>
+<pre><code>color_palette gameboycolour
+color_palette 2
+color_palette amstrad lightgreen #6F8E44 lightblue #8EA7A7
+</code></pre>
+        <p>Note that the palette can be changed at runtime via <b>runtime_metadata_twiddling</b>, for some very eye-catching effects!</p>
+
 			</dd>
 
       <dt>continue_is_level_select <img src="../images/psplus.png" title="PuzzleScript Plus" height="16"></dt>

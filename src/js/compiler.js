@@ -424,7 +424,6 @@ function colorToHex(palette, str) {
 }
 
 var debugMode;
-var colorPalette;
 
 function generateExtraMembers(state) {
 
@@ -480,20 +479,10 @@ function generateExtraMembers(state) {
     debugMode = false;
     verbose_logging = false;
     throttle_movement = false;
-    colorPalette = colorPalettes.arnecolors;
     for (var i = 0; i < state.metadata.length; i += 2) {
         var key = state.metadata[i];
         var val = state.metadata[i + 1];
-        if (key === 'color_palette') {
-            if (val in colorPalettesAliases) {
-                val = colorPalettesAliases[val];
-            }
-            if (colorPalettes[val] === undefined) {
-                logError('Palette "' + val + '" not found, defaulting to arnecolors.', 0);
-            } else {
-                colorPalette = colorPalettes[val];
-            }
-        } else if (key === 'debug' || defaultDebugMode) {
+        if (key === 'debug' || defaultDebugMode) {
             if (IDE && unitTesting===false){
                 debugMode = true;
                 cache_console_messages = true;
@@ -522,10 +511,7 @@ function generateExtraMembers(state) {
         }
         for (let i = 0; i < obj.colors.length; i++) {
             let c = obj.colors[i];
-            if (isColor(c)) {
-                c = colorToHex(colorPalette, c);
-                obj.colors[i] = c;
-            } else {
+            if (!isColor(c)) {
                 logError(`Invalid color specified for object "${n}", namely ${obj.colors[i]}".`, obj.lineNumber + 1);
                 obj.colors[i] = '#ff00ff'; // magenta error color
             }
@@ -1422,7 +1408,7 @@ function processRuleString(rule, state, curRules) {
                 const needarg = commandargs_table.includes(tok);
                 const twid = twiddleable_params.includes(tok);
                 if (needarg || twid) {
-                    if (twid && !state.metadata.includes('runtime_metadata_twiddling')) {
+                    if (twid && !state.metadata.runtime_metadata_twiddling) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
                         const index = findIndexAfterToken(origLine,tokens,i);
@@ -1436,7 +1422,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     commands.push([tok]);
                 }
-                        } else {
+            } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
             }
         }
@@ -2901,7 +2887,7 @@ function getMaskFromName(state,name) {
 		objectMask.ibitset(o.id);
 	}
 
-	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
+	if (!state.metadata.nokeyboard && objectMask.iszero()) {
 		logErrorNoLine("Error, didn't find any object called player, either in the objects section, or the legends section. There must be a player!");
 	}
 	return objectMask;
@@ -3007,26 +2993,34 @@ function checkObjectsAreLayered(state) {
 }
 
 function isInt(value) {
-return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
+    return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
 }
+
 // convert metadata to object format and validate
-function twiddleMetaData(state, update = false) {
-    if (debugSwitch.includes('meta')) console.log(`twiddleMetaData update=${update} metadata:`, state.metadata);
+// of if command is given, update the metadata with that command
+function twiddleMetaData(state, command = null) {
+    if (debugSwitch.includes('meta')) console.log(`twiddleMetaData update=${command} metadata:`, state.metadata);
 	var newmetadata;
 
-	if (!update) {
+	if (!command) {
 		newmetadata = {};
 		for (var i=0;i<state.metadata.length;i+=2) {
 			var key = state.metadata[i];
 			var val = state.metadata[i+1];
 			newmetadata[key]=val;
 		}
+        parseTwiddle(newmetadata);
+        newmetadata.color_palette ||= colorPalettes.arnecolors;
+        state.metadata=newmetadata;
+        state.default_metadata = deepClone(newmetadata);
 	} else {
-		newmetadata = state.metadata;
+        newmetadata = {};
+        newmetadata[command[0]] = command[1];
+        parseTwiddle(newmetadata);
+        state.metadata[command[0]] = newmetadata[command[0]];   // may be deleted but that's ok
 	}
 
-
-    const getIntCheckedPositive = function(s,lineNumber){
+    function getIntCheckedPositive(s,lineNumber) {
         if (!isFinite(s) || !isInt(s)){
             logWarning(`Wasn't able to make sense of "${s}" as a (whole number) dimension.`,lineNumber);
             return NaN;
@@ -3040,136 +3034,152 @@ function twiddleMetaData(state, update = false) {
         }
         return result;
     }
-    const getCoords = function(str,lineNumber){
-		var coords = val.split('x');
+
+    function getCoords(str,lineNumber) {
+		var coords = str.split('x');
         if (coords.length!==2){
             logWarning("Dimensions must be of the form AxB.",lineNumber);
             return null;
         } else {
             var intcoords = [getIntCheckedPositive(coords[0],lineNumber), getIntCheckedPositive(coords[1],lineNumber)];
             if (!isFinite(coords[0]) || !isFinite(coords[1]) || isNaN(intcoords[0]) || isNaN(intcoords[1])) {
-                logWarning(`Couldn't understand the dimensions given to me (you gave "${val}") - should be of the form AxB.`,lineNumber);
+                logWarning(`Couldn't understand the dimensions given to me (you gave "${str}") - should be of the form AxB.`,lineNumber);
                 return null
             } else {
                 if (intcoords[0]<=0 || intcoords[1]<=0){
-                    logWarning(`The dimensions given to me (you gave "${val}") are baad - they should be > 0.`,lineNumber);
-	}
+                    logWarning(`The dimensions given to me (you gave "${str}") are baad - they should be > 0.`,lineNumber);
+	            }
                 return intcoords;
             }
         }
     }
 
-    if (newmetadata.flickscreen !== undefined) {
-		var val = newmetadata.flickscreen;
-        newmetadata.flickscreen = getCoords(val,state.metadata_lines.flickscreen);
-        if (newmetadata.flickscreen===null){
-            delete newmetadata.flickscreen;
-        }
-    }
-    if (newmetadata.zoomscreen !== undefined) {
-		var val = newmetadata.zoomscreen;
-        newmetadata.zoomscreen = getCoords(val, state.metadata_lines.zoomscreen);
-        if (newmetadata.zoomscreen === null) {
-            delete newmetadata.zoomscreen;
-	}
-	}
-	if (newmetadata.smoothscreen!==undefined) {
-		var val = newmetadata.smoothscreen;
-		var args = val.split(/\s+/);
-
-		var validArguments = true
-
-		if (args.length < 1) {
-			logErrorNoLine(`Smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S].`)
-			validArguments = false
-		} else if (args.length > 4) {
-			logErrorNoLine(`Smoothscreen given "${args.length}" arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S].`)
-			validArguments = false
-		}
-
-		const smoothscreen = {
-			screenSize: { width: 0, height: 0 },
-			boundarySize: { width: 1, height: 1 },
-			cameraSpeed: 0.125,
-			flick: false,
-			debug: !!newmetadata.smoothscreen_debug
-		}
-
-		if (args[0] === 'flick') {
-			smoothscreen.flick = true
-			args.shift()
-		}
-
-		const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
-		if (screenSizeMatch) {
-			smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
-			smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
-
-			if (smoothscreen.flick) {
-				smoothscreen.boundarySize.width = smoothscreen.screenSize.width
-				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
-			}
-		} else {
-			logErrorNoLine(`Smoothscreen given first argument "${args[0]}" but must be formatted WxH where W and H are integers.`)
-			validArguments = false
-		}
-
-		if (args.length > 1) {
-			const boundarySizeMatch = args[1].match(/^(?<width>\d+)x(?<height>\d+)$/)
-			if (boundarySizeMatch) {
-				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
-				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
-			} else {
-				logErrorNoLine(`Smoothscreen given second argument "${args[1]}" but must be formatted IxJ where I and J are integers.`)
-				validArguments = false
-			}
-		}
-
-		if (args.length > 2) {
-			const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
-			if (cameraSpeedMatch) {
-				smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
-			} else {
-				logErrorNoLine(`Smoothscreen given third argument "${args[2]}" but must be a number.`)
-				validArguments = false
-			}
-		}
-
-		if (validArguments) {
-			newmetadata.smoothscreen = smoothscreen;
-		} else {
-			delete newmetadata.smoothscreen
-		}
-	}
-
-    if (newmetadata.tween_easing) {
-        let easing = newmetadata.tween_easing;
-        if (easing) {
-            easing = (!isNaN(parseInt(easing)) && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
-            //easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
-            if (EasingFunctions[easing]) 
-                newmetadata.tween_easing = easing;
-            else {
-                logErrorNoLine(`Sorry, but tween easing argument "${newmetadata.tween_easing}" is not a valid number or lerp.`);
-                delete newmetadata.tween_easing;
+    function parseTwiddle(newmetadata) {
+        if (newmetadata.flickscreen !== undefined) {
+            var val = newmetadata.flickscreen;
+            newmetadata.flickscreen = getCoords(val,state.metadata_lines.flickscreen);
+            if (newmetadata.flickscreen===null){
+                delete newmetadata.flickscreen;
             }
         }
-    }
-
-    if (newmetadata.tween_snap) {
-        const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
-        if (snap) newmetadata.tween_snap = snap;
-        else {
-            logErrorNoLine(`Sorry, but tween snap argument "${newmetadata.tween_snap}" is not a valid number.`);
-            delete newmetadata.tween_snap;
+        if (newmetadata.zoomscreen !== undefined) {
+            var val = newmetadata.zoomscreen;
+            newmetadata.zoomscreen = getCoords(val, state.metadata_lines.zoomscreen);
+            if (newmetadata.zoomscreen === null) {
+                delete newmetadata.zoomscreen;
+            }
         }
+        if (newmetadata.smoothscreen!==undefined) {
+            var val = newmetadata.smoothscreen;
+            var args = val.split(/\s+/);
+
+            var validArguments = true
+
+            if (args.length < 1) {
+                logErrorNoLine(`Smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S].`)
+                validArguments = false
+            } else if (args.length > 4) {
+                logErrorNoLine(`Smoothscreen given "${args.length}" arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S].`)
+                validArguments = false
+            }
+
+            const smoothscreen = {
+                screenSize: { width: 0, height: 0 },
+                boundarySize: { width: 1, height: 1 },
+                cameraSpeed: 0.125,
+                flick: false,
+                debug: !!newmetadata.smoothscreen_debug
+            }
+
+            if (args[0] === 'flick') {
+                smoothscreen.flick = true
+                args.shift()
+            }
+
+            const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
+            if (screenSizeMatch) {
+                smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
+                smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
+
+                if (smoothscreen.flick) {
+                    smoothscreen.boundarySize.width = smoothscreen.screenSize.width
+                    smoothscreen.boundarySize.height = smoothscreen.screenSize.height
+                }
+            } else {
+                logErrorNoLine(`Smoothscreen given first argument "${args[0]}" but must be formatted WxH where W and H are integers.`)
+                validArguments = false
+            }
+
+            if (args.length > 1) {
+                const boundarySizeMatch = args[1].match(/^(?<width>\d+)x(?<height>\d+)$/)
+                if (boundarySizeMatch) {
+                    smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
+                    smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
+                } else {
+                    logErrorNoLine(`Smoothscreen given second argument "${args[1]}" but must be formatted IxJ where I and J are integers.`)
+                    validArguments = false
+                }
+            }
+
+            if (args.length > 2) {
+                const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
+                if (cameraSpeedMatch) {
+                    smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
+                } else {
+                    logErrorNoLine(`Smoothscreen given third argument "${args[2]}" but must be a number.`)
+                    validArguments = false
+                }
+            }
+
+            if (validArguments) {
+                newmetadata.smoothscreen = smoothscreen;
+            } else {
+                delete newmetadata.smoothscreen
+            }
+        }
+
+        if (newmetadata.tween_easing) {
+            let easing = newmetadata.tween_easing;
+            if (easing) {
+                easing = (!isNaN(parseInt(easing)) && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+                if (EasingFunctions[easing]) 
+                    newmetadata.tween_easing = easing;
+                else {
+                    logErrorNoLine(`Sorry, but tween easing argument "${newmetadata.tween_easing}" is not a valid number or lerp.`);
+                    delete newmetadata.tween_easing;
+                }
+            }
+        }
+
+        if (newmetadata.tween_snap) {
+            const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
+            if (snap) newmetadata.tween_snap = snap;
+            else {
+                logErrorNoLine(`Sorry, but tween snap argument "${newmetadata.tween_snap}" is not a valid number.`);
+                delete newmetadata.tween_snap;
+            }
+        }
+
+        if (newmetadata.color_palette) {
+            const args = newmetadata.color_palette.split(/\s+/);
+            const palette = (args[0] in colorPalettesAliases) ? colorPalettesAliases[args[0]] : args[0];
+            if (!(palette in colorPalettes)) {
+                logError(`Palette "${palette}" not found, defaulting to arnecolors.`, 0);
+                newmetadata.color_palette = colorPalettes.arnecolors;
+            } else {
+                newmetadata.color_palette = colorPalettes[palette];
+            }
+            for (let i = 1; i < args.length; i += 2) {
+                const colorName = args[i];
+                const colorValue = args[i + 1];
+                if (!(colorName in newmetadata.color_palette))
+                    logError(`Invalid color name "${colorName}".`, 0);
+                else if (!isColor(colorValue))
+                    logError(`Invalid color value "${colorValue}".`, 0);
+                else newmetadata.color_palette[colorName] = colorValue;
+            }
+        } 
     }
-
-    state.metadata=newmetadata;
-
-	if (!update) {
-		state.default_metadata = deepClone(newmetadata);
-	}
 }
 
 function processWinConditions(state) {
@@ -3582,11 +3592,12 @@ function generateSoundData(state) {
 
 function formatHomePage(state) {
     // twiddle metadata doesn't set these
-    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
-    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
-    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
-    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
-    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
+    // twiddleMetadataExtras();     //::
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.text_color) : "#FFFFFF";
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
         if ('background_color' in state.metadata) {
@@ -3643,6 +3654,10 @@ function loadFile(str) {
     if (debugSwitch.includes('tag')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+
+    // placed here so that the parsed metadata is available
+	twiddleMetaData(state);
+
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -3682,7 +3697,7 @@ function loadFile(str) {
 	processWinConditions(state);
 	checkObjectsAreLayered(state);
 
-	twiddleMetaData(state);
+	//twiddleMetaData(state);
 	
 	generateExtraMembersPart2(state);
 

@@ -204,7 +204,9 @@ function regenSpriteImages() {
         return;
     }
     spriteImages = [];
-    
+
+    // create sprites here because palette may have changed
+    createObjectSprites();
     objectSprites.forEach((s,i) => {
         if (s) {
             spriteImages[i] =
@@ -216,6 +218,23 @@ function regenSpriteImages() {
 
     if (canOpenEditor) {
     	generateGlyphImages();
+    }
+}
+
+// this code used to be in the initial state setup, but needed here for palette changes
+function createObjectSprites() {
+    objectSprites = [];
+    for (const n in state.objects) {
+        if (state.objects.hasOwnProperty(n)) {
+            const object = state.objects[n];
+			objectSprites[object.id] = {
+                dat: object.spritematrix,
+                colors: object.colors.map(c => colorToHex(state.metadata.color_palette, c)), // in case we twiddled colours
+				text: object.spritetext,
+                vector: object.vector,
+				scale: object.scale,
+            };
+        }
     }
 }
 
