@@ -9,27 +9,21 @@ background_color LightGreen
 text_color black
 runtime_metadata_twiddling
 mouse_left
-
-// color_palette mastersystem  
-// color_palette gameboycolour 
-   color_palette amiga grey #f00
-// color_palette arnecolors    
-// color_palette famicom       
-// color_palette atari         
-// color_palette pastel        
-// color_palette ega           
-// color_palette amstrad       
-// color_palette proteus_mellow
-// color_palette proteus_rich  
-// color_palette proteus_night 
-// color_palette c64           
-// color_palette whitingjp     
+verbose_logging
 
 ========
 OBJECTS
 ========
 Background .;#ddd
-Player *;red
+
+Player *
+black orange white blue
+.000.
+.111.
+22222
+.333.
+.3.3.
+
 lmb;blue
 BG0;#333
 BG1;#777
@@ -160,26 +154,23 @@ lmb
 RULES
 =====
 
-[ Player ] -> []
 [ lmb Palettes ] -> [ player Palettes ]
-[ Player P0 ] -> color_palette mastersys
+[ lmb ] -> []
 
-
-[ Player P0 ] -> color_palette mastersystem  
-[ Player P1 ] -> color_palette gameboycolour 
-[ Player P2 ] -> color_palette amiga
-[ Player P3 ] -> color_palette arnecolors    
-[ Player P4 ] -> color_palette famicom            
-[ Player P5 ] -> color_palette atari              
-[ Player P6 ] -> color_palette pastel             
-[ Player P7 ] -> color_palette ega                
-[ Player P8 ] -> color_palette amstrad            
-[ Player P9 ] -> color_palette proteus_mellow
-[ Player PA ] -> color_palette proteus_rich  
-[ Player PB ] -> color_palette proteus_night 
-[ Player PC ] -> color_palette c64                
-[ Player PD ] -> color_palette whitingjp         
-
+late [ Player P0 ] -> color_palette mastersystem  
+late [ Player P1 ] -> color_palette gameboycolour 
+late [ Player P2 ] -> color_palette amiga
+late [ Player P3 ] -> color_palette arnecolors    
+late [ Player P4 ] -> color_palette famicom            
+late [ Player P5 ] -> color_palette atari              
+late [ Player P6 ] -> color_palette pastel             
+late [ Player P7 ] -> color_palette ega                
+late [ Player P8 ] -> color_palette amstrad            
+late [ Player P9 ] -> color_palette proteus_mellow
+late [ Player PA ] -> color_palette proteus_rich  
+late [ Player PB ] -> color_palette proteus_night 
+late [ Player PC ] -> color_palette c64                
+late [ Player PD ] -> color_palette whitingjp         
 
 =============
 WINCONDITIONS
@@ -192,7 +183,7 @@ LEVELS
 .......
 LMNOPQR
 STUVWXY
-.......
+...*...
 0123456
 789ABCD
 EFGHIJK

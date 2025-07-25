@@ -20,6 +20,7 @@ status_line
 level_select
 //custom_font https://fonts.gstatic.com/s/vt323/v17/pxiKyp0ihIEF2isfFJU.woff2
 custom_font https://fonts.gstatic.com/s/inconsolata/v31/QldgNThLqRwH-OJ1UHjlKENVzkWGVkL3GZQmAwLYxYWI2qfdm7Lpp4U8WR32lw.woff2
+runtime_metadata_twiddling
 
 ========
 OBJECTS
@@ -119,6 +120,10 @@ r270;transparent
 c1;transparent
 c2;transparent
 c3;transparent
+p1;pink
+p2;pink
+p3;pink
+p4;pink
 
 =======
 LEGEND
@@ -138,7 +143,8 @@ tileRR1 = tileX or tileN or tileW or tileS or tileE
 queues = temp or q1 or q2 or q3 or q4
 rotation = r0 or r90 or r180 or r270
 rr = r90 or r180 or r270
-tempobj = r0 or init or mix
+palette = p1 or p2 or p3 or p4
+tempobj = r0 or init or mix or palette
 
 =======
 SOUNDS
@@ -155,6 +161,7 @@ COLLISIONLAYERS
 Background
 edge 
 lit init mix test
+palette
 start
 empty
 queues
@@ -200,7 +207,14 @@ startloop
   [ r180 ] -> [ r90 ]
   [ r270 ] -> [ r180 ]
 endloop
-[ tempobj ] -> []
+
+[ init ] -> [ init random palette ]
+late [ init P1 ] -> color_palette gameboycolour 
+late [ init P2 ] -> color_palette amiga
+late [ init P3 ] -> color_palette arnecolors    
+late [ init P4 ] -> color_palette proteus_night 
+
+late [ tempobj ] -> []
 
 //[ focus ] -> []
 //[ hover clickable ] -> [ clickable focus ]

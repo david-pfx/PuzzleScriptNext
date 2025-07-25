@@ -517,6 +517,7 @@ var oldflickscreendat = [];//used for buffering old flickscreen/scrollscreen pos
 var keybuffer = [];
 
 var debugSwitch = '';
+var exportOptions = '';
 var showLayers = false;
 var showLayerNo = 0;
 var defaultDebugMode = false;
@@ -524,7 +525,8 @@ var defaultVerboseLogging = false;
 
 var tweeninterval=0;
 var tweentimer=0;
-var isAnimating = false;    // true for any kind of animation/tweening that is not yet complete
+var isTweening = false;     // true for tweening not yet complete, to defer againing
+var isAnimating = false;    // true for animation/tweening/smoothscreen to keep rendering
 var animateinterval=0;
 
 var restarting=false;
@@ -5223,7 +5225,7 @@ function MakeRiff ( sampleRate, bitsPerSample,data) {
 
 
 if (typeof exports != 'undefined')  // For node.js
-  exports.RIFFWAVE = RIFFWAVE;
+  exports.RIFFWAVE = MakeRiff;
 
 </script>
 <script>
@@ -6212,7 +6214,7 @@ if (typeof exports != 'undefined') {
   // For node.js
   var RIFFWAVE = require('./riffwave').RIFFWAVE;
   exports.Params = Params;
-  exports.generate = generate;
+  exports.generate = generateFromSeed;
 }
 
 var sfxCache = {};
@@ -6793,7 +6795,7 @@ whitingjp : {
 // Functions to create and render text and sprites
 
 // Create and return a graphic sprite canvas
-function createSprite(name,spritegrid, colors, size) {
+function createSprite(name,spritegrid, colors, size, height) {
 	colors ||= [state.bgcolor, state.fgcolor];
 
 	var canvas = makeSpriteCanvas(name);
@@ -6802,7 +6804,7 @@ function createSprite(name,spritegrid, colors, size) {
     canvas.width = spritegrid.reduce((acc, row) => Math.max(acc, row.length), 0) * pixelSize;
     canvas.height = spritegrid.length * pixelSize;
 
-    renderSprite(context, spritegrid, colors, 0, 0, 0, size);
+    renderSprite(context, spritegrid, colors, 0, 0, 0, size, height);
 
     return canvas;
 }
@@ -6833,15 +6835,32 @@ function createCanvasSprite(name, vector) {
     function addInstr(json) {
         for (const instr of json) {
             try {
-                for (const [key, value] of Object.entries(instr)) {
+                for (let [key, value] of Object.entries(instr)) {
                     if (key === "!include") {
                         const include = state.objects[value.toLowerCase()];
                         if (include) {
                             addInstr(include.vector.data);
                         } else {
-                            logWarningNoLine("include object '" + value + "' not found");
+                            logErrorNoLine(`Something called "${value}" you wanted to include does not seem to exist.`);
                         }
                     } else if (context[key] instanceof Function) {
+                        // Special case for drawing images loaded with 'load_images'.
+                        if (key === 'drawImage') {
+                            const imageName = value[0];
+                            if (imageName === undefined) {
+                                logErrorNoLine(`This call to "drawImage" needs to have at least one argument.`, true);
+                                continue;
+                            }
+                            let image = customImages[imageName];
+                            if (!image) {
+                                logErrorNoLine(`Could not find or load an image called "${imageName}".`, true);
+                                continue;
+                            }
+                            // Replace `drawImage('imageName', ...)` with `drawImage(image, ...)`.
+                            value = deepClone(value);
+                            value[0] = image;
+                        }
+
                         context[key].apply(context, value);
                     } else {
                         context[key] = value;
@@ -6880,14 +6899,14 @@ function createSvgSprite(name, vector) {
 }
 
 // draw the pixels of the sprite grid data into the context at a cell position, 
-function renderSprite(context, spritegrid, colors, padding, x, y, size) {
+function renderSprite(context, spritegrid, colors, padding, cellx, celly, size, height) {
     colors ||= ['#00000000', state.fgcolor];
 
     const rc = { 
-        x: x * cellwidth, // global
-        y: y * cellheight, 
-        w: size || spritegrid[0].length, 
-        h: size || spritegrid.length,
+        x: cellx * cellwidth, // global
+        y: celly * cellheight, 
+        w: size || spritegrid[0].length * pixelSize,
+        h: height || size || spritegrid.length * pixelSize,
     };
 
     context.clearRect(rc.x, rc.y, rc.w, rc.h);
@@ -6919,32 +6938,38 @@ function drawTextWithFont(ctx, text, color, x, y, height) {
 
 }
 
-// create a single text sheet canvas containing all the character glyphs
-var textsheetCanvas = null;
+let textsheetCanvas = {};
 
 function regenText() {
-    textsheetCanvas ||= document.createElement('canvas');
-
     var textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
+    
+    // create a single text sheet canvas for each colour containing all the character glyphs
+    ['#00000000', state.fgcolor, state.text_color, state.author_color, state.keyhint_color, state.background_color, state.title_color].forEach(color => {
+        if (color && !textsheetCanvas[color])
+            textsheetCanvas[color] = document.createElement('canvas');
+    });
+        
+    for (const color in textsheetCanvas) {
+        const canvas = textsheetCanvas[color];
+        canvas.width = textsheetSize * cellwidth;
+        canvas.height = textsheetSize * cellheight;
+        
+        const ctx = textsheetCanvas[color].getContext('2d');
+        ctx.clearRect(0, 0, cellwidth, cellheight);
 
-    textsheetCanvas.width = textsheetSize * cellwidth;
-    textsheetCanvas.height = textsheetSize * cellheight * 2;
+        for (var n = 0; n < fontKeys.length; n++) {
+            var key = fontKeys[n];
+            if (font.hasOwnProperty(key)) {
+                fontstr = font[key].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
+                fontstr.shift();
 
-    var textsheetContext = textsheetCanvas.getContext('2d');
-
-    for (var n = 0; n < fontKeys.length; n++) {
-        var key = fontKeys[n];
-        if (font.hasOwnProperty(key)) {
-            fontstr = font[key].split('\n').map(a=>a.trim().split('').map(t=>parseInt(t)));
-            fontstr.shift();
-
-            var textX = (n % textsheetSize)|0;
-            var textY = (n / textsheetSize)|0;
-
-            renderSprite(textsheetContext, fontstr, undefined, 1, textX, textY);
-            renderSprite(textsheetContext, fontstr, ['#00000000', '#000000'], 1, textX, textY + textsheetSize);
+                var textX = (n % textsheetSize)|0;
+                var textY = (n / textsheetSize)|0;
+                renderSprite(ctx, fontstr, [ '#00000000', color ], 1, textX, textY);
+            }
         }
     }
+    if (debugSwitch.includes('redraw')) console.log(`regenText sz=${textsheetSize} fk=${fontKeys.length} textsheetCanvas=`, textsheetCanvas);
 }
 
 var editor_s_grille=[[0,1,1,1,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0]];
@@ -6966,25 +6991,44 @@ function regenSpriteImages() {
 	} 
     
     if (IDE===true) {
-        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);
+        textImages['editor_s'] = createSprite('chars', editor_s_grille, undefined, 5);  //?? w,h
     }
     
     if (state.levels.length===0) {
         return;
     }
     spriteImages = [];
-    
+
+    // create sprites here because palette may have changed
+    createObjectSprites();
     objectSprites.forEach((s,i) => {
         if (s) {
             spriteImages[i] =
                     s.text ? createTextSprite('t' + i.toString(), s.text, s.colors, s.scale)
                 : s.vector ? createVectorSprite('v' + i.toString(), s.vector)
-            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size);
+            : createSprite(i.toString(), s.dat, s.colors, state.sprite_size, state.cell_height);
         }
     });
 
     if (canOpenEditor) {
     	generateGlyphImages();
+    }
+}
+
+// this code used to be in the initial state setup, but needed here for palette changes
+function createObjectSprites() {
+    objectSprites = [];
+    for (const n in state.objects) {
+        if (state.objects.hasOwnProperty(n)) {
+            const object = state.objects[n];
+			objectSprites[object.id] = {
+                dat: object.spritematrix,
+                colors: object.colors.map(c => colorToHex(state.metadata.color_palette, c)), // in case we twiddled colours
+				text: object.spritetext,
+                vector: object.vector,
+				scale: object.scale,
+            };
+        }
     }
 }
 
@@ -7050,17 +7094,27 @@ function generateGlyphImages() {
 	}
 
 	if (IDE) {
-		//make highlight thingy
+		//make highlight thingy in grid
 		glyphHighlight = makeSpriteCanvas("highlight");
 		var spritectx = glyphHighlight.getContext('2d');
-		spritectx.fillStyle = '#FFFFFF';
+		spritectx.strokeStyle = 'orange';
+		spritectx.lineWidth = 3;
+        spritectx.strokeRect(0, 0, cellwidth, cellheight);
 
-        const hlwid = 3;
-        spritectx.fillRect(0, 0, cellwidth, hlwid);
-        spritectx.fillRect(0, 0, hlwid, cellheight);
-
-        spritectx.fillRect(0, cellheight - hlwid, cellwidth, hlwid);
-        spritectx.fillRect(cellwidth - hlwid, 0, hlwid, cellheight);
+        //---------------------------------------------------------------------------
+        // generate a hover highlight the size of the largest object in the level
+        // but this needs to handle negative sprite offsets
+        // const size = Object.values(state.objects).reduce((acc, obj) => {
+        //     return {
+        //         x: Math.min(acc.x, obj.spriteoffset.x),
+        //         y: Math.min(acc.y, obj.spriteoffset.y),
+        //         width: Math.max(acc.width, obj.spriteoffset.x + obj.spritematrix[0].length),
+        //         height: Math.max(acc.height, obj.spriteoffset.y + obj.spritematrix.length), 
+        //     };
+        // }, { x: 0, y: 0, width: 0, height: 0 });
+        // console.log(`size: ${JSON.stringify(size)}`);
+        // spritectx.strokeRect(0, 0, size.width * pixelSize, size.height * pixelSize);
+        //---------------------------------------------------------------------------
 
 		glyphPrintButton = textImages['editor_s'];
 
@@ -7100,15 +7154,10 @@ function generateGlyphImages() {
 		//make highlight thingy
 		glyphMouseOver = makeSpriteCanvas("glyphMouseOver");
 		var spritectx = glyphMouseOver.getContext('2d');
-		spritectx.fillStyle = 'yellow';
-		const mowid = 3;  // was 2
-
-        spritectx.fillRect(0, 0, cellwidth, mowid);
-        spritectx.fillRect(0, 0, mowid, cellheight);
-
-        spritectx.fillRect(0, cellheight - mowid, cellwidth, mowid);
-        spritectx.fillRect(cellwidth - mowid, 0, mowid, cellheight);
-
+        spritectx.lineWidth = 3;
+        spritectx.strokeStyle = 'yellow';
+        spritectx.strokeRect(0, 0, cellwidth, cellheight);
+        
         //make movement glyphs
 
         const coords = [
@@ -7182,7 +7231,7 @@ function redraw() {
     if (cellwidth===0||cellheight===0) {
         return;
     }
-    if (debugSwitch.includes('perf')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
+    if (debugSwitch.includes('redraw')) console.log(`Redraw: ${JSON.stringify(perfCounters)}`);
 
     if (textMode)
         redrawTextMode();
@@ -7201,7 +7250,7 @@ function redrawTextMode() {
         const textsheetSize = Math.ceil(Math.sqrt(fontKeys.length));
         for (var i = 0; i < TITLE_WIDTH; i++) {
             for (var j = 0; j < TITLE_HEIGHT; j++) {
-                ctx.fillStyle = lineColor(j);
+                const color = lineColor(j);
                 var ch = titleImage[j].charAt(i);
                 if (ch in font) {
                     var index = fontIndex[ch];
@@ -7209,7 +7258,7 @@ function redrawTextMode() {
                     var textY = (index / textsheetSize)|0;
                     ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(
-                        textsheetCanvas,
+                        textsheetCanvas[color],
                         textX * textcellwidth,
                         textY * textcellheight,
                         textcellwidth, textcellheight,
@@ -7244,6 +7293,7 @@ function redrawCellGrid(curlevel) {
         curlevel.movements = diffToVisualize.movements;
         curlevel.rigidMovementAppliedMask = diffToVisualize.rigidMovementAppliedMask;
     }
+    ctx.restore();
     ctx.fillStyle = state.bgcolor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -7316,7 +7366,8 @@ function redrawCellGrid(curlevel) {
 
     }
     
-    if (debugSwitch.includes('redraw')) console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight}`, minMaxIJ);
+    if (debugSwitch.includes('redraw')) 
+        console.log(`redrawCell canvas=${canvas.width},${canvas.height} screen=${screenwidth},${screenheight} cell=${cellwidth},${cellheight}`, minMaxIJ);
     // used in function isInside
     screenOffsetX = minMaxIJ[0];
     screenOffsetY = minMaxIJ[1];
@@ -7373,28 +7424,32 @@ function redrawCellGrid(curlevel) {
             const offs = { 
                 x: obj.spriteoffset.x, 
                 y: obj.spriteoffset.y + (obj.vector 
-                    ? state.sprite_size * (1 - obj.vector.h)
-                    : state.sprite_size - obj.spritematrix.length)
+                    ? (state.cell_height || state.sprite_size) * (1 - obj.vector.h)
+                    : (state.cell_height || state.sprite_size) - obj.spritematrix.length)
             };
             return {
                 x: xoffset + (ij.x - this.minMax[0]-cameraOffset.x) * cellwidth + offs.x * ~~(cellwidth / state.sprite_size),
-                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / state.sprite_size)
+                y: yoffset + (ij.y - this.minMax[1]-cameraOffset.y) * cellheight + offs.y * ~~(cellheight / ( state.cell_height || state.sprite_size))
             };
 
         }
     }
 
-    var tweening = state.metadata.tween_length && currentMovedEntities;
-    // global flag to force redraw
-    isAnimating = state.metadata.smoothscreen || tweening || Object.keys(seedsToAnimate).length > 0;
+    const doMoveTweens = Object.keys(currentMovedEntities).length > 0;
+    const doAfxAnimate = Object.keys(seedsToAnimate).length > 0;
+    const moveTween = doMoveTweens ? calcTweening() : 0;
+    const animTween = doAfxAnimate ? 1 - clamp(tweentimer/animateinterval, 0, 1) : 0;  // range 1 => 0
+    
+    // global flags to force redraw, defer againing
+    isAnimating = state.metadata.smoothscreen || doMoveTweens || doAfxAnimate;
+    isTweening = moveTween > 0 || animTween > 0;
+    if (isAnimating && debugSwitch.includes('tween')) console.log(`tween moveTween=${moveTween} animTween=${animTween} seedsToAnimate=`, seedsToAnimate, `currentMovedEntities=`, currentMovedEntities);
 
     const render = new RenderOrder(minMaxIJ);
     if (!levelEditorOpened && !showLayers)
     //if (!levelEditorOpened)
         setClip(render);
-    if (tweening) 
-        drawObjectsTweening(render.getIter());
-    else drawObjects(render);
+    drawObjects(render);
 
     // show layer no
     if (showLayers) {
@@ -7422,13 +7477,12 @@ function redrawCellGrid(curlevel) {
     // Default draw loop, including when animating
     function drawObjects(render) {
         showLayerNo = Math.max(0, Math.min(curlevel.layerCount - 1, showLayerNo));
-        const tween = 1 - clamp(tweentimer/animateinterval, 0, 1);  // range 1 => 0
-        if (tween == 0) 
+        if (animTween == 0) 
             seedsToAnimate = {};
 
         // Decision required whether to follow P:S pivot (top left)
-        const spriteScaler = state.metadata.sprite_size ? { 
-            scale: state.sprite_size, 
+        const spriteScaler = state.metadata.sprite_size ? { //?? w,h does this even work?
+            scale: state.cell_height || state.sprite_size, 
             pivotx: 0.0, // todo
             pivoty: 1.0 
         } : null;
@@ -7438,7 +7492,7 @@ function redrawCellGrid(curlevel) {
             for (const posindex of render.getPosIndexes(group)) {
                 const posmask = curlevel.getCellInto(posindex,_o12);    
                 for (let k = group.firstObjectNo; k < group.firstObjectNo + group.numObjects; ++k) {
-                    const animate = (isAnimating) ? seedsToAnimate[posindex+','+k] : null;
+                    const animate = (animTween > 0) ? seedsToAnimate[posindex+','+k] : null;
                     if (posmask.get(k) || animate) {
                         const obj = state.objects[state.idDict[k]];
                         if (showLayers && obj.layer != showLayerNo)
@@ -7447,17 +7501,7 @@ function redrawCellGrid(curlevel) {
                         let spriteScale = 1;
                         //if (spriteScaler) spriteScale *= Math.max(obj.spritematrix.length, obj.spritematrix[0].length) / spriteScaler.scale;
                         //if (obj.scale) spriteScale *= obj.scale;
-                        const drawpos = render.getDrawPos(posindex, obj);
                         const vector = obj.vector;
-                        let params = {
-                            x: 0, y: 0,
-                            scalex: 1.0, scaley: 1.0,
-                            alpha: 1.0,
-                            angle: vector ? vector.angle : 0.0,
-                        };
-                        if (animate) 
-                            params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, tween);
-
                         // size of the sprite in pixels
                         const spriteSize = vector ? {
                             w: (vector.w || 1) * cellwidth,
@@ -7467,6 +7511,24 @@ function redrawCellGrid(curlevel) {
                             h: obj.spritematrix.length * pixelSize,
                         };
 
+                        const drawpos = render.getDrawPos(posindex, obj);
+                        let params = {
+                            x: 0, y: 0,
+                            scalex: 1.0, scaley: 1.0,
+                            alpha: 1.0,
+                            angle: vector ? vector.angle : 0.0,
+                        };
+
+                        // if move tweening applies to this object use it, other maybe animate it
+                        const mt = doMoveTweens && getTweening(moveTween, drawpos, obj, posindex);
+                        if (mt) {
+                            [ drawpos.x, drawpos.y, ctx.globalAlpha ] = mt;
+                        } else {
+                            if (animate) 
+                                params = calcAnimate(animate.seed.split(':').slice(1), animate.kind, animate.dir, params, animTween);
+                            ctx.globalAlpha = params.alpha;
+                        }
+
                         // calculate the destination rectangle
                         const rc = { 
                             x: Math.floor(drawpos.x + params.x * cellwidth), 
@@ -7475,14 +7537,13 @@ function redrawCellGrid(curlevel) {
                             h: params.scaley * spriteSize.h * spriteScale 
                         };
                         //console.log(`draw obj:${state.idDict[k]} dp,sz,rc:`, drawpos, spriteSize, rc);
-                        ctx.globalAlpha = params.alpha;
                         if (vector) {
                             // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image
                             const rcw = vector && vector.flipx ? -rc.w : rc.w;
                             const rch = vector && vector.flipy ? -rc.h : rc.h;
                             ctx.translate(rc.x + rc.w/2, rc.y + rc.h/2);
                             ctx.rotate(params.angle * Math.PI / 180);
-                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1); //@@
+                            ctx.scale(vector.flipx ? -1 : 1, vector.flipy ? -1 : 1);
                             ctx.drawImage(
                                 spriteImages[k], 0, 0, spriteSize.w, spriteSize.h, 
                                 -rcw/2, -rch/2, rcw, rch);
@@ -7556,48 +7617,22 @@ function redrawCellGrid(curlevel) {
         return params;
     }
 
-    // Draw loop used when tweening
-    function drawObjectsTweening(iter) {
-        // assume already validated
+    // return a value as to tween factor to apply for move tweening
+    function calcTweening() {
         const easing = state.metadata.tween_easing || 'linear';
         const snap = state.metadata.tween_snap || state.sprite_size;
-        let tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
-        tween = Math.floor(tween * snap) / snap;
+        const tween = EasingFunctions[easing](1-clamp(tweentimer/tweeninterval, 0, 1));
+        return Math.floor(tween * snap) / snap;
+    }
 
-        for (var k = 0; k < state.idDict.length; k++) {
-            var object = state.objects[state.idDict[k]];
-            var layerID = object.layer;
-
-            for (var i = iter[0]; i < iter[2]; i++) {
-                for (var j = iter[1]; j < iter[3]; j++) {
-                    var posIndex = j + i * curlevel.height;
-                    var posMask = curlevel.getCellInto(posIndex,_o12);                
-                
-                    if (posMask.get(k) != 0) {                  
-
-                        var x = xoffset + (i-minMaxIJ[0]-cameraOffset.x) * cellwidth;
-                        var y = yoffset + (j-minMaxIJ[1]-cameraOffset.y) * cellheight;
-
-                        if (currentMovedEntities && currentMovedEntities["p"+posIndex+"-l"+layerID]) {
-                            var dir = currentMovedEntities["p"+posIndex+"-l"+layerID];
-
-                            if (dir != 16) { //Cardinal directions
-                                var delta = dirMasksDelta[dir];
-            
-                                x -= cellwidth*delta[0]*tween
-                                y -= cellheight*delta[1]*tween
-                            } else if (dir == 16) { //Action button
-                                ctx.globalAlpha = 1-tween;
-                            }
-                        }
-                        
-                        ctx.drawImage(
-                            spriteImages[k], 0, 0, cellwidth, cellheight,
-                            Math.floor(x), Math.floor(y), cellwidth, cellheight);
-                        ctx.globalAlpha = 1;
-                    }
-                }
-            }
+    // calculate and return tween-adjusted values
+    function getTweening(tween, drawpos, object, posIndex) {
+        const dir = currentMovedEntities["p"+posIndex+"-l"+object.layer];
+        if (dir == 16)  // Action button
+            return [ drawpos.x, drawpos.y, 1-tween ];
+        if (dir >= 0) { // Cardinal directions
+            var delta = dirMasksDelta[dir];
+            return [ drawpos.x - cellwidth*delta[0]*tween, drawpos.y - cellheight*delta[1]*tween, 1 ];
         }
     }
 
@@ -7686,7 +7721,7 @@ function drawSmoothScreenDebug(ctx) {
             cellwidth / 4,
             0, 2* Math.PI
         );
-        ctx.fill()
+        ctx.fill();
     }
 
     var targetOffsetX = cameraPositionTarget.x - cameraPosition.x;
@@ -7700,7 +7735,7 @@ function drawSmoothScreenDebug(ctx) {
         cellwidth / 8,
         0, 2* Math.PI
     );
-    ctx.fill()
+    ctx.fill();
 
     ctx.strokeStyle = '#0000ff';
     ctx.lineWidth = cellwidth / 16;
@@ -7719,7 +7754,7 @@ function drawSmoothScreenDebug(ctx) {
         cellwidth / 4,
         0, 2* Math.PI
     );
-    ctx.fill()
+    ctx.fill();
 
     ctx.strokeStyle = '#ff0000';
     ctx.lineWidth = cellwidth / 8;
@@ -7730,15 +7765,19 @@ function drawSmoothScreenDebug(ctx) {
         boundarySize.height * cellheight
     );
 
-    ctx.restore()
+    ctx.restore();
 }
 
 function setClip(tween) {
+    // could probably just use screen height/width?
+    if (debugSwitch.includes('redraw')) console.log(`clip zfs=${zoomscreen},${flickscreen},${smoothscreen} screen=${screenwidth}x${screenheight} iter=`, tween.iter);
+    const clipw = (flickscreen || zoomscreen || smoothscreen) ? screenwidth : (tween.iter[2] - tween.iter[0]);
+    const cliph = (flickscreen || zoomscreen || smoothscreen) ? screenheight : (tween.iter[3] - tween.iter[1]);
     const rc = {
         x: xoffset,
         y: yoffset,
-        w: (tween.iter[2] - tween.iter[0]) * cellwidth,
-        h: (tween.iter[3] - tween.iter[1]) * cellheight + statusLineHeight,
+        w: clipw * cellwidth,
+        h: cliph * cellheight + statusLineHeight,
     };
     ctx.save();
     ctx.beginPath();
@@ -7811,9 +7850,11 @@ function drawEditorIcons(mini,minj) {
     // show tooltip
     if (tooltip_string.length > 0)
     {
-        ctx.fillStyle = state.fgcolor;
-        ctx.font = `16px "Source Sans Pro", Helvetica, Arial, sans-serif`;
-        ctx.fillText(tooltip_string, xoffset, yoffset-0.4*cellheight);
+		ctx.fillStyle = state.fgcolor;
+		ctx.font = '16px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText(tooltip_string, xoffset + screenwidth * cellwidth/2, yoffset-0.5*cellheight);//, screenwidth * cellwidth);
     }
 
 	if (mouseCoordX>=-1&&mouseCoordY>=-1&&mouseCoordX<screenwidth-1&&mouseCoordY<screenheight-1-editorRowCount) {
@@ -7872,6 +7913,7 @@ function canvasResize(level) {
         screenwidth=state.metadata.zoomscreen[0];
         screenheight=state.metadata.zoomscreen[1];
     } else if (smoothscreen) {
+        initSmoothCamera();         // need this in case smoothscreen is now enabled
         screenwidth=state.metadata.smoothscreen.screenSize.width;
         screenheight=state.metadata.smoothscreen.screenSize.height;
     }
@@ -7883,7 +7925,9 @@ function canvasResize(level) {
     statusLineHeight = state.metadata.status_line ? canvas.height / TITLE_HEIGHT : 0;
 
     // round the cell size as a multiple of sprite size
-    let w = h = state.sprite_size || 5;
+    let h = state.cell_height || state.sprite_size || 5;
+    let w = state.sprite_size || 5;
+
     if (textMode) {
         w= 5 + 1;
         const xchar = font['X'].split('\n').map(a=>a.trim());
@@ -7993,7 +8037,7 @@ EasingFunctions = {
       11: "easeInQuint",
       12: "easeOutQuint",
       13: "easeInOutQuint"
-  }
+  }  
 </script>
 <script>
 var onLevelRestarted = new Event("levelRestarted");
@@ -8095,6 +8139,7 @@ function doSetupTitleScreenLevelContinue(){
             if (storage_has(document.URL+'_checkpoint')) {
                 var backupStr = storage_get(document.URL+'_checkpoint');
                 curlevelTarget = JSON.parse(backupStr);
+				if (debugSwitch.includes('menu')) console.log(`doSetupTitleScreenLevelContinue `, 'curlevelTarget=', curlevelTarget);
                 
                 var arr = [];
                 for(var p in Object.keys(curlevelTarget.dat)) {
@@ -8122,8 +8167,8 @@ function hasStartedTheGame() {
 }
 
 function hasFinishedTheGame() {
-	return state.metadata.level_select && solvedSections.length == state.sections.length
-		|| curLevelNo >= state.levels.length - 1; 
+	return state.metadata.level_select && (solvedSections.length == state.sections.length)
+		|| curLevelNo >= state.levels.length; 
 }
 
 function hasSolvedAtLeastOneSection() {
@@ -8156,7 +8201,7 @@ function isLevelSelectOptionSelected() {
 }
 
 function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
-	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen()`, hoverLine, scrollIncrement, selectLine);
+	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen()`, 'hoverLine=', hoverLine, 'scrollIncrement=', scrollIncrement, 'selectLine=' , selectLine);
 	lineColorOverride = [];
   	tryLoadCustomFont();
 
@@ -8196,12 +8241,13 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 		const select = selectLine || hoverLine;
 		titleSelection = screen.options.includes(select) ? options[screen.options.indexOf(select)] : false;  // todo: ???
 	}
+	if (debugSwitch.includes('menu')) console.log(`generateTitleScreen2`, `titleSelection=`, titleSelection, `levelSelectScrollPos=`, levelSelectScrollPos);
 
 	const setImage = (n,text) => {
 		if (!text) throw "image";
 		titleImage[n] = text.padEnd(TITLE_WIDTH);
-		if (state.metadata.keyhint_color) 
-			lineColorOverride[n] = state.metadata.keyhint_color;
+		if (state.keyhint_color) 
+			lineColorOverride[n] = state.keyhint_color;
 	}
 	if (state.metadata.text_controls) {
 		const text = wordwrap(state.metadata.text_controls, TITLE_WIDTH, true);
@@ -8227,8 +8273,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 	}
 	titleSplit.forEach((line,x) => {
 		titleImage[1 + x] = centerText(line.trim(), TITLE_WIDTH);
-		if (state.metadata.title_color)
-			lineColorOverride[1 + x] = state.metadata.title_color;
+		if (state.title_color)
+			lineColorOverride[1 + x] = state.title_color;
 	});
 
 	if (state.metadata.author) {
@@ -8240,8 +8286,8 @@ function generateTitleScreen(hoverLine, scrollIncrement, selectLine) {
 		}
 		split.forEach((line, x) => { 
 			titleImage[3 + x]=line.trim().padStart(TITLE_WIDTH);
-			if (state.metadata.author_color)
-				lineColorOverride[3 + x] = state.metadata.author_color;
+			if (state.author_color)
+				lineColorOverride[3 + x] = state.author_color;
 		});
 	}
 	redraw();
@@ -8257,9 +8303,10 @@ function goToPauseScreen() {
 	titleMode = 3;
 	titleScreen = true;
 	textMode = true;
+	if (againing)
+		DoUndo(true, false);
     againing = false;
 	messagetext = "";
-	statusText = "";
 
 	generatePauseScreen();
 }
@@ -8354,7 +8401,6 @@ function gotoLevelSelectScreen() {
 	textMode = true;
     againing = false;
 	messagetext = "";
-	statusText = "";
 
 	if (titleSelection == null) {
 		for(var i = 0; i < state.sections.length; i++) {
@@ -8373,7 +8419,7 @@ function gotoLevelSelectScreen() {
 }
 
 function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) { 
-	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen()', hoverLine, scrollIncrement, selectLine);
+	if (debugSwitch.includes('menu')) console.log('generateLevelSelectScreen{ ', 'hoverLine=', hoverLine, 'scrollIncrement=', scrollIncrement, 'selectLine=', selectLine);
 	lineColorOverride = [];
 
 	// set initial highlight to current level
@@ -8413,18 +8459,31 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 		levelHighlightLine++;
 	else if (levelSelectScrollPos > 0 && (levelHighlightLine == 3 || scrollIncrement < 0))
 		levelSelectScrollPos--;
-	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length && (levelHighlightLine == 11 || scrollIncrement > 0))
+	else if (levelSelectScrollPos + amountOfLevelsOnScreen < state.sections.length 
+			 && (levelHighlightLine == 11 || scrollIncrement > 0) && !titleSelected)
 		levelSelectScrollPos++;
 
 	titleSelection = levelHighlightLine - 3 + levelSelectScrollPos;
 
 	const solved_symbol = state.metadata.level_select_solve_symbol || "X";
 
+	console.log(`titleSelected=${titleSelected} titleSelection=${titleSelection}`)
 	const lines = state.sections.map((section,i) => {
 		const solved = (solvedSections.indexOf(section.name) >= 0);
+		const selected = (i == selectLine + levelSelectScrollPos - 3);
 		const locked = (unlockedUntil >= 0 && i > unlockedUntil);
 		let name = locked ? "*".repeat(section.name.length) : section.name.substring(0, 24);
-		if (i == selectLine + levelSelectScrollPos - 3 && !locked) {
+		//console.log(section, `i=${i} solved=${solved} locked=${locked} selected=${selected}`);
+
+		// kludge to avoid selecting locked level
+		if (selected && locked) {
+			selectLine = -1;
+			titleSelected = false;
+			quittingTitleScreen = false;
+			//TryPlayLockedSound();
+		}
+		
+		if (selected && !locked) {
 			if (i >= levelSelectScrollPos && i < levelSelectScrollPos + amountOfLevelsOnScreen)
 				titleSelection = i;
 			return (solved ? solved_symbol : " ") + "#" + name.padEnd(24);
@@ -8460,12 +8519,14 @@ function gotoLevel(index) {
 		curLevel = levelAllObjects(state);
 	} else {
 		curLevelNo = (index >= 0) ? state.sections[index].firstLevel : -1 - index;
+		curlevelTarget = null; // #164
 		loadLevelFromStateOrTarget();
 	}
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
 	clearInputHistory();
+	processLevelInput();
 }
   
 function gotoLink() {
@@ -8607,8 +8668,8 @@ function drawMessageScreen(message) {
 		: IsMouseGameInputEnabled() ? "Click or X to continue" : "X to continue");
 
 	titleImage = fillAndHighlight(screen);
-	if (state.metadata.keyhint_color)
-		lineColorOverride[screen.options[0]] = state.metadata.keyhint_color;
+	if (state.keyhint_color)
+		lineColorOverride[screen.options[0]] = state.keyhint_color;
 
 	const splitMessage = wordwrap(message, TITLE_WIDTH, true);
 
@@ -8651,6 +8712,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	suppressInput = false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
+		curLevelNo = 0;  // bad level from storage, needs to be reset in case of skip_title_screen
 		goToTitleScreen();
     	return;
     }
@@ -8677,7 +8739,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
       	textMode=false;
     	curLevel = leveldat.clone();
 		if (verbose_logging)
-			consolePrint(`Loading level ${leveldat.section || ''} (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
+			consolePrint(`Loading "${leveldat.section || leveldat.title}" (${htmlJump(leveldat.lineNumber)}).`, true, leveldat.lineNumber);  //todo:
     	RebuildLevelArrays();
         if (state!==undefined) {
 	        if (state.metadata.flickscreen!==undefined){
@@ -8727,6 +8789,8 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 function loadLevelFromStateTarget(state,levelindex,target,randomseed) { 
 	if (debugSwitch.includes('load')) console.log(`loadLevelFromStateTarget(${levelindex},${target})`);
     var leveldat = target;    
+	if (verbose_logging)
+		consolePrint(`Returning to checkpoint in "${state.levels[levelindex].section || state.levels[levelindex].title}".`); 
   	curLevelNo=levelindex;
   	curlevelTarget=target;
     if (leveldat.message===undefined) {
@@ -8743,7 +8807,7 @@ function loadLevelFromStateTarget(state,levelindex,target,randomseed) {
 }
 
 function loadLevelFromState(state,levelindex,randomseed) {  
-	if (debugSwitch.includes('load')) console.log(`loadLevelFromState(${levelindex})`);
+	if (debugSwitch.includes('load')) console.log(`loadLevelFromState(levelindex=${levelindex})`);
 	var leveldat = state.levels[levelindex];    
 	curLevelNo=levelindex;
 	curlevelTarget=null;
@@ -8798,6 +8862,59 @@ function tryLoadCustomFont() {
 }
 
 tryLoadCustomFont();
+
+let customImages = {};
+
+function tryLoadImages() {
+	if (!state.metadata.load_images)
+		return;
+	customImages = {};
+
+	function regenImages() {
+		forceRegenImages = true;
+		canvasResize();
+	}
+
+	// If there's an issue with the image, it's confusing if nothing at all is drawn to the screen.
+	// So while the image is loading, draw solid black. If there was an error loading the image,
+	// draw solid red.
+	const loadingImage = new Image();
+	loadingImage.src = 'data:image/svg+xml;charset=utf-8,' +
+		'<svg width="4096" height="4096" xmlns="http://www.w3.org/2000/svg">' +
+		'<rect x="0" y="0" width="4096" height="4096" fill="black"/></svg>';
+	const errorImage = new Image();
+	errorImage.src = 'data:image/svg+xml;charset=utf-8,' +
+		'<svg width="4096" height="4096" xmlns="http://www.w3.org/2000/svg">' +
+		'<rect x="0" y="0" width="4096" height="4096" fill="red"/></svg>';
+
+	// The format is "name1=src1 name2=src2 ...".
+	state.metadata.load_images.split(' ').forEach(arg => {
+		let [name, src] = arg.split(/=(.*)/s);
+		if (!name || !src) {
+			logErrorNoLine(`Expected load_images to be in the form "name1=src1 name2=src2 ...", ` +
+				`but I saw "${arg}".`, true);
+			return;
+		}
+		if (verbose_logging)
+			consolePrint(`Loading image "${name}" from "${src}..."`);
+		customImages[name] = loadingImage;
+		let image = new Image();
+		image.crossOrigin = 'Anonymous';
+		image.src = src;
+		image.onload = () => {
+			if (verbose_logging)
+				consolePrint(`Image "${name}" finished loading.`, true);
+			customImages[name] = image;
+			regenImages();
+		};
+		image.onerror = () => {
+			logErrorNoLine(`An error occurred while loading image "${name}" from "${src}. ` +
+				`Check the browser's developer console for details.`, true);
+			customImages[name] = errorImage;
+			regenImages();
+		};
+	});
+}
 
 generateTitleScreen();
 if (titleMode>0){
@@ -8911,20 +9028,6 @@ function setGameState(_state, command, randomseed) {
     if (command[0]!=="rebuild"){
       backups=[];
     }
-    //set sprites
-    objectSprites = [];
-    for (const n in state.objects) {
-        if (state.objects.hasOwnProperty(n)) {
-            const object = state.objects[n];
-			objectSprites[object.id] = {
-                dat: object.spritematrix,
-                colors: object.colors,
-				text: object.spritetext,
-                vector: object.vector,
-				scale: object.scale,
-            };
-        }
-    }
     if (state.metadata.realtime_interval!==undefined) {
       autotick=0;
       autotickinterval=state.metadata.realtime_interval*1000;
@@ -8951,13 +9054,18 @@ function setGameState(_state, command, randomseed) {
 		    textMode=true;
 		    titleSelection=0;
 		    titleSelected=false;
+			levelSelectScrollPos = 0;		// else level select interferes with title screen
 		    quittingMessageScreen=false;
 		    quittingTitleScreen=false;
 			titleMode = showContinueOptionOnTitleScreen() ? 1 : 0;
 
-			if (state.metadata.skip_title_screen!==undefined) {
-				consolePrint("skip_title_screen enabled, proceeding to do exactly as it says on the tin.")
-				if(state.metadata["continue_is_level_select"] !== undefined) {
+			// regenerate text to pick up new colours if any
+			regenText();
+			tryLoadImages();
+
+			if (state.metadata.skip_title_screen) {
+				consolePrint("Skipping title screen.")
+				if(state.metadata.continue_is_level_select) {
 					gotoLevelSelectScreen();
 				}
 				else if(titleMode <= 1) {
@@ -8973,7 +9081,8 @@ function setGameState(_state, command, randomseed) {
 		}
 		case "rebuild":
 		{
-			//do nothing
+			// The user may have updated an image path.
+			tryLoadImages();
 			break;
 		}
 		case "loadFirstNonMessageLevel":{
@@ -9111,8 +9220,8 @@ function RebuildLevelArrays() {
 let messagetext="";			// text for command message
 let statusText = "";  		// text for status line
 let gosubTarget = -1;  		// name of target gosub
-var currentMovedEntities = {};
-var newMovedEntities = {};
+var currentMovedEntities = {};		// entities to be tween animated
+var newMovedEntities = {};			// entities that have moved this turn
 
 function applyDiff(diff, level_objects) {
 
@@ -9152,14 +9261,13 @@ function unconsolidateDiff(before,after) {
 }
 
 function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) {
-	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev);
+	if (debugSwitch.includes('load')) console.log(`restoreLevel()`, lev, snapCamera, resetTween, resetAutoTick);
 	var diffing = lev.hasOwnProperty("diff");
 
 	oldflickscreendat=lev.oldflickscreendat.concat([]);
 
 	if (resetTween) {
 		currentMovedEntities = {};
-		//console.log("Wiped movedEntities (level)")
 	}
 
 	const switchLevel = lev.levelNo >= 0 && lev.levelNo != curLevelNo;
@@ -9217,6 +9325,8 @@ function restoreLevel(lev, snapCamera, resetTween = true, resetAutoTick = true) 
 	 	state.metadata = deepClone(lev.metadata);
      	twiddleMetadataExtras(resetAutoTick);
     }
+
+	statusText = lev.status || "";
 
     againing=false;
 	messagetext = "";  //fix for hang
@@ -9310,6 +9420,9 @@ function DoRestart(force) {
 	if (force!==true && ('norestart' in state.metadata)) {
 		return;
 	}
+	if (againing){
+		DoUndo(force,true);
+	}
 	restarting=true;
 	if (force!==true) {
 		addUndoState(backupLevel());
@@ -9320,14 +9433,15 @@ function DoRestart(force) {
 	}
 
 	restoreLevel(restartTarget, true);
+	initSmoothCamera();
 	tryPlayRestartSound();
 	document.dispatchEvent(new CustomEvent("psplusLevelRestarted", {detail: curLevelNo}));
 
 	if ('run_rules_on_level_start' in state.metadata) {
     	processInput(-1,true);
-  }
+  	}
   
-  twiddleMetadataExtras();
+  	twiddleMetadataExtras();
 	
 	curLevel.commandQueue=[];
 	curLevel.commandQueueSourceRules=[];
@@ -9370,7 +9484,8 @@ function DoUndo(force,ignoreDuplicates, resetTween = true, resetAutoTick = true,
   if (backups.length>0) {
     var torestore = backups[backups.length-1];
 	if (debugSwitch.includes('undo')) console.log(`DoUndo length=${backups.length} torestore=`, torestore);
-    restoreLevel(torestore, null, resetTween, resetAutoTick);
+    restoreLevel(torestore, null, resetTween, resetAutoTick); 
+	updateCameraPositionTarget();
     backups = backups.splice(0,backups.length-1);
 	// look for undo across link
 	if (linkStack.length > 0 && linkStack.at(-1).backupTop == backups.length)
@@ -9570,8 +9685,8 @@ function repositionEntitiesOnLayer(positionIndex,layer,dirMask)
     return true;
 }
 
-function repositionEntitiesAtCell(positionIndex) {
-    var movementMask = curLevel.getMovements(positionIndex);
+function repositionEntitiesAtCell(positionIndex, dontModify) {
+		var movementMask = curLevel.getMovements(positionIndex);
     if (movementMask.iszero())
         return false;
 
@@ -9581,7 +9696,7 @@ function repositionEntitiesAtCell(positionIndex) {
         if (layerMovement!==0) {
             var thismoved = repositionEntitiesOnLayer(positionIndex,layer,layerMovement);
             if (thismoved) {
-				if (state.metadata.tween_length) {
+				if (state.metadata.tween_length && !dontModify) {
 					var delta = dirMasksDelta[layerMovement];
 					var targetIndex = (positionIndex+delta[1]+delta[0]*curLevel.height);
 
@@ -9989,6 +10104,7 @@ function cellRowMatchesWildcardFunctionGenerate(direction,cellRow,i, maxk, mink)
 
 }
 
+//@@ should these go in globals? Might fix one notified problem (no repro)
 let MOV_BITS = 5;		// doc: no of bits to hold movement as mask
 let MOV_MASK = 0x1f;	// doc: bit mask to match
 var STRIDE_OBJ = 1;	    // doc: size of BitVec to hold objects, at 32 bits per
@@ -10538,12 +10654,13 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
             currentIndex += delta;
         }
     }
+	perfCounters.applied++;
 
-  if (verbose_logging && result){
-    var ruleDirection = dirMaskName[rule.direction];
-    if (!rule.directional()){
-      ruleDirection="";
-    }
+  	if (verbose_logging && result){
+    	var ruleDirection = dirMaskName[rule.direction];
+    	if (!rule.directional()){
+      		ruleDirection="";
+    	}
 
 		var inspect_ID =  addToDebugTimeline(level,rule.lineNumber);
 		const locations = cellIndexes.map(i => `(${1 + i % level.width};${1 + ~~(i / level.width)})`).join(', ');
@@ -10573,9 +10690,8 @@ Rule.prototype.applyAt = function(level,tuple,check,delta) {
 		
 		var logString = `<font color="green">Rule <a onclick="jumpToLine(${rule.lineNumber});"  href="javascript:void(0);">${rule.lineNumber}</a> ${ruleDirection} applied${gapMessage}.</font>`;
 		consolePrint(logString,false,rule.lineNumber,inspect_ID);
-		
 	}
-
+	if (debugSwitch.includes('perf') && perfCounters.applied % 100 == 0) console.log(`Applied ${perfCounters.applied} rules in ${Date.now() - perfCounters.start}ms.`);		
     return result;
 };
 
@@ -10666,18 +10782,18 @@ Rule.prototype.queueCommands = function() {
 		curLevel.commandQueueSourceRules.push(this);
 
 		if (verbose_logging) {
+			const inspect_ID =  addToDebugTimeline(curLevel, this.lineNumber);
 			const logString = htmlColor('green', `Rule ${htmlJump(this.lineNumber)} triggers command ${command[0]}.`);
-			consolePrint(logString, false, this.lineNumber, null);
+			consolePrint(logString, false, this.lineNumber, inspect_ID);
 		}
 
 		if (command[0] == 'message') {
 			messagetext=command[1];
 		} else if (command[0] == 'goto') {
-			gotoLevel(command[1]);
+			curLevel.commandQueue.pop();
+			curLevel.commandQueue.push(`${command[0]},${command[1]}`);
 		} else if (command[0] == 'status') {
 			statusText = command[1];
-		} else if (command[0] == 'link') {
-			gotoLink();
 		}		
 
 		if (state.metadata.runtime_metadata_twiddling && twiddleable_params.includes(command[0])) {
@@ -10696,17 +10812,26 @@ Rule.prototype.queueCommands = function() {
 			}
 			
 			if (command[0] === "zoomscreen" || command[0] === "flickscreen") {
-				twiddleMetaData(state, true);
+				//twiddleMetaData(state, true);
+				twiddleMetaData(state, command);
 				canvasResize();
 			}
 
 			if (command[0] === "smoothscreen") {
 				if (value !== undefined) {
-					twiddleMetaData(state, true);
+					//twiddleMetaData(state, true);
+					twiddleMetaData(state, command);
 					initSmoothCamera()
 				} else {
 					smoothscreen = false;
 				}
+				canvasResize();
+			}
+
+			if (command[0] == "color_palette") {
+				//twiddleMetaData(state, true);
+				twiddleMetaData(state, command);
+				regenSpriteImages()
 				canvasResize();
 			}
 
@@ -10718,13 +10843,15 @@ Rule.prototype.queueCommands = function() {
 					log += " ("+command[1]+")"
 				}
 				consolePrintFromRule(log,this,true);
+				canvasResize();
 			}
     	}   
   	}
 };
 
-// despite its name, this function exists to establish default values for prelude settings
+// set various prelude settings from metadata, either initially or when twiddled
 function twiddleMetadataExtras(resetAutoTick = true) {
+    if (debugSwitch.includes('meta')) console.log(`twiddleMetaDataExtras resetAutoTick=${resetAutoTick} metadata:`, state.metadata);
 	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
 	if (resetAutoTick || !state.metadata.realtime_interval)
     	autotick=0;
@@ -10732,8 +10859,13 @@ function twiddleMetadataExtras(resetAutoTick = true) {
 	tweeninterval = state.metadata.tween_length ? Math.max(state.metadata.tween_length*1000, 0) : 0;
 	repeatinterval = state.metadata.key_repeat_interval ? state.metadata.key_repeat_interval*1000 : 200; // was 150, makes for key bounce
 	animateinterval = state.metadata.animate_interval ? state.metadata.animate_interval*1000 : 250; // was 150, makes for key bounce
+
+	const colorPalette = state.metadata.color_palette;
 	state.bgcolor = state.metadata.background_color ? colorToHex(colorPalette,state.metadata.background_color) : "#000000";
 	state.fgcolor = state.metadata.text_color ? colorToHex(colorPalette,state.metadata.text_color) : "#FFFFFF";
+    state.author_color = state.metadata.author_color ? colorToHex(colorPalette, state.metadata.author_color) : state.fgcolor;
+    state.title_color = state.metadata.title_color ? colorToHex(colorPalette, state.metadata.title_color) : state.fgcolor;
+    state.keyhint_color = state.metadata.keyhint_color ? colorToHex(colorPalette, state.metadata.keyhint_color) : state.fgcolor;
 }
 
 function showTempMessage(message) {
@@ -10895,6 +11027,7 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 				endIndex = findEnd(ruleGroupIndex);
 				gosubTarget = -1;
 				//console.log(`gosub group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber}`)
+				if (debugSwitch.includes('gosub')) console.log(`gosub1 group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber} endindex:${endIndex}`, gosubStack);
 			} else {
 				ruleGroupIndex++;
 				// note special for loops and gosubs that end after the last rule
@@ -10903,12 +11036,14 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 						break; 
 				}		
 
-				if (ruleGroupIndex == endIndex && gosubStack.length > 0) {
+				// loop to handle stacked returns
+				while (ruleGroupIndex == endIndex && gosubStack.length > 0) {
 					if (verbose_logging)
 						consolePrint(`Return to ${htmlJump(rules[gosubStack.at(-1)][0].lineNumber)}`, true);
 					ruleGroupIndex = gosubStack.pop();
 					endIndex = findEnd(ruleGroupIndex);
 					ruleGroupIndex++;
+					if (debugSwitch.includes('gosub')) console.log(`gosub2 group:${ruleGroupIndex} line:${rules[ruleGroupIndex][0].lineNumber} endindex:${endIndex}`, gosubStack);
 				}
 			}
 		}
@@ -10932,13 +11067,13 @@ function applyRules(rules, loopPoint, subroutines, startRuleGroupindex, bannedGr
 }
 
 //if this returns!=null, need to go back and reprocess
-function resolveMovements(level, bannedGroup){
+function resolveMovements(level, bannedGroup, dontModify) {
 	var moved=true;
 
     while(moved){
         moved=false;
         for (var i=0;i<level.n_tiles;i++) {
-		  moved = repositionEntitiesAtCell(i) || moved;
+			moved = repositionEntitiesAtCell(i, dontModify) || moved;
         }
     }
     var doUndo=false;
@@ -11047,6 +11182,33 @@ function calculateRowColMasks() {
 var playerPositions;
 var playerPositionsAtTurnStart;
 
+// process inputs specific to level (code copied from testing framework)
+function processLevelInput() {
+	const input = state.levels[curLevelNo].input;
+	if (!input) return;
+	if (verbose_logging)
+		consolePrint(`Processing level input ${input}`);
+	const inputDat = input.split(',');
+	state.levels[curLevelNo].input = null;
+
+	for (const val of inputDat) {
+		if (val==="undo") {
+			DoUndo(false,true);
+		} else if (val==="restart") {
+			DoRestart();
+		} else if (val==="tick") {
+			processInput(-1);
+		} else {
+			processInput(dirNames.indexOf(val));
+		}
+		while (againing) {
+			againing=false;
+			processInput(-1);			
+		}
+	}
+
+}
+
 // acceptable input directions, used here and in inputoutput
 var dirNames = ['up', 'left', 'down', 'right', 'action', 'mouse', 'lclick', 'rclick'];  // todo: reaction, mclick
 
@@ -11062,13 +11224,17 @@ function processInput(dir,dontDoWin,dontModify,bak,coord) {
 		matches: 0,
 		replaces: 0,
 		replaced: 0,
+		applied: 0,
 		commands: 0,
 		randoms : 0,
 		groups: 0,
 		tries: 0,		
 	}
+	if (debugSwitch.includes('profile')) console.profile('INP');
 	const ret = procInp(dir, dontDoWin, dontModify, bak, coord);
+	if (debugSwitch.includes('profile')) console.profileEnd('INP');
 	perfCounters.elapsed = Date.now() - perfCounters.start;
+	if (debugSwitch.includes('perf')) console.log(perfCounters);
 	return ret;
 }
 function procInp(dir,dontDoWin,dontModify,bak,coord) {
@@ -11076,7 +11242,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		newMovedEntities = {};
 	}
 
-	var startDir = dir;
+	//var startDir = dir;
 
 	againing = false;
 
@@ -11142,7 +11308,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		calculateRowColMasks();
 
 		var alreadyResolved=[];
-		statusText = "";
+		if (dir != -1) 		// clear status line on user input
+			statusText = "";
 
         var i=0;
         do {
@@ -11152,7 +11319,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
         	i++;
 
 			applyRules(state.rules, state.loopPoint, state.subroutines, startRuleGroupIndex, bannedGroup);
-			var shouldUndo = resolveMovements(curLevel, bannedGroup);
+        	var shouldUndo = resolveMovements(curLevel, bannedGroup, dontModify);
 			
         	if (shouldUndo) {
         		rigidloop=true;
@@ -11235,8 +11402,20 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrint('UNDO command executed, undoing turn.',true);
 			}
 			messagetext = "";
-			statusText = "";
 			DoUndo(true,false, true, true, true);
+			return true;
+		}
+
+		// kludge to avoid triggering error
+		//console.log('cmdq', curLevel.commandQueue);
+		if (curLevel.commandQueue.find(c => c.startsWith('goto'))) {
+			const cmd = curLevel.commandQueue.find(c => c.startsWith('goto'));
+			gotoLevel(cmd.substr(5));
+			return true;
+		}
+
+		if (curLevel.commandQueue.includes('link')) {
+			gotoLink();
 			return true;
 		}
 
@@ -11291,8 +11470,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
     		}
 
 	    	if (verbose_logging) { 
-	    		var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('restart')];
-	    		consolePrintFromRule('RESTART command executed, reverting to restart state.',r.lineNumber);
+	    		const r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('restart')];
+	    		consolePrintFromRule('RESTART command executed, reverting to restart state.', r);
 	    		consoleCacheDump();
 			}
 			if (!dontModify){
@@ -11312,13 +11491,15 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 				consolePrintFromRule('QUIT command executed, exiting level.',r);
 				consoleCacheDump();
 			}
-			if (state.metadata.level_select !== undefined) {
+			if (state.metadata.enable_pause) {
+				goToPauseScreen(); 
+			} else if (state.metadata.level_select !== undefined) {
+				titleSelection = null;
 				gotoLevelSelectScreen();
 			} else {
 				goToTitleScreen();
 			}
 			messagetext = "";
-			statusText = "";
 			canvasResize();	
 			return true;
 		}
@@ -11433,7 +11614,8 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    			var r = curLevel.commandQueueSourceRules[curLevel.commandQueue.indexOf('checkpoint')];
 		    		consolePrintFromRule('CHECKPOINT command executed, saving current state to the restart state.',r);
 				}
-				restartTarget=level4Serialization();
+				restartTarget=backupLevel();		// fix for twiddle issues #67 #73 and reopen
+				//restartTarget=level4Serialization();
 				hasUsedCheckpoint=true;
 				var backupStr = JSON.stringify(restartTarget);
 				storage_set(document.URL+'_checkpoint',backupStr);
@@ -11447,6 +11629,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 		    	//first have to verify that something's changed
 		    	var old_verbose_logging=verbose_logging;
 		    	var oldmessagetext = messagetext;
+				const oldseedsToAnimate = seedsToAnimate;
 		    	verbose_logging=false;
 		    	if (processInput(-1,true,true)) {
 			    	verbose_logging=old_verbose_logging;
@@ -11465,6 +11648,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			    }
 			    verbose_logging=old_verbose_logging;
 			    messagetext = oldmessagetext;
+				seedsToAnimate = oldseedsToAnimate;
 		    }   
 		}
 		
@@ -11627,7 +11811,7 @@ function nextLevel() {
 	againing=false;
 	messagetext="";
 	statusText = "";
-	if (state && state.levels && (curLevelNo>state.levels.length) ){
+	if (state && state.levels && (curLevelNo>state.levels.length-1) ){
 		curLevelNo=state.levels.length-1;
 	}
   
@@ -11687,7 +11871,7 @@ function nextLevel() {
 			}
 		} else {
 			if (solvedSections.length == state.sections.length) {
-				if (state.metadata["level_select"] === undefined) {
+				if (!state.metadata.level_select) {
 					// solved all
 					try {
 						storage_remove(document.URL);
@@ -11716,6 +11900,7 @@ function nextLevel() {
 	updateLocalStorage();
 	resetFlickDat();
 	canvasResize();	
+	processLevelInput(); 
 }
 
 function loadLevelFromStateOrTarget() {
@@ -11727,7 +11912,7 @@ function loadLevelFromStateOrTarget() {
 }
 
 function goToTitleScreen(){
-	if (debugSwitch.includes('load')) console.log(`gotoTitleScreen()`);
+	if (debugSwitch.includes('load')) console.log(`gotoTitleScreen() curlevelTarget=`, curlevelTarget, ` restartTarget=`, restartTarget);
     againing=false;
 	messagetext="";
 	statusText = "";
@@ -11757,12 +11942,13 @@ function resetFlickDat() {
 function updateLocalStorage() {
 	if (linkStack.length > 0)
 		return;
-	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, curlevelTarget);
+	if (debugSwitch.includes('menu')) console.log(`updateLocalStorage`, 'curlevelTarget=', curlevelTarget, 'restartTarget=', restartTarget, 'curLevelNo=', curLevelNo);
 	try {
 		
 		storage_set(document.URL,curLevelNo);
 		if (curlevelTarget!==null){
-			restartTarget=level4Serialization();
+			restartTarget=backupLevel();		// fix for twiddle issues #67 #73 and reopen
+			//restartTarget=level4Serialization();
 			var backupStr = JSON.stringify(restartTarget);
 			storage_set(document.URL+'_checkpoint',backupStr);
 		} else {
@@ -11817,6 +12003,7 @@ var cameraPosition = {
 };
 
 function initSmoothCamera() {
+    if (debugSwitch.includes('meta')) console.log(`initSmoothCamera metadata:`, state.metadata);
     if (state===undefined || state.metadata.smoothscreen===undefined) {
         return;
     }
@@ -11930,20 +12117,25 @@ const MAX_ERRORS_FOR_REAL=100;
 
 let compiling = false;
 let errorStrings = [];      //also stores warning strings
+let errorStringsOnly = [];  //only error strings
 let errorCount = 0;         //only counts errors
 let caseSensitive = false;
 
 // used here and in compiler
-const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log)$/i;
+const reg_commandwords = /^(afx[\w:=+-.]+|sfx\d+|cancel|checkpoint|restart|win|message|again|undo|nosave|quit|zoomscreen|flickscreen|smoothscreen|again_interval|realtime_interval|key_repeat_interval|noundo|norestart|background_color|text_color|goto|message_text_align|status|gosub|link|log|color_palette)$/i;
 const reg_name = /^[\p{L}\p{N}_$]+/u;
 const reg_objectname = /^[\p{L}\p{N}_$]+(:[\p{L}\p{N}_$]+)*/u;              // object name for definition
 const reg_objectnamerel = /^[\p{L}\p{N}_$]+(:[<>v^]|:[\p{L}\p{N}_$]+)*$/u;  // object name with relative parts for use in rules
 const reg_objmodi = /^(canvas|copy|flip|rot|scale|shift|text|translate):/i;
 
 const commandwords_table = ['cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'nosave', 'quit', 'zoomscreen', 'flickscreen', 'smoothscreen', 
-    'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'];
+    'again_interval', 'realtime_interval', 'key_repeat_interval', 'noundo', 'norestart', 'background_color', 'text_color', 'goto', 'message_text_align', 'status', 'gosub'
+];
 const commandargs_table = ['message', 'goto', 'status', 'gosub', 'log'];
-const twiddleable_params = ['background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 'norestart', 'message_text_align'];
+const twiddleable_params = [
+    'background_color', 'text_color', 'key_repeat_interval', 'realtime_interval', 'again_interval', 'flickscreen', 'zoomscreen', 'smoothscreen', 'noundo', 
+    'norestart', 'message_text_align', 'color_palette'
+];
 const soundverbs_directional = ['move', 'cantmove'];
 const soundverbs_other = [ 'create', 'destroy' ];
 let soundverbs_movement = [ 'action' ];  // clicks to be added
@@ -11990,9 +12182,10 @@ function logErrorCacheable(str, lineNumber,urgent) {
             //do nothing, duplicate error
          } else {
             consolePrint(errorString);
+            errorStringsOnly.push(errorString);
             errorStrings.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -12010,8 +12203,9 @@ function logError(str, lineNumber,urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
+            errorStringsOnly.push(errorString);
             errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
         }
     }
@@ -12029,10 +12223,10 @@ function logWarning(str, lineNumber, urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+			if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -12046,7 +12240,7 @@ function logWarningNoLine(str, urgent, increaseErrorCount = false) {
             errorStrings.push(errorString);
             if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
-        }
+            }
         }
         if (increaseErrorCount) {
             errorCount++;
@@ -12062,10 +12256,11 @@ function logErrorNoLine(str,urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-        errorCount++;
-			if (errorStrings.length>MAX_ERRORS_FOR_REAL){
+            errorStringsOnly.push(errorString);
+            errorCount++;
+			if (errorCount > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
-    }
+            }
         }
     }
 }
@@ -12114,16 +12309,17 @@ var codeMirrorFn = function() {
         'create', 'destroy', 'cantmove', 'sfx0', 'sfx1', 'sfx2', 'sfx3', 'Sfx4', 'sfx5', 'sfx6', 'sfx7', 'sfx8', 'sfx9', 'sfx10', 
         'cancel', 'checkpoint', 'restart', 'win', 'message', 'again', 'undo', 'restart', 'titlescreen', 'startgame', 'cancel', 'endgame', 
         'startlevel', 'endlevel', 'showmessage', 'closemessage' ];
-    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'level_select', 'level_select_lock', 
+    const prelude_keywords = ['allow_undo_level', 'auto_level_titles', 'case_sensitive', 'continue_is_level_select', 'debug', 'enable_pause', 
+        'level_select', 'level_select_lock', 
         'mouse_clicks', 'noaction', 'nokeyboard', 'norepeat_action', 'norestart', 'noundo', 'require_player_movement', 
         'run_rules_on_level_start', 'runtime_metadata_twiddling', 'runtime_metadata_twiddling_debug', 'scanline', 
         'skip_title_screen', 'smoothscreen_debug', 'status_line', 'throttle_movement', 'verbose_logging'];
-    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'debug_switch'];
+    const prelude_param_text = ['title', 'author', 'homepage', 'custom_font', 'text_controls', 'text_message_continue', 'debug_switch', 'export_options' ];
     const prelude_param_number = ['again_interval', 'animate_interval', 'font_size', 'key_repeat_interval', 
         'level_select_unlocked_ahead', 'level_select_unlocked_rollover', 'local_radius', 'realtime_interval', 
         'tween_length', 'tween_snap'];
     const prelude_param_single = [
-        'background_color', 'color_palette', 'flickscreen', 'level_select_solve_symbol', 'keyhint_color', 
+        'background_color', 'flickscreen', 'level_select_solve_symbol', 'keyhint_color', 
         'message_text_align', 'mouse_drag', 'mouse_left', 'mouse_rdrag', 'mouse_right', 'mouse_rup', 'mouse_up',
         'sitelock_hostname_whitelist', 'sitelock_origin_whitelist', 'sprite_size', 'text_color', 'tween_easing', 'zoomscreen',
         'author_color', 'title_color'
@@ -12131,7 +12327,9 @@ var codeMirrorFn = function() {
     const prelude_not_implemented = [
         'game_uri', 'level_title_style', 'show_level_title_in_menu', 
     ];
-    const prelude_param_multi = ['smoothscreen', 'puzzlescript', 'youtube' ];
+    const prelude_param_multi = [
+        'smoothscreen', 'puzzlescript', 'youtube', 'load_images', 'color_palette'
+    ];
     const prelude_tables = [prelude_keywords, prelude_param_text, prelude_param_number, 
         prelude_param_single, prelude_param_multi];
     const color_names = ['black', 'white', 'darkgray', 'lightgray', 'gray', 'grey', 'darkgrey', 'lightgrey',
@@ -12251,7 +12449,7 @@ var codeMirrorFn = function() {
         matchEolSemi() { 
             this.matchComment();
             if (this.state.commentStyle == '//' && this.match(/^;/)) {
-                this.pushToken(';', 'SEMICOLON');
+                this.pushToken(';', 'BRACKET');
                 return true;
             }
             return this.stream.eol(); 
@@ -12501,15 +12699,21 @@ var codeMirrorFn = function() {
                     logWarningNoLine("Please make sure that CASE_SENSITIVE comes before any case sensitive prelude setting.", false, false);
             } else if (ident == 'debug_switch') {
                 debugSwitch = value[1];
+            } else if (ident == 'export_options') {
+                exportOptions = value[1];
             } else if (ident == 'mouse_clicks' && !directions_table.includes(mouse_clicks_table[0])) {
                 directions_table.push(...mouse_clicks_table);
                 directions_only.push(...mouse_clicks_table);
                 soundverbs_movement.push(...mouse_clicks_table);
             } else if (ident == 'sprite_size') {
                 const args = value[1].split('x').map(a => parseInt(a));
-                if (!(args.length == 1 || args.length == 2))
-                    logError(`MetaData "${errorCase(ident)}" requires an argument of numbers like 8x8 or 10, not ${value[1]}.`, state.lineNumber);
-                else state.sprite_size = args[0];
+                if (!(args.length == 1 || args.length == 2) || args.some(a => isNaN(a)))
+                    logError(`Prelude optiton "${errorCase(ident)}" expects an argument of 1 or 2 numbers, like 10 or 4x7, not ${value[1]}.`, state.lineNumber);
+                else {
+                    state.sprite_size = args[0];
+                    if(args.length == 2)
+                        state.cell_height = args[1];
+                }
             } else if (ident == 'youtube') {
                 logWarning("Unfortunately, YouTube support hasn't been working properly for a long time - it was always a hack and it hasn't gotten less hacky over time, so I can no longer pretend to support it.",state.lineNumber);
                 return;
@@ -12815,10 +13019,11 @@ var codeMirrorFn = function() {
             // preserve colors and sprite matrix, not transforms
             const newobj = state.objects[candname] || {       // doc: array of objects indexed by name
                 lineNumber: state.lineNumber,
-                colors: [],
-                spritematrix: [],
             };
             delete newobj.canRedef;
+            newobj.colors = [];
+            newobj.spritematrix = [];
+            newobj.spriteoffset = { x: 0, y: 0 };
             newobj.transforms = [];
             delete state.objects[candname];
             state.objects[candname] = newobj;
@@ -13009,7 +13214,7 @@ var codeMirrorFn = function() {
         // build a list of tokens and kinds
         function getTokens() {
             // same as reg_name plus : and reldirs
-            const reg_transform_args = /^[\p{L}\p{N}_$:<>^]+/u;
+            const reg_transform_args = /^[\p{L}\p{N}_$:<>^.]+/u;
             while (!lexer.matchEolSemi()) { 
                 let token = null;
                 let kind = 'ERROR';
@@ -13037,11 +13242,11 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
 
-                    token = lexer.matchToken(true);
+                    token = lexer.match(reg_transform_args, true);                    
                     if (!isValidNumeric(token))
                         logError(`Scale requires a numeric argument.`, state.lineNumber);
                     else {
-                        symbols.scale = arg;
+                        symbols.scale = +token;
                         kind = 'METADATATEXT';  //???
                     }
                     lexer.pushToken(token, kind);
@@ -13064,7 +13269,7 @@ var codeMirrorFn = function() {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
                     // P:S compat: "- and | for horizontal and vertical mirrors"
-                    symbols.transforms.push([ 'flip', token == '-' ? '>' : 'v']);  
+                    symbols.transforms.push([ 'flip', token == '-' ? 'down' : 'right']);  
 
                 } else if (token = lexer.match(/^shift:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
@@ -13115,7 +13320,7 @@ var codeMirrorFn = function() {
                     }
                     lexer.pushToken(token, kind);
 
-                } else if (token = lexer.match(/^canvas:/i)) {//@@
+                } else if (token = lexer.match(/^canvas:/i)) {
                     lexer.pushToken(token, 'KEYWORD');
                     lexer.matchComment();
                     symbols.vector = { 
@@ -13151,27 +13356,31 @@ var codeMirrorFn = function() {
         }
     }
 
-    // if the last object has tags, expand it, delete original name and add property
+    // if the last object has tags, expand it, create new objects
+    // delete original name and add property
+    // then apply the transforms
     function expandLastObject(state) {
         const candname = state.objects_candname;
         state.objects_candname = null;
-        if (!candname || !hasParts(candname)) return;
-        const obj = state.objects[candname];
-        const newobjects = expandObjectDef(state, candname, obj);
-        if (newobjects) {
-            // they will have been created
-            for (const [newid, newvalue] of newobjects) {
-                registerOriginalCaseName(state, newid, state.lineNumber);
-                const clone = newvalue.cloneSprite;
-                if (clone && !(wordAlreadyDeclared(state, clone)))
-                    logError(`You're trying to copy from "${errorCase(clone)}" but it's not defined anywhere.`, state.lineNumber)
-            }
-            const newlegend = [ candname, ...newobjects.map(n => n[0])];
-            newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
+        const obj = candname && state.objects[candname];
+        if (!obj) return;
+        if (hasParts(candname)) {
+            const newobjects = expandObjectDef(state, candname, obj);
+            if (newobjects) {
+                // they will have been created
+                for (const [newid, newobj] of newobjects) {
+                    registerOriginalCaseName(state, newid, state.lineNumber);
+                    applyTransforms(state, newobj);
+                }
+                const newlegend = [ candname, ...newobjects.map(n => n[0])];
+                newlegend.lineNumber = obj.lineNumber;  // bug: it's an array, isn't it?
 
-            delete state.objects[candname];
-            state.legend_properties.push(newlegend);
+                delete state.objects[candname];
+                state.legend_properties.push(newlegend);
+                return;
+            }
         }
+        applyTransforms(state, obj);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -13644,7 +13853,7 @@ var codeMirrorFn = function() {
         function getTokens() {
             let token
             // start of parse
-            if (token = lexer.match(/^(goto|level|link|message|section|title)/i, true)) { // allow omision of whitespace (with no warning!)
+            if (token = lexer.match(/^(goto|level|link|message|section|title|input)/i, true)) { // allow omision of whitespace (with no warning!)
                 symbols.start = token;
                 lexer.pushToken(token, `${errorCase(token)}_VERB`);
 
@@ -13693,7 +13902,7 @@ var codeMirrorFn = function() {
                 state.levels.pop();
                 toplevel = null;
             }
-            const cmds = [ 'goto', 'level', 'link', 'message', 'section', 'title', ];
+            const cmds = [ 'goto', 'level', 'link', 'message', 'section', 'title', 'input' ];
             if (cmds.includes(symbols.start))
                 state.levels.push([ symbols.start, symbols.text, state.lineNumber, symbols.link ]);
             else {
@@ -13961,9 +14170,12 @@ var codeMirrorFn = function() {
                 }
                 case 'rules': {
                         if (sol) {
-                            var rule = reg_notcommentstart.exec(stream.string)[0];
+                            const cmt = matchComment(stream, state);
+                            const rule = stream.string.substring(stream.pos).match(reg_notcommentstart)[0];
                             state.rules.push([rule, state.lineNumber, state.mixedCase]);
                             state.tokenIndex = 0;//in rules, records whether bracket has been found or not
+                            if (cmt)
+                                return 'comment';
                         }
 
                         if (state.tokenIndex===-4) {
@@ -14306,46 +14518,81 @@ function expandObjectRef(state, objid, usedirs = false) {
 }
 
 // expand object defined with tags/directions into new objects
-function expandObjectDef(state, objid, objvalue) {
+function expandObjectDef(state, objid, obj) {
     const expander = new TagExpander(state, objid, true);
     if (expander.keys.length == 0) return;
 
-    const newobjects = expander.expansion.map((exp,index) => {
+    return expander.expansion.map((exp,index) => {
         const newid = expander.getExpandedIdent(exp);
 
-        // if it exists just return it otherwise create it
-        if (Object.hasOwn(state.objects, newid))
-            return [ newid, state.objects[newid] ];
-
-        const newvalue = { 
-            ...deepClone(objvalue),
-            canRedef: true 
+        // check if tag expansion redefines an existing object
+        // if this is one expansion overlapping another then redefines is set, so use new definition (Hebird)
+        // else silently ignore this redefinition, use original value
+        const oldobj = state.objects[newid];
+        if (oldobj && !oldobj.canRedef)
+            return [ newid, oldobj ];
+        const newobj = { 
+            ...deepClone(obj),
+            canRedef: true, 
         };
-        state.objects[newid] = newvalue;
 
-        if (objvalue.cloneSprite) {
-            const altspriteid = expander.getExpandedAlt(exp, objvalue.cloneSprite);
-            if (state.objects[altspriteid])
-                newvalue.cloneSprite = altspriteid;
-            // optional?
-            //else logWarning(`Sprite copy: source says ${altspriteid.toUpperCase()} but there is no such object defined.`, objvalue.lineNumber);
-        } else 
-            newvalue.spritematrix = objvalue.spritematrix.map(row => [ ...row ]);
-        
-        if (objvalue.transforms) {
-            newvalue.transforms = [];
-            objvalue.transforms.forEach(xform => {
+        newobj.cloneSprite = obj.cloneSprite && expander.getExpandedAlt(exp, obj.cloneSprite);
+
+        if (obj.transforms) {
+            const transforms = [];
+            obj.transforms.forEach(xform => {
                 const op = xform[0];
-                newvalue.transforms.push([ op, 
+                transforms.push([ op, 
                     expander.getSubstitutedIdent(exp, xform[1], index),
                     expander.getSubstitutedIdent(exp, xform[2], index) ]);
-            })
+            });
+            newobj.transforms = transforms;
         }
-        return [ newid, newvalue ];
+
+        // if the new definition has no spritematrix then copy the old one
+        if (newobj.spritematrix.length == 0 && oldobj && oldobj.spritematrix.length > 0) {
+            newobj.spriteoffset = { ...oldobj.spriteoffset };
+            newobj.spritematrix = oldobj.spritematrix.map(row => [ ...row ]);
+        }
+
+        state.objects[newid] = newobj;
+        return [ newid, newobj ];
     });
-    
-    return newobjects;
 }
+
+// apply transforms to the (possibly expanded) object
+function applyTransforms(state, obj) {
+
+    const cloneid = obj.cloneSprite;
+    if (obj.vector) 
+        setVectorSprite(obj);
+    else setSpriteMatrix(obj);
+
+    // expansion if it's a vector object
+    function setVectorSprite(obj) {
+        obj.vector.angle = 0;
+        if (cloneid) {
+            const cloneobj = state.objects[cloneid];
+            if (cloneobj && cloneobj.vector) {
+                obj.spriteoffset = { ...cloneobj.spriteoffset };
+                obj.vector = { ...cloneobj.vector };
+            } else logError(`Canvas object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
+        } 
+        applyVectorTransforms(obj);
+    }
+
+    // expansion if it's a sprite object
+    function setSpriteMatrix(obj) {
+        if (cloneid) {
+            const cloneobj = state.objects[cloneid];
+            if (cloneobj && !cloneobj.vector) {
+                obj.spriteoffset = { ...cloneobj.spriteoffset };    
+                obj.spritematrix = cloneobj.spritematrix.map(row => [ ...row ]);
+            } else logError(`Sprite object cannot copy from "${errorCase(obj.cloneSprite)}".`, obj.lineNumber);
+        }
+        applySpriteTransforms(obj);
+    }
+}        
 
 // create hierarchy of properties when property contains tags
 // do it by index because names may not be unique
@@ -14483,7 +14730,7 @@ function createObjectRef(state, ident) {
         const parts = ident.split(':');
         if (parts.some(e => relativeDirections.includes(e))) {
             if (debugSwitch.includes('exp')) console.log(`Create object ref for relative direction: ${ident}`);
-            for (const forward of simpleAbsoluteDirections) { //@@
+            for (const forward of simpleAbsoluteDirections) {
                 const absOf = dir => relativeDirs.includes(dir) ? relativeDict[forward][relativeDirs.indexOf(dir)] : dir;
                 const id = ident.split(':').map(p => absOf(p)).join(':');
                 createObjectRef(state, id);
@@ -14519,7 +14766,6 @@ function colorToHex(palette, str) {
 }
 
 var debugMode;
-var colorPalette;
 
 function generateExtraMembers(state) {
 
@@ -14575,34 +14821,22 @@ function generateExtraMembers(state) {
     debugMode = false;
     verbose_logging = false;
     throttle_movement = false;
-    colorPalette = colorPalettes.arnecolors;
-    for (var i = 0; i < state.metadata.length; i += 2) {
-        var key = state.metadata[i];
-        var val = state.metadata[i + 1];
-        if (key === 'color_palette') {
-            if (val in colorPalettesAliases) {
-                val = colorPalettesAliases[val];
-            }
-            if (colorPalettes[val] === undefined) {
-                logError('Palette "' + val + '" not found, defaulting to arnecolors.', 0);
-            } else {
-                colorPalette = colorPalettes[val];
-            }
-        } else if (key === 'debug' || defaultDebugMode) {
-            if (IDE && unitTesting===false){
-                debugMode = true;
-                cache_console_messages = true;
-            }
-        } else if (key === 'verbose_logging' || defaultVerboseLogging) {
-            if (IDE && unitTesting===false){
-                verbose_logging = true;
-                cache_console_messages = true;
-            }
-        } else if (key === 'throttle_movement') {
-            throttle_movement = true;
+    if (state.metadata.debug || defaultDebugMode) {
+        if (IDE && !unitTesting) {
+            debugMode = true;
+            cache_console_messages = true;
+        }
+    } 
+    if (state.metadata.verbose_logging || defaultVerboseLogging) {
+        if (IDE && !unitTesting) {
+            verbose_logging = true;
+            cache_console_messages = true;
         }
     }
-
+    if (state.metadata.throttle_movement) {
+        throttle_movement = true;
+    }
+        
     // fix and convert colors to hex
     const maxColours = 36; // now 0-9 and a-z
     for (const obj of Object.values(state.objects)) {
@@ -14617,46 +14851,25 @@ function generateExtraMembers(state) {
         }
         for (let i = 0; i < obj.colors.length; i++) {
             let c = obj.colors[i];
-            if (isColor(c)) {
-                c = colorToHex(colorPalette, c);
-                obj.colors[i] = c;
-            } else {
+            if (!isColor(c)) {
                 logError(`Invalid color specified for object "${n}", namely ${obj.colors[i]}".`, obj.lineNumber + 1);
                 obj.colors[i] = '#ff00ff'; // magenta error color
             }
         }
     }
 
-    // fix up what we can of sprite stuff here.
-    // spriteoffset is needed to handle translate with negative args
-    // transform on canvas has to be left until later
+    // create empty sprite matrix if there is none
     for (const [key, obj] of Object.entries(state.objects)) {
-        obj.spriteoffset = { x: 0, y: 0 };
-        if (obj.vector) {
-            obj.vector.angle ||= 0;
-            if (obj.cloneSprite) {
-                const other = state.objects[obj.cloneSprite];
-                obj.vector = { ...other.vector };
-                obj.spriteoffset = { ...other.spriteoffset };
-            } 
-            applyVectorTransforms(obj);
-
-        } else {
-            if (obj.cloneSprite) {
-                const other = state.objects[obj.cloneSprite];
-                obj.spritematrix = other ? other.spritematrix.map(row => [...row]) : [];
-                obj.spriteoffset = other ? { ...other.spriteoffset } : obj.spriteoffset;
-            } 
-            if (obj.spritematrix.length == 0) {
-                obj.spritematrix = Array.from(
-                    { length: state.sprite_size },
-                    () => (new Array(state.sprite_size).fill(0))
-                );
-            }
-            applySpriteTransforms(obj);
+        if (obj.spritematrix.length == 0) {
+            obj.spritematrix = Array.from({ 
+                    length: state.cell_height || state.sprite_size 
+                },
+                () => (new Array(state.sprite_size).fill(0))
+            );
         }
-    }
+}
 
+    if (debugSwitch.includes('obj')) console.log('IDS', state.idDict);
     if (debugSwitch.includes('obj')) console.log('Objects', state.objects);
     if (debugSwitch.includes('obj')) console.log('Properties', state.legend_properties);
     if (debugSwitch.includes('obj')) console.log('Aggregates', state.legend_aggregates);
@@ -14926,7 +15139,7 @@ function generateExtraMembers(state) {
 function generateExtraMembersPart2(state) {
 	function assignMouseObject(preludeTerm, defaultName) {
 		if (preludeTerm in state.metadata) {
-			var name = state.metadata[preludeTerm] || defaultName;
+			var name = state.metadata.preludeTerm || defaultName;
             var id = null;
             var object = null;
 			if (state.objects[name]) {
@@ -14964,8 +15177,7 @@ function generateExtraMembersPart2(state) {
 	state.rmbupID = assignMouseObject("mouse_rup", "rmbup");
 	
 	if ("mouse_obstacle" in state.metadata) {
-		var name = state.metadata["mouse_obstacle"];
-		
+		var name = state.metadata.mouse_obstacle;	
 		if (name) {
 			state.obstacleMask = state.objectMasks[name];
 			if (!state.obstacleMask) {
@@ -15050,7 +15262,7 @@ function levelFromString(state,level) {
 }
 
 ////
-function levelAllObjects(state) { //@@
+function levelAllObjects(state) {
 	const backgroundlayer = state.backgroundlayer;
 	const backgroundLayerMask = state.layerMasks[backgroundlayer];
     const count = state.objectCount;
@@ -15093,7 +15305,7 @@ function levelsToArray(state) {
     const links = [];
     //const links = {};
     //const targets = new Set();
-    let section, title, description, gotoFlag;
+    let section, title, description, gotoFlag, input;
     
     if (state.levels.at(-1).length == 0)
         state.levels.pop();
@@ -15135,6 +15347,8 @@ function levelsToArray(state) {
 				lineNumber: level[2],
                 object: level[3]
             });
+		} else if (level[0] == 'input') {
+            input = level[1];
 		} else {
             if (gotoFlag && links.length == 0) 
                 logWarning('Level unreachable due to previous GOTO.', level[0]);
@@ -15142,11 +15356,12 @@ function levelsToArray(state) {
 			levels.push(levelFromString(state, level));
             levels.at(-1).title = title;
             levels.at(-1).linksTop = links.length;
+            if (input) levels.at(-1).input = input;
             ++levelNo;
             title = null;
 		}
 	});
-    links.forEach(link => { //@@
+    links.forEach(link => {
         let index = -9999;
         if ((index = levels.findIndex(level => link.target == level.section)) != -1)
             link.targetNo = index;
@@ -15188,6 +15403,7 @@ function extractSections(state) {
 }
 
 function convertSectionNamesToIndices(state) {
+    // BUG: duplicate sections are not detected
 	var sectionMap = {};
 	var duplicateSections = {};
 	for (var s = 0; s < state.sections.length; s++) {
@@ -15211,11 +15427,11 @@ function convertSectionNamesToIndices(state) {
 			var sectionName = command[1].toLowerCase();
 			var sectionIndex = sectionMap[sectionName];
 			if (sectionIndex === undefined){
-				logError(`Invalid GOTO command - there is no section named "${command[1]}". Either it does not exist, or it has zero levels.`, rule.lineNumber);
+				logError(`Invalid GOTO command - there is no section named "${errorCase(command[1])}". Either it does not exist, or it has zero levels.`, rule.lineNumber);
 				//logError('Invalid GOTO command - There is no section named "'+command[1]+'". Either it does not exist, or it has zero levels.', rule.lineNumber);
 				sectionIndex = -9999;
 			}else if (duplicateSections[sectionName] !== undefined){
-				logError(`Invalid GOTO command - there are multiple sections named "${command[1]}". Section names must be unique for GOTO to work.`, rule.lineNumber);
+				logError(`Invalid GOTO command - there are multiple sections named "${errorCase(command[1])}". Section names must be unique for GOTO to work.`, rule.lineNumber);
 				sectionIndex = -9999;
 			}
 			command[1] = sectionIndex;
@@ -15229,10 +15445,10 @@ function convertSectionNamesToIndices(state) {
 		var targetName = level.target.toLowerCase();
 		var targetIndex = sectionMap[targetName];
 		if (targetIndex === undefined){
-			logError(`Invalid GOTO command - there is no section named "${command[1]}".`, level.lineNumber);
+			logError(`Invalid GOTO command - there is no section named "${errorCase(targetName)}".`, level.lineNumber);
 			targetIndex = 0;
 		}else if (duplicateSections[targetName] !== undefined){
-			logError(`Invalid GOTO command - there are multiple sections named "${command[1]}".`, level.lineNumber);
+			logError(`Invalid GOTO command - there are multiple sections named "${errorCase(targetName)}".`, level.lineNumber);
 			targetIndex = 0;
 		}
 		level.target = targetIndex;
@@ -15241,7 +15457,7 @@ function convertSectionNamesToIndices(state) {
 
 // fix gosubs and subroutines to use group number (so must be after created groups)
 // will be called twice, for main and late rules
-function fixUpGosubs(rules, subroutines) { //@@
+function fixUpGosubs(rules, subroutines) { 
     // rules are now groups. Go figure.
     for (const group of rules) {
         for (const rule of group) {
@@ -15531,7 +15747,7 @@ function processRuleString(rule, state, curRules) {
                 const needarg = commandargs_table.includes(tok);
                 const twid = twiddleable_params.includes(tok);
                 if (needarg || twid) {
-                    if (twid && !state.metadata.includes('runtime_metadata_twiddling')) {
+                    if (twid && !state.metadata.runtime_metadata_twiddling) {
                         logError("You can only change a flag at runtime if you have the 'runtime_metadata_twiddling' prelude flag defined!",lineNumber)
                     } else {
                         const index = findIndexAfterToken(origLine,tokens,i);
@@ -15545,7 +15761,7 @@ function processRuleString(rule, state, curRules) {
                 }  else {
                     commands.push([tok]);
                 }
-                        } else {
+            } else {
                 logError('Error, malformed cell rule - was looking for cell contents, but found "' + token + '".  What am I supposed to do with this, eh, please tell me that.', lineNumber);
             }
         }
@@ -15645,7 +15861,7 @@ function rulesToArray(state) {
 }
 
 // find and filter out start and end loop, subroutines PS>
-function parseRulesToArray(state) { //@@
+function parseRulesToArray(state) {
     const oldrules = state.rules;
     var newrules = [];
     var loops = [];
@@ -15727,7 +15943,7 @@ function expandRuleWithTags(state, rule) {
     rule.lhs.forEach((row, rowx) => {     // in brackets [ ]
         row.forEach((cell, cellx) => {     // between bars [ | ]
             cell.forEach((atom, atomx) => {
-                if (atomx % 2 == 1 && [atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
+                if (atomx % 2 == 1 && cell[atomx - 1] != 'no' && atom != '...' && !wordAlreadyDeclared(state, atom)) {
                     todo.push({ rowx: rowx, cellx: cellx, atomx: atomx, ident: atom });
                 }
             });
@@ -15744,7 +15960,7 @@ function expandRuleWithTags(state, rule) {
             for (const newident of expander.getExpandedIdents()) {
                 const newrule = deepCloneRule(r);
                 newrule.lhs[t.rowx][t.cellx][t.atomx] = newident;
-                if (rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
+                if (rule.rhs.length > 0 && rule.rhs[t.rowx][t.cellx][t.atomx] == t.ident)
                     newrule.rhs[t.rowx][t.cellx][t.atomx] = newident;
                 temprules.push(newrule);
             }
@@ -17010,8 +17226,8 @@ function getMaskFromName(state,name) {
 		objectMask.ibitset(o.id);
 	}
 
-	if (!state.metadata.includes("nokeyboard") && objectMask.iszero()) {
-		logErrorNoLine("error, didn't find any object called player, either in the objects section, or the legends section. there must be a player!");
+	if (!state.metadata.nokeyboard && objectMask.iszero()) {
+		logErrorNoLine("Error, didn't find any object called player, either in the objects section, or the legends section. There must be a player!");
 	}
 	return objectMask;
 }
@@ -17116,25 +17332,34 @@ function checkObjectsAreLayered(state) {
 }
 
 function isInt(value) {
-return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
+    return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value));     //todo: something is not right here
 }
-// convert metadata to object format and validate
-function twiddleMetaData(state, update = false) {
+
+// convert initial metadata to object format and validate
+// of if command is given, update the metadata with that command
+function twiddleMetaData(state, command = null) {
+    if (debugSwitch.includes('meta')) console.log(`twiddleMetaData update=${command} metadata:`, state.metadata);
 	var newmetadata;
 
-	if (!update) {
+	if (!command) {
 		newmetadata = {};
 		for (var i=0;i<state.metadata.length;i+=2) {
 			var key = state.metadata[i];
 			var val = state.metadata[i+1];
 			newmetadata[key]=val;
 		}
+        parseTwiddle(newmetadata);
+        newmetadata.color_palette ||= colorPalettes.arnecolors;
+        state.metadata=newmetadata;
+        state.default_metadata = deepClone(newmetadata);
 	} else {
-		newmetadata = state.metadata;
+        newmetadata = {};
+        newmetadata[command[0]] = command[1];
+        parseTwiddle(newmetadata);
+        state.metadata[command[0]] = newmetadata[command[0]];   // may be deleted but that's ok
 	}
 
-
-    const getIntCheckedPositive = function(s,lineNumber){
+    function getIntCheckedPositive(s,lineNumber) {
         if (!isFinite(s) || !isInt(s)){
             logWarning(`Wasn't able to make sense of "${s}" as a (whole number) dimension.`,lineNumber);
             return NaN;
@@ -17148,135 +17373,152 @@ function twiddleMetaData(state, update = false) {
         }
         return result;
     }
-    const getCoords = function(str,lineNumber){
-		var coords = val.split('x');
+
+    function getCoords(str,lineNumber) {
+		var coords = str.split('x');
         if (coords.length!==2){
             logWarning("Dimensions must be of the form AxB.",lineNumber);
             return null;
         } else {
             var intcoords = [getIntCheckedPositive(coords[0],lineNumber), getIntCheckedPositive(coords[1],lineNumber)];
             if (!isFinite(coords[0]) || !isFinite(coords[1]) || isNaN(intcoords[0]) || isNaN(intcoords[1])) {
-                logWarning(`Couldn't understand the dimensions given to me (you gave "${val}") - should be of the form AxB.`,lineNumber);
+                logWarning(`Couldn't understand the dimensions given to me (you gave "${str}") - should be of the form AxB.`,lineNumber);
                 return null
             } else {
                 if (intcoords[0]<=0 || intcoords[1]<=0){
-                    logWarning(`The dimensions given to me (you gave "${val}") are baad - they should be > 0.`,lineNumber);
-	}
+                    logWarning(`The dimensions given to me (you gave "${str}") are baad - they should be > 0.`,lineNumber);
+	            }
                 return intcoords;
             }
         }
     }
 
-    if (newmetadata.flickscreen !== undefined) {
-		var val = newmetadata.flickscreen;
-        newmetadata.flickscreen = getCoords(val,state.metadata_lines.flickscreen);
-        if (newmetadata.flickscreen===null){
-            delete newmetadata.flickscreen;
-        }
-    }
-    if (newmetadata.zoomscreen !== undefined) {
-		var val = newmetadata.zoomscreen;
-        newmetadata.zoomscreen = getCoords(val, state.metadata_lines.zoomscreen);
-        if (newmetadata.zoomscreen === null) {
-            delete newmetadata.zoomscreen;
-	}
-	}
-	if (newmetadata.smoothscreen!==undefined) {
-		var val = newmetadata.smoothscreen;
-		var args = val.split(/\s+/);
-
-		var validArguments = true
-
-		if (args.length < 1) {
-			logErrorNoLine('smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S]')
-			validArguments = false
-		} else if (args.length > 4) {
-			logErrorNoLine('smoothscreen given ' + args.length + ' arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S]')
-			validArguments = false
-		}
-
-		const smoothscreen = {
-			screenSize: { width: 0, height: 0 },
-			boundarySize: { width: 1, height: 1 },
-			cameraSpeed: 0.125,
-			flick: false,
-			debug: !!newmetadata.smoothscreen_debug
-		}
-
-		if (args[0] === 'flick') {
-			smoothscreen.flick = true
-			args.shift()
-		}
-
-		const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
-		if (screenSizeMatch) {
-			smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
-			smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
-
-			if (smoothscreen.flick) {
-				smoothscreen.boundarySize.width = smoothscreen.screenSize.width
-				smoothscreen.boundarySize.height = smoothscreen.screenSize.height
-			}
-		} else {
-			logErrorNoLine('smoothscreen given first argument ' + args[0] + ' but must be formatted WxH where W and H are integers')
-			validArguments = false
-		}
-
-		if (args.length > 1) {
-			const boundarySizeMatch = args[1].match(/^(?<width>\d+)x(?<height>\d+)$/)
-			if (boundarySizeMatch) {
-				smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
-				smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
-			} else {
-				logErrorNoLine('smoothscreen given second argument ' + args[1] + ' but must be formatted IxJ where I and J are integers')
-				validArguments = false
-			}
-		}
-
-		if (args.length > 2) {
-			const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
-			if (cameraSpeedMatch) {
-				smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
-			} else {
-				logErrorNoLine('smoothscreen given third argument ' + args[2] + ' but must be a number')
-				validArguments = false
-			}
-		}
-
-		if (validArguments) {
-			newmetadata.smoothscreen = smoothscreen;
-		} else {
-			delete newmetadata.smoothscreen
-		}
-	}
-
-    if (newmetadata.tween_easing) {
-        let easing = newmetadata.tween_easing;
-        if (easing) {
-            easing = (parseInt(easing) != NaN && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
-            if (EasingFunctions[easing]) 
-                newmetadata.tween_easing = easing;
-            else {
-                logErrorNoLine(`tween easing ${newmetadata.tween_easing} is not valid.`);
-                delete newmetadata.tween_easing;
+    function parseTwiddle(newmetadata) {
+        if (newmetadata.flickscreen !== undefined) {
+            var val = newmetadata.flickscreen;
+            newmetadata.flickscreen = getCoords(val,state.metadata_lines.flickscreen);
+            if (newmetadata.flickscreen===null){
+                delete newmetadata.flickscreen;
             }
         }
-    }
-
-    if (newmetadata.tween_snap) {
-        const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
-        if (snap) newmetadata.tween_snap = snap;
-        else {
-            logErrorNoLine(`tween ${newmetadata.tween_snap} is not valid.`);
-            delete newmetadata.tween_snap;
+        if (newmetadata.zoomscreen !== undefined) {
+            var val = newmetadata.zoomscreen;
+            newmetadata.zoomscreen = getCoords(val, state.metadata_lines.zoomscreen);
+            if (newmetadata.zoomscreen === null) {
+                delete newmetadata.zoomscreen;
+            }
         }
+        if (newmetadata.smoothscreen!==undefined) {
+            var val = newmetadata.smoothscreen;
+            var args = val.split(/\s+/);
+
+            var validArguments = true
+
+            if (args.length < 1) {
+                logErrorNoLine(`Smoothscreen given no arguments but expects at least 1: smoothscreen [flick] WxH [IxJ] [S].`)
+                validArguments = false
+            } else if (args.length > 4) {
+                logErrorNoLine(`Smoothscreen given "${args.length}" arguments but expects at most 4: smoothscreen [flick] WxH [IxJ] [S].`)
+                validArguments = false
+            }
+
+            const smoothscreen = {
+                screenSize: { width: 0, height: 0 },
+                boundarySize: { width: 1, height: 1 },
+                cameraSpeed: 0.125,
+                flick: false,
+                debug: !!newmetadata.smoothscreen_debug
+            }
+
+            if (args[0] === 'flick') {
+                smoothscreen.flick = true
+                args.shift()
+            }
+
+            const screenSizeMatch = args[0].match(/^(?<width>\d+)x(?<height>\d+)$/)
+            if (screenSizeMatch) {
+                smoothscreen.screenSize.width = parseInt(screenSizeMatch.groups.width)
+                smoothscreen.screenSize.height = parseInt(screenSizeMatch.groups.height)
+
+                if (smoothscreen.flick) {
+                    smoothscreen.boundarySize.width = smoothscreen.screenSize.width
+                    smoothscreen.boundarySize.height = smoothscreen.screenSize.height
+                }
+            } else {
+                logErrorNoLine(`Smoothscreen given first argument "${args[0]}" but must be formatted WxH where W and H are integers.`)
+                validArguments = false
+            }
+
+            if (args.length > 1) {
+                const boundarySizeMatch = args[1].match(/^(?<width>\d+)x(?<height>\d+)$/)
+                if (boundarySizeMatch) {
+                    smoothscreen.boundarySize.width = parseInt(boundarySizeMatch.groups.width)
+                    smoothscreen.boundarySize.height = parseInt(boundarySizeMatch.groups.height)
+                } else {
+                    logErrorNoLine(`Smoothscreen given second argument "${args[1]}" but must be formatted IxJ where I and J are integers.`)
+                    validArguments = false
+                }
+            }
+
+            if (args.length > 2) {
+                const cameraSpeedMatch = args[2].match(/^(?<speed>\d+(\.\d+)?)$/)
+                if (cameraSpeedMatch) {
+                    smoothscreen.cameraSpeed = clamp(parseFloat(cameraSpeedMatch.groups.speed), 0, 1)
+                } else {
+                    logErrorNoLine(`Smoothscreen given third argument "${args[2]}" but must be a number.`)
+                    validArguments = false
+                }
+            }
+
+            if (validArguments) {
+                newmetadata.smoothscreen = smoothscreen;
+            } else {
+                delete newmetadata.smoothscreen
+            }
+        }
+
+        if (newmetadata.tween_easing) {
+            let easing = newmetadata.tween_easing;
+            if (easing) {
+                easing = (!isNaN(parseInt(easing)) && easingAliases[parseInt(easing)]) ? easingAliases[parseInt(easing)] : easing.toLowerCase();
+                if (EasingFunctions[easing]) 
+                    newmetadata.tween_easing = easing;
+                else {
+                    logErrorNoLine(`Sorry, but tween easing argument "${newmetadata.tween_easing}" is not a valid number or lerp.`);
+                    delete newmetadata.tween_easing;
+                }
+            }
+        }
+
+        if (newmetadata.tween_snap) {
+            const snap = Math.max(parseInt(newmetadata.tween_snap), 1);
+            if (snap) newmetadata.tween_snap = snap;
+            else {
+                logErrorNoLine(`Sorry, but tween snap argument "${newmetadata.tween_snap}" is not a valid number.`);
+                delete newmetadata.tween_snap;
+            }
+        }
+
+        if (newmetadata.color_palette) {
+            const args = newmetadata.color_palette.split(/\s+/);
+            const palette = (args[0] in colorPalettesAliases) ? colorPalettesAliases[args[0]] : args[0];
+            if (!(palette in colorPalettes)) {
+                logError(`Palette "${palette}" not found, defaulting to arnecolors.`, 0);
+                newmetadata.color_palette = colorPalettes.arnecolors;
+            } else {
+                newmetadata.color_palette = colorPalettes[palette];
+            }
+            for (let i = 1; i < args.length; i += 2) {
+                const colorName = args[i];
+                const colorValue = args[i + 1];
+                if (!(colorName in newmetadata.color_palette))
+                    logError(`Invalid color name "${colorName}".`, 0);
+                else if (!isColor(colorValue))
+                    logError(`Invalid color value "${colorValue}".`, 0);
+                else newmetadata.color_palette[colorName] = colorValue;
+            }
+        } 
     }
-
-    state.metadata=newmetadata;
-
-	if (!update) {
-		state.default_metadata = deepClone(newmetadata);
-	}
 }
 
 function processWinConditions(state) {
@@ -17383,11 +17625,7 @@ function cacheRuleStringRep(rule) {
 	}
 	for (var i=0;i<rule.commands.length;i++) {
 		var command = rule.commands[i];
-		if (command.length===1) {
-			result = result +command[0].toString();
-		} else {
-			result = result + '('+command[0].toString()+", "+command[1].toString()+') ';			
-		}
+        result += (command.length == 1) ? ` ${command[0]}` : ` ${command[0]}(${command[1]})`;
 	}
 	//print commands next
 	rule.stringRep=result;
@@ -17416,20 +17654,15 @@ function printRules(state) {
               subroutine = state.subroutines[++subroutineIndex]) {
             subrtext += `SUBROUTINE ${subroutine.label}<br>`;
         }
-        if (loopIndex < state.loops.length) {
-            if (state.loops[loopIndex][0] < rule.lineNumber) {
-                output += subrtext + "STARTLOOP<br>";
-                subrtext = '';
-                loopIndex++;
-                if (loopIndex < state.loops.length) { // don't die with mismatched loops
-                    loopEnd = state.loops[loopIndex][0];
-                    loopIndex++;
-                }
-            }
-        }
-        if (loopEnd !== -1 && loopEnd < rule.lineNumber) {
-            output += "ENDLOOP<br>";
-            loopEnd = -1;
+        while (loopIndex < state.loops.length) {
+            const loop = state.loops[loopIndex];
+            if (loop[0] < rule.lineNumber) {
+                if (loop[1] == 1) {
+                    output += subrtext + "STARTLOOP<br>";
+                    subrtext = '';
+                } else output += "ENDLOOP<br>";
+            } else break;
+            loopIndex++;
         }
         output += subrtext;
         if (rule.hasOwnProperty('discard')) {
@@ -17444,11 +17677,10 @@ function printRules(state) {
             output += rule.stringRep + "<br>";
         }
     }
-    if (loopEnd !== -1) { // no more rules after loop end
+    if (loopIndex < state.loops.length)
         output += "ENDLOOP<br>";
-    }
-    output += "===========<br>";
-    output = "<br>Rule Assembly : (" + (state.rules.length - discardcount) + " rules)<br>===========<br>" + output;
+    output += "=============<br>";
+    output = "<br>Rule Assembly : (" + (state.rules.length - discardcount) + " rules)<br>=============<br>" + output;
     consolePrint(output);
 }
 
@@ -17522,7 +17754,9 @@ function generateLoopPoints(state) {
             } else {
                 if (firstRuleLine >= loop[0]) {
                     source = i - 1;
-                    loopPoint[source] = target;
+                    // this test can fail if there are no rules between startloop and endloop, either way
+                    if (source >= target)
+                        loopPoint[source] = target;
                     outside = true;
                     break;
                 }
@@ -17696,14 +17930,15 @@ function generateSoundData(state) {
 
 
 function formatHomePage(state) {
-    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.background_color) : '#000000';
-    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.text_color) : "#FFFFFF";
-    state.author_color = ('author_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.author_color) : "#FFFFFF";
-    state.title_color = ('title_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.title_color) : "#FFFFFF";
-    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(colorPalette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
+    // twiddle metadata doesn't set these
+    // twiddleMetadataExtras();     //::
+    state.bgcolor = ('background_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.background_color) : '#000000';
+    state.fgcolor = ('text_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.text_color) : "#FFFFFF";
+    state.author_color = ('author_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.author_color) : "#FFFFFF";
+    state.title_color = ('title_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.title_color) : "#FFFFFF";
+    state.keyhint_color = ('keyhint_color' in state.metadata) ? colorToHex(state.metadata.color_palette, state.metadata.keyhint_color) : "#FFFFFF"; // todo:
 
     if (canSetHTMLColors) {
-
         if ('background_color' in state.metadata) {
             document.body.style.backgroundColor = state.bgcolor;
         }
@@ -17727,10 +17962,10 @@ function formatHomePage(state) {
     }
 
     if ('homepage' in state.metadata) {
-        var url = state.metadata['homepage'];
+        var url = state.metadata.homepage;
         url = url.replace("http://", "");
         url = url.replace("https://", "");
-        state.metadata['homepage'] = url;
+        state.metadata.homepage = url;
     }
 }
 
@@ -17758,6 +17993,10 @@ function loadFile(str) {
     if (debugSwitch.includes('tag')) console.log('Mappings', state.mappings);
     if (debugSwitch.includes('layer')) console.log('Collision Layers', state.collisionLayers);
     if (debugSwitch.includes('layer')) console.log('Collision Layer Groups', state.collisionLayerGroups);
+
+    // placed here so that the parsed metadata is available
+	twiddleMetaData(state);
+
     generateExtraMembers(state);
 	generateMasks(state);
 	levelsToArray(state);
@@ -17797,16 +18036,17 @@ function loadFile(str) {
 	processWinConditions(state);
 	checkObjectsAreLayered(state);
 
-	twiddleMetaData(state);
+	//twiddleMetaData(state);
 	
 	generateExtraMembersPart2(state);
 
 	generateLoopPoints(state);
+    if (debugSwitch.includes('rules')) console.log('Loop Points', state.loopPoint);
+    if (debugSwitch.includes('rules')) console.log('Late Loop Points', state.lateLoopPoint);
 
-    fixUpGosubs(state.rules, state.subroutines);  //@@
-    fixUpGosubs(state.lateRules, state.subroutines);  //@@
-    //fixUpGosubs(state);  //@@
-
+    fixUpGosubs(state.rules, state.subroutines);
+    fixUpGosubs(state.lateRules, state.subroutines);
+    
     generateSoundData(state);
 
     formatHomePage(state);
@@ -18524,13 +18764,14 @@ function mouseAction(event,click,id) {
 				} else if (mouseCoordY > 2 && mouseCoordY < 12) {
 					const clickedLevel = mouseCoordY - 3 + levelSelectScrollPos;
 					if (clickedLevel < state.sections.length) {
-						generateLevelSelectScreen(-1, 0, mouseCoordY);
+						// do this first, because it will get cancelled if locked
 						if (titleSelection != null) {
 							titleSelected=true;
 							messageselected=false;
 							timer=0;
 							quittingTitleScreen=true;
 						}						
+						generateLevelSelectScreen(-1, 0, mouseCoordY);
 					}
 				}
 			} else if (titleMode == 3) { // pause screen select
@@ -18957,12 +19198,15 @@ function onMouseWheel(event) {
 
 	if (!mouseInCanvas || event.ctrlKey) {return;}
 
-	normalizedDelta = Math.sign(event.deltaY);
-
-	if (titleScreen && titleMode == 2 && (IsMouseGameInputEnabled())) {
-		levelSelectScroll(normalizedDelta);
-
-		redraw();
+	const normalizedDelta = Math.sign(event.deltaY);
+	if (titleScreen && IsMouseGameInputEnabled()) {
+		if(titleMode == 1) {
+			generateTitleScreen(-1, normalizedDelta);
+		} else if(titleMode == 2) {
+			generateLevelSelectScreen(-1, normalizedDelta);
+		} else if (titleMode == 3) {
+			generatePauseScreen(-1, normalizedDelta);
+		}
 		prevent(event)
 	}
 	if (levelEditorOpened) {
@@ -18970,12 +19214,6 @@ function onMouseWheel(event) {
 		redraw();
 		prevent(event)
 	}
-}
-
-function levelSelectScroll(direction) {
-	levelSelectScrollPos = clamp(levelSelectScrollPos + direction, 0, Math.max(state.sections.length - amountOfLevelsOnScreen, 0));
-	titleSelection = clamp(titleSelection + direction, 0, state.sections.length - 1);
-	generateLevelSelectScreen();
 }
 
 function clamp(number, min, max) {
@@ -19215,7 +19453,7 @@ function checkKey(e,justPressed) {
         		stopSolving();
         		break;
         	}
-			if (!titleScreen) {
+			if (!titleScreen && state.metadata.enable_pause) {
 				goToPauseScreen(); 
 				canvasResize();
 			} else if (!titleScreen || titleMode > 1) {
@@ -19224,7 +19462,8 @@ function checkKey(e,justPressed) {
 					titleSelection = 0;
 					
 					timer = 0;
-					if(titleScreen === false && state.metadata["level_select"] !== undefined) {
+					if(!titleScreen && state.metadata.level_select) {
+						titleSelection = null;
 						gotoLevelSelectScreen();
 					} else {
 						goToTitleScreen();
@@ -19453,7 +19692,7 @@ function update() {
         }
     }
     if (againing) {
-        if (timer>againinterval && messagetext == "") {
+        if (timer>againinterval && messagetext == "" && !isTweening) {
             if (processInput(-1)) {
                 draw = true;
                 keyRepeatTimer=0;
