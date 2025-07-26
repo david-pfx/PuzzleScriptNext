@@ -15,13 +15,15 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25g23. 
+The latest version is Release v-25g26. 
 
 This release implements new features:
 * Custom palette #128
 * Set palette at runtime via metadata twiddling #95
 * Updated documentation (`Prelude` and `Runtime Metadata Twiddling`)
 * Updated version of `colour_chart` to show these features.
+* New: Fixed regression on `verbose_logging`.
+* New: Palette changes in `netgame`.
 
 This should be regarded as beta at this stage. 
 The changes were more intrusive than I would like, and several bugs surfaced during testing.
