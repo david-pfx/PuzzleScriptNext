@@ -400,9 +400,9 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 			}
 		}
 		if(state.metadata.level_select_unlocked_ahead !== undefined) {
-			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
+			unlockedUntil += state.metadata.level_select_unlocked_ahead;
 		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
-			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
+			unlockedUntil = solvedSections.length + state.metadata.level_select_unlocked_rollover - 1;
 		} else {
 			unlockedUntil += 1;
 		}
@@ -670,6 +670,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 	suppressInput = false;
     if (leveldat===undefined) {
     	consolePrint("Trying to access a level that doesn't exist.",true);
+		curLevelNo = 0;  // bad level from storage, needs to be reset in case of skip_title_screen
 		goToTitleScreen();
     	return;
     }
@@ -689,7 +690,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 			consolePrint(`GOTO (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
       	//tryPlayGotoSound();
-      	setSectionSolved(state.levels[Number(curLevelNo)].section)
+      	setSectionSolved(state.levels[curLevelNo].section)
       	gotoLevel(leveldat.target);
     } else {
       	titleMode=0;
@@ -1020,9 +1021,9 @@ function setGameState(_state, command, randomseed) {
 			regenText();
 			tryLoadImages();
 
-			if (state.metadata.skip_title_screen!==undefined) {
+			if (state.metadata.skip_title_screen) {
 				consolePrint("Skipping title screen.")
-				if(state.metadata["continue_is_level_select"] !== undefined) {
+				if(state.metadata.continue_is_level_select) {
 					gotoLevelSelectScreen();
 				}
 				else if(titleMode <= 1) {
@@ -2806,7 +2807,7 @@ Rule.prototype.queueCommands = function() {
   	}
 };
 
-// despite its name, this function exists to establish default values for prelude settings
+// set various prelude settings from metadata, either initially or when twiddled
 function twiddleMetadataExtras(resetAutoTick = true) {
     if (debugSwitch.includes('meta')) console.log(`twiddleMetaDataExtras resetAutoTick=${resetAutoTick} metadata:`, state.metadata);
 	autotickinterval=state.metadata.realtime_interval ? state.metadata.realtime_interval*1000 : 0;
@@ -3768,7 +3769,7 @@ function nextLevel() {
 	againing=false;
 	messagetext="";
 	statusText = "";
-	if (state && state.levels && (curLevelNo>state.levels.length) ){
+	if (state && state.levels && (curLevelNo>state.levels.length-1) ){
 		curLevelNo=state.levels.length-1;
 	}
   
@@ -3804,11 +3805,11 @@ function nextLevel() {
 
 		if (curLevelNo<(state.levels.length-1)) {
 			var skip = false;
-			var curSection = state.levels[Number(curLevelNo)].section;
-			var nextSection = state.levels[Number(curLevelNo)+1].section;
+			var curSection = state.levels[curLevelNo].section;
+			var nextSection = state.levels[curLevelNo+1].section;
 			if(nextSection != curSection) {
-				setSectionSolved(state.levels[Number(curLevelNo)].section);
-				
+				setSectionSolved(state.levels[curLevelNo].section);
+
 				if(solvedSections.length == state.sections.length && state.winSection != undefined) {
 					curLevelNo = state.winSection.firstLevel - 1; // it's gonna be increased to match few lines below
 				} else if (nextSection == "__WIN__") {
@@ -3828,7 +3829,7 @@ function nextLevel() {
 			}
 		} else {
 			if (solvedSections.length == state.sections.length) {
-				if (state.metadata["level_select"] === undefined) {
+				if (!state.metadata.level_select) {
 					// solved all
 					try {
 						storage_remove(document.URL);
@@ -3845,8 +3846,8 @@ function nextLevel() {
 
 				tryPlayEndGameSound();
 			} else {
-				if (state.levels[Number(curLevelNo)].section != null) {
-					setSectionSolved(state.levels[Number(curLevelNo)].section);
+				if (state.levels[curLevelNo].section != null) {
+					setSectionSolved(state.levels[curLevelNo].section);
 				}
 				gotoLevelSelectScreen();
 			}

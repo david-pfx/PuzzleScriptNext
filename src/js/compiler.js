@@ -479,24 +479,22 @@ function generateExtraMembers(state) {
     debugMode = false;
     verbose_logging = false;
     throttle_movement = false;
-    for (var i = 0; i < state.metadata.length; i += 2) {
-        var key = state.metadata[i];
-        var val = state.metadata[i + 1];
-        if (key === 'debug' || defaultDebugMode) {
-            if (IDE && unitTesting===false){
-                debugMode = true;
-                cache_console_messages = true;
-            }
-        } else if (key === 'verbose_logging' || defaultVerboseLogging) {
-            if (IDE && unitTesting===false){
-                verbose_logging = true;
-                cache_console_messages = true;
-            }
-        } else if (key === 'throttle_movement') {
-            throttle_movement = true;
+    if (state.metadata.debug || defaultDebugMode) {
+        if (IDE && !unitTesting) {
+            debugMode = true;
+            cache_console_messages = true;
+        }
+    } 
+    if (state.metadata.verbose_logging || defaultVerboseLogging) {
+        if (IDE && !unitTesting) {
+            verbose_logging = true;
+            cache_console_messages = true;
         }
     }
-
+    if (state.metadata.throttle_movement) {
+        throttle_movement = true;
+    }
+        
     // fix and convert colors to hex
     const maxColours = 36; // now 0-9 and a-z
     for (const obj of Object.values(state.objects)) {
@@ -799,7 +797,7 @@ function generateExtraMembers(state) {
 function generateExtraMembersPart2(state) {
 	function assignMouseObject(preludeTerm, defaultName) {
 		if (preludeTerm in state.metadata) {
-			var name = state.metadata[preludeTerm] || defaultName;
+			var name = state.metadata.preludeTerm || defaultName;
             var id = null;
             var object = null;
 			if (state.objects[name]) {
@@ -837,8 +835,7 @@ function generateExtraMembersPart2(state) {
 	state.rmbupID = assignMouseObject("mouse_rup", "rmbup");
 	
 	if ("mouse_obstacle" in state.metadata) {
-		var name = state.metadata["mouse_obstacle"];
-		
+		var name = state.metadata.mouse_obstacle;	
 		if (name) {
 			state.obstacleMask = state.objectMasks[name];
 			if (!state.obstacleMask) {
@@ -2993,10 +2990,10 @@ function checkObjectsAreLayered(state) {
 }
 
 function isInt(value) {
-    return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
+    return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value));     //todo: something is not right here
 }
 
-// convert metadata to object format and validate
+// convert initial metadata to object format and validate
 // of if command is given, update the metadata with that command
 function twiddleMetaData(state, command = null) {
     if (debugSwitch.includes('meta')) console.log(`twiddleMetaData update=${command} metadata:`, state.metadata);
@@ -3623,10 +3620,10 @@ function formatHomePage(state) {
     }
 
     if ('homepage' in state.metadata) {
-        var url = state.metadata['homepage'];
+        var url = state.metadata.homepage;
         url = url.replace("http://", "");
         url = url.replace("https://", "");
-        state.metadata['homepage'] = url;
+        state.metadata.homepage = url;
     }
 }
 
