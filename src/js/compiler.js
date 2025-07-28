@@ -797,7 +797,7 @@ function generateExtraMembers(state) {
 function generateExtraMembersPart2(state) {
 	function assignMouseObject(preludeTerm, defaultName) {
 		if (preludeTerm in state.metadata) {
-			var name = state.metadata.preludeTerm || defaultName;
+			var name = state.metadata[preludeTerm] || defaultName;
             var id = null;
             var object = null;
 			if (state.objects[name]) {
