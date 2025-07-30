@@ -59,7 +59,8 @@ function dumpTestCase() {
 	],`;
 	selectableint++;
 	var tag = 'selectable'+selectableint;
-	consolePrint("<br>Compilation error/warning data (for error message tests - errormessage_testdata.js):<br><br><br><span id=\""+tag+"\" onclick=\"selectText('"+tag+"',event)\">"+resultstring+"</span><br><br><br>",true);
+	consolePrint("<br>Compilation error/warning data (for error message tests - errormessage_testdata.js):<br><br><br><span id=\""
+		+tag+"\" onclick=\"selectText('"+tag+"',event)\">"+resultstring+"</span><br><br><br>",true);
 
 	
 	//if the game is currently running and not on the title screen, dump the recording data
@@ -81,7 +82,8 @@ function dumpTestCase() {
 	selectableint++;
 	var tag = 'selectable'+selectableint;
 	
-	consolePrint("<br>Recorded play session data (for play session tests - testdata.js):<br><br><br><span id=\""+tag+"\" onclick=\"selectText('"+tag+"',event)\">"+resultstring+"</span><br><br><br>",true);
+	consolePrint("<br>Recorded play session data (for play session tests - testdata.js):<br><br><br><span id=\""
+		+tag+"\" onclick=\"selectText('"+tag+"',event)\">"+resultstring+"</span><br><br><br>",true);
 	}
 
 }

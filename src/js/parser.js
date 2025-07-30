@@ -94,8 +94,8 @@ function logErrorCacheable(str, lineNumber,urgent) {
             errorCount++;
 			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -105,17 +105,17 @@ function logError(str, lineNumber,urgent) {
             return logErrorNoLine(str,urgent);
         }
         var errorString = '<a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);"><span class="errorTextLineNumber"> line ' + lineNumber.toString() + '</span></a> : ' + '<span class="errorText">' + str + '</span>';
-         if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
+        if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
             //do nothing, duplicate error
-         } else {
+        } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
             errorStringsOnly.push(errorString);
             errorCount++;
 			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -130,9 +130,9 @@ function logWarning(str, lineNumber, urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-			if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
-                TooManyErrors();
-            }
+			// if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
+            //     TooManyErrors();
+            // }
         }
     }
 }
@@ -145,12 +145,11 @@ function logWarningNoLine(str, urgent, increaseErrorCount = false) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-            if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
+            if (increaseErrorCount)
+                errorCount++;
+			if (errorCount > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
             }
-        }
-        if (increaseErrorCount) {
-            errorCount++;
         }
     }
 }

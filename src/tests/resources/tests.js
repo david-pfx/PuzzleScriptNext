@@ -28,9 +28,9 @@ QUnit.config.urlConfig.push({
 	tooltip: "Enabling this will show errors but not warnings."
 });
 
-runRuleSuite('PS rules ⚖️', testdata);
-runRuleSuite('PS+ rules ⚖️', plus_testdata);
-runRuleSuite('PS> rules ⚖️', next_testdata);
+runRuleSuite('PS rules ⚖️', testdata, false);
+runRuleSuite('PS+ rules ⚖️', plus_testdata, true);
+runRuleSuite('PS> rules ⚖️', next_testdata, true);
 runCompileSuite('PS compile 🐛', errormessage_testdata);
 runCompileSuite('PS+ compile 🐛', plus_errormessage_testdata);
 
@@ -42,10 +42,10 @@ runFileSuite('Demo files 📃', scripts_data);
 //addStartLink();
 
 // run tests that check for correct result in final level, seed and sound
-function runRuleSuite(module, testDataList) {
+function runRuleSuite(module, testDataList, checkerrors) {
 	QUnit.module(module, () => {
 	for (const [testName, testData] of testDataList.slice(0,limit)) 
-		testRule(testName, testData);
+		testRule(testName, testData, checkerrors);
 	});
 }
 
@@ -66,7 +66,7 @@ function runFileSuite(module, testdata) {
 	});
 }
 
-function testRule(testName, testData) {
+function testRule(testName, testData, checkerrors) {
 	const [tdCode, tdi, tdResult, tdl, tdSeed, tdSounds] = testData;
 	const tdInput = tdi.map( j => inputVals[j] )
 		.join('')
@@ -85,7 +85,7 @@ function testRule(testName, testData) {
 		function(tdat) {
 			return function() {
 				testLookup[QUnit.config.current.testId] = testData;
-				QUnit.assert.true(runTest(tdat),
+				QUnit.assert.true(runTest(tdat, checkerrors),
 					"Passed all tests"
 				+ tdDescription
 				+ (errstrings.length > 0 ? listify('Actual errors', errstrings) : '')

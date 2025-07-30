@@ -1,16 +1,15 @@
 // perform a single run test
-var enableCheckErrors = false;
 
-function runTest(dataarray) {
+function runTest(dataarray, checkErrors) {
 	unitTesting=true;
 	errorStrings = [];
 	errorCount=0;
 
 	// Why???
-	// for (var i=0;i<errorStrings.length;i++) {
-	// 	var s = errorStrings[i];
-	// 	throw s;
-	// }
+	for (var i=0;i<errorStrings.length;i++) {
+		var s = errorStrings[i];
+		throw s;
+	}
 
 	var levelString = dataarray[0];  // accessed globally?
 	const inputDat = dataarray[1];
@@ -55,7 +54,7 @@ function runTest(dataarray) {
 		resultOk &&= actualSounds == expectedSounds;
 	}
 
-	if (enableCheckErrors) {
+	if (checkErrors) {
 		QUnit.assert.true(errorCount == 0, `No errors during testing.`);
 		resultOk &&= errorCount == 0;
 	}
