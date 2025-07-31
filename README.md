@@ -15,30 +15,26 @@ PuzzleScript Next is a combination of the work of many authors:
 * and ongoing development work inspired by its many users (like you).
 
 ## New Features and Fixes
-The latest version is Release v-25g26. 
+The latest version is Release v-25g31. 
 
-This release implements new features:
+Recent fixes/updates:
+* Fix: ESC+replay does not restore state cleanly #181
+* Fix: Objects misplaced after Restart #180
+* Fix: mouse support broken on dev-release #179
+* Testing framework enable compile error check for non-PS
+
+Older fixes/updates:
 * Custom palette #128
 * Set palette at runtime via metadata twiddling #95
 * Updated documentation (`Prelude` and `Runtime Metadata Twiddling`)
 * Updated version of `colour_chart` to show these features.
 * New: Fixed regression on `verbose_logging`.
 * New: Palette changes in `netgame`.
-
-This should be regarded as beta at this stage. 
-The changes were more intrusive than I would like, and several bugs surfaced during testing.
-I hope I found and fixed them all, but you have been warned!
-
-I look forward to someone producing some striking visual effects and/or animations using this feature.
-
-Recent fixes/updates:
 * Idents targeted by `export_options` must not be quoted in order to survive minification
 * Fix: After level select, scroll, select, the Run link does not reset the game properly #177
 * Fix: Adding smoothscreen to an existing program in the editor triggers a crash on Build #176
 * Documentation for `load_images` #129. New feature previously included for testing but not documented until now.
 * New games imported from PS and added to gallery.
-
-Older fixes/updates:
 * Fix Link breaks after exit and continue #164
 * Fix ESC menu not always offered #174
 * Update docs for enable_pause
