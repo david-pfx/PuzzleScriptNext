@@ -8337,7 +8337,7 @@ function selectPauseScreen(lineNo) {
 			}
 		},
 		!state.metadata.norestart ? () => {
-			DoRestart(true);
+			DoRestart();
 			textMode = false;
 			titleScreen = false;
 			canvasResize();
@@ -8442,9 +8442,9 @@ function generateLevelSelectScreen(hoverLine, scrollIncrement, selectLine) {
 			}
 		}
 		if(state.metadata.level_select_unlocked_ahead !== undefined) {
-			unlockedUntil += Number(state.metadata.level_select_unlocked_ahead);
+			unlockedUntil += state.metadata.level_select_unlocked_ahead;
 		} else if (state.metadata.level_select_unlocked_rollover !== undefined) {
-			unlockedUntil = solvedSections.length + Number(state.metadata.level_select_unlocked_rollover) - 1;
+			unlockedUntil = solvedSections.length + state.metadata.level_select_unlocked_rollover - 1;
 		} else {
 			unlockedUntil += 1;
 		}
@@ -8732,7 +8732,7 @@ function loadLevelFromLevelDat(state,leveldat,randomseed,clearinputhistory) {
 			consolePrint(`GOTO (${htmlJump(leveldat.lineNumber)})`, true, leveldat.lineNumber);
       	// This "level" is actually a goto.
       	//tryPlayGotoSound();
-      	setSectionSolved(state.levels[Number(curLevelNo)].section)
+      	setSectionSolved(state.levels[curLevelNo].section)
       	gotoLevel(leveldat.target);
     } else {
       	titleMode=0;
@@ -11482,7 +11482,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			if (!dontModify){
 	    		DoRestart(true);
 			}
-    		return true;
 		}
 		
 		if (curLevel.commandQueue.indexOf('quit')>=0 && !solving) {
@@ -11540,7 +11539,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    	}
 	    }
 
-		if (dontModify && curLevel.commandQueue.indexOf('win')>=0) {	
+		if (dontModify && curLevel.commandQueue.indexOf('win')>=0 || curLevel.commandQueue.indexOf('restart')>=0) {	
 	    	return true;	
 		}
 		
@@ -11847,11 +11846,11 @@ function nextLevel() {
 
 		if (curLevelNo<(state.levels.length-1)) {
 			var skip = false;
-			var curSection = state.levels[Number(curLevelNo)].section;
-			var nextSection = state.levels[Number(curLevelNo)+1].section;
+			var curSection = state.levels[curLevelNo].section;
+			var nextSection = state.levels[curLevelNo+1].section;
 			if(nextSection != curSection) {
-				setSectionSolved(state.levels[Number(curLevelNo)].section);
-				
+				setSectionSolved(state.levels[curLevelNo].section);
+
 				if(solvedSections.length == state.sections.length && state.winSection != undefined) {
 					curLevelNo = state.winSection.firstLevel - 1; // it's gonna be increased to match few lines below
 				} else if (nextSection == "__WIN__") {
@@ -11888,8 +11887,8 @@ function nextLevel() {
 
 				tryPlayEndGameSound();
 			} else {
-				if (state.levels[Number(curLevelNo)].section != null) {
-					setSectionSolved(state.levels[Number(curLevelNo)].section);
+				if (state.levels[curLevelNo].section != null) {
+					setSectionSolved(state.levels[curLevelNo].section);
 				}
 				gotoLevelSelectScreen();
 			}
@@ -12187,8 +12186,8 @@ function logErrorCacheable(str, lineNumber,urgent) {
             errorCount++;
 			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -12198,17 +12197,17 @@ function logError(str, lineNumber,urgent) {
             return logErrorNoLine(str,urgent);
         }
         var errorString = '<a onclick="jumpToLine(' + lineNumber.toString() + ');"  href="javascript:void(0);"><span class="errorTextLineNumber"> line ' + lineNumber.toString() + '</span></a> : ' + '<span class="errorText">' + str + '</span>';
-         if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
+        if (errorStrings.indexOf(errorString) >= 0 && !urgent) {
             //do nothing, duplicate error
-         } else {
+        } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
             errorStringsOnly.push(errorString);
             errorCount++;
 			if (errorCount > MAX_ERRORS_FOR_REAL){
                 TooManyErrors();
+            }
         }
-    }
     }
 }
 
@@ -12223,9 +12222,9 @@ function logWarning(str, lineNumber, urgent) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-			if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
-                TooManyErrors();
-            }
+			// if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
+            //     TooManyErrors();
+            // }
         }
     }
 }
@@ -12238,12 +12237,11 @@ function logWarningNoLine(str, urgent, increaseErrorCount = false) {
          } else {
             consolePrint(errorString,true);
             errorStrings.push(errorString);
-            if (errorStrings.length > MAX_ERRORS_FOR_REAL) {
+            if (increaseErrorCount)
+                errorCount++;
+			if (errorCount > MAX_ERRORS_FOR_REAL) {
                 TooManyErrors();
             }
-        }
-        if (increaseErrorCount) {
-            errorCount++;
         }
     }
 }
@@ -15139,7 +15137,7 @@ function generateExtraMembers(state) {
 function generateExtraMembersPart2(state) {
 	function assignMouseObject(preludeTerm, defaultName) {
 		if (preludeTerm in state.metadata) {
-			var name = state.metadata.preludeTerm || defaultName;
+			var name = state.metadata[preludeTerm] || defaultName;
             var id = null;
             var object = null;
 			if (state.objects[name]) {
