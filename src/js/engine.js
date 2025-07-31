@@ -295,7 +295,7 @@ function selectPauseScreen(lineNo) {
 			}
 		},
 		!state.metadata.norestart ? () => {
-			DoRestart(true);
+			DoRestart();
 			textMode = false;
 			titleScreen = false;
 			canvasResize();

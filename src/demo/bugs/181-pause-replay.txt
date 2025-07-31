@@ -1,0 +1,390 @@
+title repro-181
+background_color  #030
+text_color white
+
+enable_pause
+key_repeat_interval 0.3
+again_interval 0.1
+run_rules_on_level_start
+//;
+
+// Move the player to the cross (checkpoint) then ZZZ
+// Then ESC+replay and ZZZ again
+// Now there are two players
+verbose_logging
+debug_switch 'undo'
+
+=====
+TAGS
+=====
+
+_X = _9 _8 _7 _6 _5 _4 _3 _2 _1 _0 
+
+=========
+MAPPINGS
+=========
+
+_X => add1
+_9 _8 _7 _6 _5 _4 _3 _2 _1 _0 -> _9 _9 _8 _7 _6 _5 _4 _3 _2 _1
+
+_X => sub1
+_9 _8 _7 _6 _5 _4 _3 _2 _1 _0 -> _8 _7 _6 _5 _4 _3 _2 _1 _0 _0
+
+========
+OBJECTS
+========
+
+Background .
+#c3c3ff #c8c8ff #cEcEff
+12012
+01210
+10121
+21012
+02101
+
+lawn +
+black
+
+reedbed 
+#030 #083808 #0f3f0f
+copy:Background
+
+water
+transparent
+
+reeds %
+#030 #083808 #0f3f0f
+copy:Background
+
+mud #
+#534343 #584848 #5e4e4e
+copy:Background
+
+PlayerOK
+red transparent
+0...0
+..1..
+.111.
+..1..
+0...0
+
+flash
+white transparent
+copy: playerOK
+
+playerWon
+darkgrey transparent
+copy: playerOK
+
+rattle
+transparent #fff8
+copy: playerOK
+
+xpointV
+transparent #8888
+copy: playerOK
+
+xpoint ; transparent
+
+playerSunk
+#c3a3d3 #c8a8d8 #ceaede
+.....
+.012.
+.2.1.
+.102.
+.....
+
+playerSink1
+#c3a3d3 #c8a8d8 #ceaede
+copy: playerSunk
+
+playerSink2
+#c3a3d3 #c8a8d8 #ceaede
+copy: playerSunk
+
+playerSink3
+#c3a3d3 #c8a8d8 #ceaede
+copy: playerSunk
+
+pado $ (used in level-editor)
+#6c6a
+.000.
+00000
+00000
+00000
+.000.
+
+grid 
+transparent
+
+path o 
+grey
+
+stack
+#393 #282
+.000.
+00100
+01010
+00100
+.000.
+
+stackF
+transparent
+
+pad
+#4a4 #393
+.000.
+00100
+01010
+00100
+.000.
+
+padz
+#4a4 #393
+copy: pad
+
+padF
+transparent
+
+(gone/sunk)
+(padG:directions 
+transparent #4a48
+copy: pad:directions)
+
+grow 
+#4a48
+.....
+..0..
+.000.
+..0..
+.....
+
+(seed pods on path/mud)
+S:_0
+brown
+.....
+.....
+.....
+.....
+.....
+
+S:_1
+brown
+.....
+.....
+..0..
+.....
+.....
+
+S:_2
+brown
+.....
+.0...
+.....
+...0.
+.....
+
+S:_3
+brown
+.....
+.0.0.
+.....
+..0..
+.....
+
+S:_4
+brown
+.....
+.0.0.
+.....
+.0.0.
+.....
+
+S:_5
+brown
+.....
+.0.0.
+..0..
+.0.0.
+.....
+
+S:_6
+brown
+.....
+.0.0.
+..0..
+.0.0.
+..0..
+
+S:_7
+brown
+..0..
+.0.0.
+..0..
+.0.0.
+..0..
+
+S:_8
+brown
+..0..
+.0.0.
+0.0..
+.0.0.
+..0..
+
+S:_9
+brown
+..0..
+.0.0.
+0.0.0
+.0.0.
+..0..
+
+W:_X
+#883
+copy: S:_X
+
+F:_X (flowers)
+pink
+copy: S:_X
+
+H:_X (in hand)
+black
+copy: S:_X
+
+A:_X 
+red
+copy: S:_X
+
+GA:_X
+orange
+copy: S:_X
+
+GH:_X
+#AAA
+copy: S:_X
+
+T1:_X; transparent (temporary/transparent replacement set of _X objects)
+T2:_X; transparent (temporary/transparent replacement set of _X objects)
+D:_X;  transparent (pods in flight (thrown/dropped))
+C:_X;  transparent (pods ready for collection)
+O:_X;  transparent (pods out of reach)
+L:_X;  transparent (levels)
+//E:_X; transparent
+
+sink   ; transparent
+throw  ; transparent
+pickup ; transparent
+drop   ; transparent
+plus1  ; transparent
+perish ; transparent
+collapsing ; transparent
+flop   ; transparent
+xray   ; transparent
+noxray ; transparent
+award  ; transparent
+msg1   ; transparent
+msg2   ; transparent
+rescue ; transparent
+pause  ; transparent
+finale ; transparent
+start  ; transparent
+
+=======
+LEGEND
+=======
+
+p = playerOK and path and start
+£ = path and xpoint
+
+W_X = W:_X
+S_X = S:_X
+H_X = H:_X
+D_X = D:_X
+F_X = F:_X
+C_X = C:_X
+O_X = O:_X
+A_X = A:_X
+L_X = L:_X
+GA_X = GA:_X
+GH_X = GH:_X
+T1_X = T1:_X
+T2_X = T2:_X
+reedX = reeds
+mudX  = mud
+pods = W_X or S_X 
+padX = pad
+padZX = padZ 
+padFX = padF 
+stackX = stack
+playerSinkX = playerSink1 or playerSink2 or playerSink3
+player = playerOK or playerSinkX or playerWon
+
+=======
+SOUNDS
+=======
+
+sfx0 96635906
+
+================
+COLLISIONLAYERS
+================
+
+Background
+sink msg1 msg2
+throw pickup finale
+plus1
+drop 
+path water lawn reedbed
+xpoint xpointV 
+mud reeds
+grid
+flop 
+padZ padF 
+W:_X 
+S:_X
+C:_X
+D:_X 
+O:_X 
+T1:_X 
+T2:_X
+A:_X
+L:_X 
+GA:_X
+pado 
+padX
+stackX stackF
+grow perish
+rescue
+F_X GH_X 
+rattle
+pause
+playerOK playerSinkX playerSunk playerWon
+H:_X 
+collapsing
+xray noxray
+award start flash
+
+======
+RULES     
+======  
+
+late [ player path xpoint ] -> [ player path xpointV ] checkpoint sfx0
+
+==============
+WINCONDITIONS
+==============
+
+=======     
+LEVELS
+=======
+
++++++++++++++++++++
++++++++++++++++++++
++++++++++%%%+++++++
+%%%%%%%%%%o%%%%%%%%
+opoooooooo£oooooooo
+%%%%%%%%%%o%%%%%%%%
++++++++++%%%+++++++
++++++++++++++++++++
++++++++++++++++++++
