@@ -295,7 +295,7 @@ function selectPauseScreen(lineNo) {
 			}
 		},
 		!state.metadata.norestart ? () => {
-			DoRestart(true);
+			DoRestart();
 			textMode = false;
 			titleScreen = false;
 			canvasResize();
@@ -3440,7 +3440,6 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 			if (!dontModify){
 	    		DoRestart(true);
 			}
-    		return true;
 		}
 		
 		if (curLevel.commandQueue.indexOf('quit')>=0 && !solving) {
@@ -3498,7 +3497,7 @@ function procInp(dir,dontDoWin,dontModify,bak,coord) {
 	    	}
 	    }
 
-		if (dontModify && curLevel.commandQueue.indexOf('win')>=0) {	
+		if (dontModify && curLevel.commandQueue.indexOf('win')>=0 || curLevel.commandQueue.indexOf('restart')>=0) {	
 	    	return true;	
 		}
 		

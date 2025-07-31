@@ -1,0 +1,77 @@
+title Restart Failure minimum reproduction
+author Tyler Johnson
+
+again_interval 0.1
+debug
+
+
+verbose_logging
+
+========
+OBJECTS
+========
+
+Background .
+gray
+
+
+Player
+black orange blue #053A8E
+.000.
+.111.
+22222
+.333.
+.3.3.
+
+Mark
+green
+.....
+.....
+.....
+.....
+0....
+
+
+
+
+=======
+LEGEND
+=======
+
+p = Player  and Mark
+
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Player
+Mark
+
+======
+RULES
+======
+
+
+[ Player no Mark ] -> [ ] restart
+
+[ Mark ] -> [] again
+
+
+==============
+WINCONDITIONS
+==============
+
+
+=======
+LEVELS
+=======
+
+...
+.p.
+...
