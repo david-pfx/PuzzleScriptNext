@@ -14,10 +14,18 @@ PuzzleScript Next is a combination of the work of many authors:
 * the vector feature created by [hfmanson](https://github.com/hfmanson/PuzzleScriptNext)
 * and ongoing development work inspired by its many users (like you).
 
+Due to unfriendly behaviour by moderators, PuzzleScript Next can no longer be released or supported on Discord thinky-puzzle-games.
+Feel free to:
+* raise an issue on [GitHub(https://github.com/david-pfx/PuzzleScriptNext/issues)]
+* ask a question on the [PuzzleScript forum(https://groups.google.com/g/puzzlescript)]
+* PM me on Discord (@Davidus of Polyomino)
+* email me directly (david@polyomino.com).
+
 ## New Features and Fixes
-The latest version is Release v-25g31. 
+The latest version is Release v-12h25. 
 
 Recent fixes/updates:
+* Level restored on startup triggers a crash #183
 * Fix: ESC+replay does not restore state cleanly #181
 * Fix: Objects misplaced after Restart #180
 * Fix: mouse support broken on dev-release #179
