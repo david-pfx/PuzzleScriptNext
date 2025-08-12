@@ -105,7 +105,7 @@ function doSetupTitleScreenLevelContinue(){
                 }
                 curlevelTarget.dat = new Int32Array(arr);
             }
-            curLevelNo = storage_get(document.URL); 
+            curLevelNo = +storage_get(document.URL); 
 			if (storage_has(document.URL+"_sections")) {
 				solvedSections = JSON.parse(storage_get(document.URL + "_sections"));
 			}
