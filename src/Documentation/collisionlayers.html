@@ -81,14 +81,22 @@
   <p>Objects can be placed on different layers:</p>
 
 <pre><code>COLLISIONLAYERS
-===============      
+===============
 Background
 Target
 Player, Wall, Crate</code></pre>
 
-<p>The purpose of layers is twofold. 
-Firstly, it is about resolving movements: two objects on the same layer cannot coexist in a single cell. 
+<p>The collision layers are defined from back to front, each new line is a separate collision layer. The purpose of layers is twofold, resolving movements and determining draw order.</p>
+
+<img src="images/collisionlayers.png">
+
+<p>Firstly, it is about resolving movements:
+Objects placed in the same collisionlayer can interact with each other through the <a href="rules101.html">rules</a> (collide, push, pull) but two objects on the same layer cannot coexist in a single cell.
 If an object tries to move into a cell where there is already an object in that layer, it will be blocked. </p>
+
+<p>By placing objects in different layers, two (or more) object types can exist in the same grid location, without one overwriting or removing the other.
+In SokoBan this is typically used for the crates and the targets where the crates need to be placed.
+Other example cases for separate CollisionLayers are: a Player that can climb Ladder tiles, a Train that can ride Rails, a Lightray that can overlap Ground tiles, and so on.</p>
 <p>Secondly the order of layers determines in what order things are drawn.
   Objects are drawn from back to front, earlier objects are hidden by later ones.</p>
 <p>The <b>background</b> layer is a special layer, below everything else. 
